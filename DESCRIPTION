@@ -17,6 +17,9 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.0
 LinkingTo: 
     Rcpp,
-    RcppEigen
+    RcppEigen,
 Imports: 
-    Rcpp
+    Rcpp,
+    FishLife (>= 2.0.0),
+Remotes: 
+    james-thorson/FishLife
