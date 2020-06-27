@@ -16,24 +16,47 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// fish_model
-Rcpp::NumericMatrix fish_model(const Eigen::VectorXd length_at_age, const Eigen::VectorXd weight_at_age, const Eigen::VectorXd maturity_at_age, const Eigen::MatrixXd movement, Eigen::MatrixXd n_p_a, const int patches, const int sim_steps, const int burn_steps, const double steepness, const double r0, const double m);
-RcppExport SEXP _mar_fish_model(SEXP length_at_ageSEXP, SEXP weight_at_ageSEXP, SEXP maturity_at_ageSEXP, SEXP movementSEXP, SEXP n_p_aSEXP, SEXP patchesSEXP, SEXP sim_stepsSEXP, SEXP burn_stepsSEXP, SEXP steepnessSEXP, SEXP r0SEXP, SEXP mSEXP) {
+// sim_fish_pop
+List sim_fish_pop(const NumericVector length_at_age, const NumericVector weight_at_age, const NumericVector maturity_at_age, const Eigen::MatrixXd movement, Rcpp::NumericMatrix n_p_a, const int patches, const int sim_steps, const int burn_steps, const double steepness, const double r0, const double ssb0, const double m);
+RcppExport SEXP _mar_sim_fish_pop(SEXP length_at_ageSEXP, SEXP weight_at_ageSEXP, SEXP maturity_at_ageSEXP, SEXP movementSEXP, SEXP n_p_aSEXP, SEXP patchesSEXP, SEXP sim_stepsSEXP, SEXP burn_stepsSEXP, SEXP steepnessSEXP, SEXP r0SEXP, SEXP ssb0SEXP, SEXP mSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Eigen::VectorXd >::type length_at_age(length_at_ageSEXP);
-    Rcpp::traits::input_parameter< const Eigen::VectorXd >::type weight_at_age(weight_at_ageSEXP);
-    Rcpp::traits::input_parameter< const Eigen::VectorXd >::type maturity_at_age(maturity_at_ageSEXP);
+    Rcpp::traits::input_parameter< const NumericVector >::type length_at_age(length_at_ageSEXP);
+    Rcpp::traits::input_parameter< const NumericVector >::type weight_at_age(weight_at_ageSEXP);
+    Rcpp::traits::input_parameter< const NumericVector >::type maturity_at_age(maturity_at_ageSEXP);
     Rcpp::traits::input_parameter< const Eigen::MatrixXd >::type movement(movementSEXP);
-    Rcpp::traits::input_parameter< Eigen::MatrixXd >::type n_p_a(n_p_aSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type n_p_a(n_p_aSEXP);
     Rcpp::traits::input_parameter< const int >::type patches(patchesSEXP);
     Rcpp::traits::input_parameter< const int >::type sim_steps(sim_stepsSEXP);
     Rcpp::traits::input_parameter< const int >::type burn_steps(burn_stepsSEXP);
     Rcpp::traits::input_parameter< const double >::type steepness(steepnessSEXP);
     Rcpp::traits::input_parameter< const double >::type r0(r0SEXP);
+    Rcpp::traits::input_parameter< const double >::type ssb0(ssb0SEXP);
     Rcpp::traits::input_parameter< const double >::type m(mSEXP);
-    rcpp_result_gen = Rcpp::wrap(fish_model(length_at_age, weight_at_age, maturity_at_age, movement, n_p_a, patches, sim_steps, burn_steps, steepness, r0, m));
+    rcpp_result_gen = Rcpp::wrap(sim_fish_pop(length_at_age, weight_at_age, maturity_at_age, movement, n_p_a, patches, sim_steps, burn_steps, steepness, r0, ssb0, m));
+    return rcpp_result_gen;
+END_RCPP
+}
+// est_ssb0
+List est_ssb0(NumericVector length_at_age, NumericVector weight_at_age, NumericVector maturity_at_age, Eigen::MatrixXd movement, Rcpp::NumericMatrix n_p_a, int patches, int sim_steps, int burn_steps, double steepness, double r0, double ssb0, double m);
+RcppExport SEXP _mar_est_ssb0(SEXP length_at_ageSEXP, SEXP weight_at_ageSEXP, SEXP maturity_at_ageSEXP, SEXP movementSEXP, SEXP n_p_aSEXP, SEXP patchesSEXP, SEXP sim_stepsSEXP, SEXP burn_stepsSEXP, SEXP steepnessSEXP, SEXP r0SEXP, SEXP ssb0SEXP, SEXP mSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type length_at_age(length_at_ageSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type weight_at_age(weight_at_ageSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type maturity_at_age(maturity_at_ageSEXP);
+    Rcpp::traits::input_parameter< Eigen::MatrixXd >::type movement(movementSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type n_p_a(n_p_aSEXP);
+    Rcpp::traits::input_parameter< int >::type patches(patchesSEXP);
+    Rcpp::traits::input_parameter< int >::type sim_steps(sim_stepsSEXP);
+    Rcpp::traits::input_parameter< int >::type burn_steps(burn_stepsSEXP);
+    Rcpp::traits::input_parameter< double >::type steepness(steepnessSEXP);
+    Rcpp::traits::input_parameter< double >::type r0(r0SEXP);
+    Rcpp::traits::input_parameter< double >::type ssb0(ssb0SEXP);
+    Rcpp::traits::input_parameter< double >::type m(mSEXP);
+    rcpp_result_gen = Rcpp::wrap(est_ssb0(length_at_age, weight_at_age, maturity_at_age, movement, n_p_a, patches, sim_steps, burn_steps, steepness, r0, ssb0, m));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -74,6 +97,45 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// sraplus
+List sraplus(NumericVector catches, NumericVector rs, NumericVector ms, NumericVector init_deps, NumericVector anchors, NumericVector qs, NumericVector sigma_procs, NumericVector drawdex, NumericVector index_t, NumericVector sigma_obs, NumericVector log_terminal_u, NumericVector log_terminal_u_cv, IntegerVector index_years, IntegerVector u_years, int draws, int n_keep, int b_ref_type, int f_ref_type, int fit_index, int use_terminal_u, int use_terminal_state, bool estimate_k, double log_terminal_ref, double sigma_dep, double plim, int use_u_prior, NumericVector u_priors, double sigma_u, double learn_rate);
+RcppExport SEXP _mar_sraplus(SEXP catchesSEXP, SEXP rsSEXP, SEXP msSEXP, SEXP init_depsSEXP, SEXP anchorsSEXP, SEXP qsSEXP, SEXP sigma_procsSEXP, SEXP drawdexSEXP, SEXP index_tSEXP, SEXP sigma_obsSEXP, SEXP log_terminal_uSEXP, SEXP log_terminal_u_cvSEXP, SEXP index_yearsSEXP, SEXP u_yearsSEXP, SEXP drawsSEXP, SEXP n_keepSEXP, SEXP b_ref_typeSEXP, SEXP f_ref_typeSEXP, SEXP fit_indexSEXP, SEXP use_terminal_uSEXP, SEXP use_terminal_stateSEXP, SEXP estimate_kSEXP, SEXP log_terminal_refSEXP, SEXP sigma_depSEXP, SEXP plimSEXP, SEXP use_u_priorSEXP, SEXP u_priorsSEXP, SEXP sigma_uSEXP, SEXP learn_rateSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type catches(catchesSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type rs(rsSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type ms(msSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type init_deps(init_depsSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type anchors(anchorsSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type qs(qsSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type sigma_procs(sigma_procsSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type drawdex(drawdexSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type index_t(index_tSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type sigma_obs(sigma_obsSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type log_terminal_u(log_terminal_uSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type log_terminal_u_cv(log_terminal_u_cvSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type index_years(index_yearsSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type u_years(u_yearsSEXP);
+    Rcpp::traits::input_parameter< int >::type draws(drawsSEXP);
+    Rcpp::traits::input_parameter< int >::type n_keep(n_keepSEXP);
+    Rcpp::traits::input_parameter< int >::type b_ref_type(b_ref_typeSEXP);
+    Rcpp::traits::input_parameter< int >::type f_ref_type(f_ref_typeSEXP);
+    Rcpp::traits::input_parameter< int >::type fit_index(fit_indexSEXP);
+    Rcpp::traits::input_parameter< int >::type use_terminal_u(use_terminal_uSEXP);
+    Rcpp::traits::input_parameter< int >::type use_terminal_state(use_terminal_stateSEXP);
+    Rcpp::traits::input_parameter< bool >::type estimate_k(estimate_kSEXP);
+    Rcpp::traits::input_parameter< double >::type log_terminal_ref(log_terminal_refSEXP);
+    Rcpp::traits::input_parameter< double >::type sigma_dep(sigma_depSEXP);
+    Rcpp::traits::input_parameter< double >::type plim(plimSEXP);
+    Rcpp::traits::input_parameter< int >::type use_u_prior(use_u_priorSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type u_priors(u_priorsSEXP);
+    Rcpp::traits::input_parameter< double >::type sigma_u(sigma_uSEXP);
+    Rcpp::traits::input_parameter< double >::type learn_rate(learn_rateSEXP);
+    rcpp_result_gen = Rcpp::wrap(sraplus(catches, rs, ms, init_deps, anchors, qs, sigma_procs, drawdex, index_t, sigma_obs, log_terminal_u, log_terminal_u_cv, index_years, u_years, draws, n_keep, b_ref_type, f_ref_type, fit_index, use_terminal_u, use_terminal_state, estimate_k, log_terminal_ref, sigma_dep, plim, use_u_prior, u_priors, sigma_u, learn_rate));
+    return rcpp_result_gen;
+END_RCPP
+}
 // timesTwo
 NumericVector timesTwo(NumericVector x);
 RcppExport SEXP _mar_timesTwo(SEXP xSEXP) {
@@ -88,9 +150,11 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_mar_sample_problem", (DL_FUNC) &_mar_sample_problem, 0},
-    {"_mar_fish_model", (DL_FUNC) &_mar_fish_model, 11},
+    {"_mar_sim_fish_pop", (DL_FUNC) &_mar_sim_fish_pop, 12},
+    {"_mar_est_ssb0", (DL_FUNC) &_mar_est_ssb0, 12},
     {"_mar_popmodel", (DL_FUNC) &_mar_popmodel, 14},
     {"_mar_move_matrix_eigen", (DL_FUNC) &_mar_move_matrix_eigen, 3},
+    {"_mar_sraplus", (DL_FUNC) &_mar_sraplus, 29},
     {"_mar_timesTwo", (DL_FUNC) &_mar_timesTwo, 1},
     {NULL, NULL, 0}
 };
