@@ -17,7 +17,7 @@ List sim_fish_pop(
     const double r0,
     double ssb0,
     const double m,
-    const bool tune_unfished){
+    bool tune_unfished){
 
 
   int steps = sim_steps; // total number of years to run
@@ -41,7 +41,11 @@ List sim_fish_pop(
 
   Rcpp::List tmppop;
 
-  if (tune_unfished == 1){
+  // Rcpp::Rcout<< ssb0 << std::endl;
+
+  // Rcpp::Rcout<< Rcpp::traits::is_na<REALSXP>(ssb0) << std::endl;
+
+  if (Rcpp::traits::is_na<REALSXP>(ssb0) == 1){
 
 
     for (int b = 0; b < burn_steps; b++){
@@ -53,7 +57,7 @@ List sim_fish_pop(
 
       // tmppop = b;
 
-      Rcpp::Rcout << tmp_n_p_a(1,10) << std::endl;
+      // Rcpp::Rcout << tmp_n_p_a(1,10) << std::endl;
 
       tmppop = sim_fish_pop(
         length_at_age,
@@ -66,9 +70,9 @@ List sim_fish_pop(
         0,
         steepness,
         r0,
-        ssb0,
+        -999,
         m,
-        0);
+        1);
 
       tmp_n_p_a = wrap(tmppop["n_p_a"]);
 
@@ -148,7 +152,7 @@ List sim_fish_pop(
 
   //////////////////// spawn / recruit ////////////////////////
 
-    if (tune_unfished == 0){
+    if (tune_unfished == 1){
 
       n_p_a(_,0) = rep(r0 / patches, patches);
 
@@ -156,6 +160,8 @@ List sim_fish_pop(
 
       // global density dependence, distribute recruits evenly
       double ssb = sum(ssb_p_a);
+
+      // Rcpp::Rcout << ssb << std::endl;
 
       n_p_a(_,0) = rep(((0.8 * r0 * steepness * ssb) / (0.2 * ssb0 * (1 - steepness) + (steepness - 0.2) * ssb)) / patches, patches);
 

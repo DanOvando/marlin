@@ -7,12 +7,12 @@
 using namespace Rcpp;
 
 // timesTwo
-NumericVector timesTwo(Rcpp::NumericVector y);
+double timesTwo(double y);
 RcppExport SEXP _mar_timesTwo(SEXP ySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type y(ySEXP);
+    Rcpp::traits::input_parameter< double >::type y(ySEXP);
     rcpp_result_gen = Rcpp::wrap(timesTwo(y));
     return rcpp_result_gen;
 END_RCPP
@@ -28,7 +28,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // sim_fish_pop
-List sim_fish_pop(const NumericVector length_at_age, const NumericVector weight_at_age, const NumericVector maturity_at_age, const Eigen::MatrixXd movement, const Rcpp::NumericMatrix last_n_p_a, const int patches, const int sim_steps, const int burn_steps, const double steepness, const double r0, double ssb0, const double m, const bool tune_unfished);
+List sim_fish_pop(const NumericVector length_at_age, const NumericVector weight_at_age, const NumericVector maturity_at_age, const Eigen::MatrixXd movement, const Rcpp::NumericMatrix last_n_p_a, const int patches, const int sim_steps, const int burn_steps, const double steepness, const double r0, double ssb0, const double m, bool tune_unfished);
 RcppExport SEXP _mar_sim_fish_pop(SEXP length_at_ageSEXP, SEXP weight_at_ageSEXP, SEXP maturity_at_ageSEXP, SEXP movementSEXP, SEXP last_n_p_aSEXP, SEXP patchesSEXP, SEXP sim_stepsSEXP, SEXP burn_stepsSEXP, SEXP steepnessSEXP, SEXP r0SEXP, SEXP ssb0SEXP, SEXP mSEXP, SEXP tune_unfishedSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -45,7 +45,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const double >::type r0(r0SEXP);
     Rcpp::traits::input_parameter< double >::type ssb0(ssb0SEXP);
     Rcpp::traits::input_parameter< const double >::type m(mSEXP);
-    Rcpp::traits::input_parameter< const bool >::type tune_unfished(tune_unfishedSEXP);
+    Rcpp::traits::input_parameter< bool >::type tune_unfished(tune_unfishedSEXP);
     rcpp_result_gen = Rcpp::wrap(sim_fish_pop(length_at_age, weight_at_age, maturity_at_age, movement, last_n_p_a, patches, sim_steps, burn_steps, steepness, r0, ssb0, m, tune_unfished));
     return rcpp_result_gen;
 END_RCPP

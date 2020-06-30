@@ -6,7 +6,7 @@ library(gganimate)
 library(patchwork)
 library(MASS)
 
-fish <- create_critter(max_age = 40, r0 = 1e5)
+fish <- create_critter(max_age = 20, r0 = 1e5)
 
 # let's create some habitat
 
@@ -14,7 +14,7 @@ patches <- 25
 
 
 habitat <- expand_grid(x =1:patches, y = 1:patches) %>%
-  mutate(habitat =  dnorm((x^2 + y^2), 200,100))
+  mutate(habitat =  dnorm((x^2 + y^2), 600,100))
 
 
 habitat %>%
@@ -26,7 +26,7 @@ distance <- expand_grid(x = 1:patches,y = 1:patches) %>%
   dist() %>%
   as.matrix()
 
-distance <- dnorm(distance,0,5)
+distance <- dnorm(distance,0,10)
 
 distance <- distance / rowSums(distance)
 
@@ -41,7 +41,10 @@ habitat_mat <-
 
 habitat_mat <- habitat_mat / rowSums(habitat_mat)
 
-# image(habitat_mat)
+
+image(distance)
+
+image(habitat_mat)
 
 dist_hab <-  distance * habitat_mat
 
@@ -106,15 +109,13 @@ h <- habitat %>%
  b + h
 
 
- dist_hab <-  distance #* habitat_mat
+ dist_hab <-  distance * habitat_mat
 
  dist_hab <- t(dist_hab / rowSums(dist_hab))
 
  a <- matrix(1, nrow = patches * patches, ncol = length(fish$length_at_age))
 
  a[,1] <- fish$r0 / (patches * patches)
-
- d = crossprod(dist_hab,adfs)
 
  test <-  1000
 sum(a)
@@ -128,7 +129,7 @@ sum(a)
    sim_steps = 1,
    burn_steps = 100,
    r0 = fish$r0,
-   ssb0 =test,
+   ssb0 = NA,
    movement = dist_hab,
    last_n_p_a = a,
    tune_unfished = 1
@@ -155,8 +156,8 @@ for (i in 1:100) {
     r0 = fish$r0,
     ssb0 = tune_ssb0$ssb0,
     movement = dist_hab,
-    tune_unfished = 0,
-    last_n_p_a = tmp
+    last_n_p_a = tmp,
+    tune_unfished = 0
   )
 
   tmp <- tmplist[[i]]$n_p_a
@@ -179,14 +180,13 @@ plot(ssb$ssb)
 
 last(ssb$ssb) / ssb0
 
-tmplist$n_p_a[1,] %>% plot()
-
-huh$ya <- rowSums(tmplist$ssb_p_a)
+plot(ssb$ssb, rec$recs)
 
 
+huh$ya <- rowSums(tmplist[[i]]$ssb_p_a)
 
 
-# huh$ya <- tmplist$n_p_a[,1]
+# huh$ya <- tmplist[[i]]$n_p_a[,1]
 
 
 huh %>%
