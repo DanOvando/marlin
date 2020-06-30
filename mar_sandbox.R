@@ -6,7 +6,7 @@ library(gganimate)
 library(patchwork)
 library(MASS)
 
-fish <- create_critter(max_age = 40)
+fish <- create_critter(max_age = 40, r0 = 1e5)
 
 # let's create some habitat
 
@@ -106,50 +106,44 @@ h <- habitat %>%
  b + h
 
 
- dist_hab <-  distance * habitat_mat
+ dist_hab <-  distance #* habitat_mat
 
  dist_hab <- t(dist_hab / rowSums(dist_hab))
 
- a <- matrix(0, nrow = patches * patches, ncol = length(fish$length_at_age))
+ a <- matrix(1, nrow = patches * patches, ncol = length(fish$length_at_age))
 
  a[,1] <- fish$r0 / (patches * patches)
 
- d = crossprod(dist_hab,a)
+ d = crossprod(dist_hab,adfs)
 
- tests <- est_ssb0(length_at_age = fish$length_at_age,
-                       weight_at_age = fish$weight_at_age,
-                       maturity_at_age = fish$maturity_at_age,
-                       steepness = 0.7,
-                       m = 0.2,
-                       patches = patches * patches,
-                       sim_steps = 1,
-                       burn_steps = 2000,
-                       r0 = fish$r0,
-                      ssb0 = -999,
-                       movement = dist_hab,
-                       n_p_a = a
+ test <-  1000
+sum(a)
+ tune_ssb0 <- sim_fish_pop(
+   length_at_age = fish$length_at_age,
+   weight_at_age = fish$weight_at_age,
+   maturity_at_age = fish$maturity_at_age,
+   steepness = 0.7,
+   m = 0.2,
+   patches = patches * patches,
+   sim_steps = 1,
+   burn_steps = 100,
+   r0 = fish$r0,
+   ssb0 =test,
+   movement = dist_hab,
+   last_n_p_a = a,
+   tune_unfished = 1
  )
-
- # tests$ssb_p_a %>% View()
-
- ssb0 <- tests$ssb_p_a %>% rowSums()
-
- sum(ssb0)
-
- huh$ssb0 <- ssb0
+sum(a)
 
 
- huh %>%
-   ggplot(aes(x, y, fill = ssb0)) +
-   geom_tile() +
-   scale_fill_viridis_c() +
-   labs(title = "ssb0")
+ ssb0 <- tune_ssb0$ssb0
 
 tmp <- a
 
 tt <- Sys.time()
-for (i in 1:2000) {
-  tmplist <- sim_fish_pop(
+tmplist <- list()
+for (i in 1:100) {
+  tmplist[[i]] <- sim_fish_pop(
     length_at_age = fish$length_at_age,
     weight_at_age = fish$weight_at_age,
     maturity_at_age = fish$maturity_at_age,
@@ -159,20 +153,40 @@ for (i in 1:2000) {
     sim_steps = 1,
     burn_steps = 0,
     r0 = fish$r0,
-    ssb0 = sum(ssb0),
+    ssb0 = tune_ssb0$ssb0,
     movement = dist_hab,
-    n_p_a = tmp
+    tune_unfished = 0,
+    last_n_p_a = tmp
   )
 
-  tmp <- tmplist$n_p_a
+  tmp <- tmplist[[i]]$n_p_a
 }
 Sys.time() - tt
 
-sum(tmplist$ssb_p_a) / sum(ssb0)
+rec <- map(tmplist, "n_p_a") %>%
+  map_df(~tibble(rec = .x[,1]),.id = "i") %>%
+  mutate(i = as.numeric(i)) %>%
+  group_by(i) %>%
+  summarise(recs = sum(rec))
+
+ssb <- map(tmplist, "ssb_p_a") %>%
+  map_df(~tibble(ssb = rowSums(.x)),.id = "i") %>%
+  mutate(i = as.numeric(i)) %>%
+  group_by(i) %>%
+  summarise(ssb = sum(ssb))
+
+plot(ssb$ssb)
+
+last(ssb$ssb) / ssb0
 
 tmplist$n_p_a[1,] %>% plot()
 
 huh$ya <- rowSums(tmplist$ssb_p_a)
+
+
+
+
+# huh$ya <- tmplist$n_p_a[,1]
 
 
 huh %>%

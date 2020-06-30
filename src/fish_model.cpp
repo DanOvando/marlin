@@ -9,22 +9,24 @@ List sim_fish_pop(
     const NumericVector weight_at_age,
     const NumericVector maturity_at_age,
     const Eigen::MatrixXd movement,
-    Rcpp::NumericMatrix n_p_a,
+    const Rcpp::NumericMatrix last_n_p_a,
     const int patches,
     const int sim_steps,
-    const  int burn_steps,
-    const  double steepness,
-    const  double r0,
-    const  double ssb0,
-    const  double m){
+    const int burn_steps,
+    const double steepness,
+    const double r0,
+    double ssb0,
+    const double m,
+    const bool tune_unfished){
+
 
   int steps = sim_steps; // total number of years to run
 
   int ages = length_at_age.length();
 
-  MatrixXd  tmpmat(as<MatrixXd>(n_p_a));
+  MatrixXd  tmpmat(as<MatrixXd>(last_n_p_a));
 
-  // NumericMatrix n_p_a(patches, ages); // biomass at age over time
+  NumericMatrix n_p_a(patches, ages); // biomass at age over time
 
   NumericMatrix b_p_a(patches, ages); // spawning stock biomass at age over time
 
@@ -33,6 +35,59 @@ List sim_fish_pop(
   NumericMatrix c_a(patches, ages); // catch at age over time
 
   NumericVector rec_s(steps); // catch at age over time
+
+  //////////////////// tune things ////////////////////////
+  NumericMatrix tmp_n_p_a = clone(last_n_p_a);
+
+  Rcpp::List tmppop;
+
+  if (tune_unfished == 1){
+
+
+    for (int b = 0; b < burn_steps; b++){
+
+      // these HAVE to be in the same order
+      // as function call: get lots of warnings
+      // if you try and name them
+      // Rcpp::List tmp;
+
+      // tmppop = b;
+
+      Rcpp::Rcout << tmp_n_p_a(1,10) << std::endl;
+
+      tmppop = sim_fish_pop(
+        length_at_age,
+        weight_at_age,
+        maturity_at_age,
+        movement,
+        tmp_n_p_a,
+        patches,
+        sim_steps,
+        0,
+        steepness,
+        r0,
+        ssb0,
+        m,
+        0);
+
+      tmp_n_p_a = wrap(tmppop["n_p_a"]);
+
+     // NumericMatrix tmp_n_p_a = (tmppop["n_p_a"]);
+
+      // Rcpp::List tmppop;
+
+    }
+
+    NumericMatrix tmp_ssb_p_a = tmppop["ssb_p_a"];
+
+    ssb0 = sum(tmp_ssb_p_a);
+
+    // return(tmp);
+
+
+  }
+
+
 
   //////////////////// move ////////////////////////
 
@@ -51,15 +106,37 @@ List sim_fish_pop(
 
   //////////////////// grow ////////////////////////
 
+  // NumericMatrix last_n_p_a = n_p_a;
+
   NumericVector plus_group = n_p_a(_,ages - 1) * exp(-m);
+
+  // Rcpp::Rcout << "last is" << last_n_p_a(0,0) * exp(-m) << std::endl;
+
+  // Rcpp::Rcout << "before is" << n_p_a(0,1)<< std::endl;
+
+  // Rcpp::Rcout << "exp is" <<exp(-m)<< std::endl;
+
+  // std::cout << "exp is" << last_n_p_a(_,11)* exp(-m)<< std::endl;
 
   for (int a = 1; a < ages; a++){
 
-    n_p_a(_,a) =  n_p_a(_,a - 1) * exp(-m);
+    // NumericMatrix::Column wtf = last_n_p_a(_,a - 1);
+
+    // Rcpp::Rcout << "a is" << a - 1<< std::endl;
+
+    n_p_a(_,a) =  last_n_p_a(_,a - 1) * exp(-m);
+
 
   }
 
+  // Rcpp::Rcout << "new is" << n_p_a(0,1)<< std::endl;
+
   n_p_a(_, ages - 1) = n_p_a(_, ages - 1) + plus_group;
+
+  // n_p_a(1, _) = rep(999, ages);
+
+  // weight_at_age = weight_at_age + 999;
+
 
   for (int p = 0;p < patches; p++){
 
@@ -71,7 +148,7 @@ List sim_fish_pop(
 
   //////////////////// spawn / recruit ////////////////////////
 
-    if (ssb0 == -999){
+    if (tune_unfished == 0){
 
       n_p_a(_,0) = rep(r0 / patches, patches);
 
@@ -89,53 +166,11 @@ List sim_fish_pop(
   return Rcpp::List::create(
     Rcpp::Named("n_p_a") = n_p_a,
     Rcpp::Named("b_p_a") = b_p_a,
-    Rcpp::Named("ssb_p_a") = ssb_p_a);
+    Rcpp::Named("ssb_p_a") = ssb_p_a,
+    Rcpp::Named("ssb0") = ssb0,
+    Rcpp::Named("wtf") = tmppop);
 } // close fish model
 
-// [[Rcpp::export]]
-List est_ssb0( NumericVector length_at_age,
-                 NumericVector weight_at_age,
-                 NumericVector maturity_at_age,
-                Eigen::MatrixXd movement,
-                 Rcpp::NumericMatrix n_p_a,
-                  int patches,
-                  int sim_steps,
-                  int burn_steps,
-                  double steepness,
-                 double r0,
-                  double ssb0,
-                  double m) {
-
-// you can definitely build this into the main function
-  Rcpp::List tmp(1);
-
-NumericMatrix tmp_n_p_a = n_p_a;
-
-for (int b = 0; b < burn_steps; b++){
-
-
-  tmp = sim_fish_pop(
-    length_at_age,
-    weight_at_age,
-    maturity_at_age,
-    movement,
-    tmp_n_p_a,
-    patches,
-    sim_steps,
-    burn_steps,
-    steepness,
-    r0,
-    ssb0 = -999,
-    m);
-
-
-  NumericMatrix tmp_n_p_a = tmp["n_p_a"];
-
-}
-
-return(tmp);
-
-} // close est_ssb0
 
 
 

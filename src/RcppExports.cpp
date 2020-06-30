@@ -6,6 +6,17 @@
 
 using namespace Rcpp;
 
+// timesTwo
+NumericVector timesTwo(Rcpp::NumericVector y);
+RcppExport SEXP _mar_timesTwo(SEXP ySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type y(ySEXP);
+    rcpp_result_gen = Rcpp::wrap(timesTwo(y));
+    return rcpp_result_gen;
+END_RCPP
+}
 // sample_problem
 Rcpp::NumericMatrix sample_problem();
 RcppExport SEXP _mar_sample_problem() {
@@ -17,8 +28,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // sim_fish_pop
-List sim_fish_pop(const NumericVector length_at_age, const NumericVector weight_at_age, const NumericVector maturity_at_age, const Eigen::MatrixXd movement, Rcpp::NumericMatrix n_p_a, const int patches, const int sim_steps, const int burn_steps, const double steepness, const double r0, const double ssb0, const double m);
-RcppExport SEXP _mar_sim_fish_pop(SEXP length_at_ageSEXP, SEXP weight_at_ageSEXP, SEXP maturity_at_ageSEXP, SEXP movementSEXP, SEXP n_p_aSEXP, SEXP patchesSEXP, SEXP sim_stepsSEXP, SEXP burn_stepsSEXP, SEXP steepnessSEXP, SEXP r0SEXP, SEXP ssb0SEXP, SEXP mSEXP) {
+List sim_fish_pop(const NumericVector length_at_age, const NumericVector weight_at_age, const NumericVector maturity_at_age, const Eigen::MatrixXd movement, const Rcpp::NumericMatrix last_n_p_a, const int patches, const int sim_steps, const int burn_steps, const double steepness, const double r0, double ssb0, const double m, const bool tune_unfished);
+RcppExport SEXP _mar_sim_fish_pop(SEXP length_at_ageSEXP, SEXP weight_at_ageSEXP, SEXP maturity_at_ageSEXP, SEXP movementSEXP, SEXP last_n_p_aSEXP, SEXP patchesSEXP, SEXP sim_stepsSEXP, SEXP burn_stepsSEXP, SEXP steepnessSEXP, SEXP r0SEXP, SEXP ssb0SEXP, SEXP mSEXP, SEXP tune_unfishedSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -26,37 +37,16 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const NumericVector >::type weight_at_age(weight_at_ageSEXP);
     Rcpp::traits::input_parameter< const NumericVector >::type maturity_at_age(maturity_at_ageSEXP);
     Rcpp::traits::input_parameter< const Eigen::MatrixXd >::type movement(movementSEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type n_p_a(n_p_aSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix >::type last_n_p_a(last_n_p_aSEXP);
     Rcpp::traits::input_parameter< const int >::type patches(patchesSEXP);
     Rcpp::traits::input_parameter< const int >::type sim_steps(sim_stepsSEXP);
     Rcpp::traits::input_parameter< const int >::type burn_steps(burn_stepsSEXP);
     Rcpp::traits::input_parameter< const double >::type steepness(steepnessSEXP);
     Rcpp::traits::input_parameter< const double >::type r0(r0SEXP);
-    Rcpp::traits::input_parameter< const double >::type ssb0(ssb0SEXP);
-    Rcpp::traits::input_parameter< const double >::type m(mSEXP);
-    rcpp_result_gen = Rcpp::wrap(sim_fish_pop(length_at_age, weight_at_age, maturity_at_age, movement, n_p_a, patches, sim_steps, burn_steps, steepness, r0, ssb0, m));
-    return rcpp_result_gen;
-END_RCPP
-}
-// est_ssb0
-List est_ssb0(NumericVector length_at_age, NumericVector weight_at_age, NumericVector maturity_at_age, Eigen::MatrixXd movement, Rcpp::NumericMatrix n_p_a, int patches, int sim_steps, int burn_steps, double steepness, double r0, double ssb0, double m);
-RcppExport SEXP _mar_est_ssb0(SEXP length_at_ageSEXP, SEXP weight_at_ageSEXP, SEXP maturity_at_ageSEXP, SEXP movementSEXP, SEXP n_p_aSEXP, SEXP patchesSEXP, SEXP sim_stepsSEXP, SEXP burn_stepsSEXP, SEXP steepnessSEXP, SEXP r0SEXP, SEXP ssb0SEXP, SEXP mSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type length_at_age(length_at_ageSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type weight_at_age(weight_at_ageSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type maturity_at_age(maturity_at_ageSEXP);
-    Rcpp::traits::input_parameter< Eigen::MatrixXd >::type movement(movementSEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type n_p_a(n_p_aSEXP);
-    Rcpp::traits::input_parameter< int >::type patches(patchesSEXP);
-    Rcpp::traits::input_parameter< int >::type sim_steps(sim_stepsSEXP);
-    Rcpp::traits::input_parameter< int >::type burn_steps(burn_stepsSEXP);
-    Rcpp::traits::input_parameter< double >::type steepness(steepnessSEXP);
-    Rcpp::traits::input_parameter< double >::type r0(r0SEXP);
     Rcpp::traits::input_parameter< double >::type ssb0(ssb0SEXP);
-    Rcpp::traits::input_parameter< double >::type m(mSEXP);
-    rcpp_result_gen = Rcpp::wrap(est_ssb0(length_at_age, weight_at_age, maturity_at_age, movement, n_p_a, patches, sim_steps, burn_steps, steepness, r0, ssb0, m));
+    Rcpp::traits::input_parameter< const double >::type m(mSEXP);
+    Rcpp::traits::input_parameter< const bool >::type tune_unfished(tune_unfishedSEXP);
+    rcpp_result_gen = Rcpp::wrap(sim_fish_pop(length_at_age, weight_at_age, maturity_at_age, movement, last_n_p_a, patches, sim_steps, burn_steps, steepness, r0, ssb0, m, tune_unfished));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -136,26 +126,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// timesTwo
-NumericVector timesTwo(NumericVector x);
-RcppExport SEXP _mar_timesTwo(SEXP xSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(timesTwo(x));
-    return rcpp_result_gen;
-END_RCPP
-}
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_mar_timesTwo", (DL_FUNC) &_mar_timesTwo, 1},
     {"_mar_sample_problem", (DL_FUNC) &_mar_sample_problem, 0},
-    {"_mar_sim_fish_pop", (DL_FUNC) &_mar_sim_fish_pop, 12},
-    {"_mar_est_ssb0", (DL_FUNC) &_mar_est_ssb0, 12},
+    {"_mar_sim_fish_pop", (DL_FUNC) &_mar_sim_fish_pop, 13},
     {"_mar_popmodel", (DL_FUNC) &_mar_popmodel, 14},
     {"_mar_move_matrix_eigen", (DL_FUNC) &_mar_move_matrix_eigen, 3},
     {"_mar_sraplus", (DL_FUNC) &_mar_sraplus, 29},
-    {"_mar_timesTwo", (DL_FUNC) &_mar_timesTwo, 1},
     {NULL, NULL, 0}
 };
 

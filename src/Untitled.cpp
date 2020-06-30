@@ -1,6 +1,7 @@
 #include <Rcpp.h>
+#include <RcppEigen.h>
 using namespace Rcpp;
-
+using namespace Eigen;
 // This is a simple example of exporting a C++ function to R. You can
 // source this function into an R session using the Rcpp::sourceCpp
 // function (or via the Source button on the editor toolbar). Learn
@@ -12,8 +13,11 @@ using namespace Rcpp;
 //
 
 // [[Rcpp::export]]
-NumericVector timesTwo(NumericVector x) {
-  return x * 2;
+double timesTwo(double y) {
+
+   y = y * 2;
+
+  return y;
 }
 
 
@@ -23,5 +27,12 @@ NumericVector timesTwo(NumericVector x) {
 //
 
 /*** R
-timesTwo(42)
+
+m <- 2
+
+y <-  m
+
+timesTwo(y = y)
+
+y
 */
