@@ -11,7 +11,9 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 status](https://www.r-pkg.org/badges/version/mar)](https://CRAN.R-project.org/package=mar)
 <!-- badges: end -->
 
-The goal of marlin is to …
+marlin is a package for efficiently running simulations of marine fauna
+and fisheries. Age-structured population model of different
+(independent) animal types in a 2D systemw with multiple fishing fleets.
 
 ## Installation
 
