@@ -25,6 +25,7 @@ Imports:
     foreach,
     iterators,
     parallel,
-    taxize
+    taxize,
+    ggplot2
 Remotes: 
     james-thorson/FishLife

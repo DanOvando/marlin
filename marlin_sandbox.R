@@ -6,7 +6,7 @@ library(gganimate)
 library(patchwork)
 library(MASS)
 library(doParallel)
-
+options(dplyr.summarise.inform = FALSE)
 
 # let's create some habitat
 

@@ -4,56 +4,51 @@ marsim <- function(fauna = list(),
 
   # asomething about movement and initial conditions isn't quite right. It's a problem with the
   # reslting movement matrix from create critter
-library(tidyverse)
-  resolution <- 25
-  habitat <- expand_grid(x =1:resolution, y = 1:resolution) %>%
-    mutate(habitat =  dnorm((x^2 + y^2), 600,100))
+# library(tidyverse)
+#   resolution <- 25
+#   habitat <- expand_grid(x =1:resolution, y = 1:resolution) %>%
+#     mutate(habitat =  dnorm((x^2 + y^2), 600,100))
+# 
+#   habitat_mat <-
+#     matrix(
+#       rep(habitat$habitat, resolution),
+#       nrow = resolution^2,
+#       ncol = resolution^2,
+#       byrow = TRUE
+#     )
+# 
+#   skj_hab <- habitat_mat / rowSums(habitat_mat)
+# 
+#   habitat <- expand_grid(x =1:resolution, y = 1:resolution) %>%
+#     mutate(habitat =  dnorm((x^2 + y^2), 100,2))
+# 
+#   habitat_mat <-
+#     matrix(
+#       rep(habitat$habitat, resolution),
+#       nrow = resolution^2,
+#       ncol = resolution^2,
+#       byrow = TRUE
+#     )
+# 
+#   bet_hab <- habitat_mat / rowSums(habitat_mat)
+# 
+# 
+#   fauna <-
+#     list("skipjack" = create_critter(
+#       scientific_name = "Katsuwonus pelamis",
+#       habitat = skj_hab,
+#       adult_movement = 2
+#     ),
+#     "bigeye" = create_critter(
+#       common_name = "bigeye tuna",
+#       habitat = bet_hab,
+#       adult_movement = 10
+#     ))
+# 
+#   steps = 100
+# 
+#   n_cores = 1
 
-  habitat_mat <-
-    matrix(
-      rep(habitat$habitat, resolution),
-      nrow = resolution^2,
-      ncol = resolution^2,
-      byrow = TRUE
-    )
-
-  skj_hab <- habitat_mat / rowSums(habitat_mat)
-
-  habitat <- expand_grid(x =1:resolution, y = 1:resolution) %>%
-    mutate(habitat =  dnorm((x^2 + y^2), 100,2))
-
-  habitat_mat <-
-    matrix(
-      rep(habitat$habitat, resolution),
-      nrow = resolution^2,
-      ncol = resolution^2,
-      byrow = TRUE
-    )
-
-  bet_hab <- habitat_mat / rowSums(habitat_mat)
-
-
-  fauna <-
-    list("skipjack" = create_critter(
-      scientific_name = "Katsuwonus pelamis",
-      habitat = skj_hab,
-      adult_movement = 2
-    ),
-    "bigeye" = create_critter(
-      common_name = "bigeye tuna",
-      habitat = bet_hab,
-      adult_movement = 10
-    ))
-
-  steps = 100
-
-  n_cores = 1
-
-  cl = parallel::makeCluster(n_cores)
-
-  on.exit(parallel::stopCluster(cl))
-
-  doParallel::registerDoParallel(cl)   # Modify with any do*::registerDo*()
 
   fauni <- names(fauna)
 
@@ -84,7 +79,7 @@ library(tidyverse)
   storage[[1]] <- initial_conditions
 
 
-  a <- Sys.time()
+  # a <- Sys.time()
 
   for (s in 2:steps) {
     for (f in seq_along(fauni)) {
@@ -113,38 +108,38 @@ library(tidyverse)
 
   } #close steps
 
-  Sys.time() - a
+  # Sys.time() - a
 
   storage <- purrr::map(storage, ~ rlang::set_names(.x, fauni))
 
-  rec <- map(storage, ~.x[[2]]$n_p_a) %>%
-    map_df(~tibble(rec = .x[,1]),.id = "i") %>%
-    mutate(i = as.numeric(i)) %>%
-    filter(i > 1) %>%
-    group_by(i) %>%
-    summarise(recs = sum(rec))
-
-  ssb <- map(storage, ~.x[[2]]$ssb_p_a)%>%
-    map_df(~tibble(ssb = rowSums(.x)),.id = "i") %>%
-    mutate(i = as.numeric(i)) %>%
-    filter(i > 1) %>%
-    group_by(i) %>%
-    summarise(ssb = sum(ssb))
-
-  plot(ssb$ssb, rec$recs)
-
-  plot(ssb$ssb)
-
-  last(ssb$ssb) / fauna[[1]]$ssb0
-
-  ya <- rowSums(storage[[s]][[1]]$ssb_p_a)
-
-  check <- expand_grid(x = 1:sqrt(patches), y = 1:sqrt(patches)) %>%
-    mutate(ssb = ya)
-
-   ggplot(check, aes(x,y, fill = ssb)) +
-    geom_tile() +
-     scale_fill_viridis_c()
+  # rec <- map(storage, ~.x[[2]]$n_p_a) %>%
+  #   map_df(~tibble(rec = .x[,1]),.id = "i") %>%
+  #   mutate(i = as.numeric(i)) %>%
+  #   filter(i > 1) %>%
+  #   group_by(i) %>%
+  #   summarise(recs = sum(rec))
+  # 
+  # ssb <- map(storage, ~.x[[2]]$ssb_p_a)%>%
+  #   map_df(~tibble(ssb = rowSums(.x)),.id = "i") %>%
+  #   mutate(i = as.numeric(i)) %>%
+  #   filter(i > 1) %>%
+  #   group_by(i) %>%
+  #   summarise(ssb = sum(ssb))
+  # 
+  # plot(ssb$ssb, rec$recs)
+  # 
+  # plot(ssb$ssb)
+  # 
+  # last(ssb$ssb) / fauna[[1]]$ssb0
+  # 
+  # ya <- rowSums(storage[[s]][[1]]$ssb_p_a)
+  # 
+  # check <- expand_grid(x = 1:sqrt(patches), y = 1:sqrt(patches)) %>%
+  #   mutate(ssb = ya)
+  # 
+  #  ggplot(check, aes(x,y, fill = ssb)) +
+  #   geom_tile() +
+  #    scale_fill_viridis_c()
 
 
 
