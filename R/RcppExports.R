@@ -2,26 +2,26 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 timesTwo <- function(y) {
-    .Call(`_mar_timesTwo`, y)
+    .Call(`_marlin_timesTwo`, y)
 }
 
 sample_problem <- function() {
-    .Call(`_mar_sample_problem`)
+    .Call(`_marlin_sample_problem`)
 }
 
-sim_fish_pop <- function(length_at_age, weight_at_age, maturity_at_age, movement, last_n_p_a, patches, sim_steps, burn_steps, steepness, r0, ssb0, m, tune_unfished) {
-    .Call(`_mar_sim_fish_pop`, length_at_age, weight_at_age, maturity_at_age, movement, last_n_p_a, patches, sim_steps, burn_steps, steepness, r0, ssb0, m, tune_unfished)
+sim_fish_pop <- function(length_at_age, weight_at_age, maturity_at_age, movement, last_n_p_a, patches, burn_steps, steepness, r0, ssb0, m, tune_unfished) {
+    .Call(`_marlin_sim_fish_pop`, length_at_age, weight_at_age, maturity_at_age, movement, last_n_p_a, patches, burn_steps, steepness, r0, ssb0, m, tune_unfished)
 }
 
 popmodel <- function(length_at_age, weight_at_age, maturity_at_age, selectivity_at_age, rec_devs, age_vector, sim_years, n_ages, burn_years, rec_form, steepness, r0, m, f) {
-    .Call(`_mar_popmodel`, length_at_age, weight_at_age, maturity_at_age, selectivity_at_age, rec_devs, age_vector, sim_years, n_ages, burn_years, rec_form, steepness, r0, m, f)
+    .Call(`_marlin_popmodel`, length_at_age, weight_at_age, maturity_at_age, selectivity_at_age, rec_devs, age_vector, sim_years, n_ages, burn_years, rec_form, steepness, r0, m, f)
 }
 
 move_matrix_eigen <- function(X, y, its) {
-    .Call(`_mar_move_matrix_eigen`, X, y, its)
+    .Call(`_marlin_move_matrix_eigen`, X, y, its)
 }
 
 sraplus <- function(catches, rs, ms, init_deps, anchors, qs, sigma_procs, drawdex, index_t, sigma_obs, log_terminal_u, log_terminal_u_cv, index_years, u_years, draws, n_keep, b_ref_type, f_ref_type, fit_index, use_terminal_u, use_terminal_state, estimate_k, log_terminal_ref, sigma_dep, plim, use_u_prior, u_priors, sigma_u, learn_rate) {
-    .Call(`_mar_sraplus`, catches, rs, ms, init_deps, anchors, qs, sigma_procs, drawdex, index_t, sigma_obs, log_terminal_u, log_terminal_u_cv, index_years, u_years, draws, n_keep, b_ref_type, f_ref_type, fit_index, use_terminal_u, use_terminal_state, estimate_k, log_terminal_ref, sigma_dep, plim, use_u_prior, u_priors, sigma_u, learn_rate)
+    .Call(`_marlin_sraplus`, catches, rs, ms, init_deps, anchors, qs, sigma_procs, drawdex, index_t, sigma_obs, log_terminal_u, log_terminal_u_cv, index_years, u_years, draws, n_keep, b_ref_type, f_ref_type, fit_index, use_terminal_u, use_terminal_state, estimate_k, log_terminal_ref, sigma_dep, plim, use_u_prior, u_priors, sigma_u, learn_rate)
 }
 

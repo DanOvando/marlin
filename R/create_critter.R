@@ -45,82 +45,97 @@
 #' white_seabass = create_critter(scientific_name = "Atractoscion nobilis", query_fishlife = T)
 #'}
 create_critter <- function(common_name = 'white seabass',
-                        scientific_name = "Atractoscion nobilis",
-                        linf = NA,
-                        vbk = NA,
-                        t0 = -0.1,
-                        cv_len = 0.1,
-                        length_units = 'cm',
-                        min_age = 0,
-                        max_age = NA,
-                        time_step = 1,
-                        weight_a = NA,
-                        weight_b = NA,
-                        weight_units = 'kg',
-                        length_50_mature = NA,
-                        length_95_mature = NA,
-                        delta_mature = .1,
-                        age_50_mature = NA,
-                        age_95_mature = NA,
-                        age_mature = NA,
-                        length_mature = NA,
-                        m = NA,
-                        steepness = 0.8,
-                        r0 = 10000,
-                        density_dependence_form = 1,
-                        adult_movement = 2,
-                        larval_movement = 2,
-                        query_fishlife = T,
-                        price = 1,
-                        price_cv = 0,
-                        price_ac = 0,
-                        price_slope = 0,
-                        sigma_r = 0,
-                        rec_ac = 0,
-                        cores = 4,
-                        mat_mode = "age",
-                        default_wb = 2.8,
-                        tune_weight = FALSE,
-                        density_movement_modifier = 1,
-                        linf_buffer = 1.2) {
-
-
+                           scientific_name = NA,
+                           linf = NA,
+                           vbk = NA,
+                           t0 = -0.1,
+                           cv_len = 0.1,
+                           length_units = 'cm',
+                           min_age = 0,
+                           max_age = NA,
+                           time_step = 1,
+                           weight_a = NA,
+                           weight_b = NA,
+                           weight_units = 'kg',
+                           length_50_mature = NA,
+                           length_95_mature = NA,
+                           delta_mature = .1,
+                           age_50_mature = NA,
+                           age_95_mature = NA,
+                           age_mature = NA,
+                           length_mature = NA,
+                           m = NA,
+                           steepness = 0.8,
+                           r0 = 10000,
+                           ssb0 = NA,
+                           density_dependence_form = 1,
+                           adult_movement = 2,
+                           larval_movement = 2,
+                           query_fishlife = T,
+                           price = 1,
+                           price_cv = 0,
+                           price_ac = 0,
+                           price_slope = 0,
+                           sigma_r = 0,
+                           rec_ac = 0,
+                           cores = 4,
+                           mat_mode = "age",
+                           default_wb = 2.8,
+                           tune_weight = FALSE,
+                           density_movement_modifier = 1,
+                           linf_buffer = 1.2,
+                           resolution = 25,
+                           habitat = NA) {
   fish <- list()
+
+
+  if (!is.na(scientific_name)) {
+    common_name <-
+      taxize::sci2comm(scientific_name, db = "ncbi")[[1]][1]
+
+  }
+
+  if (is.na(scientific_name) & !is.na(common_name)) {
+    scientific_name <-
+      taxize::comm2sci(common_name, db = "worms")[[1]][1]
+
+  }
+
   # check fishbase -------------
   if (is.na(scientific_name) == F & query_fishlife == T) {
+    sq <- purrr::safely(purrr::quietly(get_traits))
 
-    sq <- purrr::safely(quietly(get_traits))
 
-
-    genus_species <- stringr::str_split(scientific_name, " ", simplify = T) %>%
+    genus_species <-
+      stringr::str_split(scientific_name, " ", simplify = T) %>%
       as.data.frame() %>%
-      set_names(c("genus", "species"))
+      rlang::set_names(c("genus", "species"))
 
     fish_life <- genus_species %>%
-      dplyr::mutate(life_traits = pmap(
-        list(Genus = genus, Species = species),
-        sq
-      ))
+      dplyr::mutate(life_traits = purrr::pmap(list(
+        Genus = genus, Species = species
+      ),
+      sq))
 
 
-    if (!is.null(fish_life$life_traits[[1]]$error)){
+    if (!is.null(fish_life$life_traits[[1]]$error)) {
       stop("No match in FishLife: check spelling or supply your own life history values")
     }
 
     fish_life <- fish_life %>%
-      dplyr::mutate(fish_life_worked = purrr::map(life_traits, 'error') %>% map_lgl(is.null)) %>%
+      dplyr::mutate(fish_life_worked = purrr::map(life_traits, 'error') %>% purrr::map_lgl(is.null)) %>%
       dplyr::filter(fish_life_worked) %>%
-      dplyr::mutate(life_traits = purrr::map(life_traits, c('result',"result"))) %>%
+      dplyr::mutate(life_traits = purrr::map(life_traits, c('result', "result"))) %>%
       tidyr::unnest(cols = life_traits) %>%
       dplyr::mutate(taxa = glue::glue('{genus} {species}')) %>%
       rlang::set_names(tolower)
 
 
-    if (weight_units == "kg"){
+    if (weight_units == "kg") {
       fish_life$winfinity <- fish_life$winfinity / 1000
     }
 
-    if (tune_weight == T){
+    if (tune_weight == T) {
       weight_stan <- "
    data {
     real winf;
@@ -145,7 +160,7 @@ create_critter <- function(common_name = 'white seabass',
       weight_fit <-
         rstan::stan(
           model_code = weight_stan,
-          data = list(winf = fish_life$winfinity*2, linf = fish_life$loo),
+          data = list(winf = fish_life$winfinity * 2, linf = fish_life$loo),
           verbose = F,
           cores = cores
         )
@@ -154,8 +169,9 @@ create_critter <- function(common_name = 'white seabass',
         dplyr::select(term, estimate) %>%
         tidyr::spread(term, estimate)
     } else{
-      weight_fit <- dplyr::tibble(wa = fish_life$winfinity / (fish_life$loo ^ default_wb),
-                                      wb = default_wb)
+      weight_fit <-
+        dplyr::tibble(wa = fish_life$winfinity / (fish_life$loo ^ default_wb),
+                      wb = default_wb)
     }
     # process lengths ---------------------------------------------------------
 
@@ -177,25 +193,22 @@ create_critter <- function(common_name = 'white seabass',
 
     }
 
-    if (is.na(max_age)){
+    if (is.na(max_age)) {
       max_age <- ceiling(fish_life$tmax)
 
     }
 
-    if (is.na(age_mature)){
-
+    if (is.na(age_mature)) {
       age_mature <- fish_life$tm
 
     }
 
-    if (is.na(length_mature)){
-
+    if (is.na(length_mature)) {
       length_mature <- fish_life$lm
 
     }
 
-    if (is.na(m)){
-
+    if (is.na(m)) {
       m <- fish_life$m
 
     }
@@ -217,7 +230,10 @@ create_critter <- function(common_name = 'white seabass',
   #
   # }
 
-  length_at_age <- linf * (1 - exp(-vbk * (seq(min_age,max_age, by = time_step) - t0)))
+  length_at_age <-
+    linf * (1 - exp(-vbk * (seq(
+      min_age, max_age, by = time_step
+    ) - t0)))
 
   # process weight
 
@@ -252,7 +268,7 @@ create_critter <- function(common_name = 'white seabass',
     maturity_at_age <-
       ((1 / (1 + exp(-log(
         19
-      ) * ((seq(min_age,max_age, by = time_step) - age_50_mature) / (age_95_mature - age_50_mature)
+      ) * ((seq(min_age, max_age, by = time_step) - age_50_mature) / (age_95_mature - age_50_mature)
       )))))
 
   } else if (is.na(age_mature) | mat_mode == "length") {
@@ -269,20 +285,23 @@ create_critter <- function(common_name = 'white seabass',
 
     p_mat_at_age <- (as.matrix(length_at_age_key) %*% mat_at_bin)
 
-    mat_at_age <- dplyr::tibble(age = seq(min_age,max_age, by = time_step),mean_mat_at_age = p_mat_at_age)
+    mat_at_age <-
+      dplyr::tibble(age = seq(min_age, max_age, by = time_step),
+                    mean_mat_at_age = p_mat_at_age)
 
-    age_mature <- mat_at_age$age[mat_at_age$mean_mat_at_age >= 0.5][1]
+    age_mature <-
+      mat_at_age$age[mat_at_age$mean_mat_at_age >= 0.5][1]
 
     age_50_mature <- age_mature
 
-    age_95_mature <-  mat_at_age$age[mat_at_age$mean_mat_at_age >= 0.95][1]
+    age_95_mature <-
+      mat_at_age$age[mat_at_age$mean_mat_at_age >= 0.95][1]
 
     maturity_at_age <- mat_at_age$mean_mat_at_age
   }
 
 
-  if (is.na(length_50_mature)){
-
+  if (is.na(length_50_mature)) {
     length_50_mature <- length_mature
 
     length_95_mature <- length_50_mature + delta_mature
@@ -292,42 +311,71 @@ create_critter <- function(common_name = 'white seabass',
 
   ssb_at_age <-  maturity_at_age * weight_at_age
 
+  # create habitat and movement matrices
+
+  if (!is.null(dim(habitat))) {
+    resolution <- sqrt(nrow(habitat))
+
+  }
+
+  patches <- resolution ^ 2
+
+  distance <-
+    tidyr::expand_grid(x = 1:resolution, y = 1:resolution) %>%
+    dist() %>%
+    as.matrix()
+
+  distance <- dnorm(distance, 0, adult_movement)
+
+  distance <- distance / rowSums(distance)
+
+
+  if ((!is.null(dim(habitat)))) {
+    habitat <- habitat / rowSums(habitat_mat)
+
+    move_mat <-  distance * habitat
+
+    move_mat <- move_mat / rowSums(move_mat)
+
+  } else {
+    move_mat <- distance
+  }
+
+  move_mat <-
+    t(move_mat) # needs to be transposed for use in population function
+
+  # tune SSB0 and unfished equilibrium
+
+  init_pop <-
+    matrix(1, nrow = patches, ncol = length(length_at_age))
+
+  init_pop[, 1] <- r0 / patches
+
+  unfished <- marlin::sim_fish_pop(
+    length_at_age = length_at_age,
+    weight_at_age = weight_at_age,
+    maturity_at_age = maturity_at_age,
+    steepness = steepness,
+    m = m,
+    patches = resolution ^ 2,
+    burn_steps = 100,
+    r0 = r0,
+    ssb0 = NA,
+    movement = move_mat,
+    last_n_p_a = init_pop,
+    tune_unfished = 1
+  )
+
+  ssb0 <- unfished$ssb0
+
+  n_p_a_0 <- unfished$tmppop$n_p_a
+
+  unfished <- unfished$tmppop
+
   fish <- list(mget(ls()))
 
   fish <- fish[[1]]
 
-  #
-  # fish$scientific_name <- scientific_name
-  # fish$common_name <- common_name
-  # fish$ssb_at_age <- fish$maturity_at_age * fish$weight_at_age
-  # fish$linf <- linf
-  # fish$vbk  <-  vbk
-  # fish$t0 <-  t0
-  # fish$cv_len <- cv_len
-  # fish$max_age <-  max_age
-  # fish$min_age <- min_age
-  # fish$weight_a <-  weight_a
-  # fish$weight_b <-  weight_b
-  # fish$length_50_mature <-  length_50_mature
-  # fish$length_95_mature <-  length_95_mature
-  # fish$age_50_mature <-  age_50_mature
-  # fish$age_95_mature <-  age_95_mature
-  # fish$delta_mature <- delta_mature
-  # fish$age_mature <-  age_mature
-  # fish$length_mature <-  length_mature
-  # fish$m <-  m
-  # fish$steepness <- steepness
-  # fish$r0 <- r0
-  # fish$density_dependence_form = density_dependence_form
-  # fish$adult_movement <-  adult_movement
-  # fish$larval_movement <-  larval_movement
-  # fish$lmat_to_linf_ratio <-  lmat_to_linf_ratio
-  # fish$length_units <-  length_units
-  # fish$weight_units <-  weight_units
-  # fish$price <- price
-  # fish$sigma_r <- sigma_r
-  # fish$rec_ac <- rec_ac
-  # fish$time_step <- time_step
 
   return(fish)
 }

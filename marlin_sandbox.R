@@ -5,15 +5,15 @@ library(Rcpp)
 library(gganimate)
 library(patchwork)
 library(MASS)
+library(doParallel)
 
-fish <- create_critter(max_age = 20, r0 = 1e5)
 
 # let's create some habitat
 
-patches <- 25
+resolution <- 25
 
 
-habitat <- expand_grid(x =1:patches, y = 1:patches) %>%
+habitat <- expand_grid(x =1:resolution, y = 1:resolution) %>%
   mutate(habitat =  dnorm((x^2 + y^2), 600,100))
 
 
@@ -22,24 +22,28 @@ habitat %>%
   geom_tile()
 
 
-distance <- expand_grid(x = 1:patches,y = 1:patches) %>%
+distance <- expand_grid(x = 1:resolution,y = 1:resolution) %>%
   dist() %>%
   as.matrix()
 
-distance <- dnorm(distance,0,10)
+distance <- dnorm(distance,0,2)
 
 distance <- distance / rowSums(distance)
+
+wtf <- create_critter(adult_movement = 2)
 
 
 habitat_mat <-
   matrix(
-    rep(habitat$habitat, patches),
+    rep(habitat$habitat, resolution),
     nrow = nrow(distance),
     ncol = ncol(distance),
     byrow = TRUE
   )
 
 habitat_mat <- habitat_mat / rowSums(habitat_mat)
+
+# habitat <- habitat_mat
 
 
 image(distance)
@@ -50,7 +54,7 @@ dist_hab <-  distance * habitat_mat
 
 dist_hab <- dist_hab / rowSums(dist_hab)
 
-pop <- expand_grid(x = 1:patches,y = 1:patches) %>%
+pop <- expand_grid(x = 1:resolution,y = 1:resolution) %>%
   mutate(n = nrow(.):1)
 
 pop %>%
@@ -108,14 +112,15 @@ h <- habitat %>%
 
  b + h
 
+ fish <- create_critter(max_age = 20, r0 = 1e5)
 
  dist_hab <-  distance * habitat_mat
 
  dist_hab <- t(dist_hab / rowSums(dist_hab))
 
- a <- matrix(1, nrow = patches * patches, ncol = length(fish$length_at_age))
+ a <- matrix(1, nrow = resolution * resolution, ncol = length(fish$length_at_age))
 
- a[,1] <- fish$r0 / (patches * patches)
+ a[,1] <- fish$r0 / (resolution * resolution)
 
  test <-  1000
 sum(a)
@@ -125,8 +130,7 @@ sum(a)
    maturity_at_age = fish$maturity_at_age,
    steepness = 0.7,
    m = 0.2,
-   patches = patches * patches,
-   sim_steps = 1,
+   patches = resolution * resolution,
    burn_steps = 100,
    r0 = fish$r0,
    ssb0 = NA,
@@ -150,8 +154,7 @@ for (i in 1:100) {
     maturity_at_age = fish$maturity_at_age,
     steepness = 0.7,
     m = 0.2,
-    patches = patches * patches,
-    sim_steps = 1,
+    patches = resolution * resolution,
     burn_steps = 0,
     r0 = fish$r0,
     ssb0 = tune_ssb0$ssb0,

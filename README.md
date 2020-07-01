@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# mar
+# marlin
 
 <!-- badges: start -->
 
@@ -11,7 +11,7 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 status](https://www.r-pkg.org/badges/version/mar)](https://CRAN.R-project.org/package=mar)
 <!-- badges: end -->
 
-The goal of mar is to …
+The goal of marlin is to …
 
 ## Installation
 
@@ -19,14 +19,14 @@ You can install the released version of mar from
 [CRAN](https://CRAN.R-project.org) with:
 
 ``` r
-install.packages("mar")
+install.packages("marlin")
 ```
 
 And the development version from [GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("DanOvando/mar")
+devtools::install_github("DanOvando/marlin")
 ```
 
 ## Example
@@ -34,7 +34,7 @@ devtools::install_github("DanOvando/mar")
 This is a basic example which shows you how to solve a common problem:
 
 ``` r
-library(mar)
+library(marlin)
 ## basic example code
 ```
 

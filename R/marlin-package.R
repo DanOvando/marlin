@@ -1,6 +1,6 @@
 ## usethis namespace: start
 #' @import RcppEigen
-#' @useDynLib mar, .registration = TRUE
+#' @useDynLib marlin, .registration = TRUE
 #' @importFrom Rcpp sourceCpp
 ## usethis namespace: end
 NULL

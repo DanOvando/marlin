@@ -6,7 +6,7 @@
 \usage{
 create_critter(
   common_name = "white seabass",
-  scientific_name = "Atractoscion nobilis",
+  scientific_name = NA,
   linf = NA,
   vbk = NA,
   t0 = -0.1,
@@ -28,6 +28,7 @@ create_critter(
   m = NA,
   steepness = 0.8,
   r0 = 10000,
+  ssb0 = NA,
   density_dependence_form = 1,
   adult_movement = 2,
   larval_movement = 2,
@@ -43,7 +44,9 @@ create_critter(
   default_wb = 2.8,
   tune_weight = FALSE,
   density_movement_modifier = 1,
-  linf_buffer = 1.2
+  linf_buffer = 1.2,
+  resolution = 25,
+  habitat = NA
 )
 }
 \arguments{

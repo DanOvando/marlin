@@ -11,7 +11,6 @@ List sim_fish_pop(
     const Eigen::MatrixXd movement,
     const Rcpp::NumericMatrix last_n_p_a,
     const int patches,
-    const int sim_steps,
     const int burn_steps,
     const double steepness,
     const double r0,
@@ -19,8 +18,6 @@ List sim_fish_pop(
     const double m,
     bool tune_unfished){
 
-
-  int steps = sim_steps; // total number of years to run
 
   int ages = length_at_age.length();
 
@@ -33,8 +30,6 @@ List sim_fish_pop(
   NumericMatrix ssb_p_a(patches, ages); // spawning stock biomass at age over time
 
   NumericMatrix c_a(patches, ages); // catch at age over time
-
-  NumericVector rec_s(steps); // catch at age over time
 
   //////////////////// tune things ////////////////////////
   NumericMatrix tmp_n_p_a = clone(last_n_p_a);
@@ -66,7 +61,6 @@ List sim_fish_pop(
         movement,
         tmp_n_p_a,
         patches,
-        sim_steps,
         0,
         steepness,
         r0,
@@ -174,7 +168,7 @@ List sim_fish_pop(
     Rcpp::Named("b_p_a") = b_p_a,
     Rcpp::Named("ssb_p_a") = ssb_p_a,
     Rcpp::Named("ssb0") = ssb0,
-    Rcpp::Named("wtf") = tmppop);
+    Rcpp::Named("tmppop") = tmppop);
 } // close fish model
 
 
