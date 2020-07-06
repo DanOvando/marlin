@@ -33,54 +33,56 @@ unfished conditions
 ``` r
 library(marlin)
 library(tidyverse)
-#> ── Attaching packages ───────────────────────────── tidyverse 1.3.0 ──
+#> ── Attaching packages ──────────── tidyverse 1.3.0 ──
 #> ✓ ggplot2 3.3.1     ✓ purrr   0.3.4
 #> ✓ tibble  3.0.1     ✓ dplyr   1.0.0
 #> ✓ tidyr   1.1.0     ✓ stringr 1.4.0
 #> ✓ readr   1.3.1     ✓ forcats 0.5.0
-#> ── Conflicts ──────────────────────────────── tidyverse_conflicts() ──
+#> ── Conflicts ─────────────── tidyverse_conflicts() ──
 #> x dplyr::filter() masks stats::filter()
 #> x dplyr::lag()    masks stats::lag()
 options(dplyr.summarise.inform = FALSE)
-  resolution <- 25
-  habitat <- expand_grid(x =1:resolution, y = 1:resolution) %>%
-    mutate(habitat =  dnorm((x^2 + y^2), 600,100))
+resolution <- 25
+habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 600, 100))
 
-  habitat_mat <-
-    matrix(
-      rep(habitat$habitat, resolution),
-      nrow = resolution^2,
-      ncol = resolution^2,
-      byrow = TRUE
-    )
+habitat_mat <-
+  matrix(
+    rep(habitat$habitat, resolution),
+    nrow = resolution ^ 2,
+    ncol = resolution ^ 2,
+    byrow = TRUE
+  )
 
-  skj_hab <- habitat_mat / rowSums(habitat_mat)
+skj_hab <- habitat_mat / rowSums(habitat_mat)
 
-  habitat <- expand_grid(x =1:resolution, y = 1:resolution) %>%
-    mutate(habitat =  dnorm((x^2 + y^2), 100,2))
+habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 600, 100))
 
-  habitat_mat <-
-    matrix(
-      rep(habitat$habitat, resolution),
-      nrow = resolution^2,
-      ncol = resolution^2,
-      byrow = TRUE
-    )
+habitat_mat <-
+  matrix(
+    rep(habitat$habitat, resolution),
+    nrow = resolution ^ 2,
+    ncol = resolution ^ 2,
+    byrow = TRUE
+  )
 
-  bet_hab <- habitat_mat / rowSums(habitat_mat)
+bet_hab <- habitat_mat / rowSums(habitat_mat)
 
 
-  fauna <-
-    list("skipjack" = create_critter(
+fauna <-
+  list(
+    "skipjack" = create_critter(
       scientific_name = "Katsuwonus pelamis",
       habitat = skj_hab,
-      adult_movement = 2
+      adult_movement = 1
     ),
     "bigeye" = create_critter(
       common_name = "bigeye tuna",
       habitat = bet_hab,
-      adult_movement = 10
-    ))
+      adult_movement = 20
+    )
+  )
 #> ══  1 queries  ═══════════════
 #> 
 #> Retrieving data for taxon 'Katsuwonus pelamis'
@@ -92,57 +94,81 @@ options(dplyr.summarise.inform = FALSE)
 #> ● Not Found: 0
 
 
-  # run simulations
-  steps <- 100
-  
-  a <- Sys.time()
-  
-  storage <- marsim(fauna = fauna, 
-         steps = steps)
-  
-  Sys.time() - a
-#> Time difference of 0.609565 secs
-  
-  
-  rec <- map(storage, ~.x[[2]]$n_p_a) %>%
-    map_df(~tibble(rec = .x[,1]),.id = "i") %>%
-    mutate(i = as.numeric(i)) %>%
-    filter(i > 1) %>%
-    group_by(i) %>%
-    summarise(recs = sum(rec))
-
-  ssb <- map(storage, ~.x[[2]]$ssb_p_a)%>%
-    map_df(~tibble(ssb = rowSums(.x)),.id = "i") %>%
-    mutate(i = as.numeric(i)) %>%
-    filter(i > 1) %>%
-    group_by(i) %>%
-    summarise(ssb = sum(ssb))
+fleets <- list("longline" = list(
+  skipjack = list(
+    price = 10,
+    sel_form = "logistic",
+    sel_start = 1,
+    sel_delta = .1,
+    catchability = .1
+  ),
+  bigeye = list(
+    price = 100,
+    sel_form = "logistic",
+    sel_start = .25,
+    sel_delta = .25,
+    catchability = .1
+  )
+))
 
 
-  ssb_skj <- rowSums(storage[[steps]]$skipjack$ssb_p_a)
 
-  check <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-    mutate(skj = ssb_skj)
+fleets <- launch_fleet(fleets = fleets, fauna = fauna)
 
-   ggplot(check, aes(x,y, fill = skj)) +
-    geom_tile() +
-     scale_fill_viridis_c() + 
-     labs(title = "skipjack")
+
+
+# run simulations
+steps <- 100
+
+a <- Sys.time()
+
+storage <- simmar(fauna = fauna,
+                  fleets = fleets,
+                  steps = steps)
+
+Sys.time() - a
+#> Time difference of 0.500561 secs
+  
+  
+rec <- map(storage, ~ .x[[2]]$n_p_a) %>%
+  map_df( ~ tibble(rec = .x[, 1]), .id = "i") %>%
+  mutate(i = as.numeric(i)) %>%
+  filter(i > 1) %>%
+  group_by(i) %>%
+  summarise(recs = sum(rec))
+
+ssb <- map(storage, ~ .x[[2]]$ssb_p_a) %>%
+  map_df( ~ tibble(ssb = rowSums(.x)), .id = "i") %>%
+  mutate(i = as.numeric(i)) %>%
+  filter(i > 1) %>%
+  group_by(i) %>%
+  summarise(ssb = sum(ssb))
+
+
+ssb_skj <- rowSums(storage[[steps]]$skipjack$ssb_p_a)
+
+check <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  mutate(skj = ssb_skj)
+
+ggplot(check, aes(x, y, fill = skj)) +
+  geom_tile() +
+  scale_fill_viridis_c() +
+  labs(title = "skipjack")
 ```
 
 <img src="man/figures/README-example-1.png" width="100%" />
 
 ``` r
-   
-  ssb_bet <- rowSums(storage[[steps]]$bigeye$ssb_p_a)
 
-  check <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-    mutate(skj = ssb_bet)
+ssb_bet <- rowSums(storage[[steps]]$bigeye$ssb_p_a)
 
-   ggplot(check, aes(x,y, fill = ssb_bet)) +
-    geom_tile() +
-     scale_fill_viridis_c() + 
-     labs(title = "bigeye")
+check <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  mutate(skj = ssb_bet)
+
+ggplot(check, aes(x, y, fill = ssb_bet)) +
+  geom_tile() +
+  scale_fill_viridis_c() +
+  labs(title = "bigeye")
 ```
 
 <img src="man/figures/README-example-2.png" width="100%" />

@@ -33,4 +33,29 @@ AHA:
 https://scholar.princeton.edu/sites/default/files/q-aps/files/slides_day4_am.pdf shows how to go back from armadillo to numeric matrix!!!
 
 if all the pop modeling happens in eigen, how much of a speed loss is it to basically just organize things in R, run pop model in cpp
-'
+
+
+# fleet modeling
+
+The problem: you need a fleet model that allows for tuning of fishing level for different species. 
+
+The idea: for now set effort to be a constant. Set selectivity in the fleet object by each fauna type. Set a price for each fauna type inside the fleet object. That way different species can have different selectivties and prices for different fleets. 
+
+Then, for each species, set a target equilibrium depletion
+
+
+Then, tune ONLY catchability for each fleet to get as close as possible to target depletion. 
+
+Now, this will need to have a warning / summary something to show how close you actually got. Suppose you set selectivity to zero across the board for a given species : no q will ever get it there. 
+
+Then, disperse fleet to start with by profit per unit effort, such that marginal profit is equal in space. which I think you can do analytically, following miller
+
+$$p*b_i*(1 - exp(-qE_i)) - cE$$
+
+$$ 0 = p*b*q*exp(-qE) -c$$
+
+solve for E in each patch, sorting by total profits and stopping when you're out of available effort
+
+
+
+

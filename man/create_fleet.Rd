@@ -5,41 +5,17 @@
 \title{create_fleet}
 \usage{
 create_fleet(
-  eq_f = NA,
-  length_50_sel = 1,
-  delta = 2,
-  fish,
-  mpa_reaction = "concentrate",
-  cost = 0.1,
-  beta = 1,
-  theta = 0.1,
-  max_perc_change_f = 2,
-  max_cr_ratio = 0.75,
-  b_ref_oa = 0.25,
-  q = 0.001,
-  q_cv = 0,
-  q_ac = 0,
-  q_slope = 0,
-  cost_cv = 0,
-  cost_ac = 0,
-  cost_slope = 0,
   fleet_model = "constant-effort",
   effort_allocation = "gravity",
-  cost_function = "constant",
-  tech_rate = 0,
   initial_effort = 100,
-  target_catch = 0,
-  catches = NA,
   sigma_effort = 0,
-  profit_lags = 1,
-  mey_buffer = 2,
   effort_ac = 0
 )
 }
 \arguments{
-\item{delta}{cm above length50 at 95 selectivity}
-
 \item{effort_ac}{}
+
+\item{delta}{cm above length50 at 95 selectivity}
 }
 \value{
 a fleet object

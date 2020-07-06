@@ -33,10 +33,6 @@ create_critter(
   adult_movement = 2,
   larval_movement = 2,
   query_fishlife = T,
-  price = 1,
-  price_cv = 0,
-  price_ac = 0,
-  price_slope = 0,
   sigma_r = 0,
   rec_ac = 0,
   cores = 4,
@@ -46,7 +42,8 @@ create_critter(
   density_movement_modifier = 1,
   linf_buffer = 1.2,
   resolution = 25,
-  habitat = NA
+  habitat = NA,
+  fished_depletion = 1
 )
 }
 \arguments{

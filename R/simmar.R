@@ -1,4 +1,5 @@
-marsim <- function(fauna = list(),
+simmar <- function(fauna = list(),
+                   fleets = list(),
                    steps = 100,
                    n_cores = 1) {
 
@@ -51,6 +52,8 @@ marsim <- function(fauna = list(),
 
 
   fauni <- names(fauna)
+  
+  fleets <- names(fleets)
 
   patches <- unique(purrr::map_dbl(fauna, "patches"))
 

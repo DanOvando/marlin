@@ -26,6 +26,7 @@ Imports:
     iterators,
     parallel,
     taxize,
-    ggplot2
+    ggplot2,
+    purrr
 Remotes: 
     james-thorson/FishLife
