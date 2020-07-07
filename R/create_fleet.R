@@ -1,70 +1,52 @@
-#' create_fleet
-#'
-#' @param eq_f
-#' @param length_50_sel
-#' @param delta cm above length50 at 95 selectivity
-#' @param mpa_reaction
-#' @param fish
-#' @param cost
-#' @param beta
-#' @param theta
-#' @param q
-#' @param fleet_model
-#' @param effort_allocation
-#' @param initial_effort
-#' @param cost_function
-#' @param cost_slope
-#' @param tech_rate
-#' @param target_catch
-#' @param catches
-#' @param sigma_effort
-#' @param profit_lags
-#' @param theta_tuner
-#' @param q_cv
-#' @param q_ac
-#' @param cost_cv
-#' @param cost_ac
-#' @param max_perc_change_f
-#' @param max_cr_ratio
-#' @param q_slope
-#' @param oa_ratio
-#' @param mey_buffer
-#' @param effort_ac
-#'
-#' @return a fleet object
-#' @export
-#'
-#' @examples
-#' \dontrun{
-#' create_fleet(eq_f = 2,length_50_sel = 25, length_95_sel = 27, fish = bluefish)
-#' }
-create_fleet <- function(
-                         fleet_model = 'constant-effort',
-                         effort_allocation = 'gravity',
-                         initial_effort = 100,
-                         sigma_effort = 0,
-                         effort_ac = 0) {
-
-# 
-#   length_bins <- as.numeric(colnames(fish$length_at_age_key))
-# 
-#   sel_at_bin <- ((1 / (1 + exp(-log(
-#     19
-#   ) * ((length_bins - length_50_sel) / (delta)
-#   )))))
-# 
-#   p_sel_at_age <- (as.matrix(fish$length_at_age_key) %*% sel_at_bin)
-# 
-#   length_95_sel <- (length_50_sel + delta)
-# 
-#   sel_at_age <- p_sel_at_age
-
-
-  rm(fish)
-
-  fleet <- list(mget(ls()))
-
-  fleet <- fleet[[1]]
-
-  return(fleet)
-}
+create_fleet <-
+  function(fleets,
+           fauna,
+           base_effort = 0) {
+    # idea: each fleet has a list of fauna inside of it specifying the price, selectivity, q for that species
+    
+    fleet_names <- names(fleets)
+    
+    fauni <- names(fauna)
+    
+    for (f in seq_along(fleet_names)) {
+      tmp_fleet <- fleets[[f]]
+      
+      for (s in seq_along(fauni)) {
+        tmp_critter <- tmp_fleet[[fauni[s]]]
+        
+        if (tmp_critter$sel_form == "logistic") {
+          length_bins <-
+            as.numeric(colnames(fauna[[fauni[s]]]$length_at_age_key))
+          
+          l_50_sel <-
+            fauna[[fauni[s]]]$length_50_mature * tmp_critter$sel_start
+          
+          l_95_sel <-
+            fauna[[fauni[s]]]$length_50_mature * (tmp_critter$sel_start + tmp_critter$sel_delta)
+          
+          sel_at_bin <- ((1 / (1 + exp(
+            -log(19) * ((length_bins - l_50_sel) / (l_95_sel - l_50_sel))
+          ))))
+          
+          p_sel_at_age <-
+            (as.matrix(fauna[[fauni[s]]]$length_at_age_key) %*% sel_at_bin)
+          
+          sel_at_age <- p_sel_at_age
+          
+          fleets[[f]][[fauni[s]]]$sel_at_age <- as.numeric(sel_at_age)
+          
+        } # close logistic form if
+        
+        
+      } # close fauni loop
+      
+    
+      fleets[[f]]$base_effort <-  base_effort
+      
+      
+    } # close fleet loop
+    
+    
+    return(fleets)
+    
+  } # close function

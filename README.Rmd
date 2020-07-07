@@ -71,12 +71,14 @@ fauna <-
     "skipjack" = create_critter(
       scientific_name = "Katsuwonus pelamis",
       habitat = skj_hab,
-      adult_movement = 1
+      adult_movement = 1,
+      fished_depletion = .7
     ),
     "bigeye" = create_critter(
       common_name = "bigeye tuna",
       habitat = bet_hab,
-      adult_movement = 100
+      adult_movement = 100,
+      fished_depletion = 0.2
     )
   )
 
@@ -87,21 +89,39 @@ fleets <- list("longline" = list(
     sel_form = "logistic",
     sel_start = 0,
     sel_delta = .1,
-    catchability = .4
+    catchability = 0
   ),
   bigeye = list(
     price = 1000,
     sel_form = "logistic",
+    sel_start = .25,
+    sel_delta = .01,
+    catchability = 0.1
+  )
+),
+"purseseine" = list(
+  skipjack = list(
+    price = 100,
+    sel_form = "logistic",
+    sel_start = 0,
+    sel_delta = .1,
+    catchability = .9
+  ),
+  bigeye = list(
+    price = 100,
+    sel_form = "logistic",
     sel_start = 1,
     sel_delta = .01,
-    catchability = .01
+    catchability = .1
   )
 ))
 
 
 
-fleets <- launch_fleet(fleets = fleets, fauna = fauna, base_effort = resolution^2)
+fleets <- create_fleet(fleets = fleets, fauna = fauna, base_effort = resolution^2)
 
+
+fleets <- tune_fleets(fauna, fleets, steps = 100)
 
 
 # run simulations
@@ -144,9 +164,9 @@ ggplot(check, aes(x, y, fill = skj)) +
 ssb_bet <- rowSums(storage[[steps]]$bigeye$ssb_p_a)
 
 check <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(skj = ssb_bet)
+  mutate(bet = ssb_bet)
 
-ggplot(check, aes(x, y, fill = ssb_bet)) +
+ggplot(check, aes(x, y, fill = bet)) +
   geom_tile() +
   scale_fill_viridis_c() +
   labs(title = "bigeye")

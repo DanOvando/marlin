@@ -372,6 +372,7 @@ create_critter <- function(common_name = 'white seabass',
 
   unfished <- unfished$tmppop
 
+  rm(list = c("sq", "f_p_a","weight_fit","distance"))
   fish <- list(mget(ls()))
 
   fish <- fish[[1]]

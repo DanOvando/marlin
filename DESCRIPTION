@@ -27,6 +27,7 @@ Imports:
     parallel,
     taxize,
     ggplot2,
-    purrr
+    purrr,
+    dplyr
 Remotes: 
     james-thorson/FishLife
