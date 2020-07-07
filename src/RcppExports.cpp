@@ -6,17 +6,6 @@
 
 using namespace Rcpp;
 
-// timesTwo
-double timesTwo(double y);
-RcppExport SEXP _marlin_timesTwo(SEXP ySEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< double >::type y(ySEXP);
-    rcpp_result_gen = Rcpp::wrap(timesTwo(y));
-    return rcpp_result_gen;
-END_RCPP
-}
 // sample_problem
 Rcpp::NumericMatrix sample_problem();
 RcppExport SEXP _marlin_sample_problem() {
@@ -50,90 +39,10 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// popmodel
-List popmodel(NumericVector length_at_age, NumericVector weight_at_age, NumericVector maturity_at_age, NumericVector selectivity_at_age, NumericVector rec_devs, NumericVector age_vector, int sim_years, int n_ages, int burn_years, int rec_form, double steepness, double r0, double m, double f);
-RcppExport SEXP _marlin_popmodel(SEXP length_at_ageSEXP, SEXP weight_at_ageSEXP, SEXP maturity_at_ageSEXP, SEXP selectivity_at_ageSEXP, SEXP rec_devsSEXP, SEXP age_vectorSEXP, SEXP sim_yearsSEXP, SEXP n_agesSEXP, SEXP burn_yearsSEXP, SEXP rec_formSEXP, SEXP steepnessSEXP, SEXP r0SEXP, SEXP mSEXP, SEXP fSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type length_at_age(length_at_ageSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type weight_at_age(weight_at_ageSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type maturity_at_age(maturity_at_ageSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type selectivity_at_age(selectivity_at_ageSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type rec_devs(rec_devsSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type age_vector(age_vectorSEXP);
-    Rcpp::traits::input_parameter< int >::type sim_years(sim_yearsSEXP);
-    Rcpp::traits::input_parameter< int >::type n_ages(n_agesSEXP);
-    Rcpp::traits::input_parameter< int >::type burn_years(burn_yearsSEXP);
-    Rcpp::traits::input_parameter< int >::type rec_form(rec_formSEXP);
-    Rcpp::traits::input_parameter< double >::type steepness(steepnessSEXP);
-    Rcpp::traits::input_parameter< double >::type r0(r0SEXP);
-    Rcpp::traits::input_parameter< double >::type m(mSEXP);
-    Rcpp::traits::input_parameter< double >::type f(fSEXP);
-    rcpp_result_gen = Rcpp::wrap(popmodel(length_at_age, weight_at_age, maturity_at_age, selectivity_at_age, rec_devs, age_vector, sim_years, n_ages, burn_years, rec_form, steepness, r0, m, f));
-    return rcpp_result_gen;
-END_RCPP
-}
-// move_matrix_eigen
-Eigen::MatrixXd move_matrix_eigen(Eigen::MatrixXd X, Eigen::MatrixXd y, int its);
-RcppExport SEXP _marlin_move_matrix_eigen(SEXP XSEXP, SEXP ySEXP, SEXP itsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Eigen::MatrixXd >::type X(XSEXP);
-    Rcpp::traits::input_parameter< Eigen::MatrixXd >::type y(ySEXP);
-    Rcpp::traits::input_parameter< int >::type its(itsSEXP);
-    rcpp_result_gen = Rcpp::wrap(move_matrix_eigen(X, y, its));
-    return rcpp_result_gen;
-END_RCPP
-}
-// sraplus
-List sraplus(NumericVector catches, NumericVector rs, NumericVector ms, NumericVector init_deps, NumericVector anchors, NumericVector qs, NumericVector sigma_procs, NumericVector drawdex, NumericVector index_t, NumericVector sigma_obs, NumericVector log_terminal_u, NumericVector log_terminal_u_cv, IntegerVector index_years, IntegerVector u_years, int draws, int n_keep, int b_ref_type, int f_ref_type, int fit_index, int use_terminal_u, int use_terminal_state, bool estimate_k, double log_terminal_ref, double sigma_dep, double plim, int use_u_prior, NumericVector u_priors, double sigma_u, double learn_rate);
-RcppExport SEXP _marlin_sraplus(SEXP catchesSEXP, SEXP rsSEXP, SEXP msSEXP, SEXP init_depsSEXP, SEXP anchorsSEXP, SEXP qsSEXP, SEXP sigma_procsSEXP, SEXP drawdexSEXP, SEXP index_tSEXP, SEXP sigma_obsSEXP, SEXP log_terminal_uSEXP, SEXP log_terminal_u_cvSEXP, SEXP index_yearsSEXP, SEXP u_yearsSEXP, SEXP drawsSEXP, SEXP n_keepSEXP, SEXP b_ref_typeSEXP, SEXP f_ref_typeSEXP, SEXP fit_indexSEXP, SEXP use_terminal_uSEXP, SEXP use_terminal_stateSEXP, SEXP estimate_kSEXP, SEXP log_terminal_refSEXP, SEXP sigma_depSEXP, SEXP plimSEXP, SEXP use_u_priorSEXP, SEXP u_priorsSEXP, SEXP sigma_uSEXP, SEXP learn_rateSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type catches(catchesSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type rs(rsSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type ms(msSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type init_deps(init_depsSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type anchors(anchorsSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type qs(qsSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type sigma_procs(sigma_procsSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type drawdex(drawdexSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type index_t(index_tSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type sigma_obs(sigma_obsSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type log_terminal_u(log_terminal_uSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type log_terminal_u_cv(log_terminal_u_cvSEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type index_years(index_yearsSEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type u_years(u_yearsSEXP);
-    Rcpp::traits::input_parameter< int >::type draws(drawsSEXP);
-    Rcpp::traits::input_parameter< int >::type n_keep(n_keepSEXP);
-    Rcpp::traits::input_parameter< int >::type b_ref_type(b_ref_typeSEXP);
-    Rcpp::traits::input_parameter< int >::type f_ref_type(f_ref_typeSEXP);
-    Rcpp::traits::input_parameter< int >::type fit_index(fit_indexSEXP);
-    Rcpp::traits::input_parameter< int >::type use_terminal_u(use_terminal_uSEXP);
-    Rcpp::traits::input_parameter< int >::type use_terminal_state(use_terminal_stateSEXP);
-    Rcpp::traits::input_parameter< bool >::type estimate_k(estimate_kSEXP);
-    Rcpp::traits::input_parameter< double >::type log_terminal_ref(log_terminal_refSEXP);
-    Rcpp::traits::input_parameter< double >::type sigma_dep(sigma_depSEXP);
-    Rcpp::traits::input_parameter< double >::type plim(plimSEXP);
-    Rcpp::traits::input_parameter< int >::type use_u_prior(use_u_priorSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type u_priors(u_priorsSEXP);
-    Rcpp::traits::input_parameter< double >::type sigma_u(sigma_uSEXP);
-    Rcpp::traits::input_parameter< double >::type learn_rate(learn_rateSEXP);
-    rcpp_result_gen = Rcpp::wrap(sraplus(catches, rs, ms, init_deps, anchors, qs, sigma_procs, drawdex, index_t, sigma_obs, log_terminal_u, log_terminal_u_cv, index_years, u_years, draws, n_keep, b_ref_type, f_ref_type, fit_index, use_terminal_u, use_terminal_state, estimate_k, log_terminal_ref, sigma_dep, plim, use_u_prior, u_priors, sigma_u, learn_rate));
-    return rcpp_result_gen;
-END_RCPP
-}
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_marlin_timesTwo", (DL_FUNC) &_marlin_timesTwo, 1},
     {"_marlin_sample_problem", (DL_FUNC) &_marlin_sample_problem, 0},
     {"_marlin_sim_fish_pop", (DL_FUNC) &_marlin_sim_fish_pop, 13},
-    {"_marlin_popmodel", (DL_FUNC) &_marlin_popmodel, 14},
-    {"_marlin_move_matrix_eigen", (DL_FUNC) &_marlin_move_matrix_eigen, 3},
-    {"_marlin_sraplus", (DL_FUNC) &_marlin_sraplus, 29},
     {NULL, NULL, 0}
 };
 

@@ -25,6 +25,14 @@ You can install the development version from
 devtools::install_github("DanOvando/marlin")
 ```
 
+## Naviation
+
+The core wrapper function is located in R/simmar.R. This funcion keeps
+track of each of the populations and fleets.
+
+The actual population models are found in src/fish\_model.cpp.
+Additional modules will be put in there as they are developed
+
 ## Example
 
 Create two critters, skipjack tuna and bigeye tuna, and simulate their
@@ -42,7 +50,7 @@ library(tidyverse)
 #> x dplyr::filter() masks stats::filter()
 #> x dplyr::lag()    masks stats::lag()
 options(dplyr.summarise.inform = FALSE)
-resolution <- 25
+resolution <- 20
 habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
   mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 20, 10))
 
@@ -56,12 +64,12 @@ habitat_mat <-
 
 skj_hab <- habitat_mat / rowSums(habitat_mat)
 
-habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 600, 100))
-
-
 # habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-#   mutate(habitat =  1)
+#   mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 600, 100))
+
+
+habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  mutate(habitat =  1)
 
 
 habitat_mat <-
@@ -80,14 +88,14 @@ fauna <-
     "skipjack" = create_critter(
       scientific_name = "Katsuwonus pelamis",
       habitat = skj_hab,
-      adult_movement = 2,
-      fished_depletion = .75
+      adult_movement = 100,
+      fished_depletion = 1
     ),
     "bigeye" = create_critter(
       common_name = "bigeye tuna",
       habitat = bet_hab,
-      adult_movement = 10,
-      fished_depletion = .3
+      adult_movement = 100,
+      fished_depletion = 0.5
     )
   )
 #> ══  1 queries  ═══════════════
@@ -165,7 +173,7 @@ storage <- simmar(fauna = fauna,
                   steps = steps)
 
 Sys.time() - a
-#> Time difference of 0.8430099 secs
+#> Time difference of 0.293257 secs
   
 
 ssb_skj <- rowSums(storage[[steps]]$skipjack$ssb_p_a)
@@ -238,7 +246,7 @@ mpa_storage <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.5919321 secs
+#> Time difference of 0.2717471 secs
 
 ssb_skj <- rowSums(mpa_storage[[steps]]$skipjack$ssb_p_a)
 
@@ -277,12 +285,41 @@ ggplot(check, aes(x, y, fill = bet)) +
 # 
 # (sum(ssb_skj) / fauna$skipjack$ssb0) / fauna$skipjack$fished_depletion
 
+bet_outside_trajectory <- map_dbl(mpa_storage,~ sum(.x$bigeye$ssb_p_a[mpa_locations$mpa == FALSE,]))
+
+plot(bet_outside_trajectory)
+```
+
+<img src="man/figures/README-unnamed-chunk-2-4.png" width="100%" />
+
+``` r
+
+
+bet_inside_trajectory <- map_dbl(mpa_storage,~ sum(.x$bigeye$ssb_p_a[mpa_locations$mpa == TRUE,]))
+
+plot(bet_inside_trajectory)
+```
+
+<img src="man/figures/README-unnamed-chunk-2-5.png" width="100%" />
+
+``` r
+
+bet_outside_trajectory <- map_dbl(mpa_storage,~ sum(.x$bigeye$ssb_p_a[mpa_locations$mpa == FALSE,]))
+
+plot(bet_outside_trajectory)
+```
+
+<img src="man/figures/README-unnamed-chunk-2-6.png" width="100%" />
+
+``` r
+
+
 bet_trajectory <- map_dbl(mpa_storage,~ sum(.x$bigeye$ssb_p_a))
 
 plot(bet_trajectory)
 ```
 
-<img src="man/figures/README-unnamed-chunk-2-4.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-2-7.png" width="100%" />
 
 ``` r
 
@@ -291,7 +328,7 @@ skj_trajectory <- map_dbl(mpa_storage,~ sum(.x$skipjack$ssb_p_a))
 plot(skj_trajectory)
 ```
 
-<img src="man/figures/README-unnamed-chunk-2-5.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-2-8.png" width="100%" />
 
 Ah interesting, so need to think through the movement a bit more: the
 problem is that movement is effectively 0 for the really good habitats:

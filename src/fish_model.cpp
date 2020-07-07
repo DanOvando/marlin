@@ -86,7 +86,7 @@ List sim_fish_pop(
   //////////////////// move ////////////////////////
 
 
-    tmpmat =  movement * tmpmat; // matrix multiplication of numbers at age by movement matrix
+  tmpmat =  movement * tmpmat; // matrix multiplication of numbers at age by movement matrix
 
 
   SEXP tmp = Rcpp::wrap(tmpmat); // convert from eigen to Rcpp
