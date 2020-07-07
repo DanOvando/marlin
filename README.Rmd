@@ -76,31 +76,31 @@ fauna <-
     "bigeye" = create_critter(
       common_name = "bigeye tuna",
       habitat = bet_hab,
-      adult_movement = 20
+      adult_movement = 100
     )
   )
 
 
 fleets <- list("longline" = list(
   skipjack = list(
-    price = 10,
-    sel_form = "logistic",
-    sel_start = 1,
-    sel_delta = .1,
-    catchability = .1
-  ),
-  bigeye = list(
     price = 100,
     sel_form = "logistic",
-    sel_start = .25,
-    sel_delta = .25,
-    catchability = .1
+    sel_start = 0,
+    sel_delta = .1,
+    catchability = .4
+  ),
+  bigeye = list(
+    price = 1000,
+    sel_form = "logistic",
+    sel_start = 1,
+    sel_delta = .01,
+    catchability = .01
   )
 ))
 
 
 
-fleets <- launch_fleet(fleets = fleets, fauna = fauna)
+fleets <- launch_fleet(fleets = fleets, fauna = fauna, base_effort = resolution^2)
 
 
 

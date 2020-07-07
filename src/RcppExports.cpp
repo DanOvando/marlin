@@ -28,14 +28,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // sim_fish_pop
-List sim_fish_pop(const NumericVector length_at_age, const NumericVector weight_at_age, const NumericVector maturity_at_age, const Eigen::MatrixXd movement, const Rcpp::NumericMatrix last_n_p_a, const int patches, const int burn_steps, const double steepness, const double r0, double ssb0, const double m, bool tune_unfished);
-RcppExport SEXP _marlin_sim_fish_pop(SEXP length_at_ageSEXP, SEXP weight_at_ageSEXP, SEXP maturity_at_ageSEXP, SEXP movementSEXP, SEXP last_n_p_aSEXP, SEXP patchesSEXP, SEXP burn_stepsSEXP, SEXP steepnessSEXP, SEXP r0SEXP, SEXP ssb0SEXP, SEXP mSEXP, SEXP tune_unfishedSEXP) {
+List sim_fish_pop(const NumericVector length_at_age, const NumericVector weight_at_age, const NumericVector maturity_at_age, const NumericMatrix f_p_a, const Eigen::MatrixXd movement, const Rcpp::NumericMatrix last_n_p_a, const int patches, const int burn_steps, const double steepness, const double r0, double ssb0, const double m, bool tune_unfished);
+RcppExport SEXP _marlin_sim_fish_pop(SEXP length_at_ageSEXP, SEXP weight_at_ageSEXP, SEXP maturity_at_ageSEXP, SEXP f_p_aSEXP, SEXP movementSEXP, SEXP last_n_p_aSEXP, SEXP patchesSEXP, SEXP burn_stepsSEXP, SEXP steepnessSEXP, SEXP r0SEXP, SEXP ssb0SEXP, SEXP mSEXP, SEXP tune_unfishedSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const NumericVector >::type length_at_age(length_at_ageSEXP);
     Rcpp::traits::input_parameter< const NumericVector >::type weight_at_age(weight_at_ageSEXP);
     Rcpp::traits::input_parameter< const NumericVector >::type maturity_at_age(maturity_at_ageSEXP);
+    Rcpp::traits::input_parameter< const NumericMatrix >::type f_p_a(f_p_aSEXP);
     Rcpp::traits::input_parameter< const Eigen::MatrixXd >::type movement(movementSEXP);
     Rcpp::traits::input_parameter< const Rcpp::NumericMatrix >::type last_n_p_a(last_n_p_aSEXP);
     Rcpp::traits::input_parameter< const int >::type patches(patchesSEXP);
@@ -45,7 +46,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type ssb0(ssb0SEXP);
     Rcpp::traits::input_parameter< const double >::type m(mSEXP);
     Rcpp::traits::input_parameter< bool >::type tune_unfished(tune_unfishedSEXP);
-    rcpp_result_gen = Rcpp::wrap(sim_fish_pop(length_at_age, weight_at_age, maturity_at_age, movement, last_n_p_a, patches, burn_steps, steepness, r0, ssb0, m, tune_unfished));
+    rcpp_result_gen = Rcpp::wrap(sim_fish_pop(length_at_age, weight_at_age, maturity_at_age, f_p_a, movement, last_n_p_a, patches, burn_steps, steepness, r0, ssb0, m, tune_unfished));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -129,7 +130,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_marlin_timesTwo", (DL_FUNC) &_marlin_timesTwo, 1},
     {"_marlin_sample_problem", (DL_FUNC) &_marlin_sample_problem, 0},
-    {"_marlin_sim_fish_pop", (DL_FUNC) &_marlin_sim_fish_pop, 12},
+    {"_marlin_sim_fish_pop", (DL_FUNC) &_marlin_sim_fish_pop, 13},
     {"_marlin_popmodel", (DL_FUNC) &_marlin_popmodel, 14},
     {"_marlin_move_matrix_eigen", (DL_FUNC) &_marlin_move_matrix_eigen, 3},
     {"_marlin_sraplus", (DL_FUNC) &_marlin_sraplus, 29},

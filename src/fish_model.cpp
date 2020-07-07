@@ -8,6 +8,7 @@ List sim_fish_pop(
     const NumericVector length_at_age,
     const NumericVector weight_at_age,
     const NumericVector maturity_at_age,
+    const NumericMatrix f_p_a,
     const Eigen::MatrixXd movement,
     const Rcpp::NumericMatrix last_n_p_a,
     const int patches,
@@ -58,6 +59,7 @@ List sim_fish_pop(
         length_at_age,
         weight_at_age,
         maturity_at_age,
+        f_p_a,
         movement,
         tmp_n_p_a,
         patches,
@@ -70,9 +72,6 @@ List sim_fish_pop(
 
       tmp_n_p_a = wrap(tmppop["n_p_a"]);
 
-     // NumericMatrix tmp_n_p_a = (tmppop["n_p_a"]);
-
-      // Rcpp::List tmppop;
 
     }
 
@@ -80,23 +79,15 @@ List sim_fish_pop(
 
     ssb0 = sum(tmp_ssb_p_a);
 
-    // return(tmp);
 
 
   }
 
-
-
   //////////////////// move ////////////////////////
 
-  // for (int s = 0; s < steps; s++){
-
-    // Rcpp::Rcout << s << std::endl;
 
     tmpmat =  movement * tmpmat; // matrix multiplication of numbers at age by movement matrix
 
-
-  // }
 
   SEXP tmp = Rcpp::wrap(tmpmat); // convert from eigen to Rcpp
 
@@ -104,37 +95,21 @@ List sim_fish_pop(
 
   //////////////////// grow ////////////////////////
 
-  // NumericMatrix last_n_p_a = n_p_a;
 
-  NumericVector plus_group = n_p_a(_,ages - 1) * exp(-m);
+  NumericVector plus_group = n_p_a(_,ages - 1) * exp(-(m +f_p_a(_,ages - 1)));
 
-  // Rcpp::Rcout << "last is" << last_n_p_a(0,0) * exp(-m) << std::endl;
-
-  // Rcpp::Rcout << "before is" << n_p_a(0,1)<< std::endl;
-
-  // Rcpp::Rcout << "exp is" <<exp(-m)<< std::endl;
-
-  // std::cout << "exp is" << last_n_p_a(_,11)* exp(-m)<< std::endl;
-
+  // last_n_p_a(_,Range(0,ages - 1));
+  //   
+  //   f_p_a(_, Range(0, ages - 1));
+  
   for (int a = 1; a < ages; a++){
 
-    // NumericMatrix::Column wtf = last_n_p_a(_,a - 1);
-
-    // Rcpp::Rcout << "a is" << a - 1<< std::endl;
-
-    n_p_a(_,a) =  last_n_p_a(_,a - 1) * exp(-m);
+    n_p_a(_,a) =  last_n_p_a(_,a - 1) * exp(-(m + f_p_a(_,a - 1)));
 
 
   }
 
-  // Rcpp::Rcout << "new is" << n_p_a(0,1)<< std::endl;
-
   n_p_a(_, ages - 1) = n_p_a(_, ages - 1) + plus_group;
-
-  // n_p_a(1, _) = rep(999, ages);
-
-  // weight_at_age = weight_at_age + 999;
-
 
   for (int p = 0;p < patches; p++){
 
@@ -149,7 +124,11 @@ List sim_fish_pop(
     if (tune_unfished == 1){
 
       n_p_a(_,0) = rep(r0 / patches, patches);
-
+      
+      b_p_a(_,0) =   n_p_a(_,0) * weight_at_age(0);
+      
+      ssb_p_a(_,0) =   b_p_a(_,0) * maturity_at_age(0);
+      
     } else {
 
       // global density dependence, distribute recruits evenly
@@ -159,6 +138,11 @@ List sim_fish_pop(
 
       n_p_a(_,0) = rep(((0.8 * r0 * steepness * ssb) / (0.2 * ssb0 * (1 - steepness) + (steepness - 0.2) * ssb)) / patches, patches);
 
+      b_p_a(_,0) =   n_p_a(_,0) * weight_at_age(0);
+      
+      ssb_p_a(_,0) =   b_p_a(_,0) * maturity_at_age(0);
+      
+      
     }
 
   //////////////////// process results ////////////////////////

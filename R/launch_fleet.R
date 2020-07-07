@@ -1,6 +1,7 @@
 launch_fleet <-
   function(fleets,
-           fauna) {
+           fauna,
+           base_effort = 0) {
     # idea: each fleet has a list of fauna inside of it specifying the price, selectivity, q for that species
     
     fleet_names <- names(fleets)
@@ -38,6 +39,9 @@ launch_fleet <-
         
         
       } # close fauni loop
+      
+    
+      fleets[[f]]$base_effort <-  base_effort
       
       
     } # close fleet loop

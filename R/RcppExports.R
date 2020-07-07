@@ -9,8 +9,8 @@ sample_problem <- function() {
     .Call(`_marlin_sample_problem`)
 }
 
-sim_fish_pop <- function(length_at_age, weight_at_age, maturity_at_age, movement, last_n_p_a, patches, burn_steps, steepness, r0, ssb0, m, tune_unfished) {
-    .Call(`_marlin_sim_fish_pop`, length_at_age, weight_at_age, maturity_at_age, movement, last_n_p_a, patches, burn_steps, steepness, r0, ssb0, m, tune_unfished)
+sim_fish_pop <- function(length_at_age, weight_at_age, maturity_at_age, f_p_a, movement, last_n_p_a, patches, burn_steps, steepness, r0, ssb0, m, tune_unfished) {
+    .Call(`_marlin_sim_fish_pop`, length_at_age, weight_at_age, maturity_at_age, f_p_a, movement, last_n_p_a, patches, burn_steps, steepness, r0, ssb0, m, tune_unfished)
 }
 
 popmodel <- function(length_at_age, weight_at_age, maturity_at_age, selectivity_at_age, rec_devs, age_vector, sim_years, n_ages, burn_years, rec_form, steepness, r0, m, f) {

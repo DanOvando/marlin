@@ -347,6 +347,8 @@ create_critter <- function(common_name = 'white seabass',
     matrix(1, nrow = patches, ncol = length(length_at_age))
 
   init_pop[, 1] <- r0 / patches
+  
+  f_p_a <- matrix(0, nrow = patches, ncol = length(length_at_age))
 
   unfished <- marlin::sim_fish_pop(
     length_at_age = length_at_age,
@@ -358,6 +360,7 @@ create_critter <- function(common_name = 'white seabass',
     burn_steps = 100,
     r0 = r0,
     ssb0 = NA,
+    f_p_a = f_p_a,
     movement = move_mat,
     last_n_p_a = init_pop,
     tune_unfished = 1

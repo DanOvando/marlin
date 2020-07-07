@@ -33,12 +33,12 @@ unfished conditions
 ``` r
 library(marlin)
 library(tidyverse)
-#> ── Attaching packages ──────────── tidyverse 1.3.0 ──
+#> ── Attaching packages ──── tidyverse 1.3.0 ──
 #> ✓ ggplot2 3.3.1     ✓ purrr   0.3.4
 #> ✓ tibble  3.0.1     ✓ dplyr   1.0.0
 #> ✓ tidyr   1.1.0     ✓ stringr 1.4.0
 #> ✓ readr   1.3.1     ✓ forcats 0.5.0
-#> ── Conflicts ─────────────── tidyverse_conflicts() ──
+#> ── Conflicts ─────── tidyverse_conflicts() ──
 #> x dplyr::filter() masks stats::filter()
 #> x dplyr::lag()    masks stats::lag()
 options(dplyr.summarise.inform = FALSE)
@@ -80,7 +80,7 @@ fauna <-
     "bigeye" = create_critter(
       common_name = "bigeye tuna",
       habitat = bet_hab,
-      adult_movement = 20
+      adult_movement = 100
     )
   )
 #> ══  1 queries  ═══════════════
@@ -96,24 +96,24 @@ fauna <-
 
 fleets <- list("longline" = list(
   skipjack = list(
-    price = 10,
-    sel_form = "logistic",
-    sel_start = 1,
-    sel_delta = .1,
-    catchability = .1
-  ),
-  bigeye = list(
     price = 100,
     sel_form = "logistic",
-    sel_start = .25,
-    sel_delta = .25,
-    catchability = .1
+    sel_start = 0,
+    sel_delta = .1,
+    catchability = .4
+  ),
+  bigeye = list(
+    price = 1000,
+    sel_form = "logistic",
+    sel_start = 1,
+    sel_delta = .01,
+    catchability = .01
   )
 ))
 
 
 
-fleets <- launch_fleet(fleets = fleets, fauna = fauna)
+fleets <- launch_fleet(fleets = fleets, fauna = fauna, base_effort = resolution^2)
 
 
 
@@ -127,7 +127,7 @@ storage <- simmar(fauna = fauna,
                   steps = steps)
 
 Sys.time() - a
-#> Time difference of 0.500561 secs
+#> Time difference of 0.6775041 secs
   
   
 rec <- map(storage, ~ .x[[2]]$n_p_a) %>%

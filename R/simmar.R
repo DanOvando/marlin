@@ -3,57 +3,11 @@ simmar <- function(fauna = list(),
                    steps = 100,
                    n_cores = 1) {
 
-  # asomething about movement and initial conditions isn't quite right. It's a problem with the
-  # reslting movement matrix from create critter
-# library(tidyverse)
-#   resolution <- 25
-#   habitat <- expand_grid(x =1:resolution, y = 1:resolution) %>%
-#     mutate(habitat =  dnorm((x^2 + y^2), 600,100))
-# 
-#   habitat_mat <-
-#     matrix(
-#       rep(habitat$habitat, resolution),
-#       nrow = resolution^2,
-#       ncol = resolution^2,
-#       byrow = TRUE
-#     )
-# 
-#   skj_hab <- habitat_mat / rowSums(habitat_mat)
-# 
-#   habitat <- expand_grid(x =1:resolution, y = 1:resolution) %>%
-#     mutate(habitat =  dnorm((x^2 + y^2), 100,2))
-# 
-#   habitat_mat <-
-#     matrix(
-#       rep(habitat$habitat, resolution),
-#       nrow = resolution^2,
-#       ncol = resolution^2,
-#       byrow = TRUE
-#     )
-# 
-#   bet_hab <- habitat_mat / rowSums(habitat_mat)
-# 
-# 
-#   fauna <-
-#     list("skipjack" = create_critter(
-#       scientific_name = "Katsuwonus pelamis",
-#       habitat = skj_hab,
-#       adult_movement = 2
-#     ),
-#     "bigeye" = create_critter(
-#       common_name = "bigeye tuna",
-#       habitat = bet_hab,
-#       adult_movement = 10
-#     ))
-# 
-#   steps = 100
-# 
-#   n_cores = 1
 
 
   fauni <- names(fauna)
   
-  fleets <- names(fleets)
+  fleet_names <- names(fleets)
 
   patches <- unique(purrr::map_dbl(fauna, "patches"))
 
@@ -82,14 +36,75 @@ simmar <- function(fauna = list(),
   storage[[1]] <- initial_conditions
 
 
+ fleets <-  purrr::map(fleets, ~ purrr::list_modify(.x, e_p_s = matrix(.x$base_effort / patches, nrow = patches, ncol = steps))) # create blank for effort by fleet, space, and time
+   
+ r_p_f <- matrix(0, patches, length(fauni)) # fishable revenue by patch and fauna
+ 
+ e_p_f <- matrix(0, patches, length(fauni)) # total fishing mortality by patch and fauna
+
+ f_q <- rep(0, length(fauni)) # storage for q by fauna
+ 
   # a <- Sys.time()
 
   for (s in 2:steps) {
+    
+    
+    for (l in seq_along(fleet_names)){
+      
+      for (f in seq_along(fauni)) {
+        
+        last_b_p_a <- storage[[s - 1]][[f]]$b_p_a
+        
+        tmp <- matrix((1 - exp(-(fleets[[l]][[fauni[f]]]$catchability * fleets[[l]][[fauni[f]]]$sel_at_age))), nrow = nrow(last_b_p_a), ncol = ncol(last_b_p_a), byrow = TRUE)
+        
+        last_b_p <- rowSums(last_b_p_a * tmp)
+        
+        # e_p_f[,f] <- sum(fleets[[l]]$e_p_s[,s - 1]) * (last_b_p / sum(last_b_p))
+        
+        r_p_f[,f] <- last_b_p * fleets[[l]][[fauni[f]]]$price
+        
+        f_q[f] <- fleets[[l]][[fauni[f]]]$catchability
+        
+      }
+      fleets[[l]]$e_p_s[,s] <- sum(fleets[[l]]$e_p_s[,s - 1]) * rowSums(r_p_f) / pmax(sum(rowSums(r_p_f)), 1e-6) # distribute fishing effort by fishable biomass
+    
+      # need to store f, patch, age eventually
+      # dur! make a thing called q_at_a which is just selectivity at age * q at age Then, you just need to store 
+      # e_p_f <-  e_p_f + fleets[[l]]$e_p_s[,s] #* matrix(f_q, nrow = patches, ncol = length(fauni), byrow = TRUE)
+        
+    } # allocate fleets in space based on fishable revenue
+    
+    # eff <- fleets$longline$e_p_s[,2]
+    # 
+    # ssb <- rowSums(last_b_p_a)
+    # 
+    # plot(eff, ssb)
+
+    # calculate f at age by patch here?
+    
+    
+    
     for (f in seq_along(fauni)) {
+      
+      ages <-  length(fauna[[f]]$length_at_age)
+      
       last_n_p_a <- storage[[s - 1]][[f]]$n_p_a
-
+      
+      f_p_a <- matrix(0, nrow = patches, ncol = ages)
+      
+      for (l in seq_along(fleet_names)){
+       
+        f_p_a <-
+          f_p_a + fleets[[l]]$e_p_s[, s] * matrix(
+            rep(fleets[[l]][[fauni[f]]]$catchability * fleets[[l]][[fauni[f]]]$sel_at_age),
+            patches,
+            ages,
+            byrow = TRUE
+          )
+        
+         
+      } # calculate cumulative f at age by patch
       # you can build a series of if statements here to sub in the correct species module
-
       pop <- marlin::sim_fish_pop(
         length_at_age = fauna[[f]]$length_at_age,
         weight_at_age = fauna[[f]]$weight_at_age,
@@ -101,6 +116,7 @@ simmar <- function(fauna = list(),
         r0 = fauna[[f]]$r0,
         ssb0 = fauna[[f]]$ssb0,
         movement = fauna[[f]]$move_mat,
+        f_p_a = f_p_a,
         last_n_p_a = last_n_p_a,
         tune_unfished = 0
       )
