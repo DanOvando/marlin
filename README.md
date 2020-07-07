@@ -41,16 +41,16 @@ unfished conditions
 ``` r
 library(marlin)
 library(tidyverse)
-#> ── Attaching packages ────────────────── tidyverse 1.3.0 ──
+#> ── Attaching packages ──────────────────────── tidyverse 1.3.0 ──
 #> ✓ ggplot2 3.3.1     ✓ purrr   0.3.4
 #> ✓ tibble  3.0.1     ✓ dplyr   1.0.0
 #> ✓ tidyr   1.1.0     ✓ stringr 1.4.0
 #> ✓ readr   1.3.1     ✓ forcats 0.5.0
-#> ── Conflicts ───────────────────── tidyverse_conflicts() ──
+#> ── Conflicts ─────────────────────────── tidyverse_conflicts() ──
 #> x dplyr::filter() masks stats::filter()
 #> x dplyr::lag()    masks stats::lag()
 options(dplyr.summarise.inform = FALSE)
-resolution <- 20
+resolution <- 10
 habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
   mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 20, 10))
 
@@ -88,14 +88,16 @@ fauna <-
     "skipjack" = create_critter(
       scientific_name = "Katsuwonus pelamis",
       habitat = skj_hab,
-      adult_movement = 100,
+      adult_movement = 0,
+      adult_movement_sigma = 1,
       fished_depletion = 1
     ),
     "bigeye" = create_critter(
       common_name = "bigeye tuna",
       habitat = bet_hab,
-      adult_movement = 100,
-      fished_depletion = 0.5
+      adult_movement = .5,
+      adult_movement_sigma = .5,
+      fished_depletion = 0.2,
     )
   )
 #> ══  1 queries  ═══════════════
@@ -108,7 +110,12 @@ fauna <-
 #> ● Found: 1 
 #> ● Not Found: 0
 
-# plot(fauna$bigeye$distance[10,],fauna$bigeye$move_mat[,10])
+plot(fauna$bigeye$distance[2,],fauna$bigeye$move_mat[,2])
+```
+
+<img src="man/figures/README-example-1.png" width="100%" />
+
+``` r
 
 fauna$bigeye$move_mat %>% 
   as_tibble() %>% 
@@ -119,7 +126,7 @@ fauna$bigeye$move_mat %>%
   geom_tile()
 ```
 
-<img src="man/figures/README-example-1.png" width="100%" />
+<img src="man/figures/README-example-2.png" width="100%" />
 
 ``` r
 
@@ -135,7 +142,7 @@ fleets <- list("longline" = list(
   bigeye = list(
     price = 1000,
     sel_form = "logistic",
-    sel_start = 1.25,
+    sel_start = .1,
     sel_delta = .01,
     catchability = 0.1
   )
@@ -151,7 +158,7 @@ fleets <- list("longline" = list(
   bigeye = list(
     price = 100,
     sel_form = "dome",
-    sel_start = .5,
+    sel_start = .25,
     sel_delta = .5,
     catchability = .1
   )
@@ -173,7 +180,7 @@ storage <- simmar(fauna = fauna,
                   steps = steps)
 
 Sys.time() - a
-#> Time difference of 0.293257 secs
+#> Time difference of 0.05176497 secs
   
 
 ssb_skj <- rowSums(storage[[steps]]$skipjack$ssb_p_a)
@@ -187,7 +194,7 @@ ggplot(check, aes(x, y, fill = skj)) +
   labs(title = "skipjack")
 ```
 
-<img src="man/figures/README-example-2.png" width="100%" />
+<img src="man/figures/README-example-3.png" width="100%" />
 
 ``` r
 
@@ -202,7 +209,7 @@ ggplot(check, aes(x, y, fill = bet)) +
   labs(title = "bigeye")
 ```
 
-<img src="man/figures/README-example-3.png" width="100%" />
+<img src="man/figures/README-example-4.png" width="100%" />
 
 ``` r
 
@@ -221,9 +228,11 @@ Now, add an MPA.
 # mpa_locations <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
 #   mutate(mpa =   (habitat$habitat < (qunif(.25, min = 0, max = max(habitat$habitat)))))
 
-
+set.seed(42)
 mpa_locations <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(mpa = between(x + y,10,15))
+    mutate(mpa = rbinom(n(),1, .05))
+
+  # mutate(mpa = between(x + y,10,15))
 
 mpa_locations %>% 
   ggplot(aes(x,y, fill = mpa)) + 
@@ -246,7 +255,7 @@ mpa_storage <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.2717471 secs
+#> Time difference of 0.04878807 secs
 
 ssb_skj <- rowSums(mpa_storage[[steps]]$skipjack$ssb_p_a)
 
@@ -281,6 +290,15 @@ ggplot(check, aes(x, y, fill = bet)) +
 ``` r
 
 # 
+
+mpa_storage[[77]]$bigeye$ssb_p_a -> a
+
+plot(a[which(mpa_locations$mpa == FALSE)[10],])
+```
+
+<img src="man/figures/README-unnamed-chunk-2-4.png" width="100%" />
+
+``` r
 # (sum(ssb_bet) / fauna$bigeye$ssb0) / fauna$bigeye$fished_depletion
 # 
 # (sum(ssb_skj) / fauna$skipjack$ssb0) / fauna$skipjack$fished_depletion
@@ -290,7 +308,7 @@ bet_outside_trajectory <- map_dbl(mpa_storage,~ sum(.x$bigeye$ssb_p_a[mpa_locati
 plot(bet_outside_trajectory)
 ```
 
-<img src="man/figures/README-unnamed-chunk-2-4.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-2-5.png" width="100%" />
 
 ``` r
 
@@ -300,7 +318,7 @@ bet_inside_trajectory <- map_dbl(mpa_storage,~ sum(.x$bigeye$ssb_p_a[mpa_locatio
 plot(bet_inside_trajectory)
 ```
 
-<img src="man/figures/README-unnamed-chunk-2-5.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-2-6.png" width="100%" />
 
 ``` r
 
@@ -309,7 +327,7 @@ bet_outside_trajectory <- map_dbl(mpa_storage,~ sum(.x$bigeye$ssb_p_a[mpa_locati
 plot(bet_outside_trajectory)
 ```
 
-<img src="man/figures/README-unnamed-chunk-2-6.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-2-7.png" width="100%" />
 
 ``` r
 
@@ -319,7 +337,7 @@ bet_trajectory <- map_dbl(mpa_storage,~ sum(.x$bigeye$ssb_p_a))
 plot(bet_trajectory)
 ```
 
-<img src="man/figures/README-unnamed-chunk-2-7.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-2-8.png" width="100%" />
 
 ``` r
 
@@ -328,7 +346,7 @@ skj_trajectory <- map_dbl(mpa_storage,~ sum(.x$skipjack$ssb_p_a))
 plot(skj_trajectory)
 ```
 
-<img src="man/figures/README-unnamed-chunk-2-8.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-2-9.png" width="100%" />
 
 Ah interesting, so need to think through the movement a bit more: the
 problem is that movement is effectively 0 for the really good habitats:

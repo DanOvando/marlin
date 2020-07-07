@@ -70,6 +70,7 @@ create_critter <- function(common_name = 'white seabass',
                            ssb0 = NA,
                            density_dependence_form = 1,
                            adult_movement = 2,
+                           adult_movement_sigma = 2,
                            larval_movement = 2,
                            query_fishlife = T,
                            sigma_r = 0,
@@ -324,7 +325,7 @@ create_critter <- function(common_name = 'white seabass',
 
   # distance <- dnorm(distance, 0, adult_movement)
   
-  p_move <- dnorm(distance, 0, adult_movement)
+  p_move <- dnorm(distance, adult_movement, adult_movement_sigma)
   
   
 # browser()
@@ -345,7 +346,7 @@ create_critter <- function(common_name = 'white seabass',
   # plot(distance[22,], move_mat[22,])
   
   move_mat <-
-    t(move_mat) # needs to be transposed for use in population function
+    (move_mat) # needs to be transposed for use in population function
 
   # tune SSB0 and unfished equilibrium
 

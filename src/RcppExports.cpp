@@ -7,12 +7,14 @@
 using namespace Rcpp;
 
 // sample_problem
-Rcpp::NumericMatrix sample_problem();
-RcppExport SEXP _marlin_sample_problem() {
+Eigen::MatrixXd sample_problem(Eigen::MatrixXd x, Eigen::MatrixXd y);
+RcppExport SEXP _marlin_sample_problem(SEXP xSEXP, SEXP ySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(sample_problem());
+    Rcpp::traits::input_parameter< Eigen::MatrixXd >::type x(xSEXP);
+    Rcpp::traits::input_parameter< Eigen::MatrixXd >::type y(ySEXP);
+    rcpp_result_gen = Rcpp::wrap(sample_problem(x, y));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -41,7 +43,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_marlin_sample_problem", (DL_FUNC) &_marlin_sample_problem, 0},
+    {"_marlin_sample_problem", (DL_FUNC) &_marlin_sample_problem, 2},
     {"_marlin_sim_fish_pop", (DL_FUNC) &_marlin_sim_fish_pop, 13},
     {NULL, NULL, 0}
 };

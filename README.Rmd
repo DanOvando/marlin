@@ -44,7 +44,7 @@ Create two critters, skipjack tuna and bigeye tuna, and simulate their unfished 
 library(marlin)
 library(tidyverse)
 options(dplyr.summarise.inform = FALSE)
-resolution <- 20
+resolution <- 10
 habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
   mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 20, 10))
 
@@ -82,18 +82,20 @@ fauna <-
     "skipjack" = create_critter(
       scientific_name = "Katsuwonus pelamis",
       habitat = skj_hab,
-      adult_movement = 100,
+      adult_movement = 0,
+      adult_movement_sigma = 1,
       fished_depletion = 1
     ),
     "bigeye" = create_critter(
       common_name = "bigeye tuna",
       habitat = bet_hab,
-      adult_movement = 100,
-      fished_depletion = 0.5
+      adult_movement = .5,
+      adult_movement_sigma = .5,
+      fished_depletion = 0.2,
     )
   )
 
-# plot(fauna$bigeye$distance[10,],fauna$bigeye$move_mat[,10])
+plot(fauna$bigeye$distance[2,],fauna$bigeye$move_mat[,2])
 
 fauna$bigeye$move_mat %>% 
   as_tibble() %>% 
@@ -115,7 +117,7 @@ fleets <- list("longline" = list(
   bigeye = list(
     price = 1000,
     sel_form = "logistic",
-    sel_start = 1.25,
+    sel_start = .1,
     sel_delta = .01,
     catchability = 0.1
   )
@@ -131,7 +133,7 @@ fleets <- list("longline" = list(
   bigeye = list(
     price = 100,
     sel_form = "dome",
-    sel_start = .5,
+    sel_start = .25,
     sel_delta = .5,
     catchability = .1
   )
@@ -191,9 +193,11 @@ Now, add an MPA.
 # mpa_locations <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
 #   mutate(mpa =   (habitat$habitat < (qunif(.25, min = 0, max = max(habitat$habitat)))))
 
-
+set.seed(42)
 mpa_locations <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(mpa = between(x + y,10,15))
+    mutate(mpa = rbinom(n(),1, .05))
+
+  # mutate(mpa = between(x + y,10,15))
 
 mpa_locations %>% 
   ggplot(aes(x,y, fill = mpa)) + 
@@ -235,6 +239,10 @@ ggplot(check, aes(x, y, fill = bet)) +
   labs(title = "bigeye")
 
 # 
+
+mpa_storage[[77]]$bigeye$ssb_p_a -> a
+
+plot(a[which(mpa_locations$mpa == FALSE)[10],])
 # (sum(ssb_bet) / fauna$bigeye$ssb0) / fauna$bigeye$fished_depletion
 # 
 # (sum(ssb_skj) / fauna$skipjack$ssb0) / fauna$skipjack$fished_depletion

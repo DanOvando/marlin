@@ -86,10 +86,13 @@ List sim_fish_pop(
   //////////////////// move ////////////////////////
 
 
-  tmpmat =  movement * tmpmat; // matrix multiplication of numbers at age by movement matrix
+  tmpmat =  tmpmat.transpose() * movement; // matrix multiplication of numbers at age by movement matrix
+  
+  
+  // tmpmat =  movement * tmpmat; // matrix multiplication of numbers at age by movement matrix
 
 
-  SEXP tmp = Rcpp::wrap(tmpmat); // convert from eigen to Rcpp
+  SEXP tmp = Rcpp::wrap(tmpmat.transpose()); // convert from eigen to Rcpp
 
   n_p_a = tmp;
 
@@ -134,6 +137,8 @@ List sim_fish_pop(
       // global density dependence, distribute recruits evenly
       double ssb = sum(ssb_p_a);
 
+      NumericVector test = rowSums(ssb_p_a);
+      
       // Rcpp::Rcout << ssb << std::endl;
 
       n_p_a(_,0) = rep(((0.8 * r0 * steepness * ssb) / (0.2 * ssb0 * (1 - steepness) + (steepness - 0.2) * ssb)) / patches, patches);
