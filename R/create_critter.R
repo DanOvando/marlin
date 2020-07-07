@@ -322,22 +322,28 @@ create_critter <- function(common_name = 'white seabass',
     dist() %>%
     as.matrix()
 
-  distance <- dnorm(distance, 0, adult_movement)
-
-  distance <- distance / rowSums(distance)
+  # distance <- dnorm(distance, 0, adult_movement)
+  
+  p_move <- dnorm(distance, 0, adult_movement)
+  
+  
+# browser()
+  p_move <- p_move / rowSums(p_move)
 
 
   if ((!is.null(dim(habitat)))) {
     habitat <- habitat / rowSums(habitat_mat)
 
-    move_mat <-  distance * habitat
+    move_mat <-  p_move * habitat
 
     move_mat <- move_mat / rowSums(move_mat)
 
   } else {
-    move_mat <- distance
+    move_mat <- p_move
   }
 
+  # plot(distance[22,], move_mat[22,])
+  
   move_mat <-
     t(move_mat) # needs to be transposed for use in population function
 
@@ -372,7 +378,7 @@ create_critter <- function(common_name = 'white seabass',
 
   unfished <- unfished$tmppop
 
-  rm(list = c("sq", "f_p_a","weight_fit","distance"))
+  rm(list = c("sq", "f_p_a","weight_fit"))
   fish <- list(mget(ls()))
 
   fish <- fish[[1]]
