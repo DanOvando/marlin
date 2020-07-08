@@ -1,6 +1,6 @@
-# Getting help with mar
+# Getting help with marlin
 
-Thanks for using mar!
+Thanks for using marlin!
 Before filing an issue, there are a few places to explore and pieces to put together to make the process as smooth as possible.
 
 ## Make a reprex

@@ -1,14 +1,14 @@
-Package: mar
-Title: What the Package Does (One Line, Title Case)
+Package: marlin
+Title: Simulation of Ocean Fisheries
 Version: 0.0.0.9000
 Authors@R: 
-    person(given = "First",
-           family = "Last",
+    person(given = "Dan",
+           family = "Ovando",
            role = c("aut", "cre"),
-           email = "first.last@example.com",
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
-License: MIT + file LICENSE
+           email = "danovan@uw.edu",
+           comment = c(ORCID = "0000-0003-2120-7345"))
+Description: Fast simulation of marine fauna and fisheries. Runs multiple (independent) age structured species simultaneously in 2D
+License: file LICENSE
 Suggests: 
     testthat
 Encoding: UTF-8
@@ -17,6 +17,17 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.0
 LinkingTo: 
     Rcpp,
-    RcppEigen
+    RcppEigen,
 Imports: 
-    Rcpp
+    Rcpp,
+    FishLife (>= 2.0.0),
+    doParallel,
+    foreach,
+    iterators,
+    parallel,
+    taxize,
+    ggplot2,
+    purrr,
+    dplyr
+Remotes: 
+    james-thorson/FishLife
