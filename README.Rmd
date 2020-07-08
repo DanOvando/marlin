@@ -44,75 +44,89 @@ Create two critters, skipjack tuna and bigeye tuna, and simulate their unfished 
 library(marlin)
 library(tidyverse)
 options(dplyr.summarise.inform = FALSE)
-resolution <- 10
-habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 20, 10))
 
-habitat_mat <-
+
+resolution <- 20 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
+
+
+# for now make up some habitat
+skipjack_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 20, 200))
+
+skipjack_habitat_mat <-
   matrix(
-    rep(habitat$habitat, resolution),
+    rep(skipjack_habitat$habitat, resolution),
     nrow = resolution ^ 2,
     ncol = resolution ^ 2,
     byrow = TRUE
   )
 
-skj_hab <- habitat_mat / rowSums(habitat_mat)
+skj_hab <- skipjack_habitat_mat / rowSums(skipjack_habitat_mat)
 
-# habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-#   mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 600, 100))
+bigeye_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 300, 100))
 
+# bigeye_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+#   mutate(habitat =  1)
 
-habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(habitat =  1)
-
-
-habitat_mat <-
+bigeye_habitat_mat <-
   matrix(
-    rep(habitat$habitat, resolution),
+    rep(bigeye_habitat$habitat, resolution),
     nrow = resolution ^ 2,
     ncol = resolution ^ 2,
     byrow = TRUE
   )
 
-bet_hab <- habitat_mat / rowSums(habitat_mat)
+bet_hab <- bigeye_habitat_mat / rowSums(bigeye_habitat_mat)
 
+# create a fauna object, which is a list of lists
+# marlin::create_crutter will look up relvant life history information
+# that you don't pass explicitly
 
 fauna <-
   list(
     "skipjack" = create_critter(
       scientific_name = "Katsuwonus pelamis",
       habitat = skj_hab,
-      adult_movement = 0,
-      adult_movement_sigma = 1,
-      fished_depletion = 1
+      adult_movement = 3,# the mean number of patches moved by adults
+      adult_movement_sigma = 1, # standard deviation of the number of patches moved by adults
+      fished_depletion = .6, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct)
+      rec_form = 1 # recruitment form, where 1 implies local recruitment
     ),
     "bigeye" = create_critter(
       common_name = "bigeye tuna",
       habitat = bet_hab,
-      adult_movement = .5,
-      adult_movement_sigma = .5,
-      fished_depletion = 0.2,
+      adult_movement = 10,
+      adult_movement_sigma = 2,
+      fished_depletion = .3,
+      rec_form = 1
     )
   )
 
-plot(fauna$bigeye$distance[2,],fauna$bigeye$move_mat[,2])
+# plot(fauna$bigeye$distance[2,],fauna$bigeye$move_mat[,2])
+# 
+# fauna$bigeye$move_mat %>% 
+#   as_tibble() %>% 
+#   mutate(x = 1:nrow(.)) %>% 
+#   pivot_longer(-x, names_to = "y", values_to = "movement") %>% 
+#   mutate(y = as.numeric(y)) %>% 
+#   ggplot(aes(x, y, fill = movement)) + 
+#   geom_tile()
 
-fauna$bigeye$move_mat %>% 
-  as_tibble() %>% 
-  mutate(x = 1:nrow(.)) %>% 
-  pivot_longer(-x, names_to = "y", values_to = "movement") %>% 
-  mutate(y = as.numeric(y)) %>% 
-  ggplot(aes(x, y, fill = movement)) + 
-  geom_tile()
+
+# create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
+# with lists for each species inside there. Price specifies the price per unit weight of that 
+# species for that fleet
+# sel_form can be one of logistic or dome
 
 
 fleets <- list("longline" = list(
   skipjack = list(
-    price = 0,
-    sel_form = "logistic",
-    sel_start = .9,
-    sel_delta = .1,
-    catchability = .1
+    price = 100, # price per unit weight
+    sel_form = "logistic", # selectivity form, one of logistic or dome
+    sel_start = .9, # percentage of length at maturity that selectivity starts
+    sel_delta = .1, # additional percentage of sel_start where selectivity asymptotes
+    catchability = .1 # overwritten by tune_fleet but can be set manually here
   ),
   bigeye = list(
     price = 1000,
@@ -132,7 +146,7 @@ fleets <- list("longline" = list(
   ),
   bigeye = list(
     price = 100,
-    sel_form = "dome",
+    sel_form = "logistic",
     sel_start = .25,
     sel_delta = .5,
     catchability = .1
@@ -141,13 +155,17 @@ fleets <- list("longline" = list(
 
 
 
-fleets <- create_fleet(fleets = fleets, fauna = fauna, base_effort = resolution^2)
+fleets <- create_fleet(fleets = fleets, fauna = fauna, base_effort = resolution^2) # creates fleet objects, basically adding in selectivity ogives
 
-fleets <- tune_fleets(fauna, fleets, steps = 100)
+fleets <- tune_fleets(fauna, fleets, steps = 100) # tunes the catchability by fleet to achieve target depletion
+## Note this will be a problem if there are more fleets than species, need to maybe assign proportion of catch that comes from 
+## different fleets for each species?
 
 # run simulations
-steps <- 100
+steps <- 100 # number of time steps, in years for now
 
+
+# run the simulation using marlin::simmar
 a <- Sys.time()
 
 storage <- simmar(fauna = fauna,
@@ -157,6 +175,7 @@ storage <- simmar(fauna = fauna,
 Sys.time() - a
   
 
+# process results, will write some wrappers to automate this
 ssb_skj <- rowSums(storage[[steps]]$skipjack$ssb_p_a)
 
 check <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
@@ -178,6 +197,8 @@ ggplot(check, aes(x, y, fill = bet)) +
   labs(title = "bigeye")
 
 
+# double check that target depletions are reached
+
 (sum(ssb_bet) / fauna$bigeye$ssb0) / fauna$bigeye$fished_depletion
 
 (sum(ssb_skj) / fauna$skipjack$ssb0) / fauna$skipjack$fished_depletion
@@ -186,24 +207,25 @@ ggplot(check, aes(x, y, fill = bet)) +
 ```
 
 
-Now, add an MPA. 
+Now, simulate effects of MPAs
 
 ```{r}
 
-# mpa_locations <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-#   mutate(mpa =   (habitat$habitat < (qunif(.25, min = 0, max = max(habitat$habitat)))))
 
 set.seed(42)
-mpa_locations <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-    mutate(mpa = rbinom(n(),1, .05))
 
-  # mutate(mpa = between(x + y,10,15))
+#specify some MPA locations
+mpa_locations <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  # mutate(mpa = rbinom(n(), 1, .25))
+mutate(mpa = between(x,7,13) & between(y,7,13))
 
 mpa_locations %>% 
   ggplot(aes(x,y, fill = mpa)) + 
   geom_tile()
 
 
+
+# run the simulation, starting the MPAs at year 50 of the simulation
 a <- Sys.time()
 
 mpa_storage <- simmar(
@@ -223,7 +245,7 @@ check <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
 
 ggplot(check, aes(x, y, fill = skj)) +
   geom_tile() +
-  scale_fill_viridis_c(trans = "log10") +
+  scale_fill_viridis_c() +
   labs(title = "skipjack")
 
 ssb_bet <- rowSums(mpa_storage[[steps]]$bigeye$ssb_p_a)
@@ -235,7 +257,7 @@ check <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
 
 ggplot(check, aes(x, y, fill = bet)) +
   geom_tile() +
-  scale_fill_viridis_c(trans = "log10") +
+  scale_fill_viridis_c() +
   labs(title = "bigeye")
 
 # 

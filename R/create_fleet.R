@@ -1,3 +1,15 @@
+#' Create Fleet
+#' 
+#' Creates a fleet object, mostly by adding in 
+#' selectivity at age for each fleet and species
+#'
+#' @param fleets 
+#' @param fauna 
+#' @param base_effort 
+#'
+#' @return
+#' @export
+#'
 create_fleet <-
   function(fleets,
            fauna,

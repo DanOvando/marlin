@@ -1,21 +1,30 @@
+#' simmar is the wrapper function for the marlin package
+#' 
+#' when passed fauna and fleet objects, simmar will advance
+#' the population for a number of steps
+#'
+#' @param fauna 
+#' @param fleets 
+#' @param mpas 
+#' @param steps 
+#' @param tune_unfished 
+#'
+#' @return
+#' @export
+#'
 simmar <- function(fauna = list(),
                    fleets = list(),
                    mpas = list(),
                    steps = 100,
-                   n_cores = 1) {
+                   tune_unfished = 0) {
+  
   fauni <- names(fauna)
   
   fleet_names <- names(fleets)
   
   patches <- unique(purrr::map_dbl(fauna, "patches"))
   
-  initial_conditions <- purrr::map(fauna, c("unfished"))
-  
-  # a <- matrix(0.01, nrow = patches, ncol = length(fauna[[1]]$length_at_age))
-  #
-  # a[,1] <- fauna[[1]]$r0 / (patches)
-  #
-  # initial_conditions$`white seabass`$n_p_a <- a
+  initial_conditions <- purrr::map(fauna, c("unfished")) # pull out unfished conditions created by create_critter
   
   if (length(patches) > 1) {
     stop(
@@ -23,15 +32,9 @@ simmar <- function(fauna = list(),
     )
   }
   
-  # you'll need to fish down to joint EQ here
-  
-  
-  # forecast from joint EQ, basically start MPA here
-  
-  
   storage <- vector("list", steps)
   
-  storage[[1]] <- initial_conditions
+  storage[[1]] <- initial_conditions # start populations at initial conditions
   
   
   fleets <-
@@ -50,19 +53,20 @@ simmar <- function(fauna = list(),
   
   fishable <- rep(1, patches)
   
-  # a <- Sys.time()
-  
+
+  # loop over steps
   for (s in 2:steps) {
-    if (length(mpas) > 0) {
+    if (length(mpas) > 0) { # assign MPAs if needed
       if (s == mpas$mpa_step) {
         fishable <- mpas$locations$mpa == 0
       }
       
     } # close MPA if statement
-    for (l in seq_along(fleet_names)) {
+    for (l in seq_along(fleet_names)) { # distribute fleets in space based on revenues
       for (f in seq_along(fauni)) {
         last_b_p_a <- storage[[s - 1]][[f]]$b_p_a
         
+        # calculate fishable biomass in each patch for each species for that fleet
         tmp <-
           matrix((1 - exp(
             -(fleets[[l]][[fauni[f]]]$catchability * fleets[[l]][[fauni[f]]]$sel_at_age)
@@ -86,21 +90,13 @@ simmar <- function(fauna = list(),
       
     } # close allocate fleets in space based on fishable revenue
     
-    # eff <- fleets$longline$e_p_s[,2]
-    #
-    # ssb <- rowSums(last_b_p_a)
-    #
-    # plot(eff, ssb)
-    
-    # calculate f at age by patch here?
-    
-    for (f in seq_along(fauni)) {
-      # run population model for each species
+    for (f in seq_along(fauni)) {      # run population model for each species
+
       ages <-  length(fauna[[f]]$length_at_age)
       
-      last_n_p_a <- storage[[s - 1]][[f]]$n_p_a
+      last_n_p_a <- storage[[s - 1]][[f]]$n_p_a # numbers by patch and age in the last time step
       
-      f_p_a <- matrix(0, nrow = patches, ncol = ages)
+      f_p_a <- matrix(0, nrow = patches, ncol = ages) # total fishing mortality by patch and age
       
       for (l in seq_along(fleet_names)) {
         f_p_a <-
@@ -108,15 +104,11 @@ simmar <- function(fauna = list(),
                                                   patches,
                                                   ages,
                                                   byrow = TRUE)
-        
-        # if (s >= (mpas$mpa_step + 10)){
-        #   browser()
-        # }
 
-        
       } # calculate cumulative f at age by patch
       # you can build a series of if statements here to sub in the correct species module
-      pop <- marlin::sim_fish_pop(
+      
+      pop <- marlin::sim_fish(
         length_at_age = fauna[[f]]$length_at_age,
         weight_at_age = fauna[[f]]$weight_at_age,
         maturity_at_age = fauna[[f]]$maturity_at_age,
@@ -126,52 +118,22 @@ simmar <- function(fauna = list(),
         burn_steps = 0,
         r0 = fauna[[f]]$r0,
         ssb0 = fauna[[f]]$ssb0,
+        ssb0_p = fauna[[f]]$ssb0_p,
         movement = fauna[[f]]$move_mat,
         f_p_a = f_p_a,
         last_n_p_a = last_n_p_a,
-        tune_unfished = 0
+        tune_unfished = tune_unfished,
+        rec_form = fauna[[f]]$rec_form
       )
       
       storage[[s]][[f]] <- pop
       
-    } # close fauni, much faster this way than dopar
+    } # close fauni, much faster this way than dopar, who knew
     
   } #close steps
   
   # Sys.time() - a
   
   storage <- purrr::map(storage, ~ rlang::set_names(.x, fauni))
-  
-  # rec <- map(storage, ~.x[[2]]$n_p_a) %>%
-  #   map_df(~tibble(rec = .x[,1]),.id = "i") %>%
-  #   mutate(i = as.numeric(i)) %>%
-  #   filter(i > 1) %>%
-  #   group_by(i) %>%
-  #   summarise(recs = sum(rec))
-  #
-  # ssb <- map(storage, ~.x[[2]]$ssb_p_a)%>%
-  #   map_df(~tibble(ssb = rowSums(.x)),.id = "i") %>%
-  #   mutate(i = as.numeric(i)) %>%
-  #   filter(i > 1) %>%
-  #   group_by(i) %>%
-  #   summarise(ssb = sum(ssb))
-  #
-  # plot(ssb$ssb, rec$recs)
-  #
-  # plot(ssb$ssb)
-  #
-  # last(ssb$ssb) / fauna[[1]]$ssb0
-  #
-  # ya <- rowSums(storage[[s]][[1]]$ssb_p_a)
-  #
-  # check <- expand_grid(x = 1:sqrt(patches), y = 1:sqrt(patches)) %>%
-  #   mutate(ssb = ya)
-  #
-  #  ggplot(check, aes(x,y, fill = ssb)) +
-  #   geom_tile() +
-  #    scale_fill_viridis_c()
-  
-  
-  
   
 } # close function

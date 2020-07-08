@@ -124,7 +124,7 @@ h <- habitat %>%
 
  test <-  1000
 sum(a)
- tune_ssb0 <- sim_fish_pop(
+ tune_ssb0 <- sim_fish(
    length_at_age = fish$length_at_age,
    weight_at_age = fish$weight_at_age,
    maturity_at_age = fish$maturity_at_age,

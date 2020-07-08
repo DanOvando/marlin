@@ -2,7 +2,7 @@
 % Please edit documentation in R/create_critter.R
 \name{create_critter}
 \alias{create_critter}
-\title{create_fish}
+\title{Create Critter}
 \usage{
 create_critter(
   common_name = "white seabass",
@@ -31,6 +31,7 @@ create_critter(
   ssb0 = NA,
   density_dependence_form = 1,
   adult_movement = 2,
+  adult_movement_sigma = 2,
   larval_movement = 2,
   query_fishlife = T,
   sigma_r = 0,
@@ -43,20 +44,104 @@ create_critter(
   linf_buffer = 1.2,
   resolution = 25,
   habitat = NA,
-  fished_depletion = 1
+  fished_depletion = 1,
+  rec_form = 1,
+  burn_steps = 100
 )
 }
 \arguments{
-\item{price_cv}{}
+\item{common_name}{}
+
+\item{scientific_name}{}
+
+\item{linf}{}
+
+\item{vbk}{}
+
+\item{t0}{}
+
+\item{cv_len}{}
+
+\item{length_units}{}
+
+\item{min_age}{}
+
+\item{max_age}{}
+
+\item{time_step}{}
+
+\item{weight_a}{}
+
+\item{weight_b}{}
+
+\item{weight_units}{}
+
+\item{length_50_mature}{}
+
+\item{length_95_mature}{}
+
+\item{delta_mature}{}
+
+\item{age_50_mature}{}
+
+\item{age_95_mature}{}
+
+\item{age_mature}{}
+
+\item{length_mature}{}
+
+\item{m}{}
+
+\item{steepness}{}
+
+\item{r0}{}
+
+\item{ssb0}{}
+
+\item{density_dependence_form}{}
+
+\item{adult_movement}{}
+
+\item{adult_movement_sigma}{}
+
+\item{larval_movement}{}
+
+\item{query_fishlife}{}
+
+\item{sigma_r}{}
+
+\item{rec_ac}{}
+
+\item{cores}{}
+
+\item{mat_mode}{}
+
+\item{default_wb}{}
+
+\item{tune_weight}{}
+
+\item{density_movement_modifier}{}
+
+\item{linf_buffer}{}
+
+\item{resolution}{}
+
+\item{habitat}{}
+
+\item{fished_depletion}{}
+
+\item{rec_form}{}
+
+\item{burn_steps}{}
 }
 \value{
-a fish list object
+
 }
 \description{
-creates a fish list object with all the life history goodies
+Creates a critter object. If only a scientific name is provided
+create_critter will try and look up relevant life history from
+FishLife
 }
-\examples{
-\dontrun{
-white_seabass = create_critter(scientific_name = "Atractoscion nobilis", query_fishlife = T)
-}
+\details{
+Critical inputs are adult_movement, adult_movement_sigma, and resolution
 }

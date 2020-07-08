@@ -1,49 +1,58 @@
-#' create_fish
+#' Create Critter
+#' 
+#' Creates a critter object. If only a scientific name is provided
+#' create_critter will try and look up relevant life history from
+#' FishLife
+#' 
+#' Critical inputs are adult_movement, adult_movement_sigma, and resolution
+#' 
 #'
-#' creates a fish list object with all the life history goodies
+#' @param common_name 
+#' @param scientific_name 
+#' @param linf 
+#' @param vbk 
+#' @param t0 
+#' @param cv_len 
+#' @param length_units 
+#' @param min_age 
+#' @param max_age 
+#' @param time_step 
+#' @param weight_a 
+#' @param weight_b 
+#' @param weight_units 
+#' @param length_50_mature 
+#' @param length_95_mature 
+#' @param delta_mature 
+#' @param age_50_mature 
+#' @param age_95_mature 
+#' @param age_mature 
+#' @param length_mature 
+#' @param m 
+#' @param steepness 
+#' @param r0 
+#' @param ssb0 
+#' @param density_dependence_form 
+#' @param adult_movement 
+#' @param adult_movement_sigma 
+#' @param larval_movement 
+#' @param query_fishlife 
+#' @param sigma_r 
+#' @param rec_ac 
+#' @param cores 
+#' @param mat_mode 
+#' @param default_wb 
+#' @param tune_weight 
+#' @param density_movement_modifier 
+#' @param linf_buffer 
+#' @param resolution 
+#' @param habitat 
+#' @param fished_depletion 
+#' @param rec_form 
+#' @param burn_steps 
 #'
-#' @param common_name
-#' @param scientific_name
-#' @param linf
-#' @param vbk
-#' @param t0
-#' @param max_age
-#' @param weight_a
-#' @param weight_b
-#' @param length_50_mature
-#' @param length_95_mature
-#' @param age_50_mature
-#' @param age_95_mature
-#' @param age_mature
-#' @param length_mature
-#' @param m
-#' @param steepness
-#' @param density_dependence_form
-#' @param adult_movement
-#' @param larval_movement
-#' @param query_fishlife
-#' @param r0
-#' @param cv_len
-#' @param length_units
-#' @param min_age
-#' @param time_step
-#' @param weight_units
-#' @param delta_mature
-#' @param price
-#' @param sigma_r
-#' @param rec_ac
-#' @param cores
-#' @param mat_mode
-#' @param price_ac
-#' @param price_cv
-#'
-#' @return a fish list object
+#' @return
 #' @export
 #'
-#' @examples
-#' \dontrun{
-#' white_seabass = create_critter(scientific_name = "Atractoscion nobilis", query_fishlife = T)
-#'}
 create_critter <- function(common_name = 'white seabass',
                            scientific_name = NA,
                            linf = NA,
@@ -83,7 +92,9 @@ create_critter <- function(common_name = 'white seabass',
                            linf_buffer = 1.2,
                            resolution = 25,
                            habitat = NA,
-                           fished_depletion = 1) {
+                           fished_depletion = 1,
+                           rec_form = 1,
+                           burn_steps = 100) {
   fish <- list()
 
 
@@ -333,7 +344,7 @@ create_critter <- function(common_name = 'white seabass',
 
 
   if ((!is.null(dim(habitat)))) {
-    habitat <- habitat / rowSums(habitat_mat)
+    habitat <- habitat / rowSums(habitat)
 
     move_mat <-  p_move * habitat
 
@@ -351,30 +362,35 @@ create_critter <- function(common_name = 'white seabass',
   # tune SSB0 and unfished equilibrium
 
   init_pop <-
-    matrix(1, nrow = patches, ncol = length(length_at_age))
+    matrix((r0 / patches) * exp(-m * (0:(max_age))), nrow = patches, ncol = length(length_at_age), byrow = TRUE)
 
-  init_pop[, 1] <- r0 / patches
+  # init_pop[45,] <- 1
+  
+  # init_pop[, 1] <- r0 / patches
   
   f_p_a <- matrix(0, nrow = patches, ncol = length(length_at_age))
-
-  unfished <- marlin::sim_fish_pop(
+  unfished <- marlin::sim_fish(
     length_at_age = length_at_age,
     weight_at_age = weight_at_age,
     maturity_at_age = maturity_at_age,
     steepness = steepness,
     m = m,
     patches = resolution ^ 2,
-    burn_steps = 100,
+    burn_steps = burn_steps,
     r0 = r0,
     ssb0 = NA,
+    ssb0_p = rep(-999, patches),
     f_p_a = f_p_a,
     movement = move_mat,
     last_n_p_a = init_pop,
-    tune_unfished = 1
+    tune_unfished = 1,
+    rec_form = rec_form
   )
 
   ssb0 <- unfished$ssb0
-
+  
+  ssb0_p <- unfished$ssb0_p
+  
   n_p_a_0 <- unfished$tmppop$n_p_a
 
   unfished <- unfished$tmppop

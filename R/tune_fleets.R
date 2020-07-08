@@ -1,3 +1,13 @@
+#' tune fleets is an internal optimizer
+#'
+#' @param fauna 
+#' @param fleets 
+#' @param steps 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 tune_fleets <- function(fauna, fleets, steps = 50){
   
   qs <- nlminb(start = c(0,0,0,0), fleet_tuner, fleets = fleets, fauna = fauna, steps = steps, lower = c(0,0,0,0))

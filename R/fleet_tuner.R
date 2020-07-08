@@ -1,7 +1,17 @@
+#' fleet tuner
+#' 
+#' finds catchability (q) by fleet such that
+#' target fished depletion is achieved
+#'
+#' @param qs 
+#' @param fauna 
+#' @param fleets 
+#' @param steps 
+#'
+#' @return
+#' @export
+#'
 fleet_tuner <- function(qs,fauna, fleets, steps = 50){
-  
-  # damn <- qs$par
-  # qs <- damn
   
   cc <- 1
   
