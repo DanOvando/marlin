@@ -33,6 +33,42 @@ track of each of the populations and fleets.
 The actual population models are found in src/fish\_model.cpp.
 Additional modules will be put in there as they are developed
 
+### Troubleshooting
+
+Make sure you try the install with a fresh R session (go to
+“Session\>Restart R” to make sure)
+
+If you run into an error, first off try updating your R packages. From
+there….
+
+If your version of R is lower than 3.5, you might want to consider
+updating R itself. Updating from 3.51 to 3.52 shouldn’t be any hassle.
+BIG WARNING THOUGH, updating from say R 3.1 to 3.5 is a major update,
+and you’ll lose all your installed packages in the process. I recommend
+following the instructions
+[here](https://www.datascienceriot.com/r/upgrade-R-packages/) to deal
+with that, but even with that fix it can take a while, so I don’t
+recommend doing a major R update if you’re on a deadline. There are also
+packages to help you with this process, specifically
+[`installR`](https://github.com/talgalili/installr/issues) for Windows
+and [`updateR`](https://github.com/AndreaCirilloAC/updateR) for Mac.
+
+From there…
+
+  - On Windows, make sure you have the appropriate version of Rtools
+    installed ([here](https://cran.r-project.org/bin/windows/Rtools/)),
+    most likely Rtools35 if you have R version 3.3 or higher
+      - Make sure that you select the box that says something about
+        adding Rtools to the PATH variable
+  - On macOS, there might be some issues with the your compiler,
+    particularly if your versino of R is less than 4.0.0.
+
+If you get an error that says something like `clang: error: unsupported
+option '-fopenmp'`, follow the instructions
+[here](https://thecoatlessprofessor.com/programming/cpp/r-compiler-tools-for-rcpp-on-macos-before-r-4.0.0/)
+
+Once you’ve tried those, restart your computer and try running
+
 ## Example
 
 Create two critters, skipjack tuna and bigeye tuna, and simulate their
@@ -41,12 +77,12 @@ unfished conditions
 ``` r
 library(marlin)
 library(tidyverse)
-#> ── Attaching packages ──────────────────────── tidyverse 1.3.0 ──
+#> ── Attaching packages ─────────────────
 #> ✓ ggplot2 3.3.1     ✓ purrr   0.3.4
 #> ✓ tibble  3.0.1     ✓ dplyr   1.0.0
 #> ✓ tidyr   1.1.0     ✓ stringr 1.4.0
 #> ✓ readr   1.3.1     ✓ forcats 0.5.0
-#> ── Conflicts ─────────────────────────── tidyverse_conflicts() ──
+#> ── Conflicts ──────────────────────────
 #> x dplyr::filter() masks stats::filter()
 #> x dplyr::lag()    masks stats::lag()
 options(dplyr.summarise.inform = FALSE)
@@ -188,7 +224,7 @@ storage <- simmar(fauna = fauna,
                   steps = steps)
 
 Sys.time() - a
-#> Time difference of 0.267494 secs
+#> Time difference of 0.4555888 secs
   
 
 # process results, will write some wrappers to automate this
@@ -241,8 +277,8 @@ set.seed(42)
 
 #specify some MPA locations
 mpa_locations <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  # mutate(mpa = rbinom(n(), 1, .25))
-mutate(mpa = between(x,7,13) & between(y,7,13))
+  mutate(mpa = rbinom(n(), 1, .25))
+# mutate(mpa = between(x,7,13) & between(y,7,13))
 
 mpa_locations %>% 
   ggplot(aes(x,y, fill = mpa)) + 
@@ -267,7 +303,7 @@ mpa_storage <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.244647 secs
+#> Time difference of 0.3977869 secs
 
 ssb_skj <- rowSums(mpa_storage[[steps]]$skipjack$ssb_p_a)
 
