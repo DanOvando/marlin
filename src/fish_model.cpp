@@ -22,7 +22,6 @@ List sim_fish(
     const int rec_form) // recruitment form, one of ....
   { 
 
-
   int ages = length_at_age.length();
 
   MatrixXd  tmpmat(as<MatrixXd>(last_n_p_a)); // create temporary matrix for movement
@@ -33,7 +32,7 @@ List sim_fish(
 
   NumericMatrix ssb_p_a(patches, ages); // spawning stock biomass in patch p age a
 
-  NumericMatrix c_a(patches, ages); // catch at age 
+  NumericMatrix c_p_a(patches, ages); // catch at age 
 
   //////////////////// tune things ////////////////////////
   NumericMatrix tmp_n_p_a = clone(last_n_p_a);
@@ -93,10 +92,14 @@ List sim_fish(
 
   NumericVector plus_group = last_n_p_a(_,ages - 1) * exp(-(m +f_p_a(_,ages - 1))); // calculate numbers in the oldest group that survive
   
+  c_p_a(_,ages - 1) =   (f_p_a(_,ages - 1) / (m + f_p_a(_,ages - 1))) * last_n_p_a(_,ages - 1) * (1 - exp(-(m + f_p_a(_,ages - 1))));
+  
   // age and die
   for (int a = 1; a < ages; a++){
 
     n_p_a(_,a) =  last_n_p_a(_,a - 1) * exp(-(m + f_p_a(_,a - 1)));
+    
+    c_p_a(_,a - 1) =   (f_p_a(_,a - 1) / (m + f_p_a(_,a - 1))) * last_n_p_a(_,a - 1) * (1 - exp(-(m + f_p_a(_,a - 1))));
 
   }
 
@@ -105,6 +108,8 @@ List sim_fish(
 
   // calculate biomass and spawning stock biomass at age
   for (int p = 0;p < patches; p++){
+    
+    c_p_a(p,_) = c_p_a(p,_) * weight_at_age;
 
     b_p_a(p,_) =  n_p_a(p,_) * weight_at_age;
 
@@ -164,6 +169,7 @@ List sim_fish(
     Rcpp::Named("ssb_p_a") = ssb_p_a,
     Rcpp::Named("ssb0") = ssb0,
     Rcpp::Named("ssb0_p") = ssb0_p,
-    Rcpp::Named("tmppop") = tmppop);
+    Rcpp::Named("tmppop") = tmppop,
+    Rcpp::Named("c_p_a") = c_p_a);
 } // close fish model
 

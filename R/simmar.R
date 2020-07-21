@@ -18,6 +18,8 @@ simmar <- function(fauna = list(),
                    steps = 100,
                    tune_unfished = 0) {
   
+  steps <- steps + 1 # add one more time step to deal with lagged nature of catch 
+  
   fauni <- names(fauna)
   
   fleet_names <- names(fleets)
@@ -98,15 +100,25 @@ simmar <- function(fauna = list(),
       
       f_p_a <- matrix(0, nrow = patches, ncol = ages) # total fishing mortality by patch and age
       
+      f_p_a_fl <- array(0, dim = c(patches, ages, length(fleets))) # storage for proportion of fishing mortality by patch, age, and fleet
+      
+      
       for (l in seq_along(fleet_names)) {
         f_p_a <-
           f_p_a + fleets[[l]]$e_p_s[, s] * matrix(rep(fleets[[l]][[fauni[f]]]$catchability * fleets[[l]][[fauni[f]]]$sel_at_age),
                                                   patches,
                                                   ages,
                                                   byrow = TRUE)
-
+        
+        f_p_a_fl[,,l] <- fleets[[l]]$e_p_s[, s] * matrix(rep(fleets[[l]][[fauni[f]]]$catchability * fleets[[l]][[fauni[f]]]$sel_at_age),
+                                                         patches,
+                                                         ages,
+                                                         byrow = TRUE)
       } # calculate cumulative f at age by patch
       # you can build a series of if statements here to sub in the correct species module
+      
+      f_p_a_fl <- f_p_a_fl / array(f_p_a, dim = c(patches, ages, length(fleets)))
+      
       
       pop <- marlin::sim_fish(
         length_at_age = fauna[[f]]$length_at_age,
@@ -126,6 +138,14 @@ simmar <- function(fauna = list(),
         rec_form = fauna[[f]]$rec_form
       )
       
+      # process catch data
+      
+      c_p_a_fl <- f_p_a_fl * array(pop$c_p_a, dim = c(patches, ages, length(fleets)))
+        
+      storage[[s-1]][[f]]$c_p_a_fl <- c_p_a_fl # catch stored in each model is the catch that came from the last time step, so put in the right place here
+      
+      storage[[s-1]][[f]]$c_p_a <- pop$c_p_a # catch stored in each model is the catch that came from the last time step, so put in the right place here
+      
       storage[[s]][[f]] <- pop
       
     } # close fauni, much faster this way than dopar, who knew
@@ -133,6 +153,8 @@ simmar <- function(fauna = list(),
   } #close steps
   
   # Sys.time() - a
+  
+  storage <- storage[1:(steps - 1)] # since catch is retrospective, chop off last year to ensure that every step has a catch history
   
   storage <- purrr::map(storage, ~ rlang::set_names(.x, fauni))
   
