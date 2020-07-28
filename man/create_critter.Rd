@@ -46,7 +46,8 @@ create_critter(
   habitat = NA,
   fished_depletion = 1,
   rec_form = 1,
-  burn_steps = 100
+  burn_steps = 100,
+  seasonal_hab = NA
 )
 }
 \arguments{

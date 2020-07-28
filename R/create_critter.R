@@ -94,7 +94,8 @@ create_critter <- function(common_name = 'white seabass',
                            habitat = NA,
                            fished_depletion = 1,
                            rec_form = 1,
-                           burn_steps = 100) {
+                           burn_steps = 100,
+                           seasonal_hab = NA) {
   fish <- list()
 
 
@@ -250,6 +251,8 @@ create_critter <- function(common_name = 'white seabass',
 
   lmat_to_linf_ratio <- length_mature / linf
 
+  m_at_age <- rep(m * time_step, length(weight_at_age)) # place holder to allow for different m at age
+  
   #
 
   length_at_age_key <- generate_length_at_age_key(
@@ -336,7 +339,7 @@ create_critter <- function(common_name = 'white seabass',
 
   # distance <- dnorm(distance, 0, adult_movement)
   
-  p_move <- dnorm(distance, adult_movement, adult_movement_sigma)
+  p_move <- dnorm(distance, adult_movement * time_step, adult_movement_sigma * time_step) # adult movement represents amount moved in a year, so scale down by time step
   
   
 # browser()
@@ -374,9 +377,10 @@ create_critter <- function(common_name = 'white seabass',
     weight_at_age = weight_at_age,
     maturity_at_age = maturity_at_age,
     steepness = steepness,
-    m = m,
+    m_at_age = m_at_age,
     patches = resolution ^ 2,
     burn_steps = burn_steps,
+    time_step = time_step,
     r0 = r0,
     ssb0 = NA,
     ssb0_p = rep(-999, patches),

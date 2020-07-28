@@ -13,11 +13,12 @@ List sim_fish(
     Rcpp::NumericMatrix last_n_p_a, // last numbers by patch and age
     const int patches,
     const int burn_steps, // number of burn steps if burn is in effect
+    const double time_step, // the time step in portions of a year
     const double steepness,
     const double r0,
     double ssb0, // unfished spawning stock biomass across entire system
     NumericVector ssb0_p, // unfished spawning stock biomass in each patch
-    const double m,
+    const NumericVector m_at_age,
     bool tune_unfished, //0 = use a spawner recruit relationship, 1 = don't
     const int rec_form) // recruitment form, one of ....
   { 
@@ -57,11 +58,12 @@ List sim_fish(
         tmp_n_p_a,
         patches,
         0,
+        time_step,
         steepness,
         r0,
         -999,
         ssb0_p,
-        m,
+        m_at_age,
         1, // this HAS to be 1
         rec_form);
 
@@ -90,16 +92,16 @@ List sim_fish(
   //////////////////// grow ////////////////////////
 
 
-  NumericVector plus_group = last_n_p_a(_,ages - 1) * exp(-(m +f_p_a(_,ages - 1))); // calculate numbers in the oldest group that survive
+  NumericVector plus_group = last_n_p_a(_,ages - 1) * exp(-(m_at_age(ages - 1) +f_p_a(_,ages - 1))); // calculate numbers in the oldest group that survive
   
-  c_p_a(_,ages - 1) =   (f_p_a(_,ages - 1) / (m + f_p_a(_,ages - 1))) * last_n_p_a(_,ages - 1) * (1 - exp(-(m + f_p_a(_,ages - 1))));
+  c_p_a(_,ages - 1) =   (f_p_a(_,ages - 1) / (m_at_age(ages - 1) * time_step + f_p_a(_,ages - 1))) * last_n_p_a(_,ages - 1) * (1 - exp(-(m_at_age(ages - 1) * time_step + f_p_a(_,ages - 1))));
   
   // age and die
   for (int a = 1; a < ages; a++){
 
-    n_p_a(_,a) =  last_n_p_a(_,a - 1) * exp(-(m + f_p_a(_,a - 1)));
+    n_p_a(_,a) =  last_n_p_a(_,a - 1) * exp(-(m_at_age(a - 1) + f_p_a(_,a - 1)));
     
-    c_p_a(_,a - 1) =   (f_p_a(_,a - 1) / (m + f_p_a(_,a - 1))) * last_n_p_a(_,a - 1) * (1 - exp(-(m + f_p_a(_,a - 1))));
+    c_p_a(_,a - 1) =   (f_p_a(_,a - 1) / (m_at_age(a - 1) * time_step + f_p_a(_,a - 1))) * last_n_p_a(_,a - 1) * (1 - exp(-(m_at_age(a - 1) * time_step + f_p_a(_,a - 1))));
 
   }
 

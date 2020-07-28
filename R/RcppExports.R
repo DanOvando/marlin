@@ -5,7 +5,7 @@ sample_problem <- function(x, y) {
     .Call(`_marlin_sample_problem`, x, y)
 }
 
-sim_fish <- function(length_at_age, weight_at_age, maturity_at_age, f_p_a, movement, last_n_p_a, patches, burn_steps, steepness, r0, ssb0, ssb0_p, m, tune_unfished, rec_form) {
-    .Call(`_marlin_sim_fish`, length_at_age, weight_at_age, maturity_at_age, f_p_a, movement, last_n_p_a, patches, burn_steps, steepness, r0, ssb0, ssb0_p, m, tune_unfished, rec_form)
+sim_fish <- function(length_at_age, weight_at_age, maturity_at_age, f_p_a, movement, last_n_p_a, patches, burn_steps, time_step, steepness, r0, ssb0, ssb0_p, m_at_age, tune_unfished, rec_form) {
+    .Call(`_marlin_sim_fish`, length_at_age, weight_at_age, maturity_at_age, f_p_a, movement, last_n_p_a, patches, burn_steps, time_step, steepness, r0, ssb0, ssb0_p, m_at_age, tune_unfished, rec_form)
 }
 
