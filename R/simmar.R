@@ -24,6 +24,12 @@ simmar <- function(fauna = list(),
   
   fleet_names <- names(fleets)
   
+  time_step <- unique(purrr::map_dbl(fauna, "time_step"))
+  
+  if (length(time_step) > 1){
+    stop(paste("All critters in fauna must have the same time step: current time steps are", paste(time_step, collapse = " ")))
+  }
+  
   patches <- unique(purrr::map_dbl(fauna, "patches"))
   
   initial_conditions <- purrr::map(fauna, c("unfished")) # pull out unfished conditions created by create_critter

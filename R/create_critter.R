@@ -362,7 +362,7 @@ create_critter <- function(common_name = 'white seabass',
   # tune SSB0 and unfished equilibrium
 
   init_pop <-
-    matrix((r0 / patches) * exp(-m * (0:(max_age))), nrow = patches, ncol = length(length_at_age), byrow = TRUE)
+    matrix((r0 / patches) * exp(-m * seq(0,max_age, by = time_step)), nrow = patches, ncol = length(length_at_age), byrow = TRUE)
 
   # init_pop[45,] <- 1
   

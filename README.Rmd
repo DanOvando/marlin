@@ -67,6 +67,9 @@ options(dplyr.summarise.inform = FALSE)
 
 resolution <- 20 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
 
+time_step <- 0.25
+
+steps <- 100 / time_step
 
 # for now make up some habitat
 skipjack_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
@@ -102,23 +105,26 @@ bet_hab <- bigeye_habitat_mat / rowSums(bigeye_habitat_mat)
 # marlin::create_crutter will look up relvant life history information
 # that you don't pass explicitly
 
-fauna <-
+fauna <- 
   list(
     "skipjack" = create_critter(
       scientific_name = "Katsuwonus pelamis",
       habitat = skj_hab,
-      adult_movement = 3,# the mean number of patches moved by adults
-      adult_movement_sigma = 1, # standard deviation of the number of patches moved by adults
+      adult_movement = 0,# the mean number of patches moved by adults
+      adult_movement_sigma = 2, # standard deviation of the number of patches moved by adults
       fished_depletion = .6, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct)
-      rec_form = 1 # recruitment form, where 1 implies local recruitment
-    ),
+      rec_form = 1, # recruitment form, where 1 implies local recruitment
+      time_step = time_step # time steps for growth as a fraction of a year
+      ),
     "bigeye" = create_critter(
       common_name = "bigeye tuna",
       habitat = bet_hab,
-      adult_movement = 10,
-      adult_movement_sigma = 2,
+      adult_movement = 3,
+      adult_movement_sigma = 1,
       fished_depletion = .3,
-      rec_form = 1
+      rec_form = 1,
+      time_step = time_step # time steps for growth as a fraction of a year
+
     )
   )
 
@@ -176,12 +182,11 @@ fleets <- list("longline" = list(
 
 fleets <- create_fleet(fleets = fleets, fauna = fauna, base_effort = resolution^2) # creates fleet objects, basically adding in selectivity ogives
 
-fleets <- tune_fleets(fauna, fleets, steps = 100) # tunes the catchability by fleet to achieve target depletion
+fleets <- tune_fleets(fauna, fleets, steps = 50) # tunes the catchability by fleet to achieve target depletion
 ## Note this will be a problem if there are more fleets than species, need to maybe assign proportion of catch that comes from 
 ## different fleets for each species?
 
 # run simulations
-steps <- 100 # number of time steps, in years for now
 
 
 # run the simulation using marlin::simmar
@@ -232,11 +237,10 @@ Now, simulate effects of MPAs
 
 
 set.seed(42)
-
 #specify some MPA locations
 mpa_locations <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(mpa = rbinom(n(), 1, .25))
-# mutate(mpa = between(x,7,13) & between(y,7,13))
+  # mutate(mpa = rbinom(n(), 1, .25))
+mutate(mpa = between(x,7,13) & between(y,7,13))
 
 mpa_locations %>% 
   ggplot(aes(x,y, fill = mpa)) + 
@@ -252,7 +256,7 @@ mpa_storage <- simmar(
   fleets = fleets,
   steps = steps,
   mpas = list(locations = mpa_locations,
-              mpa_step = 50)
+              mpa_step = 50 / time_step)
 )
 
 Sys.time() - a
