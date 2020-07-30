@@ -4,16 +4,36 @@ using namespace Rcpp;
 using namespace Eigen;
 
 // [[Rcpp::export]]
+NumericVector cpp_seq(int steps,double step_size) {
+  
+  NumericVector y(steps);
+  
+  y(0) = 1;
+  
+  for (int i = 1; i < y.length(); i++){
+    
+    y(i) = y(i - 1) + step_size;
+    
+  }
+  
+  
+  return y ;
+}
+
+
+// [[Rcpp::export]]
 List sim_fish(
     const NumericVector length_at_age, 
     const NumericVector weight_at_age,
     const NumericVector maturity_at_age,
     const NumericMatrix f_p_a, // fishing mortality by patch and age
-    const Eigen::MatrixXd movement, // movement matrix
+    const List seasonal_movement,
+    const List movement_seasons,
     Rcpp::NumericMatrix last_n_p_a, // last numbers by patch and age
     const int patches,
     const int burn_steps, // number of burn steps if burn is in effect
     const double time_step, // the time step in portions of a year
+    double season, // what season you're currently in
     const double steepness,
     const double r0,
     double ssb0, // unfished spawning stock biomass across entire system
@@ -35,36 +55,64 @@ List sim_fish(
 
   NumericMatrix c_p_a(patches, ages); // catch at age 
 
+  Eigen::MatrixXd movement = Eigen::MatrixXd::Zero(patches, patches);
+  
   //////////////////// tune things ////////////////////////
   NumericMatrix tmp_n_p_a = clone(last_n_p_a);
 
-  Rcpp::List tmppop; // annoying step related to memory pointeds
+  Rcpp::List tmppop; // annoying step related to memory pointers
 
+  
+  // find the correct movement matrix for the season that you're in
+  
+  for (int s  = 0; s < movement_seasons.length(); s++){ // find which season block you're in
+    
+    NumericVector tmp_seas = movement_seasons[s];
+    
+    bool b = Rcpp::any( tmp_seas == season).is_true();
+    
+    if (b == 1){
+      
+      movement = seasonal_movement[s];
+      
+      s = movement_seasons.length() + 1; // stop loop once you've found what season you're in
+    } 
+    
+  } // close seasonal movement finder loop
+  
   if (Rcpp::traits::is_na<REALSXP>(ssb0) == 1){ // basically, if is.na(ssb0), tune unfished conditions
 
-
+    NumericVector burn_seq = cpp_seq(burn_steps,time_step);
+    
     for (int b = 0; b < burn_steps; b++){
 
+      season = burn_seq(b) - floor(burn_seq(b)); // determine what season you're in
+      
+       
       // these HAVE to be in the same order
       // as function call: get lots of warnings
       // if you try and name them
-
+      // 
+      // 
+      
       tmppop = sim_fish(
         length_at_age,
         weight_at_age,
         maturity_at_age,
         f_p_a,
-        movement,
+        seasonal_movement,
+        movement_seasons,
         tmp_n_p_a,
         patches,
         0,
         time_step,
+        season,
         steepness,
         r0,
         -999,
         ssb0_p,
         m_at_age,
-        1, // this HAS to be 1
+        1, // this HAS to be 1 inside burn loop
         rec_form);
 
       tmp_n_p_a = wrap(tmppop["n_p_a"]);

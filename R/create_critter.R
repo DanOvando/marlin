@@ -62,7 +62,7 @@ create_critter <- function(common_name = 'white seabass',
                            length_units = 'cm',
                            min_age = 0,
                            max_age = NA,
-                           time_step = 1,
+                           seasons = 1, # seasons per year
                            weight_a = NA,
                            weight_b = NA,
                            weight_units = 'kg',
@@ -91,14 +91,34 @@ create_critter <- function(common_name = 'white seabass',
                            density_movement_modifier = 1,
                            linf_buffer = 1.2,
                            resolution = 25,
-                           habitat = NA,
+                           seasonal_habitat = NA,
+                           habitat_seasons = NA,
                            fished_depletion = 1,
                            rec_form = 1,
-                           burn_steps = 100,
+                           burn_years = 100,
                            seasonal_hab = NA) {
   fish <- list()
 
-
+  if (seasons <1){
+    stop("seasons must be greater than or equal to 1")
+  }
+  
+  if (length(seasonal_habitat) != length(habitat_seasons)){
+    stop("length of seasonal_habitat must equal length of habitat_seasons")
+  }
+  
+  time_step <- 1 / seasons # the time step, in fractions of a year, for each step
+  
+  burn_steps <- burn_years * seasons # convert years to time steps
+  
+  if (!is.null(dim(seasonal_habitat[[1]]))){
+    
+    resolution <- sqrt(nrow(seasonal_habitat[[1]]))
+    
+  }
+  
+  patches <- resolution ^ 2
+  
   if (!is.na(scientific_name)) {
     common_name <-
       taxize::sci2comm(scientific_name, db = "ncbi")[[1]][1]
@@ -325,28 +345,19 @@ create_critter <- function(common_name = 'white seabass',
 
   # create habitat and movement matrices
 
-  if (!is.null(dim(habitat))) {
-    resolution <- sqrt(nrow(habitat))
-
-  }
-
-  patches <- resolution ^ 2
+  calc_move_mat <- function(habitat, movement, movement_sigma, time_step, resolution){
 
   distance <-
     tidyr::expand_grid(x = 1:resolution, y = 1:resolution) %>%
     dist() %>%
     as.matrix()
 
-  # distance <- dnorm(distance, 0, adult_movement)
+  p_move <- dnorm(distance, movement * time_step, movement_sigma * time_step) # movement represents amount moved in a year, so scale down by time step
   
-  p_move <- dnorm(distance, adult_movement * time_step, adult_movement_sigma * time_step) # adult movement represents amount moved in a year, so scale down by time step
-  
-  
-# browser()
   p_move <- p_move / rowSums(p_move)
-
-
+  
   if ((!is.null(dim(habitat)))) {
+  
     habitat <- habitat / rowSums(habitat)
 
     move_mat <-  p_move * habitat
@@ -357,10 +368,16 @@ create_critter <- function(common_name = 'white seabass',
     move_mat <- p_move
   }
 
-  # plot(distance[22,], move_mat[22,])
+  move_mat <- (move_mat) # needs to be transposed for use in population function
+
+  }
   
-  move_mat <-
-    (move_mat) # needs to be transposed for use in population function
+  seasonal_movement <- purrr::map(seasonal_habitat,calc_move_mat, movement = adult_movement,
+                         movement_sigma = adult_movement_sigma,
+                         resolution = resolution, 
+                         time_step = time_step)
+  
+  movement_seasons <- habitat_seasons
 
   # tune SSB0 and unfished equilibrium
 
@@ -370,8 +387,17 @@ create_critter <- function(common_name = 'white seabass',
   # init_pop[45,] <- 1
   
   # init_pop[, 1] <- r0 / patches
-  
+  # a fook, this part is going to be harder with movement
+  # because of the unfished thing, you'd need to pass the list to Rcpp, and then
+  # parse out elements of that list as Eigen matrices depending on which season it is
+  # 
+  # bool b = any( season == seasons).is_true();
+  # 
+  # Eigen::MatrixXd movement = seasonal_movement[s];
+  # so to do this need spawning season, and need to turn ssb0
+  # into a seasonal thing
   f_p_a <- matrix(0, nrow = patches, ncol = length(length_at_age))
+  
   unfished <- marlin::sim_fish(
     length_at_age = length_at_age,
     weight_at_age = weight_at_age,
@@ -381,11 +407,13 @@ create_critter <- function(common_name = 'white seabass',
     patches = resolution ^ 2,
     burn_steps = burn_steps,
     time_step = time_step,
+    season = 0,
     r0 = r0,
     ssb0 = NA,
     ssb0_p = rep(-999, patches),
     f_p_a = f_p_a,
-    movement = move_mat,
+    seasonal_movement = seasonal_movement,
+    movement_seasons = movement_seasons,
     last_n_p_a = init_pop,
     tune_unfished = 1,
     rec_form = rec_form

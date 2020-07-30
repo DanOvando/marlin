@@ -15,10 +15,9 @@
 simmar <- function(fauna = list(),
                    fleets = list(),
                    mpas = list(),
-                   steps = 100,
+                   years = 100,
                    tune_unfished = 0) {
   
-  steps <- steps + 1 # add one more time step to deal with lagged nature of catch 
   
   fauni <- names(fauna)
   
@@ -29,6 +28,8 @@ simmar <- function(fauna = list(),
   if (length(time_step) > 1){
     stop(paste("All critters in fauna must have the same time step: current time steps are", paste(time_step, collapse = " ")))
   }
+  
+  steps <- (years + 1) / time_step #tack on extra year for accounting
   
   patches <- unique(purrr::map_dbl(fauna, "patches"))
   
@@ -61,11 +62,17 @@ simmar <- function(fauna = list(),
   
   fishable <- rep(1, patches)
   
+  step_seq <- seq(1, steps, by = time_step) # create sequence of seasonal time steps
 
   # loop over steps
   for (s in 2:steps) {
+    
+    season <- step_seq[s - 1] - floor(step_seq[s - 1]) # determine what season the last time step was
+    
+    year <-  floor(step_seq[s])
+    
     if (length(mpas) > 0) { # assign MPAs if needed
-      if (s == mpas$mpa_step) {
+      if (year == mpas$mpa_year) {
         fishable <- mpas$locations$mpa == 0
       }
       
@@ -125,7 +132,6 @@ simmar <- function(fauna = list(),
       
       f_p_a_fl <- f_p_a_fl / array(f_p_a, dim = c(patches, ages, length(fleets)))
       
-      
       pop <- marlin::sim_fish(
         length_at_age = fauna[[f]]$length_at_age,
         weight_at_age = fauna[[f]]$weight_at_age,
@@ -134,11 +140,13 @@ simmar <- function(fauna = list(),
         m_at_age = fauna[[f]]$m_at_age,
         patches = patches,
         burn_steps = 0,
-        time_step = fauna[[f]]$time_step,
+        time_step = time_step,
+        season = season,
         r0 = fauna[[f]]$r0,
         ssb0 = fauna[[f]]$ssb0,
         ssb0_p = fauna[[f]]$ssb0_p,
-        movement = fauna[[f]]$move_mat,
+        seasonal_movement = fauna[[f]]$seasonal_movement,
+        movement_seasons = fauna[[f]]$movement_seasons,
         f_p_a = f_p_a,
         last_n_p_a = last_n_p_a,
         tune_unfished = tune_unfished,

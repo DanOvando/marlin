@@ -1,6 +1,7 @@
 useDynLib(marlin, .registration=TRUE)
 importFrom(Rcpp, evalCpp)
 exportPattern("^[[:alpha:]]+")
+export("%>%")
 importFrom(magrittr,"%>%")
 importFrom(foreach,"%do%")
 importFrom(foreach,"%dopar%")

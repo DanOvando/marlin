@@ -8,7 +8,7 @@ simmar(
   fauna = list(),
   fleets = list(),
   mpas = list(),
-  steps = 100,
+  years = 100,
   tune_unfished = 0
 )
 }
@@ -19,9 +19,9 @@ simmar(
 
 \item{mpas}{}
 
-\item{steps}{}
-
 \item{tune_unfished}{}
+
+\item{steps}{}
 }
 \value{
 

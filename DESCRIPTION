@@ -28,6 +28,7 @@ Imports:
     taxize,
     ggplot2,
     purrr,
-    dplyr
+    dplyr,
+    magrittr
 Remotes: 
     james-thorson/FishLife

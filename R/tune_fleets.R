@@ -8,9 +8,9 @@
 #' @export
 #'
 #' @examples
-tune_fleets <- function(fauna, fleets, steps = 50){
+tune_fleets <- function(fauna, fleets, years = 50){
   
-  qs <- nlminb(start = c(0,0,0,0), fleet_tuner, fleets = fleets, fauna = fauna, steps = steps, lower = c(0,0,0,0))
+  qs <- nlminb(start = c(0,0,0,0), fleet_tuner, fleets = fleets, fauna = fauna, years = years, lower = c(0,0,0,0))
 
   cc <- 1
   

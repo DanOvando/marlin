@@ -14,7 +14,7 @@ create_critter(
   length_units = "cm",
   min_age = 0,
   max_age = NA,
-  time_step = 1,
+  seasons = 1,
   weight_a = NA,
   weight_b = NA,
   weight_units = "kg",
@@ -43,10 +43,11 @@ create_critter(
   density_movement_modifier = 1,
   linf_buffer = 1.2,
   resolution = 25,
-  habitat = NA,
+  seasonal_habitat = NA,
+  habitat_seasons = NA,
   fished_depletion = 1,
   rec_form = 1,
-  burn_steps = 100,
+  burn_years = 100,
   seasonal_hab = NA
 )
 }
@@ -68,8 +69,6 @@ create_critter(
 \item{min_age}{}
 
 \item{max_age}{}
-
-\item{time_step}{}
 
 \item{weight_a}{}
 
@@ -127,11 +126,13 @@ create_critter(
 
 \item{resolution}{}
 
-\item{habitat}{}
-
 \item{fished_depletion}{}
 
 \item{rec_form}{}
+
+\item{time_step}{}
+
+\item{habitat}{}
 
 \item{burn_steps}{}
 }

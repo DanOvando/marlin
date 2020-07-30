@@ -8,6 +8,12 @@ Eigen::MatrixXd sample_problem(Eigen::MatrixXd x, Eigen::MatrixXd y) {
 
 
   // do some eigen matrix multiplication
+  // 
+   
+  Rcpp::NumericVector yy(10);
+  
+  yy(0) = 1;
+  
   Eigen::MatrixXd z =  x * y;
 
   // what I'd like to be able to do somehow:

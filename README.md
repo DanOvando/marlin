@@ -1,4 +1,15 @@
 
+A list of movement matrices
+
+A list specifying which seasons each movement matrix applies to
+
+assume that if there’s only one, it’s static
+
+sub in the correct movement matrix inside simmar.R
+
+create spawning habitat that can move everyone to spawning habitat in a
+time step if needed
+
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 # marlin
@@ -77,12 +88,12 @@ unfished conditions
 ``` r
 library(marlin)
 library(tidyverse)
-#> ── Attaching packages ──────────────────────────── tidyverse 1.3.0 ──
-#> ✓ ggplot2 3.3.2     ✓ purrr   0.3.4
-#> ✓ tibble  3.0.3     ✓ dplyr   1.0.0
-#> ✓ tidyr   1.1.0     ✓ stringr 1.4.0
-#> ✓ readr   1.3.1     ✓ forcats 0.5.0
-#> ── Conflicts ─────────────────────────────── tidyverse_conflicts() ──
+#> ── Attaching packages ────────────────────────────────────── tidyverse 1.3.0 ──
+#> ✓ ggplot2 3.3.2          ✓ purrr   0.3.4     
+#> ✓ tibble  3.0.3.9000     ✓ dplyr   1.0.0     
+#> ✓ tidyr   1.1.0          ✓ stringr 1.4.0     
+#> ✓ readr   1.3.1          ✓ forcats 0.5.0
+#> ── Conflicts ───────────────────────────────────────── tidyverse_conflicts() ──
 #> x dplyr::filter() masks stats::filter()
 #> x dplyr::lag()    masks stats::lag()
 options(dplyr.summarise.inform = FALSE)
@@ -90,13 +101,15 @@ options(dplyr.summarise.inform = FALSE)
 
 resolution <- 20 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
 
-time_step <- 1
+seasons <- 1
 
-steps <- 100 / time_step
+years <- 100
+
+steps <- years * seasons
 
 # for now make up some habitat
-skipjack_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 20, 200))
+skipjack_habitat <- tidyr::expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  dplyr::mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 20, 200))
 
 skipjack_habitat_mat <-
   matrix(
@@ -141,31 +154,33 @@ bet_seasonal_hab <- tibble(seasons = list(list(0,.25), list(.5, .75)),habitat = 
 # marlin::create_crutter will look up relvant life history information
 # that you don't pass explicitly
 
+     # habitats = list(bet_hab, bet_hab2), # pass habitat as lists
+     #  habitat_season = list(c(0,.25), c(.5, .75)), # seasons each habitat apply to
+
 fauna <- 
   list(
     "skipjack" = create_critter(
       scientific_name = "Katsuwonus pelamis",
-      habitat = skj_hab,
+      seasonal_habitat = list(skj_hab),
+      habitat_seasons = list(0),
       adult_movement = 2,# the mean number of patches moved by adults
       adult_movement_sigma = 2, # standard deviation of the number of patches moved by adults
       fished_depletion = .6, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct)
       rec_form = 1, # recruitment form, where 1 implies local recruitment
-      time_step = time_step # time steps for growth as a fraction of a year
+      seasons = seasons # time steps for growth as a fraction of a year
       ),
     "bigeye" = create_critter(
       common_name = "bigeye tuna",
-      habitat = bet_hab,
+      seasonal_habitat = list(bet_hab), # pass habitat as lists
+      habitat_seasons = list(0), # seasons each habitat apply to
       adult_movement = 3,
       adult_movement_sigma = 1,
       fished_depletion = .3,
       rec_form = 1,
-      time_step = time_step # time steps for growth as a fraction of a year
+      seasons = seasons # time steps for growth as a fraction of a year
 
     )
   )
-#> No ENTREZ API key provided
-#>  Get one via taxize::use_entrez()
-#> See https://ncbiinsights.ncbi.nlm.nih.gov/2017/11/02/new-api-keys-for-the-e-utilities/
 #> ══  1 queries  ═══════════════
 #> 
 #> Retrieving data for taxon 'Katsuwonus pelamis'
@@ -175,9 +190,6 @@ fauna <-
 #> ● Total: 1 
 #> ● Found: 1 
 #> ● Not Found: 0
-#> No ENTREZ API key provided
-#>  Get one via taxize::use_entrez()
-#> See https://ncbiinsights.ncbi.nlm.nih.gov/2017/11/02/new-api-keys-for-the-e-utilities/
 
 # plot(fauna$bigeye$distance[2,],fauna$bigeye$move_mat[,2])
 # 
@@ -233,7 +245,7 @@ fleets <- list("longline" = list(
 
 fleets <- create_fleet(fleets = fleets, fauna = fauna, base_effort = resolution^2) # creates fleet objects, basically adding in selectivity ogives
 
-fleets <- tune_fleets(fauna, fleets, steps = 50) # tunes the catchability by fleet to achieve target depletion
+fleets <- tune_fleets(fauna, fleets, years = 50) # tunes the catchability by fleet to achieve target depletion
 ## Note this will be a problem if there are more fleets than species, need to maybe assign proportion of catch that comes from 
 ## different fleets for each species?
 
@@ -245,10 +257,10 @@ a <- Sys.time()
 
 storage <- simmar(fauna = fauna,
                   fleets = fleets,
-                  steps = steps)
+                  years = years)
 
 Sys.time() - a
-#> Time difference of 0.3338165 secs
+#> Time difference of 0.378618 secs
   
 
 # process results, will write some wrappers to automate this
@@ -320,13 +332,13 @@ a <- Sys.time()
 mpa_storage <- simmar(
   fauna = fauna,
   fleets = fleets,
-  steps = steps,
+  years = years,
   mpas = list(locations = mpa_locations,
-              mpa_step = 50 / time_step)
+              mpa_year = 50)
 )
 
 Sys.time() - a
-#> Time difference of 0.4364624 secs
+#> Time difference of 0.4207411 secs
 
 ssb_skj <- rowSums(mpa_storage[[steps]]$skipjack$ssb_p_a)
 
