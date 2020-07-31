@@ -129,10 +129,14 @@ List sim_fish(
   //////////////////// move ////////////////////////
 
 
-  tmpmat =  tmpmat.transpose() * movement; // matrix multiplication of numbers at age by movement matrix
+  // tmpmat =  tmpmat.transpose() * movement; // matrix multiplication of numbers at age by movement matrix
 
-  SEXP tmp = Rcpp::wrap(tmpmat.transpose()); // convert from eigen to Rcpp
+  tmpmat =  movement * tmpmat; // matrix multiplication of numbers at age by movement matrix
+  
+  SEXP tmp = Rcpp::wrap(tmpmat); // convert from eigen to Rcpp
 
+  // SEXP tmp = Rcpp::wrap(tmpmat.transpose()); // convert from eigen to Rcpp
+  
   last_n_p_a = tmp; // set last population to post-movement last population
 
   //////////////////// grow ////////////////////////

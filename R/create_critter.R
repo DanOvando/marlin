@@ -391,7 +391,7 @@ create_critter <- function(common_name = 'white seabass',
     move_mat <- p_move
   }
 
-  move_mat <- (move_mat) # needs to be transposed for use in population function
+  move_mat <- t(move_mat) # needs to be transposed for use in population function
 
   } # close calc_move_mat
   
