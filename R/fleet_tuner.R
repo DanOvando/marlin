@@ -15,6 +15,8 @@ fleet_tuner <- function(qs,fauna, fleets, years = 50){
   
   cc <- 1
   
+  # qs <- exp(log_qs)
+  
   for (f in seq_along(fleets)){
     
     for (ff in seq_along(fauna)){

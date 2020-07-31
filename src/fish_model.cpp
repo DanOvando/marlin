@@ -1,4 +1,3 @@
-#include <Rcpp.h>
 #include <RcppEigen.h>
 using namespace Rcpp;
 using namespace Eigen;
@@ -15,7 +14,6 @@ NumericVector cpp_seq(int steps,double step_size) {
     y(i) = y(i - 1) + step_size;
     
   }
-  
   
   return y ;
 }
@@ -35,7 +33,7 @@ List sim_fish(
     const double time_step, // the time step in portions of a year
     double season, // what season you're currently in
     const double steepness,
-    const double r0,
+    const NumericVector r0s,
     double ssb0, // unfished spawning stock biomass across entire system
     NumericVector ssb0_p, // unfished spawning stock biomass in each patch
     const NumericVector m_at_age,
@@ -108,7 +106,7 @@ List sim_fish(
         time_step,
         season,
         steepness,
-        r0,
+        r0s,
         -999,
         ssb0_p,
         m_at_age,
@@ -179,26 +177,29 @@ List sim_fish(
 
       if (rec_form == 0){
       
-      recruits = rep(r0 / patches, patches);
+      // recruits = rep(r0 / patches, patches);
+      
+      recruits = r0s;
       
       } else if (rec_form == 1){
         
-        // recruits = r0 * ssb_p / sum(ssb_p);
+        // recruits = rep(r0 / patches, patches);
         
-        recruits = rep(r0 / patches, patches);
+        recruits = r0s;
+        
         
       }
       
     } else { // if stock recruitment relationship is in effect
 
 
-      if (rec_form == 0){  // global beverton-holt density dependence, distribute recruits evenly
+      if (rec_form == 0){  // global beverton-holt density dependence, distribute recruits according to recruitment habitat
 
-      recruits = rep(((0.8 * r0 * steepness * ssb) / (0.2 * ssb0 * (1 - steepness) + (steepness - 0.2) * ssb)) / patches, patches);
+      recruits = (((0.8 * sum(r0s) * steepness * ssb) / (0.2 * ssb0 * (1 - steepness) + (steepness - 0.2) * ssb))) * (r0s / sum(r0s));
         
-      } else if (rec_form == 1){ // local beverton-holt density dependence, same r0 everywhere
+      } else if (rec_form == 1){ // local beverton-holt density dependence, r0 set by local habitat
         
-        recruits = ((0.8 * (r0 / patches) * steepness * ssb_p) / (0.2 * ssb0_p * (1 - steepness) + (steepness - 0.2) * ssb_p));
+        recruits = ((0.8 * r0s * steepness * ssb_p) / (0.2 * (ssb0_p + 1e-6) * (1 - steepness) + (steepness - 0.2) * (ssb_p + 1e-6)));
         
       } // close recruitment ifs
     }

@@ -1,0 +1,168 @@
+---
+title: "marlin Example"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{marlin Example}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(marlin)
+```
+
+We can use the `marlin` package to assess the effect of a large MPA on two species: a yellowfin tuna stock targeted by a fishing fleet, and a shortfin mako population that is caught as bycatch in the yellowfin tuna fishery. 
+
+We will present two cases: one in which shortfin mako are concentrated nearshore, and yellowfin tuna prefer the nearshore environment but live offshore as well. We then place a large MPA over the nearshore habitat of the shortfin makos. 
+
+For the second scenario, we keep the same MPA, but the purpose of this MPA is now to provide some protection for the nearshore portion of the yellowfin tuna stock. During this scenario, shortfin mako now live mostly offshore. ]
+
+For both cases, the MPA is the same size and in the same location, and both populations are overfished by the same amount in both scenarios before the MPAs are put in place. 
+
+# Scenario 1: Sharks Offshore
+
+```{r}
+
+library(marlin)
+library(tidyverse)
+options(dplyr.summarise.inform = FALSE)
+
+
+resolution <- 20 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
+
+seasons <- 1
+
+years <- 100
+
+steps <- years * seasons
+
+# for now make up some habitat
+
+
+yft_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  mutate(habitat =  .2 * x) %>% 
+  pivot_wider(names_from = y, values_from = habitat) %>% 
+  select(-x) %>% 
+  as.matrix()
+ 
+
+mako_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  mutate(habitat =  ifelse(x > 16, 1, 0)) %>% 
+  pivot_wider(names_from = y, values_from = habitat) %>% 
+  select(-x) %>% 
+  as.matrix()
+
+
+# create a fauna object, which is a list of lists
+
+fauna <- 
+  list(
+    "yft" = create_critter(
+      scientific_name = "Thunnus albacares",
+      seasonal_habitat = list(yft_habitat), # pass habitat as lists
+      habitat_seasons = list(1), # seasons each habitat apply to
+      rec_habitat = yft_habitat,
+      adult_movement = 0,# the mean number of patches moved by adults
+      adult_movement_sigma = 4, # standard deviation of the number of patches moved by adults
+      fished_depletion = .4, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
+      rec_form = 1, # recruitment form, where 1 implies local recruitment
+      seasons = seasons
+      ),
+    "mako" = create_critter(
+      scientific_name = "Isurus oxyrinchus",
+      seasonal_habitat = list(mako_habitat), # pass habitat as lists
+      habitat_seasons = list(1), # seasons each habitat apply to
+      rec_habitat = mako_habitat,
+      adult_movement = 3,
+      adult_movement_sigma = 1,
+      fished_depletion = .3,
+      rec_form = 1,
+      burn_years = 200,
+            seasons = seasons
+    )
+  )
+
+# create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
+# with lists for each species inside there. Price specifies the price per unit weight of that 
+# species for that fleet
+# sel_form can be one of logistic or dome
+
+fleets <- list("longline" = list(
+  yft = list(
+    price = 100, # price per unit weight
+    sel_form = "logistic", # selectivity form, one of logistic or dome
+    sel_start = .3, # percentage of length at maturity that selectivity starts
+    sel_delta = .1, # additional percentage of sel_start where selectivity asymptotes
+    catchability = .01 # overwritten by tune_fleet but can be set manually here
+  ),
+  mako = list(
+    price = 10,
+    sel_form = "logistic",
+    sel_start = .1,
+    sel_delta = .01,
+    catchability = 0
+  )
+))
+
+
+fleets <- create_fleet(fleets = fleets, fauna = fauna, base_effort = resolution^2) # creates fleet objects, basically adding in selectivity ogives
+
+fleets <- tune_fleets(fauna, fleets, years = 100) # tunes the catchability by fleet to achieve target depletion
+
+# run simulations
+
+# run the simulation using marlin::simmar
+a <- Sys.time()
+
+storage <- simmar(fauna = fauna,
+                  fleets = fleets,
+                  years = years)
+
+Sys.time() - a
+  
+# process results, will write some wrappers to automate this
+ssb_yft <- rowSums(storage[[steps]]$yft$ssb_p_a)
+# 
+check <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  mutate(yft = ssb_yft)
+
+ggplot(check, aes(x, y, fill = yft)) +
+  geom_tile() +
+  scale_fill_viridis_c() +
+  labs(title = "yellowfin")
+
+ssb_mako <- rowSums(storage[[steps]]$mako$ssb_p_a)
+
+check <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  mutate(mako = ssb_mako)
+
+ggplot(check, aes(x, y, fill = mako)) +
+  geom_tile() +
+  scale_fill_viridis_c() +
+  labs(title = "mako")
+
+
+# double check that target depletions are reached
+
+(sum(ssb_mako) / fauna$mako$ssb0) / fauna$mako$fished_depletion
+
+(sum(ssb_yft) / fauna$yft$ssb0) / fauna$yft$fished_depletion
+
+
+mako_trajectory <- map_dbl(storage,~ sum(.x$mako$ssb_p_a))
+
+plot(mako_trajectory)
+
+yft_trajectory <- map_dbl(storage,~ sum(.x$yft$ssb_p_a))
+
+plot(yft_trajectory)
+
+```
+

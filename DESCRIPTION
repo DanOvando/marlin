@@ -10,7 +10,9 @@ Authors@R:
 Description: Fast simulation of marine fauna and fisheries. Runs multiple (independent) age structured species simultaneously in 2D
 License: file LICENSE
 Suggests: 
-    testthat
+    testthat,
+    knitr,
+    rmarkdown
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
@@ -29,6 +31,8 @@ Imports:
     ggplot2,
     purrr,
     dplyr,
-    magrittr
+    magrittr,
+    tidyr
 Remotes: 
     james-thorson/FishLife
+VignetteBuilder: knitr

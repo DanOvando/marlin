@@ -77,96 +77,63 @@ options(dplyr.summarise.inform = FALSE)
 
 resolution <- 20 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
 
-seasons <- 1
+years <- 20
 
-years <- 100
+seasons <- 4
 
 steps <- years * seasons
-
 # for now make up some habitat
-skipjack_habitat <- tidyr::expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  dplyr::mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 20, 200))
 
-skipjack_habitat_mat <-
-  matrix(
-    rep(skipjack_habitat$habitat, resolution),
-    nrow = resolution ^ 2,
-    ncol = resolution ^ 2,
-    byrow = TRUE
-  )
 
-skj_hab <- skipjack_habitat_mat / rowSums(skipjack_habitat_mat)
+skipjack_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  dplyr::mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 20, 200)) %>% 
+  pivot_wider(names_from = y, values_from = habitat) %>% 
+  select(-x) %>% 
+  as.matrix()
+
 
 bigeye_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 300, 100))
-
-# bigeye_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-#   mutate(habitat =  1)
-
-bigeye_habitat_mat <-
-  matrix(
-    rep(bigeye_habitat$habitat, resolution),
-    nrow = resolution ^ 2,
-    ncol = resolution ^ 2,
-    byrow = TRUE
-  )
-
-bet_hab <- bigeye_habitat_mat / rowSums(bigeye_habitat_mat)
+  mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 300, 100)) %>% 
+  pivot_wider(names_from = y, values_from = habitat) %>% 
+  select(-x) %>% 
+  as.matrix()
 
 
-bigeye_habitat_mat2 <-
-  matrix(
-    rev(rep(bigeye_habitat$habitat, resolution)),
-    nrow = resolution ^ 2,
-    ncol = resolution ^ 2,
-    byrow = TRUE
-  )
-
-bet_hab2 <- bigeye_habitat_mat2 / rowSums(bigeye_habitat_mat2)
-
-bet_seasonal_hab <- tibble(seasons = list(list(0,.25), list(.5, .75)),habitat = list(bet_hab, bet_hab2))
+bigeye_habitat2 <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  mutate(habitat =  dnorm((x ^ .2 + y ^ .2), 100, 100)) %>% 
+  pivot_wider(names_from = y, values_from = habitat) %>% 
+  select(-x) %>% 
+  as.matrix()
 
 # create a fauna object, which is a list of lists
-# marlin::create_crutter will look up relvant life history information
+# marlin::create_critter will look up relevant life history information
 # that you don't pass explicitly
-
-     # habitats = list(bet_hab, bet_hab2), # pass habitat as lists
-     #  habitat_season = list(c(0,.25), c(.5, .75)), # seasons each habitat apply to
 
 fauna <- 
   list(
     "skipjack" = create_critter(
       scientific_name = "Katsuwonus pelamis",
-      seasonal_habitat = list(skj_hab),
-      habitat_seasons = list(0),
+      seasonal_habitat = list(skipjack_habitat, skipjack_habitat), # pass habitat as lists
+      habitat_seasons = list(c(1, 2), c(3, 4)), # seasons each habitat apply to
+      rec_habitat = skipjack_habitat,
       adult_movement = 2,# the mean number of patches moved by adults
       adult_movement_sigma = 2, # standard deviation of the number of patches moved by adults
-      fished_depletion = .6, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct)
+      fished_depletion = .6, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
       rec_form = 1, # recruitment form, where 1 implies local recruitment
-      seasons = seasons # time steps for growth as a fraction of a year
+      seasons = seasons
       ),
     "bigeye" = create_critter(
       common_name = "bigeye tuna",
-      seasonal_habitat = list(bet_hab), # pass habitat as lists
-      habitat_seasons = list(0), # seasons each habitat apply to
+      seasonal_habitat = list(bigeye_habitat, bigeye_habitat2), # pass habitat as lists
+      habitat_seasons = list(c(1, 2), c(3, 4)), # seasons each habitat apply to
+      rec_habitat = bigeye_habitat,
       adult_movement = 3,
       adult_movement_sigma = 1,
       fished_depletion = .3,
       rec_form = 1,
-      seasons = seasons # time steps for growth as a fraction of a year
-
+      seasons = seasons
     )
   )
-
-# plot(fauna$bigeye$distance[2,],fauna$bigeye$move_mat[,2])
-# 
-# fauna$bigeye$move_mat %>% 
-#   as_tibble() %>% 
-#   mutate(x = 1:nrow(.)) %>% 
-#   pivot_longer(-x, names_to = "y", values_to = "movement") %>% 
-#   mutate(y = as.numeric(y)) %>% 
-#   ggplot(aes(x, y, fill = movement)) + 
-#   geom_tile()
 
 
 # create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
@@ -181,14 +148,14 @@ fleets <- list("longline" = list(
     sel_form = "logistic", # selectivity form, one of logistic or dome
     sel_start = .9, # percentage of length at maturity that selectivity starts
     sel_delta = .1, # additional percentage of sel_start where selectivity asymptotes
-    catchability = .1 # overwritten by tune_fleet but can be set manually here
+    catchability = .01 # overwritten by tune_fleet but can be set manually here
   ),
   bigeye = list(
     price = 1000,
     sel_form = "logistic",
     sel_start = .1,
     sel_delta = .01,
-    catchability = 0.1
+    catchability = .01
   )
 ),
 "purseseine" = list(
@@ -197,7 +164,7 @@ fleets <- list("longline" = list(
     sel_form = "logistic",
     sel_start = 0.25,
     sel_delta = .1,
-    catchability = .9
+    catchability = .3
   ),
   bigeye = list(
     price = 100,
@@ -209,11 +176,9 @@ fleets <- list("longline" = list(
 ))
 
 
-
 fleets <- create_fleet(fleets = fleets, fauna = fauna, base_effort = resolution^2) # creates fleet objects, basically adding in selectivity ogives
 
-fleets <- tune_fleets(fauna, fleets, years = 50) # tunes the catchability by fleet to achieve target depletion
-## Note this will be a problem if there are more fleets than species, need to maybe assign proportion of catch that comes from 
+fleets <- tune_fleets(fauna, fleets, years = 25) # tunes the catchability by fleet to achieve target depletion
 ## different fleets for each species?
 
 # run simulations
@@ -286,7 +251,7 @@ mpa_storage <- simmar(
   fleets = fleets,
   years = years,
   mpas = list(locations = mpa_locations,
-              mpa_year = 50)
+              mpa_year = floor(years * .5))
 )
 
 Sys.time() - a

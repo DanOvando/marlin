@@ -1,4 +1,5 @@
 useDynLib(marlin, .registration=TRUE)
+import(RcppEigen)
 importFrom(Rcpp, evalCpp)
 exportPattern("^[[:alpha:]]+")
 export("%>%")

@@ -131,7 +131,6 @@ simmar <- function(fauna = list(),
       # you can build a series of if statements here to sub in the correct species module
       
       f_p_a_fl <- f_p_a_fl / array(f_p_a, dim = c(patches, ages, length(fleets)))
-      
       pop <- marlin::sim_fish(
         length_at_age = fauna[[f]]$length_at_age,
         weight_at_age = fauna[[f]]$weight_at_age,
@@ -142,7 +141,7 @@ simmar <- function(fauna = list(),
         burn_steps = 0,
         time_step = time_step,
         season = season,
-        r0 = fauna[[f]]$r0,
+        r0s = fauna[[f]]$r0s,
         ssb0 = fauna[[f]]$ssb0,
         ssb0_p = fauna[[f]]$ssb0_p,
         seasonal_movement = fauna[[f]]$seasonal_movement,
