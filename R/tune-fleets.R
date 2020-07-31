@@ -2,7 +2,7 @@
 #'
 #' @param fauna 
 #' @param fleets 
-#' @param steps 
+#' @param years 
 #'
 #' @return
 #' @export
@@ -10,7 +10,7 @@
 #' @examples
 tune_fleets <- function(fauna, fleets, years = 50){
   
-  
+
   qs <- nlminb(start = rep(0,length(fauna) * length(fleets)), fleet_tuner, fleets = fleets, fauna = fauna, years = years, lower = rep(0,length(fauna) * length(fleets)))
 
   cc <- 1

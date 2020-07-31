@@ -42,7 +42,7 @@ create_fleet <-
           ))))
           
           p_sel_at_age <-
-            (as.matrix(fauna[[fauni[s]]]$length_at_age_key) %*% sel_at_bin)
+            as.matrix(fauna[[fauni[s]]]$length_at_age_key) %*% sel_at_bin
           
           sel_at_age <- p_sel_at_age
           

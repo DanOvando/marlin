@@ -82,8 +82,8 @@ fauna <-
       seasonal_habitat = list(yft_habitat), # pass habitat as lists
       habitat_seasons = list(1), # seasons each habitat apply to
       rec_habitat = yft_habitat,
-      adult_movement = 20,# the mean number of patches moved by adults
-      adult_movement_sigma = 20, # standard deviation of the number of patches moved by adults
+      adult_movement = 0,# the mean number of patches moved by adults
+      adult_movement_sigma = 4, # standard deviation of the number of patches moved by adults
       fished_depletion = .4, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
       rec_form = 1, # recruitment form, where 1 implies local recruitment
       seasons = seasons
@@ -129,6 +129,10 @@ fleets <- create_fleet(fleets = fleets, fauna = fauna, base_effort = resolution^
 
 fleets <- tune_fleets(fauna, fleets, years = 100) # tunes the catchability by fleet to achieve target depletion
 
+
+storage <- simmar(fauna = fauna,
+                  fleets = fleets,
+                  years = years)
 # run simulations
 
 # run the simulation using marlin::simmar

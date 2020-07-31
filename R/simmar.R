@@ -130,7 +130,8 @@ simmar <- function(fauna = list(),
       } # calculate cumulative f at age by patch
       # you can build a series of if statements here to sub in the correct species module
       
-      f_p_a_fl <- f_p_a_fl / array(f_p_a, dim = c(patches, ages, length(fleets)))
+      f_p_a_fl <- f_p_a_fl / array(f_p_a, dim = c(patches, ages, length(fleets))) # f by patch, age, and fleet
+      
       pop <- marlin::sim_fish(
         length_at_age = fauna[[f]]$length_at_age,
         weight_at_age = fauna[[f]]$weight_at_age,

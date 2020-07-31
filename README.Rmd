@@ -313,3 +313,4 @@ plot(skj_trajectory)
 
 
 Ah interesting, so need to think through the movement a bit more: the problem is that movement is effectively 0 for the really good habitats: critters stay put once they get there. Is that so bad? Problem is that it doesn't really allow for spillover. 
+
