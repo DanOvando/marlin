@@ -15,12 +15,21 @@
 simmar <- function(fauna = list(),
                    fleets = list(),
                    mpas = list(),
-                   steps = 100,
+                   years = 100,
                    tune_unfished = 0) {
+  
   
   fauni <- names(fauna)
   
   fleet_names <- names(fleets)
+  
+  time_step <- unique(purrr::map_dbl(fauna, "time_step"))
+  
+  if (length(time_step) > 1){
+    stop(paste("All critters in fauna must have the same time step: current time steps are", paste(time_step, collapse = " ")))
+  }
+  
+  steps <- (years + 1) / time_step #tack on extra year for accounting
   
   patches <- unique(purrr::map_dbl(fauna, "patches"))
   
@@ -53,11 +62,17 @@ simmar <- function(fauna = list(),
   
   fishable <- rep(1, patches)
   
+  step_seq <- seq(1, steps, by = time_step) # create sequence of seasonal time steps
 
   # loop over steps
   for (s in 2:steps) {
+    
+    season <- step_seq[s - 1] - floor(step_seq[s - 1]) # determine what season the last time step was
+    
+    year <-  floor(step_seq[s])
+    
     if (length(mpas) > 0) { # assign MPAs if needed
-      if (s == mpas$mpa_step) {
+      if (year == mpas$mpa_year) {
         fishable <- mpas$locations$mpa == 0
       }
       
@@ -98,33 +113,52 @@ simmar <- function(fauna = list(),
       
       f_p_a <- matrix(0, nrow = patches, ncol = ages) # total fishing mortality by patch and age
       
+      f_p_a_fl <- array(0, dim = c(patches, ages, length(fleets))) # storage for proportion of fishing mortality by patch, age, and fleet
+      
+      
       for (l in seq_along(fleet_names)) {
         f_p_a <-
           f_p_a + fleets[[l]]$e_p_s[, s] * matrix(rep(fleets[[l]][[fauni[f]]]$catchability * fleets[[l]][[fauni[f]]]$sel_at_age),
                                                   patches,
                                                   ages,
                                                   byrow = TRUE)
-
+        
+        f_p_a_fl[,,l] <- fleets[[l]]$e_p_s[, s] * matrix(rep(fleets[[l]][[fauni[f]]]$catchability * fleets[[l]][[fauni[f]]]$sel_at_age),
+                                                         patches,
+                                                         ages,
+                                                         byrow = TRUE)
       } # calculate cumulative f at age by patch
       # you can build a series of if statements here to sub in the correct species module
       
+      f_p_a_fl <- f_p_a_fl / array(f_p_a, dim = c(patches, ages, length(fleets)))
       pop <- marlin::sim_fish(
         length_at_age = fauna[[f]]$length_at_age,
         weight_at_age = fauna[[f]]$weight_at_age,
         maturity_at_age = fauna[[f]]$maturity_at_age,
         steepness = fauna[[f]]$steepness,
-        m = fauna[[f]]$m,
+        m_at_age = fauna[[f]]$m_at_age,
         patches = patches,
         burn_steps = 0,
-        r0 = fauna[[f]]$r0,
+        time_step = time_step,
+        season = season,
+        r0s = fauna[[f]]$r0s,
         ssb0 = fauna[[f]]$ssb0,
         ssb0_p = fauna[[f]]$ssb0_p,
-        movement = fauna[[f]]$move_mat,
+        seasonal_movement = fauna[[f]]$seasonal_movement,
+        movement_seasons = fauna[[f]]$movement_seasons,
         f_p_a = f_p_a,
         last_n_p_a = last_n_p_a,
         tune_unfished = tune_unfished,
         rec_form = fauna[[f]]$rec_form
       )
+      
+      # process catch data
+      
+      c_p_a_fl <- f_p_a_fl * array(pop$c_p_a, dim = c(patches, ages, length(fleets)))
+        
+      storage[[s-1]][[f]]$c_p_a_fl <- c_p_a_fl # catch stored in each model is the catch that came from the last time step, so put in the right place here
+      
+      storage[[s-1]][[f]]$c_p_a <- pop$c_p_a # catch stored in each model is the catch that came from the last time step, so put in the right place here
       
       storage[[s]][[f]] <- pop
       
@@ -133,6 +167,8 @@ simmar <- function(fauna = list(),
   } #close steps
   
   # Sys.time() - a
+  
+  storage <- storage[1:(steps - 1)] # since catch is retrospective, chop off last year to ensure that every step has a catch history
   
   storage <- purrr::map(storage, ~ rlang::set_names(.x, fauni))
   

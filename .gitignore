@@ -1,5 +1,6 @@
 # specific things
-marlin-notebook.RMd
+marlin-notebook.Rmd
+scratch.R
 
 # History files
 .Rhistory
@@ -41,3 +42,4 @@ vignettes/*.pdf
 # R Environment Variables
 .Renviron
 .Rproj.user
+inst/doc

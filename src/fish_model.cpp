@@ -1,7 +1,23 @@
-#include <Rcpp.h>
 #include <RcppEigen.h>
 using namespace Rcpp;
 using namespace Eigen;
+
+// [[Rcpp::export]]
+NumericVector cpp_seq(int steps,double step_size) {
+  
+  NumericVector y(steps);
+  
+  y(0) = 1;
+  
+  for (int i = 1; i < y.length(); i++){
+    
+    y(i) = y(i - 1) + step_size;
+    
+  }
+  
+  return y ;
+}
+
 
 // [[Rcpp::export]]
 List sim_fish(
@@ -9,19 +25,21 @@ List sim_fish(
     const NumericVector weight_at_age,
     const NumericVector maturity_at_age,
     const NumericMatrix f_p_a, // fishing mortality by patch and age
-    const Eigen::MatrixXd movement, // movement matrix
+    const List seasonal_movement,
+    const List movement_seasons,
     Rcpp::NumericMatrix last_n_p_a, // last numbers by patch and age
     const int patches,
     const int burn_steps, // number of burn steps if burn is in effect
+    const double time_step, // the time step in portions of a year
+    double season, // what season you're currently in
     const double steepness,
-    const double r0,
+    const NumericVector r0s,
     double ssb0, // unfished spawning stock biomass across entire system
     NumericVector ssb0_p, // unfished spawning stock biomass in each patch
-    const double m,
+    const NumericVector m_at_age,
     bool tune_unfished, //0 = use a spawner recruit relationship, 1 = don't
     const int rec_form) // recruitment form, one of ....
   { 
-
 
   int ages = length_at_age.length();
 
@@ -33,37 +51,66 @@ List sim_fish(
 
   NumericMatrix ssb_p_a(patches, ages); // spawning stock biomass in patch p age a
 
-  NumericMatrix c_a(patches, ages); // catch at age 
+  NumericMatrix c_p_a(patches, ages); // catch at age 
 
+  Eigen::MatrixXd movement = Eigen::MatrixXd::Zero(patches, patches);
+  
   //////////////////// tune things ////////////////////////
   NumericMatrix tmp_n_p_a = clone(last_n_p_a);
 
-  Rcpp::List tmppop; // annoying step related to memory pointeds
+  Rcpp::List tmppop; // annoying step related to memory pointers
 
+  
+  // find the correct movement matrix for the season that you're in
+  
+  for (int s  = 0; s < movement_seasons.length(); s++){ // find which season block you're in
+    
+    NumericVector tmp_seas = movement_seasons[s];
+    
+    bool b = Rcpp::any( tmp_seas == season).is_true();
+    
+    if (b == 1){
+      
+      movement = seasonal_movement[s];
+      
+      s = movement_seasons.length() + 1; // stop loop once you've found what season you're in
+    } 
+    
+  } // close seasonal movement finder loop
+  
   if (Rcpp::traits::is_na<REALSXP>(ssb0) == 1){ // basically, if is.na(ssb0), tune unfished conditions
 
-
+    NumericVector burn_seq = cpp_seq(burn_steps,time_step);
+    
     for (int b = 0; b < burn_steps; b++){
 
+      season = burn_seq(b) - floor(burn_seq(b)); // determine what season you're in
+      
+       
       // these HAVE to be in the same order
       // as function call: get lots of warnings
       // if you try and name them
-
+      // 
+      // 
+      
       tmppop = sim_fish(
         length_at_age,
         weight_at_age,
         maturity_at_age,
         f_p_a,
-        movement,
+        seasonal_movement,
+        movement_seasons,
         tmp_n_p_a,
         patches,
         0,
+        time_step,
+        season,
         steepness,
-        r0,
+        r0s,
         -999,
         ssb0_p,
-        m,
-        1, // this HAS to be 1
+        m_at_age,
+        1, // this HAS to be 1 inside burn loop
         rec_form);
 
       tmp_n_p_a = wrap(tmppop["n_p_a"]);
@@ -82,21 +129,29 @@ List sim_fish(
   //////////////////// move ////////////////////////
 
 
-  tmpmat =  tmpmat.transpose() * movement; // matrix multiplication of numbers at age by movement matrix
+  // tmpmat =  tmpmat.transpose() * movement; // matrix multiplication of numbers at age by movement matrix
 
-  SEXP tmp = Rcpp::wrap(tmpmat.transpose()); // convert from eigen to Rcpp
+  tmpmat =  movement * tmpmat; // matrix multiplication of numbers at age by movement matrix
+  
+  SEXP tmp = Rcpp::wrap(tmpmat); // convert from eigen to Rcpp
 
+  // SEXP tmp = Rcpp::wrap(tmpmat.transpose()); // convert from eigen to Rcpp
+  
   last_n_p_a = tmp; // set last population to post-movement last population
 
   //////////////////// grow ////////////////////////
 
 
-  NumericVector plus_group = last_n_p_a(_,ages - 1) * exp(-(m +f_p_a(_,ages - 1))); // calculate numbers in the oldest group that survive
+  NumericVector plus_group = last_n_p_a(_,ages - 1) * exp(-(m_at_age(ages - 1) +f_p_a(_,ages - 1))); // calculate numbers in the oldest group that survive
+  
+  c_p_a(_,ages - 1) =   (f_p_a(_,ages - 1) / (m_at_age(ages - 1) * time_step + f_p_a(_,ages - 1))) * last_n_p_a(_,ages - 1) * (1 - exp(-(m_at_age(ages - 1) * time_step + f_p_a(_,ages - 1))));
   
   // age and die
   for (int a = 1; a < ages; a++){
 
-    n_p_a(_,a) =  last_n_p_a(_,a - 1) * exp(-(m + f_p_a(_,a - 1)));
+    n_p_a(_,a) =  last_n_p_a(_,a - 1) * exp(-(m_at_age(a - 1) + f_p_a(_,a - 1)));
+    
+    c_p_a(_,a - 1) =   (f_p_a(_,a - 1) / (m_at_age(a - 1) * time_step + f_p_a(_,a - 1))) * last_n_p_a(_,a - 1) * (1 - exp(-(m_at_age(a - 1) * time_step + f_p_a(_,a - 1))));
 
   }
 
@@ -105,6 +160,8 @@ List sim_fish(
 
   // calculate biomass and spawning stock biomass at age
   for (int p = 0;p < patches; p++){
+    
+    c_p_a(p,_) = c_p_a(p,_) * weight_at_age;
 
     b_p_a(p,_) =  n_p_a(p,_) * weight_at_age;
 
@@ -124,26 +181,29 @@ List sim_fish(
 
       if (rec_form == 0){
       
-      recruits = rep(r0 / patches, patches);
+      // recruits = rep(r0 / patches, patches);
+      
+      recruits = r0s;
       
       } else if (rec_form == 1){
         
-        // recruits = r0 * ssb_p / sum(ssb_p);
+        // recruits = rep(r0 / patches, patches);
         
-        recruits = rep(r0 / patches, patches);
+        recruits = r0s;
+        
         
       }
       
     } else { // if stock recruitment relationship is in effect
 
 
-      if (rec_form == 0){  // global beverton-holt density dependence, distribute recruits evenly
+      if (rec_form == 0){  // global beverton-holt density dependence, distribute recruits according to recruitment habitat
 
-      recruits = rep(((0.8 * r0 * steepness * ssb) / (0.2 * ssb0 * (1 - steepness) + (steepness - 0.2) * ssb)) / patches, patches);
+      recruits = (((0.8 * sum(r0s) * steepness * ssb) / (0.2 * ssb0 * (1 - steepness) + (steepness - 0.2) * ssb))) * (r0s / sum(r0s));
         
-      } else if (rec_form == 1){ // local beverton-holt density dependence, same r0 everywhere
+      } else if (rec_form == 1){ // local beverton-holt density dependence, r0 set by local habitat
         
-        recruits = ((0.8 * (r0 / patches) * steepness * ssb_p) / (0.2 * ssb0_p * (1 - steepness) + (steepness - 0.2) * ssb_p));
+        recruits = ((0.8 * r0s * steepness * ssb_p) / (0.2 * (ssb0_p + 1e-6) * (1 - steepness) + (steepness - 0.2) * (ssb_p + 1e-6)));
         
       } // close recruitment ifs
     }
@@ -164,6 +224,7 @@ List sim_fish(
     Rcpp::Named("ssb_p_a") = ssb_p_a,
     Rcpp::Named("ssb0") = ssb0,
     Rcpp::Named("ssb0_p") = ssb0_p,
-    Rcpp::Named("tmppop") = tmppop);
+    Rcpp::Named("tmppop") = tmppop,
+    Rcpp::Named("c_p_a") = c_p_a);
 } // close fish model
 

@@ -4,7 +4,7 @@
 \alias{tune_fleets}
 \title{tune fleets is an internal optimizer}
 \usage{
-tune_fleets(fauna, fleets, steps = 50)
+tune_fleets(fauna, fleets, years = 50)
 }
 \arguments{
 \item{fauna}{}

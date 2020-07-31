@@ -11,9 +11,11 @@
 #' @return
 #' @export
 #'
-fleet_tuner <- function(qs,fauna, fleets, steps = 50){
+fleet_tuner <- function(qs,fauna, fleets, years = 50){
   
   cc <- 1
+  
+  # qs <- exp(log_qs)
   
   for (f in seq_along(fleets)){
     
@@ -28,7 +30,7 @@ fleet_tuner <- function(qs,fauna, fleets, steps = 50){
   
   storage <- simmar(fauna = fauna,
                     fleets = fleets,
-                    steps = steps)
+                    years = years)
   
   tmp <- purrr::map_dfr(storage[[length(storage)]], ~as.data.frame(.x$ssb_p_a), .id = "fauna")
   

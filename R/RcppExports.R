@@ -5,7 +5,15 @@ sample_problem <- function(x, y) {
     .Call(`_marlin_sample_problem`, x, y)
 }
 
-sim_fish <- function(length_at_age, weight_at_age, maturity_at_age, f_p_a, movement, last_n_p_a, patches, burn_steps, steepness, r0, ssb0, ssb0_p, m, tune_unfished, rec_form) {
-    .Call(`_marlin_sim_fish`, length_at_age, weight_at_age, maturity_at_age, f_p_a, movement, last_n_p_a, patches, burn_steps, steepness, r0, ssb0, ssb0_p, m, tune_unfished, rec_form)
+move_test <- function(seasonal_movement, movement_seasons, season) {
+    .Call(`_marlin_move_test`, seasonal_movement, movement_seasons, season)
+}
+
+cpp_seq <- function(steps, step_size) {
+    .Call(`_marlin_cpp_seq`, steps, step_size)
+}
+
+sim_fish <- function(length_at_age, weight_at_age, maturity_at_age, f_p_a, seasonal_movement, movement_seasons, last_n_p_a, patches, burn_steps, time_step, season, steepness, r0s, ssb0, ssb0_p, m_at_age, tune_unfished, rec_form) {
+    .Call(`_marlin_sim_fish`, length_at_age, weight_at_age, maturity_at_age, f_p_a, seasonal_movement, movement_seasons, last_n_p_a, patches, burn_steps, time_step, season, steepness, r0s, ssb0, ssb0_p, m_at_age, tune_unfished, rec_form)
 }
 

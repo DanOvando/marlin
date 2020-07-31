@@ -4,7 +4,7 @@
 \alias{fleet_tuner}
 \title{fleet tuner}
 \usage{
-fleet_tuner(qs, fauna, fleets, steps = 50)
+fleet_tuner(qs, fauna, fleets, years = 50)
 }
 \arguments{
 \item{qs}{}
