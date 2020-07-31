@@ -48,7 +48,8 @@ create_critter(
   fished_depletion = 1,
   rec_form = 1,
   burn_years = 100,
-  seasonal_hab = NA
+  seasonal_hab = NA,
+  seasons = 1
 )
 }
 \arguments{

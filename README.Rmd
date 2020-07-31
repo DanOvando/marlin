@@ -236,10 +236,10 @@ set.seed(42)
 mpa_locations <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
   # mutate(mpa = rbinom(n(), 1, .25))
 mutate(mpa = between(x,7,13) & between(y,7,13))
-
-mpa_locations %>% 
-  ggplot(aes(x,y, fill = mpa)) + 
-  geom_tile()
+# 
+# mpa_locations %>% 
+#   ggplot(aes(x,y, fill = mpa)) + 
+#   geom_tile()
 
 
 

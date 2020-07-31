@@ -88,12 +88,12 @@ unfished conditions
 ``` r
 library(marlin)
 library(tidyverse)
-#> ── Attaching packages ───────────── tidyverse 1.3.0 ──
+#> ── Attaching packages ───────────────────────────── tidyverse 1.3.0 ──
 #> ✓ ggplot2 3.3.2          ✓ purrr   0.3.4     
 #> ✓ tibble  3.0.3.9000     ✓ dplyr   1.0.0     
 #> ✓ tidyr   1.1.0          ✓ stringr 1.4.0     
 #> ✓ readr   1.3.1          ✓ forcats 0.5.0
-#> ── Conflicts ──────────────── tidyverse_conflicts() ──
+#> ── Conflicts ──────────────────────────────── tidyverse_conflicts() ──
 #> x dplyr::filter() masks stats::filter()
 #> x dplyr::lag()    masks stats::lag()
 options(dplyr.summarise.inform = FALSE)
@@ -158,9 +158,6 @@ fauna <-
       seasons = seasons
     )
   )
-#> Warning in any(x): coercing argument of type 'double' to logical
-
-#> Warning in any(x): coercing argument of type 'double' to logical
 #> ══  1 queries  ═══════════════
 #> 
 #> Retrieving data for taxon 'Katsuwonus pelamis'
@@ -170,71 +167,6 @@ fauna <-
 #> ● Total: 1 
 #> ● Found: 1 
 #> ● Not Found: 0
-#> Called from: create_critter(scientific_name = "Katsuwonus pelamis", seasonal_habitat = list(skipjack_habitat, 
-#>     skipjack_habitat), habitat_seasons = list(c(1, 2), c(3, 4)), 
-#>     rec_habitat = skipjack_habitat, adult_movement = 2, adult_movement_sigma = 2, 
-#>     fished_depletion = 0.6, rec_form = 1, seasons = seasons)
-#> debug at /Users/danovan/packages/marlin/R/create_critter.R#403: movement_seasons <- habitat_seasons
-#> debug at /Users/danovan/packages/marlin/R/create_critter.R#407: if (is.null(dim(rec_habitat))) {
-#>     rec_habitat <- matrix(1, nrow = resolution, ncol = resolution)
-#> }
-#> debug at /Users/danovan/packages/marlin/R/create_critter.R#413: r0s <- rec_habitat %>% as.data.frame() %>% dplyr::mutate(x = 1:nrow(.)) %>% 
-#>     tidyr::pivot_longer(-x, names_to = "y", values_to = "rec_habitat", 
-#>         names_prefix = "V", names_ptypes = list(rec_habitat = integer())) %>% 
-#>     dplyr::mutate(rec_habitat = rec_habitat/sum(rec_habitat))
-#> debug at /Users/danovan/packages/marlin/R/create_critter.R#421: r0s <- r0 * r0s$rec_habitat
-#> debug at /Users/danovan/packages/marlin/R/create_critter.R#425: init_pop <- r0s * matrix(rep(exp(-m * seq(0, max_age, by = time_step)), 
-#>     patches), nrow = patches, ncol = length(length_at_age), byrow = TRUE)
-#> debug at /Users/danovan/packages/marlin/R/create_critter.R#432: f_p_a <- matrix(0, nrow = patches, ncol = length(length_at_age))
-#> debug at /Users/danovan/packages/marlin/R/create_critter.R#434: unfished <- marlin::sim_fish(length_at_age = length_at_age, weight_at_age = weight_at_age, 
-#>     maturity_at_age = maturity_at_age, steepness = steepness, 
-#>     m_at_age = m_at_age, patches = resolution^2, burn_steps = burn_steps, 
-#>     time_step = time_step, season = 0, r0s = r0s, ssb0 = NA, 
-#>     ssb0_p = rep(-999, patches), f_p_a = f_p_a, seasonal_movement = seasonal_movement, 
-#>     movement_seasons = movement_seasons, last_n_p_a = init_pop, 
-#>     tune_unfished = 1, rec_form = rec_form)
-#> debug at /Users/danovan/packages/marlin/R/create_critter.R#455: ssb0 <- unfished$ssb0
-#> debug at /Users/danovan/packages/marlin/R/create_critter.R#457: ssb0_p <- unfished$ssb0_p
-#> debug at /Users/danovan/packages/marlin/R/create_critter.R#459: n_p_a_0 <- unfished$tmppop$n_p_a
-#> debug at /Users/danovan/packages/marlin/R/create_critter.R#461: unfished <- unfished$tmppop
-#> debug at /Users/danovan/packages/marlin/R/create_critter.R#463: rm(list = c("sq", "f_p_a", "weight_fit"))
-#> debug at /Users/danovan/packages/marlin/R/create_critter.R#464: fish <- list(mget(ls()))
-#> debug at /Users/danovan/packages/marlin/R/create_critter.R#466: fish <- fish[[1]]
-#> debug at /Users/danovan/packages/marlin/R/create_critter.R#469: return(fish)
-#> Warning in any(x): coercing argument of type 'double' to logical
-
-#> Warning in any(x): coercing argument of type 'double' to logical
-#> Called from: create_critter(common_name = "bigeye tuna", seasonal_habitat = list(bigeye_habitat, 
-#>     bigeye_habitat2), habitat_seasons = list(c(1, 2), c(3, 4)), 
-#>     rec_habitat = bigeye_habitat, adult_movement = 3, adult_movement_sigma = 1, 
-#>     fished_depletion = 0.3, rec_form = 1, seasons = seasons)
-#> debug at /Users/danovan/packages/marlin/R/create_critter.R#403: movement_seasons <- habitat_seasons
-#> debug at /Users/danovan/packages/marlin/R/create_critter.R#407: if (is.null(dim(rec_habitat))) {
-#>     rec_habitat <- matrix(1, nrow = resolution, ncol = resolution)
-#> }
-#> debug at /Users/danovan/packages/marlin/R/create_critter.R#413: r0s <- rec_habitat %>% as.data.frame() %>% dplyr::mutate(x = 1:nrow(.)) %>% 
-#>     tidyr::pivot_longer(-x, names_to = "y", values_to = "rec_habitat", 
-#>         names_prefix = "V", names_ptypes = list(rec_habitat = integer())) %>% 
-#>     dplyr::mutate(rec_habitat = rec_habitat/sum(rec_habitat))
-#> debug at /Users/danovan/packages/marlin/R/create_critter.R#421: r0s <- r0 * r0s$rec_habitat
-#> debug at /Users/danovan/packages/marlin/R/create_critter.R#425: init_pop <- r0s * matrix(rep(exp(-m * seq(0, max_age, by = time_step)), 
-#>     patches), nrow = patches, ncol = length(length_at_age), byrow = TRUE)
-#> debug at /Users/danovan/packages/marlin/R/create_critter.R#432: f_p_a <- matrix(0, nrow = patches, ncol = length(length_at_age))
-#> debug at /Users/danovan/packages/marlin/R/create_critter.R#434: unfished <- marlin::sim_fish(length_at_age = length_at_age, weight_at_age = weight_at_age, 
-#>     maturity_at_age = maturity_at_age, steepness = steepness, 
-#>     m_at_age = m_at_age, patches = resolution^2, burn_steps = burn_steps, 
-#>     time_step = time_step, season = 0, r0s = r0s, ssb0 = NA, 
-#>     ssb0_p = rep(-999, patches), f_p_a = f_p_a, seasonal_movement = seasonal_movement, 
-#>     movement_seasons = movement_seasons, last_n_p_a = init_pop, 
-#>     tune_unfished = 1, rec_form = rec_form)
-#> debug at /Users/danovan/packages/marlin/R/create_critter.R#455: ssb0 <- unfished$ssb0
-#> debug at /Users/danovan/packages/marlin/R/create_critter.R#457: ssb0_p <- unfished$ssb0_p
-#> debug at /Users/danovan/packages/marlin/R/create_critter.R#459: n_p_a_0 <- unfished$tmppop$n_p_a
-#> debug at /Users/danovan/packages/marlin/R/create_critter.R#461: unfished <- unfished$tmppop
-#> debug at /Users/danovan/packages/marlin/R/create_critter.R#463: rm(list = c("sq", "f_p_a", "weight_fit"))
-#> debug at /Users/danovan/packages/marlin/R/create_critter.R#464: fish <- list(mget(ls()))
-#> debug at /Users/danovan/packages/marlin/R/create_critter.R#466: fish <- fish[[1]]
-#> debug at /Users/danovan/packages/marlin/R/create_critter.R#469: return(fish)
 
 
 # create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
@@ -293,7 +225,7 @@ storage <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.8140202 secs
+#> Time difference of 1.077983 secs
   
 
 # process results, will write some wrappers to automate this
@@ -347,15 +279,10 @@ set.seed(42)
 mpa_locations <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
   # mutate(mpa = rbinom(n(), 1, .25))
 mutate(mpa = between(x,7,13) & between(y,7,13))
-
-mpa_locations %>% 
-  ggplot(aes(x,y, fill = mpa)) + 
-  geom_tile()
-```
-
-<img src="man/figures/README-unnamed-chunk-2-1.png" width="100%" />
-
-``` r
+# 
+# mpa_locations %>% 
+#   ggplot(aes(x,y, fill = mpa)) + 
+#   geom_tile()
 
 
 
@@ -371,7 +298,7 @@ mpa_storage <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 1.14488 secs
+#> Time difference of 1.276042 secs
 
 ssb_skj <- rowSums(mpa_storage[[steps]]$skipjack$ssb_p_a)
 
@@ -384,7 +311,7 @@ ggplot(check, aes(x, y, fill = skj)) +
   labs(title = "skipjack")
 ```
 
-<img src="man/figures/README-unnamed-chunk-2-2.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-2-1.png" width="100%" />
 
 ``` r
 
@@ -401,7 +328,7 @@ ggplot(check, aes(x, y, fill = bet)) +
   labs(title = "bigeye")
 ```
 
-<img src="man/figures/README-unnamed-chunk-2-3.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-2-2.png" width="100%" />
 
 ``` r
 
@@ -412,7 +339,7 @@ mpa_storage[[77]]$bigeye$ssb_p_a -> a
 plot(a[which(mpa_locations$mpa == FALSE)[10],])
 ```
 
-<img src="man/figures/README-unnamed-chunk-2-4.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-2-3.png" width="100%" />
 
 ``` r
 # (sum(ssb_bet) / fauna$bigeye$ssb0) / fauna$bigeye$fished_depletion
@@ -424,7 +351,7 @@ bet_outside_trajectory <- map_dbl(mpa_storage,~ sum(.x$bigeye$ssb_p_a[mpa_locati
 plot(bet_outside_trajectory)
 ```
 
-<img src="man/figures/README-unnamed-chunk-2-5.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-2-4.png" width="100%" />
 
 ``` r
 
@@ -434,7 +361,7 @@ bet_inside_trajectory <- map_dbl(mpa_storage,~ sum(.x$bigeye$ssb_p_a[mpa_locatio
 plot(bet_inside_trajectory)
 ```
 
-<img src="man/figures/README-unnamed-chunk-2-6.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-2-5.png" width="100%" />
 
 ``` r
 
@@ -443,7 +370,7 @@ bet_outside_trajectory <- map_dbl(mpa_storage,~ sum(.x$bigeye$ssb_p_a[mpa_locati
 plot(bet_outside_trajectory)
 ```
 
-<img src="man/figures/README-unnamed-chunk-2-7.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-2-6.png" width="100%" />
 
 ``` r
 
@@ -453,7 +380,7 @@ bet_trajectory <- map_dbl(mpa_storage,~ sum(.x$bigeye$ssb_p_a))
 plot(bet_trajectory)
 ```
 
-<img src="man/figures/README-unnamed-chunk-2-8.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-2-7.png" width="100%" />
 
 ``` r
 
@@ -462,7 +389,7 @@ skj_trajectory <- map_dbl(mpa_storage,~ sum(.x$skipjack$ssb_p_a))
 plot(skj_trajectory)
 ```
 
-<img src="man/figures/README-unnamed-chunk-2-9.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-2-8.png" width="100%" />
 
 Ah interesting, so need to think through the movement a bit more: the
 problem is that movement is effectively 0 for the really good habitats:
