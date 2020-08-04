@@ -7,6 +7,20 @@
 #' Critical inputs are adult_movement, adult_movement_sigma, and resolution
 #' 
 #'
+#' @param common_name 
+#' @param scientific_name 
+#' @param critter_type 
+#' @param seasonal_habitat 
+#' @param habitat_seasons 
+#' @param rec_habitat 
+#' @param seasons 
+#' @param rec_form 
+#' @param adult_movement 
+#' @param adult_movement_sigma 
+#' @param fished_depletion 
+#' @param init_explt 
+#' @param explt_type 
+#' @param ... 
 
 create_critter <- function(common_name = 'white seabass',
                            scientific_name = NA,
@@ -19,11 +33,12 @@ create_critter <- function(common_name = 'white seabass',
                            adult_movement = 0, 
                            adult_movement_sigma = 2,
                            fished_depletion = 0.4,
+                           init_explt = 1,
+                           explt_type = "fmsy",
                            ...) {
 
   
   if (critter_type == "fish"){
-    
     critter <-
       marlin::Fish$new(
         common_name = common_name,
@@ -35,7 +50,9 @@ create_critter <- function(common_name = 'white seabass',
         rec_form = rec_form,
         fished_depletion = fished_depletion,
         adult_movement = adult_movement,
-        adult_movement_sigma = adult_movement_sigma
+        adult_movement_sigma = adult_movement_sigma,
+        init_explt = init_explt,
+        explt_type = explt_type
       )
     
   }

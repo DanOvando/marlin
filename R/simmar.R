@@ -107,7 +107,6 @@ simmar <- function(fauna = list(),
         f_q[f] <- fleets[[l]][[fauni[f]]]$catchability
         
       } # close fauni loop
-      
       fleets[[l]]$e_p_s[, s] <-
         sum(fleets[[l]]$e_p_s[, s - 1]) * rowSums(r_p_f) / pmax(sum(rowSums(r_p_f)), 1e-6) # distribute fishing effort by fishable biomass
       
@@ -188,6 +187,13 @@ simmar <- function(fauna = list(),
       
       storage[[s - 1]][[f]]$c_p_a <-
         pop$c_p_a # catch stored in each model is the catch that came from the last time step, so put in the right place here
+      
+      storage[[s - 1]][[f]]$f_p_a_fl <-
+        f_p_a_fl # catch stored in each model is the catch that came from the last time step, so put in the right place here
+
+      tmp_e_p_fl = purrr::map_dfc(fleets, ~.x$e_p_s[,s])
+
+      storage[[s - 1]][[f]]$e_p_fl <- tmp_e_p_fl # store effort by patch by fleet (note that this is the same across species)
       
       storage[[s]][[f]] <- pop
       

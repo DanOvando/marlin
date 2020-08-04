@@ -53,7 +53,9 @@ resolution <- 20 # resolution is in squared patches, so 20 implies a 20X20 syste
 
 seasons <- 1
 
-years <- 50
+years <- 100
+
+tune_type <- "depletion"
 
 steps <- years * seasons
 
@@ -86,7 +88,9 @@ fauna <-
       adult_movement_sigma = 4, # standard deviation of the number of patches moved by adults
       fished_depletion = .4, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
       rec_form = 1, # recruitment form, where 1 implies local recruitment
-      seasons = seasons
+      seasons = seasons,
+      init_explt = 0.12, 
+      explt_type = "f"
       ),
     "Shortfin Mako" = create_critter(
       scientific_name = "Isurus oxyrinchus",
@@ -98,7 +102,9 @@ fauna <-
       fished_depletion = .3,
       rec_form = 1,
       burn_years = 200,
-            seasons = seasons
+      seasons = seasons,
+      init_explt = .12, 
+      explt_type = "f"
     )
   )
 
@@ -116,21 +122,28 @@ fleets <- list("longline" = list(
     sel_form = "logistic", # selectivity form, one of logistic or dome
     sel_start = .3, # percentage of length at maturity that selectivity starts
     sel_delta = .1, # additional percentage of sel_start where selectivity asymptotes
-    catchability = .01 # overwritten by tune_fleet but can be set manually here
-  ),
+    catchability = .01, # overwritten by tune_fleet but can be set manually here
+    p_explt = 1
+
+    ),
   `Shortfin Mako` = list(
     price = 10,
     sel_form = "logistic",
     sel_start = .1,
     sel_delta = .01,
-    catchability = 0
+    catchability = 0,
+    p_explt = 1
   )
 ))
 
 
 fleets <- create_fleet(fleets = fleets, fauna = fauna, base_effort = resolution^2) # creates fleet objects, basically adding in selectivity ogives
 
-fleets <- tune_fleets(fauna, fleets, years = 100) # tunes the catchability by fleet to achieve target depletion
+a <- Sys.time()
+
+fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
+
+Sys.time() - a
 
 # run simulations
 
@@ -318,7 +331,9 @@ fauna <-
       adult_movement_sigma = 20, # standard deviation of the number of patches moved by adults
       fished_depletion = .4, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
       rec_form = 1, # recruitment form, where 1 implies local recruitment
-      seasons = seasons
+      seasons = seasons,
+      init_explt = .12, 
+      explt_type = "f"
       ),
     "Shortfin Mako" = create_critter(
       scientific_name = "Isurus oxyrinchus",
@@ -330,11 +345,13 @@ fauna <-
       fished_depletion = .3,
       rec_form = 1,
       burn_years = 200,
-            seasons = seasons
+            seasons = seasons,
+            init_explt = .12, 
+      explt_type = "f"
     )
   )
 
-fleets <- tune_fleets(fauna, fleets, years = 100) # tunes the catchability by fleet to achieve target depletion
+fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 # run simulations
 

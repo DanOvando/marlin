@@ -69,7 +69,9 @@ fill in fish object
   rec_form = 1,
   burn_years = 100,
   seasonal_hab = NA,
-  seasons = 1
+  seasons = 1,
+  explt_type = "wtf",
+  init_explt = 1
 )}\if{html}{\out{</div>}}
 }
 
@@ -78,7 +80,7 @@ fill in fish object
 \describe{
 \item{\code{common_name}}{common name}
 
-\item{\code{seasons}}{Swim
+\item{\code{explt_type}}{Swim
 
 Swim advances the population one time step}
 }

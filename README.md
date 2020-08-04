@@ -99,7 +99,7 @@ library(tidyverse)
 options(dplyr.summarise.inform = FALSE)
 
 
-resolution <- 20 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
+resolution <- 25 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
 
 years <- 20
 
@@ -144,7 +144,9 @@ fauna <-
       adult_movement_sigma = 2, # standard deviation of the number of patches moved by adults
       fished_depletion = .6, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
       rec_form = 1, # recruitment form, where 1 implies local recruitment
-      seasons = seasons
+      seasons = seasons,
+      init_explt = 0.2, 
+      explt_type = "f"
       ),
     "bigeye" = create_critter(
       common_name = "bigeye tuna",
@@ -155,7 +157,9 @@ fauna <-
       adult_movement_sigma = 1,
       fished_depletion = .1,
       rec_form = 1,
-      seasons = seasons
+      seasons = seasons,
+      init_explt = 0.3, 
+      explt_type = "f"
     )
   )
 #> ══  1 queries  ═══════════════
@@ -181,14 +185,16 @@ fleets <- list("longline" = list(
     sel_form = "logistic", # selectivity form, one of logistic or dome
     sel_start = .9, # percentage of length at maturity that selectivity starts
     sel_delta = .1, # additional percentage of sel_start where selectivity asymptotes
-    catchability = .01 # overwritten by tune_fleet but can be set manually here
+    catchability = .01, # overwritten by tune_fleet but can be set manually here
+    p_explt = 0.1
   ),
   bigeye = list(
     price = 1000,
     sel_form = "logistic",
     sel_start = .1,
     sel_delta = .01,
-    catchability = .01
+    catchability = .01,
+    p_explt = 1
   )
 ),
 "purseseine" = list(
@@ -197,25 +203,36 @@ fleets <- list("longline" = list(
     sel_form = "logistic",
     sel_start = 0.25,
     sel_delta = .1,
-    catchability = .3
+    catchability = .01,
+    p_explt = 0.9
   ),
   bigeye = list(
     price = 100,
     sel_form = "logistic",
     sel_start = .25,
     sel_delta = .5,
-    catchability = .1
+    catchability = .01,
+    p_explt = 1
   )
 ))
 
 
-fleets <- create_fleet(fleets = fleets, fauna = fauna, base_effort = resolution^2) # creates fleet objects, basically adding in selectivity ogives
+fleets <-
+  create_fleet(fleets = fleets,
+               fauna = fauna,
+               base_effort = resolution ^ 2) # creates fleet objects, basically adding in selectivity ogives
+
 a <- Sys.time()
 
 fleets <- tune_fleets(fauna, fleets, years = 50) # tunes the catchability by fleet to achieve target depletion
+
+# fleets$purseseine$skipjack$catchability / fleets$longline$skipjack$catchability
+
+# fleets$purseseine$bigeye$catchability / fleets$longline$bigeye$catchability
+
 ## different fleets for each species?
 Sys.time() - a
-#> Time difference of 3.982837 mins
+#> Time difference of 0.228662 secs
 
 # run simulations
 
@@ -228,7 +245,7 @@ storage <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 1.068718 secs
+#> Time difference of 3.215286 secs
   
 
 # process results, will write some wrappers to automate this
@@ -266,10 +283,10 @@ ggplot(check, aes(x, y, fill = bet)) +
 # double check that target depletions are reached
 
 (sum(ssb_bet) / fauna$bigeye$ssb0) / fauna$bigeye$fished_depletion
-#> [1] 1.074629
+#> [1] 9.453106
 
 (sum(ssb_skj) / fauna$skipjack$ssb0) / fauna$skipjack$fished_depletion
-#> [1] 1.004551
+#> [1] 1.64231
 ```
 
 Now, simulate effects of MPAs
@@ -301,7 +318,7 @@ mpa_storage <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 1.154105 secs
+#> Time difference of 2.81859 secs
 
 ssb_skj <- rowSums(mpa_storage[[steps]]$skipjack$ssb_p_a)
 

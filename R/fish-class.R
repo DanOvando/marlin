@@ -57,6 +57,8 @@ Fish <- R6::R6Class(
     #' @param burn_years
     #' @param seasonal_hab
     #' @param seasons
+    #' @param init_explt
+    #' @param explt_type
     initialize = function(common_name = 'white seabass',
                           scientific_name = NA,
                           linf = NA,
@@ -101,7 +103,9 @@ Fish <- R6::R6Class(
                           rec_form = 1,
                           burn_years = 100,
                           seasonal_hab = NA,
-                          seasons = 1) {
+                          seasons = 1,
+                          explt_type = "wtf",
+                          init_explt = 1) {
       seasons <- as.integer(seasons)
       
       if (seasons < 1) {
@@ -504,6 +508,10 @@ Fish <- R6::R6Class(
       self$m_at_age <- m_at_age
       
       self$fished_depletion <- fished_depletion
+      
+      self$explt_type <- explt_type
+      
+      self$init_explt <- init_explt
 
       unfished <- marlin::sim_fish(
         length_at_age = length_at_age,
