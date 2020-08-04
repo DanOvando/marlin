@@ -14,6 +14,7 @@ Fish like to swim
 \itemize{
 \item \href{#method-new}{\code{Fish$new()}}
 \item \href{#method-plot}{\code{Fish$plot()}}
+\item \href{#method-swim}{\code{Fish$swim()}}
 \item \href{#method-clone}{\code{Fish$clone()}}
 }
 }
@@ -77,12 +78,11 @@ fill in fish object
 \describe{
 \item{\code{common_name}}{common name}
 
-\item{\code{seasons}}{}
+\item{\code{seasons}}{Swim
+
+Swim advances the population one time step}
 }
 \if{html}{\out{</div>}}
-}
-\subsection{Returns}{
-
 }
 }
 \if{html}{\out{<hr>}}
@@ -93,6 +93,39 @@ fill in fish object
 \if{html}{\out{<div class="r">}}\preformatted{Fish$plot()}\if{html}{\out{</div>}}
 }
 
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-swim"></a>}}
+\if{latex}{\out{\hypertarget{method-swim}{}}}
+\subsection{Method \code{swim()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Fish$swim(
+  burn_steps = 0,
+  season = 1,
+  f_p_a = NULL,
+  last_n_p_a = NULL,
+  tune_unfished = 0
+)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{burn_steps}}{number of steps for burn in period if applicable}
+
+\item{\code{season}}{the current season}
+
+\item{\code{f_p_a}}{matrix of fishing mortality by patch and age}
+
+\item{\code{last_n_p_a}}{matrix of initial numbers by patch and age}
+
+\item{\code{tune_unfished}}{boolean indicating whether to tune unfished}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+the population in the next time step
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-clone"></a>}}

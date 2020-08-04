@@ -13,15 +13,7 @@ simmar(
 )
 }
 \arguments{
-\item{fauna}{}
-
-\item{fleets}{}
-
-\item{mpas}{}
-
 \item{tune_unfished}{}
-
-\item{steps}{}
 }
 \value{
 

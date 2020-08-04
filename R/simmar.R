@@ -1,13 +1,13 @@
 #' simmar is the wrapper function for the marlin package
-#' 
+#'
 #' when passed fauna and fleet objects, simmar will advance
 #' the population for a number of steps
 #'
-#' @param fauna 
-#' @param fleets 
-#' @param mpas 
-#' @param steps 
-#' @param tune_unfished 
+#' @param fauna
+#' @param fleets
+#' @param mpas
+#' @param steps
+#' @param tune_unfished
 #'
 #' @return
 #' @export
@@ -17,23 +17,28 @@ simmar <- function(fauna = list(),
                    mpas = list(),
                    years = 100,
                    tune_unfished = 0) {
-  
-  
   fauni <- names(fauna)
   
   fleet_names <- names(fleets)
   
   time_step <- unique(purrr::map_dbl(fauna, "time_step"))
   
-  if (length(time_step) > 1){
-    stop(paste("All critters in fauna must have the same time step: current time steps are", paste(time_step, collapse = " ")))
+  if (length(time_step) > 1) {
+    stop(
+      paste(
+        "All critters in fauna must have the same time step: current time steps are",
+        paste(time_step, collapse = " ")
+      )
+    )
   }
   
-  steps <- (years + 1) / time_step #tack on extra year for accounting
+  steps <-
+    (years + 1) / time_step #tack on extra year for accounting
   
   patches <- unique(purrr::map_dbl(fauna, "patches"))
   
-  initial_conditions <- purrr::map(fauna, c("unfished")) # pull out unfished conditions created by create_critter
+  initial_conditions <-
+    purrr::map(fauna, c("unfished")) # pull out unfished conditions created by create_critter
   
   if (length(patches) > 1) {
     stop(
@@ -43,7 +48,8 @@ simmar <- function(fauna = list(),
   
   storage <- vector("list", steps)
   
-  storage[[1]] <- initial_conditions # start populations at initial conditions
+  storage[[1]] <-
+    initial_conditions # start populations at initial conditions
   
   
   fleets <-
@@ -62,22 +68,25 @@ simmar <- function(fauna = list(),
   
   fishable <- rep(1, patches)
   
-  step_seq <- seq(1, steps, by = time_step) # create sequence of seasonal time steps
-
+  step_seq <-
+    seq(1, steps, by = time_step) # create sequence of seasonal time steps
+  
   # loop over steps
   for (s in 2:steps) {
-    
-    season <- step_seq[s - 1] - floor(step_seq[s - 1]) # determine what season the last time step was
+    season <-
+      step_seq[s - 1] - floor(step_seq[s - 1]) # determine what season the last time step was
     
     year <-  floor(step_seq[s])
     
-    if (length(mpas) > 0) { # assign MPAs if needed
+    if (length(mpas) > 0) {
+      # assign MPAs if needed
       if (year == mpas$mpa_year) {
         fishable <- mpas$locations$mpa == 0
       }
       
     } # close MPA if statement
-    for (l in seq_along(fleet_names)) { # distribute fleets in space based on revenues
+    for (l in seq_along(fleet_names)) {
+      # distribute fleets in space based on revenues
       for (f in seq_along(fauni)) {
         last_b_p_a <- storage[[s - 1]][[f]]$b_p_a
         
@@ -98,22 +107,26 @@ simmar <- function(fauna = list(),
         f_q[f] <- fleets[[l]][[fauni[f]]]$catchability
         
       } # close fauni loop
-  
+      
       fleets[[l]]$e_p_s[, s] <-
         sum(fleets[[l]]$e_p_s[, s - 1]) * rowSums(r_p_f) / pmax(sum(rowSums(r_p_f)), 1e-6) # distribute fishing effort by fishable biomass
       
       
     } # close allocate fleets in space based on fishable revenue
     
-    for (f in seq_along(fauni)) {      # run population model for each species
-
+    for (f in seq_along(fauni)) {
+      # run population model for each species
+      
       ages <-  length(fauna[[f]]$length_at_age)
       
-      last_n_p_a <- storage[[s - 1]][[f]]$n_p_a # numbers by patch and age in the last time step
+      last_n_p_a <-
+        storage[[s - 1]][[f]]$n_p_a # numbers by patch and age in the last time step
       
-      f_p_a <- matrix(0, nrow = patches, ncol = ages) # total fishing mortality by patch and age
+      f_p_a <-
+        matrix(0, nrow = patches, ncol = ages) # total fishing mortality by patch and age
       
-      f_p_a_fl <- array(0, dim = c(patches, ages, length(fleets))) # storage for proportion of fishing mortality by patch, age, and fleet
+      f_p_a_fl <-
+        array(0, dim = c(patches, ages, length(fleets))) # storage for proportion of fishing mortality by patch, age, and fleet
       
       
       for (l in seq_along(fleet_names)) {
@@ -123,43 +136,58 @@ simmar <- function(fauna = list(),
                                                   ages,
                                                   byrow = TRUE)
         
-        f_p_a_fl[,,l] <- fleets[[l]]$e_p_s[, s] * matrix(rep(fleets[[l]][[fauni[f]]]$catchability * fleets[[l]][[fauni[f]]]$sel_at_age),
-                                                         patches,
-                                                         ages,
-                                                         byrow = TRUE)
+        f_p_a_fl[, , l] <-
+          fleets[[l]]$e_p_s[, s] * matrix(rep(fleets[[l]][[fauni[f]]]$catchability * fleets[[l]][[fauni[f]]]$sel_at_age),
+                                          patches,
+                                          ages,
+                                          byrow = TRUE)
       } # calculate cumulative f at age by patch
       # you can build a series of if statements here to sub in the correct species module
       
-      f_p_a_fl <- f_p_a_fl / array(f_p_a, dim = c(patches, ages, length(fleets))) # f by patch, age, and fleet
+      f_p_a_fl <-
+        f_p_a_fl / array(f_p_a, dim = c(patches, ages, length(fleets))) # f by patch, age, and fleet
       
-      pop <- marlin::sim_fish(
-        length_at_age = fauna[[f]]$length_at_age,
-        weight_at_age = fauna[[f]]$weight_at_age,
-        maturity_at_age = fauna[[f]]$maturity_at_age,
-        steepness = fauna[[f]]$steepness,
-        m_at_age = fauna[[f]]$m_at_age,
-        patches = patches,
-        burn_steps = 0,
-        time_step = time_step,
-        season = season,
-        r0s = fauna[[f]]$r0s,
-        ssb0 = fauna[[f]]$ssb0,
-        ssb0_p = fauna[[f]]$ssb0_p,
-        seasonal_movement = fauna[[f]]$seasonal_movement,
-        movement_seasons = fauna[[f]]$movement_seasons,
-        f_p_a = f_p_a,
-        last_n_p_a = last_n_p_a,
-        tune_unfished = tune_unfished,
-        rec_form = fauna[[f]]$rec_form
-      )
+      # season <- (season / self$seasons) - self$time_step
+      # 
+      pop <-
+        fauna[[f]]$swim(
+          season = (season + fauna[[f]]$time_step) * fauna[[f]]$seasons,
+          # annoying step to get seasons back to which season is it, not decimal season
+          f_p_a = f_p_a,
+          last_n_p_a = last_n_p_a
+        )
+      
+      # pop <- marlin::sim_fish(
+      #   length_at_age = fauna[[f]]$length_at_age,
+      #   weight_at_age = fauna[[f]]$weight_at_age,
+      #   maturity_at_age = fauna[[f]]$maturity_at_age,
+      #   steepness = fauna[[f]]$steepness,
+      #   m_at_age = fauna[[f]]$m_at_age,
+      #   patches = patches,
+      #   burn_steps = 0,
+      #   time_step = time_step,
+      #   season = season,
+      #   r0s = fauna[[f]]$r0s,
+      #   ssb0 = fauna[[f]]$ssb0,
+      #   ssb0_p = fauna[[f]]$ssb0_p,
+      #   seasonal_movement = fauna[[f]]$seasonal_movement,
+      #   movement_seasons = fauna[[f]]$movement_seasons,
+      #   f_p_a = f_p_a,
+      #   last_n_p_a = last_n_p_a,
+      #   tune_unfished = tune_unfished,
+      #   rec_form = fauna[[f]]$rec_form
+      # )
       
       # process catch data
       
-      c_p_a_fl <- f_p_a_fl * array(pop$c_p_a, dim = c(patches, ages, length(fleets)))
-        
-      storage[[s-1]][[f]]$c_p_a_fl <- c_p_a_fl # catch stored in each model is the catch that came from the last time step, so put in the right place here
+      c_p_a_fl <-
+        f_p_a_fl * array(pop$c_p_a, dim = c(patches, ages, length(fleets)))
       
-      storage[[s-1]][[f]]$c_p_a <- pop$c_p_a # catch stored in each model is the catch that came from the last time step, so put in the right place here
+      storage[[s - 1]][[f]]$c_p_a_fl <-
+        c_p_a_fl # catch stored in each model is the catch that came from the last time step, so put in the right place here
+      
+      storage[[s - 1]][[f]]$c_p_a <-
+        pop$c_p_a # catch stored in each model is the catch that came from the last time step, so put in the right place here
       
       storage[[s]][[f]] <- pop
       
@@ -169,7 +197,8 @@ simmar <- function(fauna = list(),
   
   # Sys.time() - a
   
-  storage <- storage[1:(steps - 1)] # since catch is retrospective, chop off last year to ensure that every step has a catch history
+  storage <-
+    storage[1:(steps - 1)] # since catch is retrospective, chop off last year to ensure that every step has a catch history
   
   storage <- purrr::map(storage, ~ rlang::set_names(.x, fauni))
   

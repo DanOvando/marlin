@@ -57,11 +57,6 @@ Fish <- R6::R6Class(
     #' @param burn_years
     #' @param seasonal_hab
     #' @param seasons
-    #'
-    #' @return
-    #' @export
-    #'
-    #' @examples
     initialize = function(common_name = 'white seabass',
                           scientific_name = NA,
                           linf = NA,
@@ -479,6 +474,37 @@ Fish <- R6::R6Class(
       f_p_a <-
         matrix(0, nrow = patches, ncol = length(length_at_age))
       
+      self$linf <- linf
+      
+      self$m <- m
+      
+      self$density_dependence_form <-
+        density_dependence_form
+      
+      self$time_step <- time_step
+      
+      self$seasons <- seasons
+      
+      self$rec_form <- rec_form
+      
+      self$common_name <- common_name
+      
+      self$scientific_name <- scientific_name
+      
+      self$length_at_age <- length_at_age
+      
+      self$length_at_age_key <- length_at_age_key
+      
+      self$length_50_mature <- length_50_mature
+      
+      self$patches <- patches
+      
+      self$steepness <- steepness
+      
+      self$m_at_age <- m_at_age
+      
+      self$fished_depletion <- fished_depletion
+
       unfished <- marlin::sim_fish(
         length_at_age = length_at_age,
         weight_at_age = weight_at_age,
@@ -508,40 +534,65 @@ Fish <- R6::R6Class(
       
       self$unfished <- unfished$tmppop
       
-      self$linf <- linf
+     
       
-      self$m <- m
-      
-      self$density_dependence_form <-
-        density_dependence_form
-      
-      self$time_step <- time_step
-      
-      self$seasons <- seasons
-      
-      self$rec_form <- rec_form
-      
-      self$common_name <- common_name
-      
-      self$scientific_name <- scientific_name
-      
-      self$length_at_age <- length_at_age
-      
-      self$length_at_age_key <- length_at_age_key
-      
-      self$length_50_mature <- length_50_mature
-
-      self$patches <- patches
-      
-      self$steepness <- steepness
-      
-      self$m_at_age <- m_at_age
-      
-      self$fished_depletion <- fished_depletion
-      
-    },
+    }, # close initialize
     plot = function() {
       plot(self$length_at_age)
-    }
-  )
-)
+    },
+    #' Swim
+    #'
+    #' Swim advances the population one time step
+    #'
+    #' @param burn_steps number of steps for burn in period if applicable
+    #' @param season the current season
+    #' @param f_p_a matrix of fishing mortality by patch and age
+    #' @param last_n_p_a matrix of initial numbers by patch and age
+    #' @param tune_unfished boolean indicating whether to tune unfished
+    #'
+    #' @return the population in the next time step
+    swim = function(burn_steps = 0,
+               season = 1,
+               f_p_a = NULL,
+               last_n_p_a = NULL,
+               tune_unfished = 0) {
+        
+      season <- (season / self$seasons) - self$time_step
+        
+        if (is.null(f_p_a)) {
+          f_p_a <-
+            matrix(0,
+                   nrow = self$patches,
+                   ncol = length(self$length_at_age))
+          
+        }
+        
+        if (is.null(last_n_p_a)) {
+          last_n_p_a <- self$n_p_a_0
+        }
+        
+        pop <- marlin::sim_fish(
+          length_at_age = self$length_at_age,
+          weight_at_age = self$weight_at_age,
+          maturity_at_age = self$maturity_at_age,
+          steepness = self$steepness,
+          m_at_age = self$m_at_age,
+          patches = self$patches,
+          burn_steps = burn_steps,
+          time_step = self$time_step,
+          season = season,
+          r0s = self$r0s,
+          ssb0 = self$ssb0,
+          ssb0_p = self$ssb0_p,
+          seasonal_movement = self$seasonal_movement,
+          movement_seasons = self$movement_seasons,
+          f_p_a = f_p_a,
+          last_n_p_a = last_n_p_a,
+          tune_unfished = tune_unfished,
+          rec_form = self$rec_form
+        )
+        
+      } # close swim
+    
+  ) # close public
+) # close object
