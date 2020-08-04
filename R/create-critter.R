@@ -19,7 +19,6 @@ create_critter <- function(common_name = 'white seabass',
                            adult_movement = 0, 
                            adult_movement_sigma = 2,
                            fished_depletion = 0.4,
-                           resolution = 20,
                            ...) {
 
   
@@ -36,8 +35,7 @@ create_critter <- function(common_name = 'white seabass',
         rec_form = rec_form,
         fished_depletion = fished_depletion,
         adult_movement = adult_movement,
-        adult_movement_sigma = adult_movement_sigma,
-        resolution = resolution
+        adult_movement_sigma = adult_movement_sigma
       )
     
   }

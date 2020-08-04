@@ -82,8 +82,8 @@ fauna <-
       seasonal_habitat = list(yft_habitat), # pass habitat as lists
       habitat_seasons = list(1), # seasons each habitat apply to
       rec_habitat = yft_habitat,
-      adult_movement = 20,# the mean number of patches moved by adults
-      adult_movement_sigma = 20, # standard deviation of the number of patches moved by adults
+      adult_movement = 0,# the mean number of patches moved by adults
+      adult_movement_sigma = 4, # standard deviation of the number of patches moved by adults
       fished_depletion = .4, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
       rec_form = 1, # recruitment form, where 1 implies local recruitment
       seasons = seasons
@@ -101,6 +101,9 @@ fauna <-
             seasons = seasons
     )
   )
+
+# a = fauna$`Yellowfin Tuna`$swim()
+
 
 # create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
 # with lists for each species inside there. Price specifies the price per unit weight of that 
@@ -150,12 +153,21 @@ proc_nearshore %>%
   filter(step == max(step)) %>%
   group_by(x, y, critter) %>%
   summarise(ssb = sum(ssb)) %>%
-  group_by(critter) %>% 
-  mutate(ssb = ssb / max(ssb)) %>% 
+  group_by(critter) %>%
+  mutate(ssb = ssb / max(ssb)) %>%
   ggplot(aes(x, y, fill = ssb)) +
   geom_tile() +
-  scale_fill_viridis_c(name = "Density") +
-  facet_wrap(~critter)
+  scale_fill_viridis_c(
+    name = "Density",
+    guide = guide_colorbar(
+      frame.colour = "black",
+      tick.colour = "black",
+      nbin = 1000,
+      barwidth = unit(15, "lines")
+    )
+  ) +
+  facet_wrap( ~ critter) +
+  theme(legend.position = "top")
 ```
 
 ```{r}
@@ -228,8 +240,17 @@ proc_nearshore_mpa %>%
   mutate(ssb = ssb / max(ssb)) %>% 
   ggplot(aes(x, y, fill = ssb)) +
   geom_tile() +
-  scale_fill_viridis_c(name = "Density") +
-  facet_wrap(~critter)
+  scale_fill_viridis_c(
+    name = "Density",
+    guide = guide_colorbar(
+      frame.colour = "black",
+      tick.colour = "black",
+      nbin = 1000,
+      barwidth = unit(15, "lines")
+    )
+  ) +
+  facet_wrap( ~ critter) +
+  theme(legend.position = "top")
 ```
 
 In this scenario the nearshore MPA provides conservation benefits to both the mako and tuna populations
@@ -339,8 +360,17 @@ proc_offshore %>%
   mutate(ssb = ssb / max(ssb)) %>% 
   ggplot(aes(x, y, fill = ssb)) +
   geom_tile() +
-  scale_fill_viridis_c(name = "Density") +
-  facet_wrap(~critter)
+  scale_fill_viridis_c(
+    name = "Density",
+    guide = guide_colorbar(
+      frame.colour = "black",
+      tick.colour = "black",
+      nbin = 1000,
+      barwidth = unit(15, "lines")
+    )
+  ) +
+  facet_wrap( ~ critter) +
+  theme(legend.position = "top")
 
 ```
 
@@ -397,11 +427,20 @@ proc_offshore_mpa %>%
   group_by(x, y, critter) %>%
   summarise(ssb = sum(ssb)) %>%
   group_by(critter) %>% 
-  mutate(ssb = scale(ssb)) %>% 
+  mutate(ssb = (ssb / max(ssb))) %>% 
   ggplot(aes(x, y, fill = ssb)) +
   geom_tile() +
-  scale_fill_viridis_c() +
-  facet_wrap(~critter)
+  scale_fill_viridis_c(
+    name = "Density",
+    guide = guide_colorbar(
+      frame.colour = "black",
+      tick.colour = "black",
+      nbin = 1000,
+      barwidth = unit(15, "lines")
+    )
+  ) +
+  facet_wrap( ~ critter) +
+  theme(legend.position = "top")
 
 ```
 
@@ -464,11 +503,13 @@ compare_scenarios %>%
   geom_line(size = 2) + 
   facet_wrap(~critter) + 
   scale_y_continuous(limits = c(0, NA), labels = scales::percent, name = "Percent of Unfished Biomass") + 
-  scale_x_continuous(name = "Year")
+  scale_x_continuous(name = "Year") + 
+  scale_color_brewer(name = "", palette = "Set2") + 
+  theme(legend.position = "top")
 
 ```
 
 This short exercise both demonstrates the capabilities of `marlin`, and the critical need for this sort of modeling. As we begin to design MPAs tasked with protecting not only coastal ecosystems but also open-ocean areas and pelagic species, it is critical that we directly address the challenges posed by the different life histories and fleet dynamics of these offshore systems. This example only contains two species and one fleet; one can imagine that in the absence of a clear organizing feature like a reef, and given the complex movement dynamics of pelagic species and fishing fleets, designing an effective blue-water MPA may be quite challenging without a strong modeling framework capable of exploring the takeoffs inherent in designing spatial protection. 
 
-At the moment `marlin` is focused on simulating finfish species. However, in the coming weeks we intend to add support for a variety of other types of animals, including marine mammals and sea turtues. 
+At the moment `marlin` is focused on simulating finfish species. However, in the coming weeks we intend to add support for a variety of other types of animals, including marine mammals and sea turtles. 
 

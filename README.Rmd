@@ -129,7 +129,7 @@ fauna <-
       rec_habitat = bigeye_habitat,
       adult_movement = 3,
       adult_movement_sigma = 1,
-      fished_depletion = .3,
+      fished_depletion = .1,
       rec_form = 1,
       seasons = seasons
     )
@@ -177,9 +177,11 @@ fleets <- list("longline" = list(
 
 
 fleets <- create_fleet(fleets = fleets, fauna = fauna, base_effort = resolution^2) # creates fleet objects, basically adding in selectivity ogives
+a <- Sys.time()
 
-fleets <- tune_fleets(fauna, fleets, years = 25) # tunes the catchability by fleet to achieve target depletion
+fleets <- tune_fleets(fauna, fleets, years = 50) # tunes the catchability by fleet to achieve target depletion
 ## different fleets for each species?
+Sys.time() - a
 
 # run simulations
 
@@ -313,3 +315,4 @@ plot(skj_trajectory)
 
 
 Ah interesting, so need to think through the movement a bit more: the problem is that movement is effectively 0 for the really good habitats: critters stay put once they get there. Is that so bad? Problem is that it doesn't really allow for spillover. 
+

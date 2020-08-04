@@ -32,7 +32,8 @@ Imports:
     purrr,
     dplyr,
     magrittr,
-    tidyr
+    tidyr,
+    R6
 Remotes: 
     james-thorson/FishLife
 VignetteBuilder: knitr
