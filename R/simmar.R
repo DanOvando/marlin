@@ -147,7 +147,7 @@ simmar <- function(fauna = list(),
         f_p_a_fl / array(f_p_a, dim = c(patches, ages, length(fleets))) # f by patch, age, and fleet
       
       # season <- (season / self$seasons) - self$time_step
-      # 
+      
       pop <-
         fauna[[f]]$swim(
           season = (season + fauna[[f]]$time_step) * fauna[[f]]$seasons,
@@ -155,27 +155,6 @@ simmar <- function(fauna = list(),
           f_p_a = f_p_a,
           last_n_p_a = last_n_p_a
         )
-      
-      # pop <- marlin::sim_fish(
-      #   length_at_age = fauna[[f]]$length_at_age,
-      #   weight_at_age = fauna[[f]]$weight_at_age,
-      #   maturity_at_age = fauna[[f]]$maturity_at_age,
-      #   steepness = fauna[[f]]$steepness,
-      #   m_at_age = fauna[[f]]$m_at_age,
-      #   patches = patches,
-      #   burn_steps = 0,
-      #   time_step = time_step,
-      #   season = season,
-      #   r0s = fauna[[f]]$r0s,
-      #   ssb0 = fauna[[f]]$ssb0,
-      #   ssb0_p = fauna[[f]]$ssb0_p,
-      #   seasonal_movement = fauna[[f]]$seasonal_movement,
-      #   movement_seasons = fauna[[f]]$movement_seasons,
-      #   f_p_a = f_p_a,
-      #   last_n_p_a = last_n_p_a,
-      #   tune_unfished = tune_unfished,
-      #   rec_form = fauna[[f]]$rec_form
-      # )
       
       # process catch data
       

@@ -9,7 +9,7 @@ create_critter(
   scientific_name = NA,
   critter_type = "fish",
   seasonal_habitat = list(),
-  habitat_seasons = list(seasons),
+  habitat_seasons = list(),
   rec_habitat = NA,
   seasons = 1,
   rec_form = 1,

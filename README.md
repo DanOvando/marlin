@@ -98,7 +98,7 @@ library(tidyverse)
 #> x dplyr::lag()    masks stats::lag()
 options(dplyr.summarise.inform = FALSE)
 
-
+# hellos
 resolution <- 25 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
 
 years <- 20
@@ -232,7 +232,7 @@ fleets <- tune_fleets(fauna, fleets, years = 50) # tunes the catchability by fle
 
 ## different fleets for each species?
 Sys.time() - a
-#> Time difference of 0.228662 secs
+#> Time difference of 7.309484 secs
 
 # run simulations
 
@@ -245,7 +245,7 @@ storage <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 3.215286 secs
+#> Time difference of 2.786458 secs
   
 
 # process results, will write some wrappers to automate this
@@ -283,10 +283,10 @@ ggplot(check, aes(x, y, fill = bet)) +
 # double check that target depletions are reached
 
 (sum(ssb_bet) / fauna$bigeye$ssb0) / fauna$bigeye$fished_depletion
-#> [1] 9.453106
+#> [1] 0.0002207086
 
 (sum(ssb_skj) / fauna$skipjack$ssb0) / fauna$skipjack$fished_depletion
-#> [1] 1.64231
+#> [1] 0.05403034
 ```
 
 Now, simulate effects of MPAs
@@ -318,7 +318,7 @@ mpa_storage <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 2.81859 secs
+#> Time difference of 2.417782 secs
 
 ssb_skj <- rowSums(mpa_storage[[steps]]$skipjack$ssb_p_a)
 

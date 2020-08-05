@@ -74,7 +74,7 @@ library(marlin)
 library(tidyverse)
 options(dplyr.summarise.inform = FALSE)
 
-
+# hellos
 resolution <- 25 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
 
 years <- 20

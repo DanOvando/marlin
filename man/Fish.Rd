@@ -63,7 +63,7 @@ fill in fish object
   linf_buffer = 1.2,
   resolution = 25,
   seasonal_habitat = list(),
-  habitat_seasons = list(seasons),
+  habitat_seasons = list(),
   rec_habitat = NA,
   fished_depletion = 1,
   rec_form = 1,
@@ -92,7 +92,7 @@ Swim advances the population one time step}
 \if{latex}{\out{\hypertarget{method-plot}{}}}
 \subsection{Method \code{plot()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Fish$plot()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Fish$plot(type = 2)}\if{html}{\out{</div>}}
 }
 
 }
