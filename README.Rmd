@@ -74,7 +74,6 @@ library(marlin)
 library(tidyverse)
 options(dplyr.summarise.inform = FALSE)
 
-# hellos
 resolution <- 25 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
 
 years <- 20
@@ -330,6 +329,7 @@ skj_trajectory <- map_dbl(mpa_storage,~ sum(.x$skipjack$ssb_p_a))
 plot(skj_trajectory)
 
 ```
+
 
 
 Ah interesting, so need to think through the movement a bit more: the problem is that movement is effectively 0 for the really good habitats: critters stay put once they get there. Is that so bad? Problem is that it doesn't really allow for spillover. 

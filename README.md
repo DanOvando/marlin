@@ -88,17 +88,16 @@ unfished conditions
 ``` r
 library(marlin)
 library(tidyverse)
-#> ── Attaching packages ───────────────────────────────────────────────────── tidyverse 1.3.0 ──
+#> ── Attaching packages ──────────────────────────────────────── tidyverse 1.3.0 ──
 #> ✓ ggplot2 3.3.2     ✓ purrr   0.3.4
 #> ✓ tibble  3.0.3     ✓ dplyr   1.0.1
 #> ✓ tidyr   1.1.1     ✓ stringr 1.4.0
 #> ✓ readr   1.3.1     ✓ forcats 0.5.0
-#> ── Conflicts ──────────────────────────────────────────────────────── tidyverse_conflicts() ──
+#> ── Conflicts ─────────────────────────────────────────── tidyverse_conflicts() ──
 #> x dplyr::filter() masks stats::filter()
 #> x dplyr::lag()    masks stats::lag()
 options(dplyr.summarise.inform = FALSE)
 
-# hellos
 resolution <- 25 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
 
 years <- 20
@@ -173,7 +172,7 @@ fauna <-
 #> ● Found: 1 
 #> ● Not Found: 0
 Sys.time() - a
-#> Time difference of 8.126216 secs
+#> Time difference of 8.487297 secs
 
 # create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
 # with lists for each species inside there. Price specifies the price per unit weight of that 
@@ -234,7 +233,7 @@ fleets <- tune_fleets(fauna, fleets, years = 50) # tunes the catchability by fle
 
 ## different fleets for each species?
 Sys.time() - a
-#> Time difference of 8.411664 secs
+#> Time difference of 7.696464 secs
 
 # run simulations
 
@@ -247,7 +246,7 @@ storage <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 2.992504 secs
+#> Time difference of 2.70207 secs
   
 
 # process results, will write some wrappers to automate this
@@ -285,10 +284,10 @@ ggplot(check, aes(x, y, fill = bet)) +
 # double check that target depletions are reached
 
 (sum(ssb_bet) / fauna$bigeye$ssb0) / fauna$bigeye$fished_depletion
-#> [1] 0.0002207086
+#> [1] 1.152486
 
 (sum(ssb_skj) / fauna$skipjack$ssb0) / fauna$skipjack$fished_depletion
-#> [1] 0.05403034
+#> [1] 0.9109502
 ```
 
 Now, simulate effects of MPAs
@@ -320,7 +319,7 @@ mpa_storage <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 2.977812 secs
+#> Time difference of 2.616399 secs
 
 ssb_skj <- rowSums(mpa_storage[[steps]]$skipjack$ssb_p_a)
 

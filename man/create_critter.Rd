@@ -16,8 +16,9 @@ create_critter(
   adult_movement = 0,
   adult_movement_sigma = 2,
   fished_depletion = 0.4,
-  init_explt = 1,
-  explt_type = "fmsy",
+  init_explt = 0.1,
+  explt_type = "f",
+  burn_years = 50,
   ...
 )
 }
@@ -44,9 +45,9 @@ create_critter(
 
 \item{fished_depletion}{}
 
-\item{init_explt}{}
+\item{init_explt}{initial annual exploitation rate}
 
-\item{explt_type}{}
+\item{explt_type}{f or fmsy}
 
 \item{...}{}
 }

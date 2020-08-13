@@ -18,8 +18,8 @@
 #' @param adult_movement 
 #' @param adult_movement_sigma 
 #' @param fished_depletion 
-#' @param init_explt 
-#' @param explt_type 
+#' @param init_explt initial annual exploitation rate
+#' @param explt_type f or fmsy
 #' @param ... 
 
 create_critter <- function(common_name = 'white seabass',
@@ -33,11 +33,13 @@ create_critter <- function(common_name = 'white seabass',
                            adult_movement = 0, 
                            adult_movement_sigma = 2,
                            fished_depletion = 0.4,
-                           init_explt = 1,
-                           explt_type = "fmsy",
+                           init_explt = .1,
+                           explt_type = "f",
                            burn_years = 50,
                            ...) {
 
+  
+  init_explt <- init_explt / seasons # convert to seasonal exploitation rate
   
   if (critter_type == "fish"){
     critter <-

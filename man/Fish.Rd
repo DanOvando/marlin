@@ -67,11 +67,11 @@ fill in fish object
   rec_habitat = NA,
   fished_depletion = 1,
   rec_form = 1,
-  burn_years = 100,
+  burn_years = 50,
   seasonal_hab = NA,
   seasons = 1,
-  explt_type = "wtf",
-  init_explt = 1
+  explt_type = "f",
+  init_explt = 0.1
 )}\if{html}{\out{</div>}}
 }
 
