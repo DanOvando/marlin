@@ -35,6 +35,7 @@ create_critter <- function(common_name = 'white seabass',
                            fished_depletion = 0.4,
                            init_explt = 1,
                            explt_type = "fmsy",
+                           burn_years = 50,
                            ...) {
 
   
@@ -52,7 +53,8 @@ create_critter <- function(common_name = 'white seabass',
         adult_movement = adult_movement,
         adult_movement_sigma = adult_movement_sigma,
         init_explt = init_explt,
-        explt_type = explt_type
+        explt_type = explt_type,
+        burn_years = burn_years
       )
     
   }

@@ -101,10 +101,10 @@ Fish <- R6::R6Class(
                           rec_habitat = NA,
                           fished_depletion = 1,
                           rec_form = 1,
-                          burn_years = 100,
+                          burn_years = 50,
                           seasonal_hab = NA,
                           seasons = 1,
-                          explt_type = "wtf",
+                          explt_type = "f",
                           init_explt = 1) {
       seasons <- as.integer(seasons)
       
@@ -505,6 +505,10 @@ Fish <- R6::R6Class(
       f_p_a <-
         matrix(0, nrow = patches, ncol = length(length_at_age))
       
+      self$max_age <- max_age # in years
+      
+      self$min_age <- min_age # starting age for the model
+      
       self$linf <- linf
       
       self$m <- m
@@ -581,7 +585,7 @@ Fish <- R6::R6Class(
       tidy_ogives <-
         purrr::map_df(ogives, ~ data.frame(
           val_at_age = .x,
-          age = seq(1, length(.x), by = self$time_step)
+          age = seq(self$min_age, self$max_age, by = self$time_step)
         ), .id = "trait")
       
       

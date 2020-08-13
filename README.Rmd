@@ -108,6 +108,7 @@ bigeye_habitat2 <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
 # create a fauna object, which is a list of lists
 # marlin::create_critter will look up relevant life history information
 # that you don't pass explicitly
+a <- Sys.time()
 
 fauna <- 
   list(
@@ -138,7 +139,7 @@ fauna <-
       explt_type = "f"
     )
   )
-
+Sys.time() - a
 
 # create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
 # with lists for each species inside there. Price specifies the price per unit weight of that 
@@ -161,7 +162,7 @@ fleets <- list("longline" = list(
     sel_start = .1,
     sel_delta = .01,
     catchability = .01,
-    p_explt = 1
+    p_explt = 1 # relative amount of fishing mortality that comes from this fleet
   )
 ),
 "purseseine" = list(

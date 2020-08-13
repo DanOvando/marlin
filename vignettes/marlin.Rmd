@@ -53,7 +53,7 @@ resolution <- 20 # resolution is in squared patches, so 20 implies a 20X20 syste
 
 seasons <- 1
 
-years <- 100
+years <- 50
 
 tune_type <- "depletion"
 
