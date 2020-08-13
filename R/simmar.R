@@ -107,7 +107,6 @@ simmar <- function(fauna = list(),
         f_q[f] <- fleets[[l]][[fauni[f]]]$catchability
         
       } # close fauni loop
-      
       fleets[[l]]$e_p_s[, s] <-
         sum(fleets[[l]]$e_p_s[, s - 1]) * rowSums(r_p_f) / pmax(sum(rowSums(r_p_f)), 1e-6) # distribute fishing effort by fishable biomass
       
@@ -148,7 +147,7 @@ simmar <- function(fauna = list(),
         f_p_a_fl / array(f_p_a, dim = c(patches, ages, length(fleets))) # f by patch, age, and fleet
       
       # season <- (season / self$seasons) - self$time_step
-      # 
+      
       pop <-
         fauna[[f]]$swim(
           season = (season + fauna[[f]]$time_step) * fauna[[f]]$seasons,
@@ -156,27 +155,6 @@ simmar <- function(fauna = list(),
           f_p_a = f_p_a,
           last_n_p_a = last_n_p_a
         )
-      
-      # pop <- marlin::sim_fish(
-      #   length_at_age = fauna[[f]]$length_at_age,
-      #   weight_at_age = fauna[[f]]$weight_at_age,
-      #   maturity_at_age = fauna[[f]]$maturity_at_age,
-      #   steepness = fauna[[f]]$steepness,
-      #   m_at_age = fauna[[f]]$m_at_age,
-      #   patches = patches,
-      #   burn_steps = 0,
-      #   time_step = time_step,
-      #   season = season,
-      #   r0s = fauna[[f]]$r0s,
-      #   ssb0 = fauna[[f]]$ssb0,
-      #   ssb0_p = fauna[[f]]$ssb0_p,
-      #   seasonal_movement = fauna[[f]]$seasonal_movement,
-      #   movement_seasons = fauna[[f]]$movement_seasons,
-      #   f_p_a = f_p_a,
-      #   last_n_p_a = last_n_p_a,
-      #   tune_unfished = tune_unfished,
-      #   rec_form = fauna[[f]]$rec_form
-      # )
       
       # process catch data
       
@@ -188,6 +166,13 @@ simmar <- function(fauna = list(),
       
       storage[[s - 1]][[f]]$c_p_a <-
         pop$c_p_a # catch stored in each model is the catch that came from the last time step, so put in the right place here
+      
+      storage[[s - 1]][[f]]$f_p_a_fl <-
+        f_p_a_fl # catch stored in each model is the catch that came from the last time step, so put in the right place here
+
+      tmp_e_p_fl = purrr::map_dfc(fleets, ~.x$e_p_s[,s])
+
+      storage[[s - 1]][[f]]$e_p_fl <- tmp_e_p_fl # store effort by patch by fleet (note that this is the same across species)
       
       storage[[s]][[f]] <- pop
       

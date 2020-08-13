@@ -53,9 +53,9 @@ resolution <- 20 # resolution is in squared patches, so 20 implies a 20X20 syste
 
 seasons <- 1
 
-years <- 50
+years <- 100
 
-tune_type <- "depletion"
+tune_type <- "f"
 
 steps <- years * seasons
 
@@ -74,6 +74,13 @@ mako_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
   select(-x) %>% 
   as.matrix()
 
+mako_habitat2 <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  mutate(habitat =  dnorm(x,2,5)) %>% 
+  pivot_wider(names_from = y, values_from = habitat) %>% 
+  select(-x) %>% 
+  as.matrix()
+
+
 
 # create a fauna object, which is a list of lists
 
@@ -88,7 +95,7 @@ fauna <-
       fished_depletion = .4, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
       rec_form = 1, # recruitment form, where 1 implies local recruitment
       seasons = seasons,
-      init_explt = 0.12, 
+      init_explt = 0.12 / seasons, 
       explt_type = "f"
       ),
     "Shortfin Mako" = create_critter(
@@ -101,12 +108,12 @@ fauna <-
       rec_form = 1,
       burn_years = 200,
       seasons = seasons,
-      init_explt = .12, 
+      init_explt = .12 / seasons, 
       explt_type = "f"
     )
   )
 
-fauna$`Yellowfin Tuna`$plot()
+# a = fauna$`Yellowfin Tuna`$swim()
 
 
 # create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
@@ -125,14 +132,35 @@ fleets <- list("longline" = list(
 
     ),
   `Shortfin Mako` = list(
+    price = 40,
+    sel_form = "logistic",
+    sel_start = .1,
+    sel_delta = .01,
+    catchability = 0.01,
+    p_explt = .7
+  )
+),
+"purse-seine" = list(
+  `Yellowfin Tuna` = list(
+    price = 50, # price per unit weight
+    sel_form = "logistic", # selectivity form, one of logistic or dome
+    sel_start = .3, # percentage of length at maturity that selectivity starts
+    sel_delta = .1, # additional percentage of sel_start where selectivity asymptotes
+    catchability = .01, # overwritten by tune_fleet but can be set manually here
+    p_explt = 2
+
+    ),
+  `Shortfin Mako` = list(
     price = 10,
     sel_form = "logistic",
     sel_start = .1,
     sel_delta = .01,
-    catchability = 0,
-    p_explt = 1
+    catchability = 0.1,
+    p_explt = .3
   )
 ))
+
+
 
 
 fleets <- create_fleet(fleets = fleets, fauna = fauna, base_effort = resolution^2) # creates fleet objects, basically adding in selectivity ogives
@@ -161,7 +189,7 @@ proc_nearshore <- process_marlin(nearshore, time_step =  fauna[[1]]$time_step)
 
 ```{r}
 proc_nearshore %>%
-  filter(step == max(step)) %>%
+  filter(step == (max(step) - 1)) %>%
   group_by(x, y, critter) %>%
   summarise(ssb = sum(ssb)) %>%
   group_by(critter) %>%
@@ -329,7 +357,7 @@ fauna <-
       fished_depletion = .4, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
       rec_form = 1, # recruitment form, where 1 implies local recruitment
       seasons = seasons,
-      init_explt = .12, 
+      init_explt = .12 / seasons, 
       explt_type = "f"
       ),
     "Shortfin Mako" = create_critter(
@@ -342,7 +370,7 @@ fauna <-
       rec_form = 1,
       burn_years = 200,
             seasons = seasons,
-            init_explt = .12, 
+            init_explt = .12 / seasons, 
       explt_type = "f"
     )
   )

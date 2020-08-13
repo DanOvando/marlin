@@ -20,6 +20,22 @@ create_fleet <-
     
     fauni <- names(fauna)
     
+    # normalize p_explt to make sure it sums to 1
+    
+    for (s in fauni) {
+      p_explts <- purrr::map_dbl(fleets,c(s,"p_explt"))
+
+      p_explts <- p_explts / sum(p_explts)
+      
+      for ( f in fleet_names){
+        
+        fleets[[f]][[s]]$p_explt <- as.numeric(p_explts[f])
+        
+      } # close fleet loop
+      
+    } # close fauna loop
+    
+    
     for (f in seq_along(fleet_names)) {
       tmp_fleet <- fleets[[f]]
       
@@ -70,6 +86,7 @@ create_fleet <-
       
     } # close fleet loop
     
+
     
     return(fleets)
     

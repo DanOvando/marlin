@@ -57,6 +57,8 @@ Fish <- R6::R6Class(
     #' @param burn_years
     #' @param seasonal_hab
     #' @param seasons
+    #' @param init_explt
+    #' @param explt_type
     initialize = function(common_name = 'white seabass',
                           scientific_name = NA,
                           linf = NA,
@@ -95,13 +97,15 @@ Fish <- R6::R6Class(
                           linf_buffer = 1.2,
                           resolution = 25,
                           seasonal_habitat = list(),
-                          habitat_seasons = list(seasons),
+                          habitat_seasons = list(),
                           rec_habitat = NA,
                           fished_depletion = 1,
                           rec_form = 1,
-                          burn_years = 100,
+                          burn_years = 50,
                           seasonal_hab = NA,
-                          seasons = 1) {
+                          seasons = 1,
+                          explt_type = "f",
+                          init_explt = .1) {
       seasons <- as.integer(seasons)
       
       if (seasons < 1) {
@@ -116,9 +120,29 @@ Fish <- R6::R6Class(
         
       }
       
+      if (length(habitat_seasons) == 0) {
+        
+        seasons_per_habitat <- seasons / length(seasonal_habitat) # determine how many seasons to assign to each habitat block
+       
+        
+        tmp <- data.frame(block =  rep(seq_along(seasonal_habitat), each = seasons_per_habitat), season =  1:seasons)
+        
+        habitat_seasons <- vector(mode = "list", length = length(seasonal_habitat))
+        
+        for (i in seq_along(seasonal_habitat)){
+          
+          habitat_seasons[[i]] <- tmp$season[tmp$block == i]
+          
+        }
+  
+      }
+      
+      
       if (length(seasonal_habitat) != length(habitat_seasons)) {
         stop("length of seasonal_habitat must equal length of habitat_seasons")
       }
+      
+      
       
       
       time_step = 1 / seasons
@@ -136,6 +160,13 @@ Fish <- R6::R6Class(
           y = (x / seasons) - time_step
           
         }
+      
+
+      all_habitat_seaons <- purrr::map_dfr(habitat_seasons, ~ data.frame(season = .x))
+      
+      if (!all(1:seasons %in% all_habitat_seaons$season)){
+        stop("all seasons must be represented in habitat_seasons")
+      }
       
       habitat_seasons <-
         purrr::map(habitat_seasons,
@@ -474,6 +505,10 @@ Fish <- R6::R6Class(
       f_p_a <-
         matrix(0, nrow = patches, ncol = length(length_at_age))
       
+      self$max_age <- max_age # in years
+      
+      self$min_age <- min_age # starting age for the model
+      
       self$linf <- linf
       
       self$m <- m
@@ -504,7 +539,11 @@ Fish <- R6::R6Class(
       self$m_at_age <- m_at_age
       
       self$fished_depletion <- fished_depletion
-
+      
+      self$explt_type <- explt_type
+      
+      self$init_explt <- init_explt
+      
       unfished <- marlin::sim_fish(
         length_at_age = length_at_age,
         weight_at_age = weight_at_age,
@@ -537,8 +576,25 @@ Fish <- R6::R6Class(
      
       
     }, # close initialize
-    plot = function() {
-      plot(self$length_at_age)
+    plot = function(type = 2) {
+     
+      tmp <- as.list(self)
+      
+      ogives <- tmp[which(str_detect(names(tmp), "at_age$"))]
+      
+      tidy_ogives <-
+        purrr::map_df(ogives, ~ data.frame(
+          val_at_age = .x,
+          age = seq(self$min_age, self$max_age, by = self$time_step)
+        ), .id = "trait")
+      
+      
+      tidy_ogives %>%
+        ggplot2::ggplot(aes(age, val_at_age, color = trait)) +
+        ggplot2::geom_line(show.legend = FALSE) +
+        ggplot2::facet_wrap( ~ trait, scales = "free_y")
+    
+      
     },
     #' Swim
     #'
@@ -556,7 +612,7 @@ Fish <- R6::R6Class(
                f_p_a = NULL,
                last_n_p_a = NULL,
                tune_unfished = 0) {
-        
+      
       season <- (season / self$seasons) - self$time_step
         
         if (is.null(f_p_a)) {

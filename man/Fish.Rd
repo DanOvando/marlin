@@ -63,13 +63,15 @@ fill in fish object
   linf_buffer = 1.2,
   resolution = 25,
   seasonal_habitat = list(),
-  habitat_seasons = list(seasons),
+  habitat_seasons = list(),
   rec_habitat = NA,
   fished_depletion = 1,
   rec_form = 1,
-  burn_years = 100,
+  burn_years = 50,
   seasonal_hab = NA,
-  seasons = 1
+  seasons = 1,
+  explt_type = "f",
+  init_explt = 0.1
 )}\if{html}{\out{</div>}}
 }
 
@@ -78,7 +80,7 @@ fill in fish object
 \describe{
 \item{\code{common_name}}{common name}
 
-\item{\code{seasons}}{Swim
+\item{\code{explt_type}}{Swim
 
 Swim advances the population one time step}
 }
@@ -90,7 +92,7 @@ Swim advances the population one time step}
 \if{latex}{\out{\hypertarget{method-plot}{}}}
 \subsection{Method \code{plot()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Fish$plot()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Fish$plot(type = 2)}\if{html}{\out{</div>}}
 }
 
 }
