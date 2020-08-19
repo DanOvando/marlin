@@ -11,7 +11,7 @@ mammal <- R6::R6Class("mammal",
                     self$hair <- val
                   },
                   greet = function() {
-                    cat(paste0("Hello, my name is ", self$name, ".\n"))
+                    cat(paste0("Hello, I am a ", self$name, ".\n"))
                   }
                 )
 )
