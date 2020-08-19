@@ -108,7 +108,7 @@ simmar <- function(fauna = list(),
         
       } # close fauni loop
       fleets[[l]]$e_p_s[, s] <-
-        sum(fleets[[l]]$e_p_s[, s - 1]) * rowSums(r_p_f) / pmax(sum(rowSums(r_p_f)), 1e-6) # distribute fishing effort by fishable biomass
+        pmax(sum(fleets[[l]]$e_p_s[, s - 1]) * rowSums(r_p_f) / pmax(sum(rowSums(r_p_f)), 1e-6), 0) # distribute fishing effort by fishable biomass
       
       
     } # close allocate fleets in space based on fishable revenue
