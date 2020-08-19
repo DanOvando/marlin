@@ -37,17 +37,17 @@ For our first simulation, we will use `marlin` to construct a scenario where bot
 library(marlin)
 library(tidyverse)
 
-colfoo <- function(){
-  scale_colour_brewer(palette = "Accent")
-}
+# colfoo <- function(){
+#   scale_colour_brewer(palette = "Accent")
+# }
+# 
+# options(dplyr.summarise.inform = FALSE,
+#         ggplot2.discrete.colour = colfoo,
+#         ggplot2.discrete.fill = colfoo)
 
-options(dplyr.summarise.inform = FALSE,
-        ggplot2.discrete.colour = colfoo,
-        ggplot2.discrete.fill = colfoo)
+# theme_marlin <- ggplot2::theme_minimal(base_size = 14)
 
-theme_marlin <- ggplot2::theme_minimal(base_size = 14)
-
-theme_set(theme_marlin)
+theme_set(marlin::theme_marlin())
 
 resolution <- 20 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
 

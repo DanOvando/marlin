@@ -13,7 +13,7 @@ fleet_tuner(qs, fauna, fleets, years = 50)
 
 \item{fleets}{}
 
-\item{steps}{}
+\item{years}{}
 }
 \value{
 

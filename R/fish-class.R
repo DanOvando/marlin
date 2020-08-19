@@ -588,12 +588,12 @@ Fish <- R6::R6Class(
           age = seq(self$min_age, self$max_age, by = self$time_step)
         ), .id = "trait")
       
-      
       tidy_ogives %>%
         ggplot2::ggplot(aes(age, val_at_age, color = trait)) +
         ggplot2::geom_line(show.legend = FALSE) +
-        ggplot2::facet_wrap( ~ trait, scales = "free_y")
-    
+        ggplot2::facet_wrap( ~ trait, scales = "free_y") + 
+        marlin::theme_marlin() + 
+        ggplot2::scale_fill_manual(values = marlin::marlin_pal("diverging_fish")(length(unique(tidy_ogives$trait))))    
       
     },
     #' Swim

@@ -5,8 +5,8 @@
 #'
 #' @param qs 
 #' @param fauna 
+#' @param years 
 #' @param fleets 
-#' @param steps 
 #'
 #' @return
 #' @export
