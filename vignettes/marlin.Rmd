@@ -540,7 +540,7 @@ yft_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
  
 
 mako_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(habitat =  dnorm(x,17,5)) %>% 
+  mutate(habitat =  dnorm(x,15,5)) %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
   select(-x) %>% 
   as.matrix()
@@ -572,7 +572,7 @@ fauna <-
       rec_form = 1,
       burn_years = 200,
       seasons = seasons,
-      init_explt = .12, 
+      init_explt = 0.1, 
       explt_type = "f"
     )
   )
@@ -581,7 +581,7 @@ fauna <-
 
 fleets <- list("longline" = list(
   `Yellowfin Tuna` = list(
-    price = 10, 
+    price = 200, 
     sel_form = "logistic", 
     sel_start = .3, 
     sel_delta = .1, 
@@ -590,7 +590,7 @@ fleets <- list("longline" = list(
 
     ),
   `Shortfin Mako` = list(
-    price = -5, # fee of 5 units
+    price = -10, # fee of 5 units
     sel_form = "logistic",
     sel_start = .1,
     sel_delta = .01,
@@ -722,7 +722,7 @@ fauna <-
 
 fleets <- list("longline" = list(
   `Yellowfin Tuna` = list(
-    price = 10, 
+    price = 100, 
     sel_form = "logistic", 
     sel_start = .3, 
     sel_delta = .1, 
@@ -731,12 +731,12 @@ fleets <- list("longline" = list(
 
     ),
   `Shortfin Mako` = list(
-    price = -5, # fee of 5 units
+    price = 5, # fee of 5 units
     sel_form = "logistic",
     sel_start = .1,
     sel_delta = .01,
     catchability = 0,
-    p_explt = 1
+    p_explt = .1
   )
 ))
 
