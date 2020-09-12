@@ -190,7 +190,7 @@ Fish <- R6::R6Class(
       if (is.na(scientific_name) &
           !is.na(common_name)) {
         scientific_name <-
-          taxize::comm2sci(common_name, db = "worms")[[1]][1]
+          taxize::comm2sci(common_name, db = "ncbi")[[1]][1]
         
       }
       
