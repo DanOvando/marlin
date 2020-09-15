@@ -132,7 +132,7 @@ fleets <- list("longline" = list(
     catchability = 0,
     p_explt = 1
   ),
-  mpa_response = "leave"
+  mpa_response = "stay"
 ))
 
 
@@ -522,6 +522,284 @@ compare_scenarios %>%
   theme(legend.position = "top")
 
 ```
+
+Another scenario includes being able to appropriately account for the costs (fines) associated with catching vulnerable species. We will begin by resetting the habitat preferences and species information to those used in the first example.
+
+```{r}
+# define some parameters
+years <- 100
+
+tune_type <- "explt"
+
+# make up some habitat
+
+yft_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  mutate(habitat =  .05 * x) %>% 
+  pivot_wider(names_from = y, values_from = habitat) %>% 
+  select(-x) %>% 
+  as.matrix()
+ 
+
+mako_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  mutate(habitat =  dnorm(x,15,5)) %>% 
+  pivot_wider(names_from = y, values_from = habitat) %>% 
+  select(-x) %>% 
+  as.matrix()
+
+
+# create a fauna object, which is a list of lists
+
+fauna <- 
+  list(
+    "Yellowfin Tuna" = create_critter(
+      scientific_name = "Thunnus albacares",
+      seasonal_habitat = list(yft_habitat), 
+      rec_habitat = yft_habitat,
+      adult_movement = 0,
+      adult_movement_sigma = 4, 
+      fished_depletion = .4, 
+      rec_form = 1, 
+      seasons = seasons,
+      init_explt = 0.12, 
+      explt_type = "f"
+      ),
+    "Shortfin Mako" = create_critter(
+      scientific_name = "Isurus oxyrinchus",
+      seasonal_habitat = list(mako_habitat), 
+      rec_habitat = mako_habitat,
+      adult_movement = 5,
+      adult_movement_sigma = 3,
+      fished_depletion = .3,
+      rec_form = 1,
+      burn_years = 200,
+      seasons = seasons,
+      init_explt = 0.1, 
+      explt_type = "f"
+    )
+  )
+
+# create a fleets object, accounting a negative price to shortfin makos
+
+fleets <- list("longline" = list(
+  `Yellowfin Tuna` = list(
+    price = 200, 
+    sel_form = "logistic", 
+    sel_start = .3, 
+    sel_delta = .1, 
+    catchability = .01, 
+    p_explt = 1
+
+    ),
+  `Shortfin Mako` = list(
+    price = -10, # fee of 5 units
+    sel_form = "logistic",
+    sel_start = .1,
+    sel_delta = .01,
+    catchability = 0,
+    p_explt = 1
+  )
+))
+
+
+fleets <- create_fleet(fleets = fleets, fauna = fauna, base_effort = resolution^2) 
+
+fleets <- tune_fleets(fauna, fleets, tune_type = tune_type)
+
+# run simulations
+
+# run the simulation using marlin::simmar
+negative_prices <- simmar(fauna = fauna,
+                  fleets = fleets,
+                  years = years)
+
+proc_negative_prices <- process_marlin(negative_prices, time_step =  fauna[[1]]$time_step)
+```
+
+
+```{r}
+# plot spatial distributions without an mpa implemented
+proc_negative_prices %>%
+  filter(step == max(step)) %>%
+  group_by(x, y, critter) %>%
+  summarise(ssb = sum(ssb)) %>%
+  group_by(critter) %>%
+  mutate(ssb = ssb / max(ssb)) %>%
+  ggplot(aes(x, y, fill = ssb)) +
+  geom_tile() +
+  scale_fill_viridis_c(
+    name = "Density",
+    guide = guide_colorbar(
+      frame.colour = "black",
+      tick.colour = "black",
+      nbin = 1000,
+      barwidth = unit(15, "lines")
+    )
+  ) +
+  facet_wrap( ~ critter) +
+  theme(legend.position = "top")
+```
+
+```{r}
+# show the result on the % of unfished biomass for each species
+negative_prices_ssb <- proc_negative_prices %>% 
+  group_by(step,x,y, critter) %>% 
+  summarise(ssb = sum(ssb)) %>% 
+  group_by(step, critter) %>% 
+  summarise(ssb = sum(ssb))
+  
+negative_prices_ssb %>% 
+  group_by(step, critter) %>% 
+  summarise(ssb = sum(ssb)) %>% 
+  group_by(critter) %>% 
+  mutate(ssb = ssb / max(ssb)) %>% 
+  ggplot(aes(step,ssb)) + 
+  geom_hline(aes(yintercept = 0)) +
+  geom_line(size = 3, color = "steelblue") + 
+  facet_wrap(~critter, scales = "free_y") + 
+  scale_y_continuous(limits = c(0, NA), labels = scales::percent, name = "% of Unfished Biomass") + 
+  scale_x_continuous(name = "Year")
+```
+
+In this scenario, we see that if the costs associated with catching a Shortfin Mako are equal to or exceed the profits associated with Yellowfin Tuna, both populations will show a constant and high percentage of unfished biomass; it's simply not worth it because of the high degree of habitat overlap. 
+
+Let's try another example, this time where the two habitat preferences do not overlap. 
+
+```{r}
+# define some parameters
+
+years <- 100
+
+tune_type <- "explt"
+
+# make up some habitat
+
+yft_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  mutate(habitat =  .2 * x) %>% 
+  pivot_wider(names_from = y, values_from = habitat) %>% 
+  select(-x) %>% 
+  as.matrix()
+ 
+
+mako_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  mutate(habitat =  dnorm(x, 9,5)) %>% 
+  pivot_wider(names_from = y, values_from = habitat) %>% 
+  select(-x) %>% 
+  as.matrix()
+
+
+# create a fauna object, which is a list of lists
+
+fauna <- 
+  list(
+    "Yellowfin Tuna" = create_critter(
+      scientific_name = "Thunnus albacares",
+      seasonal_habitat = list(yft_habitat), 
+      rec_habitat = yft_habitat,
+      adult_movement = 0,
+      adult_movement_sigma = 4, 
+      fished_depletion = .4, 
+      rec_form = 1, 
+      seasons = seasons,
+      init_explt = 0.12, 
+      explt_type = "f"
+      ),
+    "Shortfin Mako" = create_critter(
+      scientific_name = "Isurus oxyrinchus",
+      seasonal_habitat = list(mako_habitat), 
+      rec_habitat = mako_habitat,
+      adult_movement = 5,
+      adult_movement_sigma = 3,
+      fished_depletion = .3,
+      rec_form = 1,
+      burn_years = 200,
+      seasons = seasons,
+      init_explt = .12, 
+      explt_type = "f"
+    )
+  )
+
+# create a fleets object
+# create a fleets object, accounting a negative price to shortfin makos
+
+fleets <- list("longline" = list(
+  `Yellowfin Tuna` = list(
+    price = 100, 
+    sel_form = "logistic", 
+    sel_start = .3, 
+    sel_delta = .1, 
+    catchability = .01, 
+    p_explt = 1
+
+    ),
+  `Shortfin Mako` = list(
+    price = 5, # fee of 5 units
+    sel_form = "logistic",
+    sel_start = .1,
+    sel_delta = .01,
+    catchability = 0,
+    p_explt = .1
+  )
+))
+
+
+fleets <- create_fleet(fleets = fleets, fauna = fauna, base_effort = resolution^2) 
+
+fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
+
+# run simulations
+
+# run the simulation using marlin::simmar
+neg_price_offshore <- simmar(fauna = fauna,
+                  fleets = fleets,
+                  years = years)
+
+proc_offshore_neg_price <- process_marlin(neg_price_offshore, time_step =  fauna[[1]]$time_step)
+```
+
+```{r}
+# plot spatial distributions without mpa implementation
+proc_offshore_neg_price %>%
+  filter(step == max(step)) %>%
+  group_by(x, y, critter) %>%
+  summarise(ssb = sum(ssb)) %>%
+  group_by(critter) %>% 
+  mutate(ssb = (ssb / max(ssb))) %>% 
+  ggplot(aes(x, y, fill = ssb)) +
+  geom_tile() +
+  scale_fill_viridis_c(
+    name = "Density",
+    guide = guide_colorbar(
+      frame.colour = "black",
+      tick.colour = "black",
+      nbin = 1000,
+      barwidth = unit(15, "lines")
+    )
+  ) +
+  facet_wrap( ~ critter) +
+  theme(legend.position = "top")
+```
+
+```{r}
+# show the result on the % of unfished biomass for each species
+neg_price_offshore_ssb <- proc_offshore_neg_price %>% 
+  group_by(step,x,y, critter) %>% 
+  summarise(ssb = sum(ssb)) %>% 
+  group_by(step, critter) %>% 
+  summarise(ssb = sum(ssb))
+
+neg_price_offshore_ssb %>% 
+  group_by(step, critter) %>% 
+  summarise(ssb = sum(ssb)) %>% 
+  group_by(critter) %>% 
+  mutate(ssb = ssb / max(ssb)) %>% 
+  ggplot(aes(step,ssb)) + 
+  geom_hline(aes(yintercept = 0)) +
+  geom_line(size = 3, color = "steelblue") + 
+  facet_wrap(~critter, scales = "free_y") + 
+  scale_y_continuous(limits = c(0, NA), labels = scales::percent, name = "% of Unfished Biomass") + 
+  scale_x_continuous(name = "Year")
+```
+In this scenario, we see a similar result in which fishers avoid areas with Shortfin Mako, keeping the population at a high % of unfished biomass, but targeting Yellowfin Tuna. Eventually, the % of unfished biomass for Yellowfin Tuna also increases, likely due to the dispersion of individuals into areas that are also occupied by Shortfin Mako. 
 
 This short exercise both demonstrates the capabilities of `marlin`, and the critical need for this sort of modeling. As we begin to design MPAs tasked with protecting not only coastal ecosystems but also open-ocean areas and pelagic species, it is critical that we directly address the challenges posed by the different life histories and fleet dynamics of these offshore systems. This example only contains two species and one fleet; one can imagine that in the absence of a clear organizing feature like a reef, and given the complex movement dynamics of pelagic species and fishing fleets, designing an effective blue-water MPA may be quite challenging without a strong modeling framework capable of exploring the takeoffs inherent in designing spatial protection. 
 

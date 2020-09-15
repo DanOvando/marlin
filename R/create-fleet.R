@@ -25,7 +25,7 @@ create_fleet <-
     for (s in fauni) {
       p_explts <- purrr::map_dbl(fleets,c(s,"p_explt"))
 
-      p_explts <- p_explts / sum(p_explts)
+      p_explts <- p_explts / sum(p_explts + 1e-6)
       
       for ( f in fleet_names){
         
