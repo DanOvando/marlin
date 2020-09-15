@@ -82,13 +82,23 @@ simmar <- function(fauna = list(),
       # assign MPAs if needed
       if (year == mpas$mpa_year) {
         fishable <- mpas$locations$mpa == 0
+        
       }
       
     } # close MPA if statement
     for (l in seq_along(fleet_names)) {
       # distribute fleets in space based on revenues
+      
+      concentrator <- rep(1, patches) # reset fishing effort concentrator by fleet
+      
       for (f in seq_along(fauni)) {
         last_b_p_a <- storage[[s - 1]][[f]]$b_p_a
+        browser()
+        if (year >= mpas$mpa_year & fleets[[l]]$mpa_response == "leave"){
+          
+          concentrator <- fishable
+          browser()
+        }
         
         # calculate fishable biomass in each patch for each species for that fleet
         tmp <-
@@ -108,7 +118,7 @@ simmar <- function(fauna = list(),
         
       } # close fauni loop
       fleets[[l]]$e_p_s[, s] <-
-        sum(fleets[[l]]$e_p_s[, s - 1]) * rowSums(r_p_f) / pmax(sum(rowSums(r_p_f)), 1e-6) # distribute fishing effort by fishable biomass
+        sum(fleets[[l]]$e_p_s[, s - 1] * concentrator) * rowSums(r_p_f) / pmax(sum(rowSums(r_p_f)), 1e-6) # distribute fishing effort by fishable biomass
       
       
     } # close allocate fleets in space based on fishable revenue

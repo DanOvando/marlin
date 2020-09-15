@@ -131,7 +131,8 @@ fleets <- list("longline" = list(
     sel_delta = .01,
     catchability = 0,
     p_explt = 1
-  )
+  ),
+  mpa_response = "leave"
 ))
 
 
