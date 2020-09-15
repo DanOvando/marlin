@@ -22,7 +22,7 @@ fleet_tuner <- function(qs,fauna, fleets, years = 50){
     
     for (ff in seq_along(fauna)){
       
-      fleets[[f]][[ff]]$catchability <- qs[cc]
+      fleets[[f]]$metiers[[ff]]$catchability <- qs[cc]
       
       cc <- cc + 1
     }
