@@ -51,7 +51,6 @@ simmar <- function(fauna = list(),
   storage[[1]] <-
     initial_conditions # start populations at initial conditions
   
-  
   fleets <-
     purrr::map(fleets, ~ purrr::list_modify(
       .x,
@@ -104,7 +103,7 @@ simmar <- function(fauna = list(),
         # calculate fishable biomass in each patch for each species for that fleet
         tmp <-
           matrix((1 - exp(
-            -(fleets[[l]][[fauni[f]]]$catchability * fleets[[l]][[fauni[f]]]$sel_at_age)
+            -(fleets[[l]]$metiers[[fauni[f]]]$catchability * fleets[[l]]$metiers[[fauni[f]]]$sel_at_age)
           )),
           nrow = nrow(last_b_p_a),
           ncol = ncol(last_b_p_a),
@@ -113,9 +112,9 @@ simmar <- function(fauna = list(),
         
         last_b_p <- rowSums(last_b_p_a * tmp) * fishable
         
-        r_p_f[, f] <- last_b_p * fleets[[l]][[fauni[f]]]$price
+        r_p_f[, f] <- last_b_p * fleets[[l]]$metiers[[fauni[f]]]$price
         
-        f_q[f] <- fleets[[l]][[fauni[f]]]$catchability
+        f_q[f] <- fleets[[l]]$metiers[[fauni[f]]]$catchability
         
       } # close fauni loop
 
@@ -141,13 +140,13 @@ simmar <- function(fauna = list(),
       
       for (l in seq_along(fleet_names)) {
         f_p_a <-
-          f_p_a + fleets[[l]]$e_p_s[, s] * matrix(rep(fleets[[l]][[fauni[f]]]$catchability * fleets[[l]][[fauni[f]]]$sel_at_age),
+          f_p_a + fleets[[l]]$e_p_s[, s] * matrix(rep(fleets[[l]]$metiers[[fauni[f]]]$catchability * fleets[[l]]$metiers[[fauni[f]]]$sel_at_age),
                                                   patches,
                                                   ages,
                                                   byrow = TRUE)
         
         f_p_a_fl[, , l] <-
-          fleets[[l]]$e_p_s[, s] * matrix(rep(fleets[[l]][[fauni[f]]]$catchability * fleets[[l]][[fauni[f]]]$sel_at_age),
+          fleets[[l]]$e_p_s[, s] * matrix(rep(fleets[[l]]$metiers[[fauni[f]]]$catchability * fleets[[l]]$metiers[[fauni[f]]]$sel_at_age),
                                           patches,
                                           ages,
                                           byrow = TRUE)

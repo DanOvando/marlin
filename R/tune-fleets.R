@@ -13,6 +13,26 @@ tune_fleets <- function(fauna,
                         years = 50,
                         tune_type = "explt") {
     
+  
+  fleet_names <- names(fleets)
+  
+  fauni <- names(fauna)
+  
+  # normalize p_explt to make sure it sums to 1
+  
+  for (s in fauni) {
+    p_explts <- purrr::map_dbl(fleets,c("metiers",s,"p_explt"))
+    
+    p_explts <- p_explts / ifelse(sum(p_explts) > 0, sum(p_explts), 1e-6)
+    
+    for ( f in fleet_names){
+      
+      fleets[[f]]$metiers[[s]]$p_explt <- as.numeric(p_explts[f])
+      
+    } # close fleet loop
+    
+  } # close fauna loop
+  
   storage <- simmar(fauna = fauna,
                       fleets = fleets,
                       years = years)
@@ -26,30 +46,19 @@ tune_fleets <- function(fauna,
       
       b_p = rowSums(storage[[length(storage)]][[s]]$b_p_a)
       
-      # now, calculate biomass weighed total effort of each fleet
-      
-      # b_p <- rep(1, length(b_p))
-      #
-      # b_p[1:3] <- 0
-      
-      # e_p_fl <- e_p_fl * (b_p / max(b_p)) # calcualte the total effort weighted by biomass of that species in patches.
-      # browser()
-      
       weights <- b_p / max(b_p)
       
       e_fl <- colSums((e_p_fl * weights)) / sum(weights)  # calculate the total effort weighted by biomass of that species in patches.
       
-        # colSums(e_p_fl * (b_p / max(b_p)))  # calcualte the total effort weighted by biomass of that species in patches.
-      
       p_explt <-
-        purrr::map_dbl(fleets, c(s, "p_explt"))[names(e_p_fl)]
+        purrr::map_dbl(fleets, c("metiers",s, "p_explt"))[names(e_p_fl)]
       
       explt_by_fleet <- fauna[[s]]$init_explt * p_explt
       
       catchability <-  log(1 - explt_by_fleet) / -e_fl
       
       for (f in fleeti) {
-        fleets[[f]][[s]]$catchability <- catchability[f]
+        fleets[[f]]$metiers[[s]]$catchability <- catchability[f]
         
       } # close internal fleet loop
       
@@ -70,7 +79,7 @@ tune_fleets <- function(fauna,
         
         cc <- cc + 1
         
-        qs[cc] <- fleets[[ff]][[f]]$catchability
+        qs[cc] <- fleets[[ff]]$metiers[[f]]$catchability
         
       }
       
@@ -93,7 +102,7 @@ tune_fleets <- function(fauna,
     
     for (f in seq_along(fleets)) {
       for (ff in seq_along(fauna)) {
-        fleets[[f]][[ff]]$catchability <- qs$par[cc]
+        fleets[[f]]$metiers[[ff]]$catchability <- qs$par[cc]
         
         cc <- cc + 1
       } # close internal fauna loop

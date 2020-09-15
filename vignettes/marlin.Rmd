@@ -37,16 +37,6 @@ For our first simulation, we will use `marlin` to construct a scenario where bot
 library(marlin)
 library(tidyverse)
 
-# colfoo <- function(){
-#   scale_colour_brewer(palette = "Accent")
-# }
-# 
-# options(dplyr.summarise.inform = FALSE,
-#         ggplot2.discrete.colour = colfoo,
-#         ggplot2.discrete.fill = colfoo)
-
-# theme_marlin <- ggplot2::theme_minimal(base_size = 14)
-
 theme_set(marlin::theme_marlin())
 
 resolution <- 20 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
@@ -114,35 +104,36 @@ fauna$`Yellowfin Tuna`$plot()
 # species for that fleet
 # sel_form can be one of logistic or dome
 
-fleets <- list("longline" = list(
-  `Yellowfin Tuna` = list(
+fleets <- list("longline" = create_fleet(list(
+  `Yellowfin Tuna` = Metier$new(
+    critter = fauna$`Yellowfin Tuna`,
     price = 100, # price per unit weight
     sel_form = "logistic", # selectivity form, one of logistic or dome
     sel_start = .3, # percentage of length at maturity that selectivity starts
     sel_delta = .1, # additional percentage of sel_start where selectivity asymptotes
     catchability = .01, # overwritten by tune_fleet but can be set manually here
     p_explt = 1
-
     ),
-  `Shortfin Mako` = list(
+  `Shortfin Mako` = Metier$new(
+    critter = fauna$`Shortfin Mako`,
     price = 10,
     sel_form = "logistic",
     sel_start = .1,
     sel_delta = .01,
     catchability = 0,
     p_explt = 1
-  ),
-  mpa_response = "stay"
+  )),
+  mpa_response = "stay",
+  base_effort = resolution^2
 ))
-
-
-fleets <- create_fleet(fleets = fleets, fauna = fauna, base_effort = resolution^2) # creates fleet objects, basically adding in selectivity ogives
 
 a <- Sys.time()
 
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
+
+# fleets <- create_fleet(fleets = fleets, fauna = fauna) # creates fleet objects, basically adding in selectivity ogives
 
 # run simulations
 
@@ -580,28 +571,34 @@ fauna <-
 
 # create a fleets object, accounting a negative price to shortfin makos
 
-fleets <- list("longline" = list(
-  `Yellowfin Tuna` = list(
-    price = 200, 
-    sel_form = "logistic", 
-    sel_start = .3, 
-    sel_delta = .1, 
-    catchability = .01, 
+fleets <- list("longline" = create_fleet(list(
+  `Yellowfin Tuna` = Metier$new(
+    critter = fauna$`Yellowfin Tuna`,
+    price = 100, # price per unit weight
+    sel_form = "logistic", # selectivity form, one of logistic or dome
+    sel_start = .3, # percentage of length at maturity that selectivity starts
+    sel_delta = .1, # additional percentage of sel_start where selectivity asymptotes
+    catchability = .01, # overwritten by tune_fleet but can be set manually here
     p_explt = 1
-
     ),
-  `Shortfin Mako` = list(
-    price = -10, # fee of 5 units
+  `Shortfin Mako` = Metier$new(
+    critter = fauna$`Shortfin Mako`,
+    price = -10,
     sel_form = "logistic",
     sel_start = .1,
     sel_delta = .01,
     catchability = 0,
     p_explt = 1
-  )
+  )),
+  mpa_response = "stay",
+  base_effort = resolution^2
 ))
 
+a <- Sys.time()
 
-fleets <- create_fleet(fleets = fleets, fauna = fauna, base_effort = resolution^2) 
+fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
+
+Sys.time() - a
 
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type)
 
@@ -721,30 +718,34 @@ fauna <-
 # create a fleets object
 # create a fleets object, accounting a negative price to shortfin makos
 
-fleets <- list("longline" = list(
-  `Yellowfin Tuna` = list(
-    price = 100, 
-    sel_form = "logistic", 
-    sel_start = .3, 
-    sel_delta = .1, 
-    catchability = .01, 
+fleets <- list("longline" = create_fleet(list(
+  `Yellowfin Tuna` = Metier$new(
+    critter = fauna$`Yellowfin Tuna`,
+    price = 100, # price per unit weight
+    sel_form = "logistic", # selectivity form, one of logistic or dome
+    sel_start = .3, # percentage of length at maturity that selectivity starts
+    sel_delta = .1, # additional percentage of sel_start where selectivity asymptotes
+    catchability = .01, # overwritten by tune_fleet but can be set manually here
     p_explt = 1
-
     ),
-  `Shortfin Mako` = list(
-    price = 5, # fee of 5 units
+  `Shortfin Mako` = Metier$new(
+    critter = fauna$`Shortfin Mako`,
+    price = -10,
     sel_form = "logistic",
     sel_start = .1,
     sel_delta = .01,
     catchability = 0,
-    p_explt = .1
-  )
+    p_explt = 1
+  )),
+  mpa_response = "stay",
+  base_effort = resolution^2
 ))
 
-
-fleets <- create_fleet(fleets = fleets, fauna = fauna, base_effort = resolution^2) 
+a <- Sys.time()
 
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
+
+Sys.time() - a
 
 # run simulations
 
