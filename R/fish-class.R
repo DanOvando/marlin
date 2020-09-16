@@ -38,7 +38,7 @@ Fish <- R6::R6Class(
     #' @param density_dependence_form
     #' @param adult_movement
     #' @param adult_movement_sigma
-    #' @param larval_movement
+    #' @param recruit_movement
     #' @param query_fishlife
     #' @param sigma_r
     #' @param rec_ac
@@ -51,7 +51,7 @@ Fish <- R6::R6Class(
     #' @param resolution
     #' @param seasonal_habitat
     #' @param season_blocks
-    #' @param rec_habitat
+    #' @param recruit_habitat
     #' @param fished_depletion
     #' @param rec_form
     #' @param burn_years
@@ -85,7 +85,8 @@ Fish <- R6::R6Class(
                           density_dependence_form = 1,
                           adult_movement = 0,
                           adult_movement_sigma = 4,
-                          larval_movement = 2,
+                          recruit_movement = 0,
+                          recruit_movement_sigma = 10,
                           query_fishlife = T,
                           sigma_r = 0,
                           rec_ac = 0,
@@ -98,7 +99,7 @@ Fish <- R6::R6Class(
                           resolution = 25,
                           seasonal_habitat = list(),
                           season_blocks = list(),
-                          rec_habitat = NA,
+                          recruit_habitat = NA,
                           fished_depletion = 1,
                           rec_form = 1,
                           burn_years = 50,
@@ -489,14 +490,23 @@ Fish <- R6::R6Class(
       
       self$movement_seasons <- season_blocks
       
+      self$rec_move_mat <-
+        calc_move_mat(
+          recruit_habitat,
+          movement = recruit_movement,
+          movement_sigma = recruit_movement_sigma,
+          resolution = resolution,
+          time_step = time_step
+        )
+      
       
       # set up unfished recruitment by patch
-      if (is.null(dim(rec_habitat))) {
-        rec_habitat <- matrix(1, nrow = resolution, ncol = resolution)
+      if (is.null(dim(recruit_habitat))) {
+        recruit_habitat <- matrix(1, nrow = resolution, ncol = resolution)
         
       }
       
-      r0s <- rec_habitat %>%
+      r0s <- recruit_habitat %>%
         as.data.frame() %>%
         dplyr::mutate(x = 1:nrow(.)) %>%
         tidyr::pivot_longer(
@@ -576,6 +586,7 @@ Fish <- R6::R6Class(
         f_p_a = f_p_a,
         seasonal_movement = self$seasonal_movement,
         movement_seasons = self$movement_seasons,
+        rec_move_mat = self$rec_move_mat,
         last_n_p_a = init_pop,
         tune_unfished = 1,
         rec_form = rec_form
@@ -658,6 +669,7 @@ Fish <- R6::R6Class(
           ssb0_p = self$ssb0_p,
           seasonal_movement = self$seasonal_movement,
           movement_seasons = self$movement_seasons,
+          rec_move_mat = self$rec_move_mat,
           f_p_a = f_p_a,
           last_n_p_a = last_n_p_a,
           tune_unfished = tune_unfished,
