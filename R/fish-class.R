@@ -50,7 +50,7 @@ Fish <- R6::R6Class(
     #' @param linf_buffer
     #' @param resolution
     #' @param seasonal_habitat
-    #' @param habitat_seasons
+    #' @param season_blocks
     #' @param rec_habitat
     #' @param fished_depletion
     #' @param rec_form
@@ -83,8 +83,8 @@ Fish <- R6::R6Class(
                           r0 = 10000,
                           ssb0 = NA,
                           density_dependence_form = 1,
-                          adult_movement = 2,
-                          adult_movement_sigma = 2,
+                          adult_movement = 0,
+                          adult_movement_sigma = 4,
                           larval_movement = 2,
                           query_fishlife = T,
                           sigma_r = 0,
@@ -97,7 +97,7 @@ Fish <- R6::R6Class(
                           linf_buffer = 1.2,
                           resolution = 25,
                           seasonal_habitat = list(),
-                          habitat_seasons = list(),
+                          season_blocks = list(),
                           rec_habitat = NA,
                           fished_depletion = 1,
                           rec_form = 1,
@@ -120,28 +120,46 @@ Fish <- R6::R6Class(
         
       }
       
-      if (length(habitat_seasons) == 0) {
+      if (length(season_blocks) == 0) {
         
         seasons_per_habitat <- seasons / length(seasonal_habitat) # determine how many seasons to assign to each habitat block
        
-        
         tmp <- data.frame(block =  rep(seq_along(seasonal_habitat), each = seasons_per_habitat), season =  1:seasons)
         
-        habitat_seasons <- vector(mode = "list", length = length(seasonal_habitat))
+        season_blocks <- vector(mode = "list", length = length(seasonal_habitat))
         
         for (i in seq_along(seasonal_habitat)){
           
-          habitat_seasons[[i]] <- tmp$season[tmp$block == i]
+          season_blocks[[i]] <- tmp$season[tmp$block == i]
           
         }
   
       }
       
       
-      if (length(seasonal_habitat) != length(habitat_seasons)) {
-        stop("length of seasonal_habitat must equal length of habitat_seasons")
+      if (length(seasonal_habitat) != length(season_blocks)) {
+        stop("length of seasonal_habitat and movement must equal length of season_blocks")
       }
       
+      if (length(adult_movement) != length(adult_movement_sigma)) {
+        
+        stop("adult_movement and adult_movement_sigma must be the same length")
+        
+      }
+      
+      if (length(adult_movement) > 1 & length(adult_movement) != length(seasonal_habitat)){
+        stop("As of now adult movement and seasonal habitat lists but be same length")
+      }
+      
+      # if adult movement is constant, make it same shape as seasonal habitat
+      if (length(season_blocks) != length(adult_movement) & length(adult_movement) == 1) {
+        
+
+        adult_movement <- as.list(rep(adult_movement, length(seasonal_habitat)))
+        
+        adult_movement_sigma <- as.list(rep(adult_movement_sigma, length(seasonal_habitat)))
+        
+      }
       
       
       
@@ -161,15 +179,14 @@ Fish <- R6::R6Class(
           
         }
       
-
-      all_habitat_seaons <- purrr::map_dfr(habitat_seasons, ~ data.frame(season = .x))
+      all_habitat_seaons <- purrr::map_dfr(season_blocks, ~ data.frame(season = .x))
       
       if (!all(1:seasons %in% all_habitat_seaons$season)){
-        stop("all seasons must be represented in habitat_seasons")
+        stop("all seasons must be represented in season_blocks")
       }
       
-      habitat_seasons <-
-        purrr::map(habitat_seasons,
+      season_blocks <-
+        purrr::map(season_blocks,
                    season_foo,
                    time_step = time_step,
                    seasons = seasons)
@@ -460,18 +477,17 @@ Fish <- R6::R6Class(
             t(move_mat) # needs to be transposed for use in population function
           
         } # close calc_move_mat
-      
       self$seasonal_movement <-
-        purrr::map(
-          seasonal_habitat,
+        purrr::pmap(
+          list(seasonal_habitat,
+               movement = adult_movement,
+               movement_sigma = adult_movement_sigma),
           calc_move_mat,
-          movement = adult_movement,
-          movement_sigma = adult_movement_sigma,
           resolution = resolution,
           time_step = time_step
         )
       
-      self$movement_seasons <- habitat_seasons
+      self$movement_seasons <- season_blocks
       
       
       # set up unfished recruitment by patch

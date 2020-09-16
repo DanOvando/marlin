@@ -11,7 +11,7 @@
 #' @param scientific_name 
 #' @param critter_type 
 #' @param seasonal_habitat 
-#' @param habitat_seasons 
+#' @param season_blocks 
 #' @param rec_habitat 
 #' @param seasons 
 #' @param rec_form 
@@ -26,7 +26,7 @@ create_critter <- function(common_name = 'white seabass',
                            scientific_name = NA,
                            critter_type = "fish",
                            seasonal_habitat = list(),
-                           habitat_seasons = list(),
+                           season_blocks = list(),
                            rec_habitat = NA,
                            seasons = 1,
                            rec_form = 1,
@@ -47,7 +47,7 @@ create_critter <- function(common_name = 'white seabass',
         common_name = common_name,
         scientific_name = scientific_name,
         seasonal_habitat = seasonal_habitat,
-        habitat_seasons = habitat_seasons,
+        season_blocks = season_blocks,
         rec_habitat = rec_habitat,
         seasons = seasons,
         rec_form = rec_form,
