@@ -72,7 +72,7 @@ fauna <-
     "Yellowfin Tuna" = create_critter(
       scientific_name = "Thunnus albacares",
       seasonal_habitat = list(yft_habitat), # pass habitat as lists
-      rec_habitat = yft_habitat,
+      recruit_habitat = yft_habitat,
       adult_movement = 0,# the mean number of patches moved by adults
       adult_movement_sigma = 4, # standard deviation of the number of patches moved by adults
       fished_depletion = .4, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
@@ -84,7 +84,7 @@ fauna <-
     "Shortfin Mako" = create_critter(
       scientific_name = "Isurus oxyrinchus",
       seasonal_habitat = list(mako_habitat), # pass habitat as lists
-      rec_habitat = mako_habitat,
+      recruit_habitat = mako_habitat,
       adult_movement = 5,
       adult_movement_sigma = 3,
       fished_depletion = .3,
@@ -315,7 +315,7 @@ fauna <-
     "Yellowfin Tuna" = create_critter(
       scientific_name = "Thunnus albacares",
       seasonal_habitat = list(yft_habitat), # pass habitat as lists
-      rec_habitat = yft_habitat,
+      recruit_habitat = yft_habitat,
       adult_movement = 0,# the mean number of patches moved by adults
       adult_movement_sigma = 20, # standard deviation of the number of patches moved by adults
       fished_depletion = .4, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
@@ -327,7 +327,7 @@ fauna <-
     "Shortfin Mako" = create_critter(
       scientific_name = "Isurus oxyrinchus",
       seasonal_habitat = list(mako_habitat), # pass habitat as lists
-      rec_habitat = mako_habitat,
+      recruit_habitat = mako_habitat,
       adult_movement = 3,
       adult_movement_sigma = 1,
       fished_depletion = .3,
@@ -545,7 +545,7 @@ fauna <-
     "Yellowfin Tuna" = create_critter(
       scientific_name = "Thunnus albacares",
       seasonal_habitat = list(yft_habitat), 
-      rec_habitat = yft_habitat,
+      recruit_habitat = yft_habitat,
       adult_movement = 0,
       adult_movement_sigma = 4, 
       fished_depletion = .4, 
@@ -557,7 +557,7 @@ fauna <-
     "Shortfin Mako" = create_critter(
       scientific_name = "Isurus oxyrinchus",
       seasonal_habitat = list(mako_habitat), 
-      rec_habitat = mako_habitat,
+      recruit_habitat = mako_habitat,
       adult_movement = 5,
       adult_movement_sigma = 3,
       fished_depletion = .3,
@@ -691,7 +691,7 @@ fauna <-
     "Yellowfin Tuna" = create_critter(
       scientific_name = "Thunnus albacares",
       seasonal_habitat = list(yft_habitat), 
-      rec_habitat = yft_habitat,
+      recruit_habitat = yft_habitat,
       adult_movement = 0,
       adult_movement_sigma = 4, 
       fished_depletion = .4, 
@@ -703,7 +703,7 @@ fauna <-
     "Shortfin Mako" = create_critter(
       scientific_name = "Isurus oxyrinchus",
       seasonal_habitat = list(mako_habitat), 
-      rec_habitat = mako_habitat,
+      recruit_habitat = mako_habitat,
       adult_movement = 5,
       adult_movement_sigma = 3,
       fished_depletion = .3,

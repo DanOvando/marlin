@@ -38,7 +38,7 @@ Fish <- R6::R6Class(
     #' @param density_dependence_form
     #' @param adult_movement
     #' @param adult_movement_sigma
-    #' @param larval_movement
+    #' @param recruit_movement
     #' @param query_fishlife
     #' @param sigma_r
     #' @param rec_ac
@@ -50,8 +50,8 @@ Fish <- R6::R6Class(
     #' @param linf_buffer
     #' @param resolution
     #' @param seasonal_habitat
-    #' @param habitat_seasons
-    #' @param rec_habitat
+    #' @param season_blocks
+    #' @param recruit_habitat
     #' @param fished_depletion
     #' @param rec_form
     #' @param burn_years
@@ -83,9 +83,10 @@ Fish <- R6::R6Class(
                           r0 = 10000,
                           ssb0 = NA,
                           density_dependence_form = 1,
-                          adult_movement = 2,
-                          adult_movement_sigma = 2,
-                          larval_movement = 2,
+                          adult_movement = 0,
+                          adult_movement_sigma = 4,
+                          recruit_movement = 0,
+                          recruit_movement_sigma = 10,
                           query_fishlife = T,
                           sigma_r = 0,
                           rec_ac = 0,
@@ -97,8 +98,8 @@ Fish <- R6::R6Class(
                           linf_buffer = 1.2,
                           resolution = 25,
                           seasonal_habitat = list(),
-                          habitat_seasons = list(),
-                          rec_habitat = NA,
+                          season_blocks = list(),
+                          recruit_habitat = NA,
                           fished_depletion = 1,
                           rec_form = 1,
                           burn_years = 50,
@@ -120,28 +121,46 @@ Fish <- R6::R6Class(
         
       }
       
-      if (length(habitat_seasons) == 0) {
+      if (length(season_blocks) == 0) {
         
         seasons_per_habitat <- seasons / length(seasonal_habitat) # determine how many seasons to assign to each habitat block
        
-        
         tmp <- data.frame(block =  rep(seq_along(seasonal_habitat), each = seasons_per_habitat), season =  1:seasons)
         
-        habitat_seasons <- vector(mode = "list", length = length(seasonal_habitat))
+        season_blocks <- vector(mode = "list", length = length(seasonal_habitat))
         
         for (i in seq_along(seasonal_habitat)){
           
-          habitat_seasons[[i]] <- tmp$season[tmp$block == i]
+          season_blocks[[i]] <- tmp$season[tmp$block == i]
           
         }
   
       }
       
       
-      if (length(seasonal_habitat) != length(habitat_seasons)) {
-        stop("length of seasonal_habitat must equal length of habitat_seasons")
+      if (length(seasonal_habitat) != length(season_blocks)) {
+        stop("length of seasonal_habitat and movement must equal length of season_blocks")
       }
       
+      if (length(adult_movement) != length(adult_movement_sigma)) {
+        
+        stop("adult_movement and adult_movement_sigma must be the same length")
+        
+      }
+      
+      if (length(adult_movement) > 1 & length(adult_movement) != length(seasonal_habitat)){
+        stop("As of now adult movement and seasonal habitat lists but be same length")
+      }
+      
+      # if adult movement is constant, make it same shape as seasonal habitat
+      if (length(season_blocks) != length(adult_movement) & length(adult_movement) == 1) {
+        
+
+        adult_movement <- as.list(rep(adult_movement, length(seasonal_habitat)))
+        
+        adult_movement_sigma <- as.list(rep(adult_movement_sigma, length(seasonal_habitat)))
+        
+      }
       
       
       
@@ -161,15 +180,14 @@ Fish <- R6::R6Class(
           
         }
       
-
-      all_habitat_seaons <- purrr::map_dfr(habitat_seasons, ~ data.frame(season = .x))
+      all_habitat_seaons <- purrr::map_dfr(season_blocks, ~ data.frame(season = .x))
       
       if (!all(1:seasons %in% all_habitat_seaons$season)){
-        stop("all seasons must be represented in habitat_seasons")
+        stop("all seasons must be represented in season_blocks")
       }
       
-      habitat_seasons <-
-        purrr::map(habitat_seasons,
+      season_blocks <-
+        purrr::map(season_blocks,
                    season_foo,
                    time_step = time_step,
                    seasons = seasons)
@@ -460,27 +478,35 @@ Fish <- R6::R6Class(
             t(move_mat) # needs to be transposed for use in population function
           
         } # close calc_move_mat
-      
       self$seasonal_movement <-
-        purrr::map(
-          seasonal_habitat,
+        purrr::pmap(
+          list(seasonal_habitat,
+               movement = adult_movement,
+               movement_sigma = adult_movement_sigma),
           calc_move_mat,
-          movement = adult_movement,
-          movement_sigma = adult_movement_sigma,
           resolution = resolution,
           time_step = time_step
         )
       
-      self$movement_seasons <- habitat_seasons
+      self$movement_seasons <- season_blocks
+      
+      self$rec_move_mat <-
+        calc_move_mat(
+          recruit_habitat,
+          movement = recruit_movement,
+          movement_sigma = recruit_movement_sigma,
+          resolution = resolution,
+          time_step = time_step
+        )
       
       
       # set up unfished recruitment by patch
-      if (is.null(dim(rec_habitat))) {
-        rec_habitat <- matrix(1, nrow = resolution, ncol = resolution)
+      if (is.null(dim(recruit_habitat))) {
+        recruit_habitat <- matrix(1, nrow = resolution, ncol = resolution)
         
       }
       
-      r0s <- rec_habitat %>%
+      r0s <- recruit_habitat %>%
         as.data.frame() %>%
         dplyr::mutate(x = 1:nrow(.)) %>%
         tidyr::pivot_longer(
@@ -560,6 +586,7 @@ Fish <- R6::R6Class(
         f_p_a = f_p_a,
         seasonal_movement = self$seasonal_movement,
         movement_seasons = self$movement_seasons,
+        rec_move_mat = self$rec_move_mat,
         last_n_p_a = init_pop,
         tune_unfished = 1,
         rec_form = rec_form
@@ -642,6 +669,7 @@ Fish <- R6::R6Class(
           ssb0_p = self$ssb0_p,
           seasonal_movement = self$seasonal_movement,
           movement_seasons = self$movement_seasons,
+          rec_move_mat = self$rec_move_mat,
           f_p_a = f_p_a,
           last_n_p_a = last_n_p_a,
           tune_unfished = tune_unfished,

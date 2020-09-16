@@ -11,7 +11,7 @@
 #' @param scientific_name 
 #' @param critter_type 
 #' @param seasonal_habitat 
-#' @param habitat_seasons 
+#' @param season_blocks 
 #' @param rec_habitat 
 #' @param seasons 
 #' @param rec_form 
@@ -26,12 +26,14 @@ create_critter <- function(common_name = 'white seabass',
                            scientific_name = NA,
                            critter_type = "fish",
                            seasonal_habitat = list(),
-                           habitat_seasons = list(),
-                           rec_habitat = NA,
+                           season_blocks = list(),
+                           recruit_habitat = NA,
                            seasons = 1,
                            rec_form = 1,
                            adult_movement = 0, 
                            adult_movement_sigma = 2,
+                           recruit_movement = 0,
+                           recruit_movement_sigma = 10,
                            fished_depletion = 0.4,
                            init_explt = .1,
                            explt_type = "f",
@@ -47,13 +49,15 @@ create_critter <- function(common_name = 'white seabass',
         common_name = common_name,
         scientific_name = scientific_name,
         seasonal_habitat = seasonal_habitat,
-        habitat_seasons = habitat_seasons,
-        rec_habitat = rec_habitat,
+        season_blocks = season_blocks,
+        recruit_habitat = recruit_habitat,
         seasons = seasons,
         rec_form = rec_form,
         fished_depletion = fished_depletion,
         adult_movement = adult_movement,
         adult_movement_sigma = adult_movement_sigma,
+        recruit_movement = recruit_movement,
+        recruit_movement_sigma = recruit_movement_sigma,
         init_explt = init_explt,
         explt_type = explt_type,
         burn_years = burn_years

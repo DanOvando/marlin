@@ -27,6 +27,7 @@ List sim_fish(
     const NumericMatrix f_p_a, // fishing mortality by patch and age
     const List seasonal_movement,
     const List movement_seasons,
+    Eigen::MatrixXd rec_move_mat,
     Rcpp::NumericMatrix last_n_p_a, // last numbers by patch and age
     const int patches,
     const int burn_steps, // number of burn steps if burn is in effect
@@ -100,6 +101,7 @@ List sim_fish(
         f_p_a,
         seasonal_movement,
         movement_seasons,
+        rec_move_mat,
         tmp_n_p_a,
         patches,
         0,
@@ -179,20 +181,20 @@ List sim_fish(
   
     if (tune_unfished == 1){ // turn off stock recruitment relationship
 
-      if (rec_form == 0){
+      // if (rec_form == 0){
       
       // recruits = rep(r0 / patches, patches);
       
       recruits = r0s;
       
-      } else if (rec_form == 1){
+      // } else if (rec_form == 1){
         
         // recruits = rep(r0 / patches, patches);
         
-        recruits = r0s;
+        // recruits = r0s;
         
         
-      }
+      // }
       
     } else { // if stock recruitment relationship is in effect
 
@@ -205,8 +207,36 @@ List sim_fish(
         
         recruits = ((0.8 * r0s * steepness * ssb_p) / (0.2 * (ssb0_p + 1e-6) * (1 - steepness) + (steepness - 0.2) * (ssb_p + 1e-6)));
         
-      } // close recruitment ifs
-    }
+      } else if (rec_form == 2) { // local beverton-holt then disperse recruits
+        
+        recruits = ((0.8 * r0s * steepness * ssb_p) / (0.2 * (ssb0_p + 1e-6) * (1 - steepness) + (steepness - 0.2) * (ssb_p + 1e-6)));
+        
+        VectorXd tmp(as<VectorXd>(recruits));
+
+        tmp = rec_move_mat * tmp;
+
+        SEXP recruits = Rcpp::wrap(tmp); // convert from eigen to Rcpp
+
+        // Rcpp::Rcout << "hello" << std::endl;
+
+      } else if (rec_form == 3){ // disperse larvae then recruit locally per beverton-holt
+        
+        
+        VectorXd tmp2(as<VectorXd>(ssb_p));
+        // 
+        tmp2 = rec_move_mat * tmp2;
+        // 
+        SEXP wtf = Rcpp::wrap(tmp2.transpose()); // convert from eigen to Rcpp
+        
+        NumericVector huh(patches); // no idea why I have to do this
+        
+        huh = wtf;
+        
+        recruits = ((0.8 * r0s * steepness * huh) / (0.2 * (ssb0_p + 1e-6) * (1 - steepness) + (steepness - 0.2) * (huh + 1e-6)));
+        
+      }
+        
+    }   // close recruitment ifs
     
     // assign recruits
     n_p_a(_,0) = recruits;
