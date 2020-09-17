@@ -67,7 +67,7 @@ Metier <- R6::R6Class("metier",
                       
                       if (all(is.na(spatial_catchability))){
                         
-                        self$spatial_catchability <- rep(1, critter$patches)
+                        self$spatial_catchability <- rep(catchability, critter$patches) 
                         
                         
                       } else {
@@ -78,6 +78,11 @@ Metier <- R6::R6Class("metier",
                             )
                           )
                         } #close dim check
+                        
+                        if (any(spatial_catchability < 0)){
+                          spatial_catchability <- spatial_catchability - min(spatial_catchability)
+                          
+                        }
                         
                         tmp <- spatial_catchability %>%
                           as.data.frame() %>%
@@ -90,7 +95,7 @@ Metier <- R6::R6Class("metier",
                           ) %>%
                           dplyr::mutate(catchability = catchability / mean(catchability))
                         
-                        self$spatial_catchability <- tmp$catchability * catchability
+                        self$spatial_catchability <- pmin(1,tmp$catchability * catchability)
                         
                       } # close deal with spatial q
                   } # close initialize

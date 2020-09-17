@@ -60,7 +60,17 @@ tune_fleets <- function(fauna,
       for (f in fleeti) {
         fleets[[f]]$metiers[[s]]$catchability <- catchability[f]
         
-        fleets[[f]]$metiers[[s]]$spatial_catchability <-     fleets[[f]]$metiers[[s]]$spatial_catchability  / mean(fleets[[f]]$metiers[[s]]$spatial_catchability) * catchability[f]
+        mean_q <- mean(fleets[[f]]$metiers[[s]]$spatial_catchability)
+        
+        mean_q <- ifelse(mean_q == 0, 1e-9, mean_q)
+        
+        if (all(fleets[[f]]$metiers[[s]]$spatial_catchability == 0)) {
+          # annoying step: if q = 0 from earlier, then this will be a matrix of zeros and can't get updated
+          fleets[[f]]$metiers[[s]]$spatial_catchability <-
+            rep(1, length(fleets[[f]]$metiers[[s]]$spatial_catchability))
+        }
+        
+        fleets[[f]]$metiers[[s]]$spatial_catchability <-     pmin(1,(fleets[[f]]$metiers[[s]]$spatial_catchability  / mean_q) * catchability[f])
         
       } # close internal fleet loop
       
@@ -106,7 +116,17 @@ tune_fleets <- function(fauna,
       for (ff in seq_along(fauna)) {
         fleets[[f]]$metiers[[ff]]$catchability <- qs$par[cc]
         
-        fleets[[f]]$metiers[[ff]]$spatial_catchability <-     fleets[[f]]$metiers[[ff]]$spatial_catchability  / mean(fleets[[f]]$metiers[[ff]]$spatial_catchability) * qs$par[cc]
+        mean_q <- mean(fleets[[f]]$metiers[[ff]]$spatial_catchability)
+        
+        mean_q <- ifelse(mean_q == 0, 1e-9, mean_q)
+        
+        if (all(fleets[[f]]$metiers[[ff]]$spatial_catchability == 0)) {
+          # annoying step: if q = 0 from earlier, then this will be a matrix of zeros and can't get updated
+          fleets[[f]]$metiers[[ff]]$spatial_catchability <-
+            rep(1, length(fleets[[f]]$metiers[[ff]]$spatial_catchability))
+        }
+        
+        fleets[[f]]$metiers[[ff]]$spatial_catchability <-     pmin(1, fleets[[f]]$metiers[[ff]]$spatial_catchability  / mean_q * qs$par[cc])
         cc <- cc + 1
       } # close internal fauna loop
       

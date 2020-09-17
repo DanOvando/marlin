@@ -101,14 +101,32 @@ simmar <- function(fauna = list(),
         }
         
         # calculate fishable biomass in each patch for each species for that fleet
-        tmp <-
-          matrix((1 - exp(
-            -(fleets[[l]]$metiers[[fauni[f]]]$catchability * fleets[[l]]$metiers[[fauni[f]]]$sel_at_age)
-          )),
-          nrow = nrow(last_b_p_a),
-          ncol = ncol(last_b_p_a),
-          byrow = TRUE
-          )
+        
+        # tmp <-
+        #   matrix((1 - exp(
+        #     -(fleets[[l]]$metiers[[fauni[f]]]$catchability * fleets[[l]]$metiers[[fauni[f]]]$sel_at_age)
+        #   )),
+        #   nrow = nrow(last_b_p_a),
+        #   ncol = ncol(last_b_p_a),
+        #   byrow = TRUE
+        #   )
+        
+        
+        # account for spatial catchability
+        tmp = 1 - exp(-(
+          matrix(
+            fleets[[l]]$metiers[[fauni[f]]]$spatial_catchability,
+            nrow = nrow(last_b_p_a),
+            ncol = ncol(last_b_p_a),
+            byrow = TRUE
+          ) *
+            matrix(
+              fleets[[l]]$metiers[[fauni[f]]]$sel_at_age,
+              nrow = nrow(last_b_p_a),
+              ncol = ncol(last_b_p_a),
+              byrow = TRUE
+            )
+        ))
         
         last_b_p <- rowSums(last_b_p_a * tmp) * fishable
         
@@ -139,23 +157,29 @@ simmar <- function(fauna = list(),
       
       
       for (l in seq_along(fleet_names)) {
-        f_p_a <-
-          f_p_a + fleets[[l]]$e_p_s[, s] * matrix(rep(fleets[[l]]$metiers[[fauni[f]]]$catchability * fleets[[l]]$metiers[[fauni[f]]]$sel_at_age),
-                                                  patches,
-                                                  ages,
-                                                  byrow = TRUE)
+       
+        tmp = 
+          matrix(
+            fleets[[l]]$metiers[[fauni[f]]]$spatial_catchability,
+            nrow = nrow(last_n_p_a),
+            ncol = ncol(last_n_p_a),
+            byrow = TRUE
+          ) *
+            matrix(
+              fleets[[l]]$metiers[[fauni[f]]]$sel_at_age,
+              nrow = nrow(last_n_p_a),
+              ncol = ncol(last_n_p_a),
+              byrow = TRUE
+            )
+         f_p_a <-
+          f_p_a + fleets[[l]]$e_p_s[, s] * tmp
         
         f_p_a_fl[, , l] <-
-          fleets[[l]]$e_p_s[, s] * matrix(rep(fleets[[l]]$metiers[[fauni[f]]]$catchability * fleets[[l]]$metiers[[fauni[f]]]$sel_at_age),
-                                          patches,
-                                          ages,
-                                          byrow = TRUE)
+          fleets[[l]]$e_p_s[, s] * tmp
       } # calculate cumulative f at age by patch
       # you can build a series of if statements here to sub in the correct species module
-      
       f_p_a_fl <-
         f_p_a_fl / array(f_p_a, dim = c(patches, ages, length(fleets))) # f by patch, age, and fleet
-      
       # season <- (season / self$seasons) - self$time_step
       
       pop <-

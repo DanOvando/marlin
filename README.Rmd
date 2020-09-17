@@ -145,7 +145,6 @@ Sys.time() - a
 # species for that fleet
 # sel_form can be one of logistic or dome
 
-# XX Bbroken through here XX
 
 fleets <- list(
   "longline" = create_fleet(
@@ -481,7 +480,7 @@ skipjack_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
 
 
 skipjack_q <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  dplyr::mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 2, 200)) %>% 
+  dplyr::mutate(habitat = rlnorm(resolution^2)) %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
   select(-x) %>% 
   as.matrix()
