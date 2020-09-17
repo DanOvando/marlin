@@ -24,6 +24,8 @@ fleet_tuner <- function(qs,fauna, fleets, years = 50){
       
       fleets[[f]]$metiers[[ff]]$catchability <- qs[cc]
       
+      fleets[[f]]$metiers[[ff]]$spatial_catchability <- fleets[[f]]$metiers[[ff]]$spatial_catchability  / mean(fleets[[f]]$metiers[[ff]]$spatial_catchability) * qs[cc]
+      
       cc <- cc + 1
     }
     

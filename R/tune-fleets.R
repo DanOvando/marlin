@@ -60,6 +60,8 @@ tune_fleets <- function(fauna,
       for (f in fleeti) {
         fleets[[f]]$metiers[[s]]$catchability <- catchability[f]
         
+        fleets[[f]]$metiers[[s]]$spatial_catchability <-     fleets[[f]]$metiers[[s]]$spatial_catchability  / mean(fleets[[f]]$metiers[[s]]$spatial_catchability) * catchability[f]
+        
       } # close internal fleet loop
       
     } # close fauna loop
@@ -104,6 +106,7 @@ tune_fleets <- function(fauna,
       for (ff in seq_along(fauna)) {
         fleets[[f]]$metiers[[ff]]$catchability <- qs$par[cc]
         
+        fleets[[f]]$metiers[[ff]]$spatial_catchability <-     fleets[[f]]$metiers[[ff]]$spatial_catchability  / mean(fleets[[f]]$metiers[[ff]]$spatial_catchability) * qs$par[cc]
         cc <- cc + 1
       } # close internal fauna loop
       
