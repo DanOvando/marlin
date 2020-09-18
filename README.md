@@ -88,12 +88,12 @@ unfished conditions
 ``` r
 library(marlin)
 library(tidyverse)
-#> ── Attaching packages ────────
+#> ── Attaching packages ─────────────────────────────────────────────────────────────────── tidyverse 1.3.0 ──
 #> ✓ ggplot2 3.3.2     ✓ purrr   0.3.4
 #> ✓ tibble  3.0.3     ✓ dplyr   1.0.1
 #> ✓ tidyr   1.1.1     ✓ stringr 1.4.0
 #> ✓ readr   1.3.1     ✓ forcats 0.5.0
-#> ── Conflicts ─────────────────
+#> ── Conflicts ────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
 #> x dplyr::filter() masks stats::filter()
 #> x dplyr::lag()    masks stats::lag()
 options(dplyr.summarise.inform = FALSE)
@@ -181,14 +181,13 @@ fauna <-
 #> ● Found: 1 
 #> ● Not Found: 0
 Sys.time() - a
-#> Time difference of 12.72633 secs
+#> Time difference of 9.439568 secs
 
 # create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
 # with lists for each species inside there. Price specifies the price per unit weight of that 
 # species for that fleet
 # sel_form can be one of logistic or dome
 
-# XX Bbroken through here XX
 
 fleets <- list(
   "longline" = create_fleet(
@@ -247,7 +246,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets) 
 
 Sys.time() - a
-#> Time difference of 8.450865 secs
+#> Time difference of 8.900976 secs
 
 
 
@@ -262,7 +261,7 @@ storage <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 2.961298 secs
+#> Time difference of 3.271238 secs
   
 
 # process results, will write some wrappers to automate this
@@ -335,7 +334,7 @@ mpa_storage <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 3.139336 secs
+#> Time difference of 3.096233 secs
 
 ssb_skj <- rowSums(mpa_storage[[steps]]$skipjack$ssb_p_a)
 
@@ -428,11 +427,6 @@ plot(skj_trajectory)
 
 <img src="man/figures/README-unnamed-chunk-2-8.png" width="100%" />
 
-Ah interesting, so need to think through the movement a bit more: the
-problem is that movement is effectively 0 for the really good habitats:
-critters stay put once they get there. Is that so bad? Problem is that
-it doesn’t really allow for spillover.
-
 # Other Examples
 
 ## Seasonal adult movement and different forms of density dependence
@@ -492,7 +486,7 @@ fauna <-
 #> ● Found: 1 
 #> ● Not Found: 0
 Sys.time() - a
-#> Time difference of 4.742096 secs
+#> Time difference of 3.758649 secs
 
 
 fleets <- list(
@@ -521,7 +515,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets) 
 
 Sys.time() - a
-#> Time difference of 2.746505 secs
+#> Time difference of 2.490647 secs
 
 
 
@@ -536,7 +530,7 @@ storage <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 1.056538 secs
+#> Time difference of 0.9310691 secs
 
 # storage[[1]]$skipjack$n_p_a %>% View()
 # process results, will write some wrappers to automate this
@@ -585,7 +579,7 @@ skipjack_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
 
 
 skipjack_q <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  dplyr::mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 2, 200)) %>% 
+  dplyr::mutate(habitat = rlnorm(resolution^2)) %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
   select(-x) %>% 
   as.matrix()
@@ -624,7 +618,7 @@ fauna <-
 #> ● Found: 1 
 #> ● Not Found: 0
 Sys.time() - a
-#> Time difference of 5.461048 secs
+#> Time difference of 3.19205 secs
 
 
 fleets <- list(
@@ -654,7 +648,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets) 
 
 Sys.time() - a
-#> Time difference of 2.645549 secs
+#> Time difference of 2.324962 secs
 
 
 
@@ -669,10 +663,8 @@ storage <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 1.069403 secs
+#> Time difference of 0.941124 secs
 
-# storage[[1]]$skipjack$n_p_a %>% View()
-# process results, will write some wrappers to automate this
 ssb_skj <- rowSums(storage[[steps]]$skipjack$ssb_p_a)
 
 check <- expand_grid(x = 1:resolution, y = 1:resolution) %>%

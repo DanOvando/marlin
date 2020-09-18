@@ -517,7 +517,6 @@ compare_scenarios %>%
 Another scenario includes being able to appropriately account for the costs (fines) associated with catching vulnerable species. We will begin by resetting the habitat preferences and species information to those used in the first example.
 
 ```{r}
-# define some parameters
 years <- 100
 
 tune_type <- "explt"
@@ -529,7 +528,7 @@ yft_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
   pivot_wider(names_from = y, values_from = habitat) %>% 
   select(-x) %>% 
   as.matrix()
- 
+
 
 mako_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
   mutate(habitat =  dnorm(x,15,5)) %>% 
@@ -553,7 +552,7 @@ fauna <-
       seasons = seasons,
       init_explt = 0.12, 
       explt_type = "f"
-      ),
+    ),
     "Shortfin Mako" = create_critter(
       scientific_name = "Isurus oxyrinchus",
       seasonal_habitat = list(mako_habitat), 
@@ -580,10 +579,10 @@ fleets <- list("longline" = create_fleet(list(
     sel_delta = .1, # additional percentage of sel_start where selectivity asymptotes
     catchability = .01, # overwritten by tune_fleet but can be set manually here
     p_explt = 1
-    ),
+  ),
   `Shortfin Mako` = Metier$new(
     critter = fauna$`Shortfin Mako`,
-    price = -10,
+    price = -20,
     sel_form = "logistic",
     sel_start = .1,
     sel_delta = .01,
@@ -600,14 +599,12 @@ fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchabi
 
 Sys.time() - a
 
-fleets <- tune_fleets(fauna, fleets, tune_type = tune_type)
-
 # run simulations
 
 # run the simulation using marlin::simmar
 negative_prices <- simmar(fauna = fauna,
-                  fleets = fleets,
-                  years = years)
+                          fleets = fleets,
+                          years = years)
 
 proc_negative_prices <- process_marlin(negative_prices, time_step =  fauna[[1]]$time_step)
 ```

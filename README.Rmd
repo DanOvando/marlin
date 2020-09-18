@@ -338,8 +338,6 @@ plot(skj_trajectory)
 
 
 
-Ah interesting, so need to think through the movement a bit more: the problem is that movement is effectively 0 for the really good habitats: critters stay put once they get there. Is that so bad? Problem is that it doesn't really allow for spillover. 
-
 # Other Examples
 
 ## Seasonal adult movement and different forms of density dependence 
@@ -554,8 +552,6 @@ storage <- simmar(fauna = fauna,
 
 Sys.time() - a
 
-# storage[[1]]$skipjack$n_p_a %>% View()
-# process results, will write some wrappers to automate this
 ssb_skj <- rowSums(storage[[steps]]$skipjack$ssb_p_a)
 
 check <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
