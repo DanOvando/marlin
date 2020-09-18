@@ -4,14 +4,14 @@
 \alias{create_fleet}
 \title{Create Fleet}
 \usage{
-create_fleet(fleets, fauna, base_effort = 0)
+create_fleet(metiers, base_effort = 0, mpa_response = "stay")
 }
 \arguments{
+\item{base_effort}{}
+
 \item{fleets}{}
 
 \item{fauna}{}
-
-\item{base_effort}{}
 }
 \value{
 

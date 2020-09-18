@@ -2,16 +2,6 @@
 output: github_document
 ---
 
-A list of movement matrices
-
-A list specifying which seasons each movement matrix applies to
-
-assume that if there's only one, it's static
-
-sub in the correct movement matrix inside simmar.R
-
-create spawning habitat that can move everyone to spawning habitat in a time step if needed
-
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 ```{r, include = FALSE}

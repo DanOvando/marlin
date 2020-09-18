@@ -66,7 +66,8 @@ process_marlin <- function(sim,
   }
   
   tidy_sim <-  purrr::imap_dfr(sim, ~ stepper(.x), .id = "step") %>%
-    mutate(step = as.integer(step) * time_step)
+    mutate(step = as.integer(step) * time_step,
+           year = as.integer(step))
   
   
 }

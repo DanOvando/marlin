@@ -1,15 +1,4 @@
 
-A list of movement matrices
-
-A list specifying which seasons each movement matrix applies to
-
-assume that if there’s only one, it’s static
-
-sub in the correct movement matrix inside simmar.R
-
-create spawning habitat that can move everyone to spawning habitat in a
-time step if needed
-
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 # marlin
@@ -88,12 +77,12 @@ unfished conditions
 ``` r
 library(marlin)
 library(tidyverse)
-#> ── Attaching packages ─────────────────────────────────────────────────────────────────── tidyverse 1.3.0 ──
+#> ── Attaching packages ────────────────── tidyverse 1.3.0 ──
 #> ✓ ggplot2 3.3.2     ✓ purrr   0.3.4
 #> ✓ tibble  3.0.3     ✓ dplyr   1.0.1
 #> ✓ tidyr   1.1.1     ✓ stringr 1.4.0
 #> ✓ readr   1.3.1     ✓ forcats 0.5.0
-#> ── Conflicts ────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
+#> ── Conflicts ───────────────────── tidyverse_conflicts() ──
 #> x dplyr::filter() masks stats::filter()
 #> x dplyr::lag()    masks stats::lag()
 options(dplyr.summarise.inform = FALSE)
@@ -181,7 +170,7 @@ fauna <-
 #> ● Found: 1 
 #> ● Not Found: 0
 Sys.time() - a
-#> Time difference of 9.439568 secs
+#> Time difference of 8.763404 secs
 
 # create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
 # with lists for each species inside there. Price specifies the price per unit weight of that 
@@ -246,7 +235,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets) 
 
 Sys.time() - a
-#> Time difference of 8.900976 secs
+#> Time difference of 8.00046 secs
 
 
 
@@ -261,7 +250,7 @@ storage <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 3.271238 secs
+#> Time difference of 2.963687 secs
   
 
 # process results, will write some wrappers to automate this
@@ -334,7 +323,7 @@ mpa_storage <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 3.096233 secs
+#> Time difference of 2.802751 secs
 
 ssb_skj <- rowSums(mpa_storage[[steps]]$skipjack$ssb_p_a)
 
@@ -486,7 +475,7 @@ fauna <-
 #> ● Found: 1 
 #> ● Not Found: 0
 Sys.time() - a
-#> Time difference of 3.758649 secs
+#> Time difference of 2.579019 secs
 
 
 fleets <- list(
@@ -515,7 +504,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets) 
 
 Sys.time() - a
-#> Time difference of 2.490647 secs
+#> Time difference of 2.270182 secs
 
 
 
@@ -530,7 +519,7 @@ storage <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.9310691 secs
+#> Time difference of 0.8444469 secs
 
 # storage[[1]]$skipjack$n_p_a %>% View()
 # process results, will write some wrappers to automate this
@@ -618,7 +607,7 @@ fauna <-
 #> ● Found: 1 
 #> ● Not Found: 0
 Sys.time() - a
-#> Time difference of 3.19205 secs
+#> Time difference of 2.683213 secs
 
 
 fleets <- list(
@@ -648,7 +637,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets) 
 
 Sys.time() - a
-#> Time difference of 2.324962 secs
+#> Time difference of 2.047292 secs
 
 
 
@@ -663,7 +652,7 @@ storage <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.941124 secs
+#> Time difference of 0.8226402 secs
 
 ssb_skj <- rowSums(storage[[steps]]$skipjack$ssb_p_a)
 

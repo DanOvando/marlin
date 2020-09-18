@@ -480,6 +480,43 @@ offshore_mpa_ssb %>%
 
 
 
+```{r}
+
+
+plot_marlin(
+  `MPA: Sharks Offshore` = proc_offshore_mpa,
+  `No MPA` = proc_nearshore,
+  `MPA: Sharks Nearshore` = proc_nearshore_mpa,
+  steps_to_plot = NA,
+  plot_var = "b"
+)
+
+```
+
+```{r}
+plot_marlin(
+  `MPA: Sharks Offshore` = proc_offshore_mpa,
+  `No MPA` = proc_nearshore,
+  `MPA: Sharks Nearshore` = proc_nearshore_mpa,
+  plot_var = "b",
+  plot_type = "space",
+  steps_to_plot = c(1,25,50))
+```
+
+```{r}
+
+plot_marlin(
+  `MPA: Sharks Offshore` = proc_offshore_mpa,
+  `No MPA` = proc_nearshore,
+  `MPA: Sharks Nearshore` = proc_nearshore_mpa,
+  plot_var = "n",
+  plot_type = "length",
+  fauna = fauna,
+  steps_to_plot = c(1,25,50))
+
+```
+
+
 
 
 ```{r}

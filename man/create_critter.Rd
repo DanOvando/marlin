@@ -9,12 +9,14 @@ create_critter(
   scientific_name = NA,
   critter_type = "fish",
   seasonal_habitat = list(),
-  habitat_seasons = list(),
-  rec_habitat = NA,
+  season_blocks = list(),
+  recruit_habitat = NA,
   seasons = 1,
   rec_form = 1,
   adult_movement = 0,
   adult_movement_sigma = 2,
+  recruit_movement = 0,
+  recruit_movement_sigma = 10,
   fished_depletion = 0.4,
   init_explt = 0.1,
   explt_type = "f",
@@ -31,9 +33,7 @@ create_critter(
 
 \item{seasonal_habitat}{}
 
-\item{habitat_seasons}{}
-
-\item{rec_habitat}{}
+\item{season_blocks}{}
 
 \item{seasons}{}
 
@@ -50,6 +50,8 @@ create_critter(
 \item{explt_type}{f or fmsy}
 
 \item{...}{}
+
+\item{rec_habitat}{}
 }
 \description{
 Creates a critter object. If only a scientific name is provided
