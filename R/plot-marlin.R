@@ -85,7 +85,8 @@ plot_marlin <- function(...,
       name = "Fit",
       values = marlin::marlin_pal(palette = "diverging_fish")(n_distinct(fit_frame$fit))
     ) +
-    ggplot2::theme(legend.position = "top")
+    marlin::theme_marlin() +
+    ggplot2::theme(legend.position = "top") 
   
   } else if (plot_type == "length"){
     
@@ -165,7 +166,8 @@ out <- tmp %>%
   ggplot2::scale_fill_manual(
     name = "Fit",
     values = marlin::marlin_pal(palette = "diverging_fish")(n_distinct(fit_frame$fit))
-  ) 
+  ) + 
+  marlin::theme_marlin()
     
   } else if (plot_type == "age"){
     
@@ -199,6 +201,7 @@ out <- tmp %>%
       ggplot2::scale_x_continuous(expand = c(0,0)) + 
       ggplot2::scale_y_continuous(expand = c(0,0)) +
       ggplot2::facet_grid( critter ~ fit) +
+      marlin::theme_marlin() + 
       ggplot2::theme(legend.position = "top")
     
     

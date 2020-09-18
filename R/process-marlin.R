@@ -33,7 +33,7 @@ process_marlin <- function(sim,
     
     
     tidy_marlin <- function(y, z) {
-      pop <- y[c("n_p_a", "b_p_a", "ssb_p_a")]
+      pop <- y[c("n_p_a", "b_p_a", "ssb_p_a","c_p_a")]
       
       # create coordinates for each location
       tmp <-
