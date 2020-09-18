@@ -15,6 +15,7 @@ Metier <- R6::R6Class("metier",
                                         sel_start = 1, 
                                         sel_delta = .1,
                                         catchability = 0.01,
+                                        spatial_catchability = NA,
                                         p_explt = 1) {
                     
                       self$price <- price
@@ -64,6 +65,39 @@ Metier <- R6::R6Class("metier",
                         
                       } # close dome shaped
                       
+                      if (all(is.na(spatial_catchability))){
+                        
+                        self$spatial_catchability <- rep(catchability, critter$patches) 
+                        
+                        
+                      } else {
+                        if (unique(dim(spatial_catchability)) != sqrt(critter$patches)) {
+                          stop(
+                            glue::glue(
+                              "spatial_catchability must either be NA or a {sqrt(critter$patches}) by {sqrt(critter$patches)} matrix"
+                            )
+                          )
+                        } #close dim check
+                        
+                        if (any(spatial_catchability < 0)){
+                          spatial_catchability <- spatial_catchability - min(spatial_catchability)
+                          
+                        }
+                        
+                        tmp <- spatial_catchability %>%
+                          as.data.frame() %>%
+                          dplyr::mutate(x = 1:nrow(.)) %>%
+                          tidyr::pivot_longer(
+                            -x,
+                            names_to = "y",
+                            values_to = "catchability",
+                            names_prefix = "V"
+                          ) %>%
+                          dplyr::mutate(catchability = catchability / mean(catchability))
+                        
+                        self$spatial_catchability <- pmin(1,tmp$catchability * catchability)
+                        
+                      } # close deal with spatial q
                   } # close initialize
                 ) # close public
 ) # close class

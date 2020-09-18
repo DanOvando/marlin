@@ -24,6 +24,19 @@ fleet_tuner <- function(qs,fauna, fleets, years = 50){
       
       fleets[[f]]$metiers[[ff]]$catchability <- qs[cc]
       
+
+      if (all(fleets[[f]]$metiers[[ff]]$spatial_catchability == 0)) {
+        # annoying step: if q = 0 from earlier, then this will be a matrix of zeros and can't get updated
+        fleets[[f]]$metiers[[ff]]$spatial_catchability <-
+          rep(1, length(fleets[[f]]$metiers[[ff]]$spatial_catchability))
+      }
+      
+      mean_q <- mean(fleets[[f]]$metiers[[ff]]$spatial_catchability)
+      
+      mean_q <- ifelse(mean_q == 0, 1e-9, mean_q)
+      
+      fleets[[f]]$metiers[[ff]]$spatial_catchability <- pmin(1,fleets[[f]]$metiers[[ff]]$spatial_catchability  / mean_q * qs[cc])
+      
       cc <- cc + 1
     }
     
