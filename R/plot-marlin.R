@@ -28,7 +28,9 @@ plot_marlin <- function(...,
                         plot_var = "ssb",
                         plot_type = "time",
                         fauna = NULL,
-                        drop_recruits = TRUE) {
+                        drop_recruits = TRUE,
+                        plots = "fauna") {
+  
   fit_names <-
     names(list(...)) # allows users to pass and plot arbitrary numbers of objects from `process_marlin`
   if (is.null(fit_names)) {
@@ -50,6 +52,12 @@ plot_marlin <- function(...,
   # fits <- list(proc_nearshore)  %>%
   #   purrr::set_names(fit_names)
   #
+
+if (plots == "fauna"){
+  
+  fits <- purrr::map(fits, "fauna")
+  
+}
   
   fit_frame <- dplyr::tibble(fit = fit_names,
                              temp = fits) %>%

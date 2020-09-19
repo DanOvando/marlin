@@ -49,12 +49,14 @@ From there...
 - On Windows, make sure you have the appropriate version of Rtools installed ([here](https://cran.r-project.org/bin/windows/Rtools/)), most likely Rtools35 if you have R version 3.3 or higher
   - Make sure that you select the box that says something about adding Rtools to the PATH variable
 
-- On macOS, there might be some issues with the your compiler, particularly if your versino of R is less than 4.0.0.
+- On macOS, there might be some issues with the your compiler, particularly if your version of R is less than 4.0.0.
 
 If you get an error that says something like `clang: error: unsupported option '-fopenmp'`, follow the instructions [here](https://thecoatlessprofessor.com/programming/cpp/r-compiler-tools-for-rcpp-on-macos-before-r-4.0.0/)
 
 Once you've tried those, restart your computer and try running
 
+
+ Below are a bunch of examples showing what `marlin` can do
 ## Simple Example
 
 Let's start with a simple one-fleet one-critter example to illustrate the various options in `marlin`
@@ -475,7 +477,9 @@ fauna <-
       burn_years = 200,
       seasons = seasons,
       init_explt = .12, 
-      explt_type = "f"
+      explt_type = "f",
+      fec_form = "linear",
+      weight_a = 2 # average two offspring per shark
     )
   )
 
@@ -611,7 +615,9 @@ fauna <-
       burn_years = 200,
             seasons = seasons,
             init_explt = .12, 
-      explt_type = "f"
+      explt_type = "f",
+          fec_form = "linear",
+      weight_a = 2
     )
   )
 
