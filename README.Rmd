@@ -55,8 +55,8 @@ If you get an error that says something like `clang: error: unsupported option '
 
 Once you've tried those, restart your computer and try running
 
+Below are a bunch of examples showing what `marlin` can do
 
- Below are a bunch of examples showing what `marlin` can do
 ## Simple Example
 
 Let's start with a simple one-fleet one-critter example to illustrate the various options in `marlin`
