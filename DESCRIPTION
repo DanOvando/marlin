@@ -33,7 +33,8 @@ Imports:
     dplyr,
     magrittr,
     tidyr,
-    R6
+    R6,
+    reshape
 Remotes: 
     james-thorson/FishLife
 VignetteBuilder: knitr
