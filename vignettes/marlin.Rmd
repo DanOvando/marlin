@@ -92,7 +92,9 @@ fauna <-
       burn_years = 200,
       seasons = seasons,
       init_explt = .12, 
-      explt_type = "f"
+      explt_type = "f",
+      fec_form = "linear",
+      weight_a = 2
     )
   )
 
@@ -488,7 +490,7 @@ plot_marlin(
   `No MPA` = proc_nearshore,
   `MPA: Sharks Nearshore` = proc_nearshore_mpa,
   steps_to_plot = NA,
-  plot_var = "b"
+  plot_var = "c"
 )
 
 ```

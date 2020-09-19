@@ -33,7 +33,7 @@ process_marlin <- function(sim,
     
     
     tidy_marlin <- function(y, z) {
-      pop <- y[c("n_p_a", "b_p_a", "ssb_p_a")]
+      pop <- y[c("n_p_a", "b_p_a", "ssb_p_a","c_p_a")]
       
       # create coordinates for each location
       tmp <-
@@ -55,8 +55,9 @@ process_marlin <- function(sim,
         dplyr::mutate(metric = gsub("_p_a", "", metric),
                       critter = z) %>%
         tidyr::pivot_wider(names_from = metric, values_from = value) %>%  # spread out metrics
-        dplyr::select(critter, dplyr::everything())
-      
+        dplyr::select(critter, dplyr::everything()) %>% 
+        dplyr::mutate(age =  rep(fauna[[z]]$ages, n_distinct(.$patch)))
+
       return(tmp)
       
     }
@@ -65,9 +66,56 @@ process_marlin <- function(sim,
     
   }
   
+
   tidy_sim <-  purrr::imap_dfr(sim, ~ stepper(.x), .id = "step") %>%
     mutate(step = as.integer(step) * time_step,
-           year = as.integer(step))
+           year = floor(as.integer(step) * time_step))
+  
+  # process fleets
+  # ok this is the concept, but you need to wrap this in a map function to tidy by species
   
   
+  fleet_stepper <- function(tmp) {
+  
+  get_fleet <- function(x,z) {
+  # 
+  # tidy_catch <-  reshape::melt(sim[[1]]$bigeye$c_p_a_fl) %>%
+  #   purrr::set_names("patch","age","fleet","catch")
+  # 
+  tidy_catch <-  reshape::melt(x$c_p_a_fl) %>%
+    purrr::set_names("patch","age","fleet","catch")
+  
+
+  coords <- tidyr::expand_grid(x = 1:sqrt(max(tidy_catch$patch)), y = 1:sqrt(max(tidy_catch$patch))) %>%
+    dplyr::mutate(patch = 1:nrow(.))
+
+  tidy_catch <- tidy_catch %>%
+    left_join(coords, by = "patch")
+
+  tidy_effort <- x$e_p_fl %>% 
+    purrr::set_names( paste0(colnames(.), "_effort")) %>% 
+    dplyr::mutate(patch = 1:nrow(.))
+  
+  tidy_fleet <- tidy_catch %>% 
+    dplyr::left_join(tidy_effort, by = "patch") %>% 
+    dplyr::mutate(critter = z)
+
+  }
+
+  # tmp <- sim[[1]]
+  
+  step_fleet <- purrr::imap_dfr(tmp,get_fleet)
+  
+  
+  }
+  
+  tidy_sim_fleet <-  purrr::imap_dfr(sim, ~ fleet_stepper(.x), .id = "step") %>%
+    dplyr::mutate(step = as.integer(step) * time_step,
+           year = floor(as.integer(step) * time_step))
+  
+  out <- list(fauna = tidy_sim,
+              fleets = tidy_sim_fleet)
+
+  return(out)
+
 }

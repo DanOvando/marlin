@@ -71,6 +71,7 @@ Fish <- R6::R6Class(
                           weight_a = NA,
                           weight_b = NA,
                           weight_units = 'kg',
+                          fec_form = "power",
                           length_50_mature = NA,
                           length_95_mature = NA,
                           delta_mature = .1,
@@ -328,16 +329,20 @@ Fish <- R6::R6Class(
         
       } #close fishlife query
       
+      ages <- seq(min_age, max_age, by = time_step)
+      
+      self$ages <- ages
+      
       length_at_age <-
-        linf * (1 - exp(-vbk * (seq(
-          min_age, max_age, by = time_step
-        ) - t0)))
+        linf * (1 - exp(-vbk * (ages - t0)))
       
       # process weight
       
       weight_at_age <-
         weight_a * length_at_age ^ weight_b
       
+  
+    
       lmat_to_linf_ratio <- length_mature / linf
       
       m_at_age <-
@@ -373,7 +378,7 @@ Fish <- R6::R6Class(
         maturity_at_age <-
           ((1 / (1 + exp(-log(
             19
-          ) * ((seq(min_age, max_age, by = time_step) - age_50_mature) / (age_95_mature - age_50_mature)
+          ) * ((ages - age_50_mature) / (age_95_mature - age_50_mature)
           )))))
         
       } else if (is.na(age_mature) |
@@ -394,7 +399,7 @@ Fish <- R6::R6Class(
           (as.matrix(length_at_age_key) %*% mat_at_bin)
         
         mat_at_age <-
-          dplyr::tibble(age = seq(min_age, max_age, by = time_step),
+          dplyr::tibble(age = ages,
                         mean_mat_at_age = p_mat_at_age)
         
         age_mature <-
@@ -416,6 +421,14 @@ Fish <- R6::R6Class(
         length_95_mature <-
           length_50_mature + delta_mature
         
+      }
+      
+      if (fec_form == "linear"){
+        
+        weight_b <-  1
+        
+        weight_a <- weight_a * 1 / mean(weight_at_age * maturity_at_age)
+                                      
       }
       
       self$maturity_at_age <- maturity_at_age

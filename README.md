@@ -61,7 +61,7 @@ From there…
       - Make sure that you select the box that says something about
         adding Rtools to the PATH variable
   - On macOS, there might be some issues with the your compiler,
-    particularly if your versino of R is less than 4.0.0.
+    particularly if your version of R is less than 4.0.0.
 
 If you get an error that says something like `clang: error: unsupported
 option '-fopenmp'`, follow the instructions
@@ -69,31 +69,290 @@ option '-fopenmp'`, follow the instructions
 
 Once you’ve tried those, restart your computer and try running
 
-## Example
+Below are a bunch of examples showing what `marlin` can do \#\# Simple
+Example
 
-Create two critters, skipjack tuna and bigeye tuna, and simulate their
-unfished conditions
+Let’s start with a simple one-fleet one-critter example to illustrate
+the various options in `marlin`
 
 ``` r
 library(marlin)
 library(tidyverse)
-#> ── Attaching packages ────────────────── tidyverse 1.3.0 ──
+#> ── Attaching packages ────────────────────────────────────────────────────────────────── tidyverse 1.3.0 ──
 #> ✓ ggplot2 3.3.2     ✓ purrr   0.3.4
 #> ✓ tibble  3.0.3     ✓ dplyr   1.0.1
 #> ✓ tidyr   1.1.1     ✓ stringr 1.4.0
 #> ✓ readr   1.3.1     ✓ forcats 0.5.0
-#> ── Conflicts ───────────────────── tidyverse_conflicts() ──
+#> ── Conflicts ───────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
 #> x dplyr::filter() masks stats::filter()
 #> x dplyr::lag()    masks stats::lag()
 options(dplyr.summarise.inform = FALSE)
+theme_set(marlin::theme_marlin())
 
 resolution <- 25 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
 
 years <- 20
 
+seasons <- 1
+
+time_step <- 1 / seasons
+
+steps <- years * seasons
+
+fauna <- 
+  list(
+    "bigeye" = create_critter(
+      common_name = "bigeye tuna",
+      adult_movement = 1,
+      adult_movement_sigma = 10,
+      rec_form = 1,
+      seasons = seasons,
+      fished_depletion = .5
+    )
+  )
+#> ══  1 queries  ═══════════════
+#> 
+#> Retrieving data for taxon 'bigeye tuna'
+#> ✔  Found:  bigeye+tuna[Common Name]
+#> ══  Results  ═════════════════
+#> 
+#> ● Total: 1 
+#> ● Found: 1 
+#> ● Not Found: 0
+
+# create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
+# with lists for each species inside there. Price specifies the price per unit weight of that 
+# species for that fleet
+# sel_form can be one of logistic or dome
+
+
+fleets <- list(
+  "longline" = create_fleet(
+    list("bigeye" = Metier$new(
+        critter = fauna$bigeye,
+        price = 10,
+        sel_form = "logistic",
+        sel_start = 1,
+        sel_delta = .01,
+        catchability = 0,
+        p_explt = 1
+      )
+    ),
+    base_effort = resolution ^ 2
+  )
+)
+
+a <- Sys.time()
+
+fleets <- tune_fleets(fauna, fleets, tune_type = "depletion") 
+
+Sys.time() - a
+#> Time difference of 6.483664 secs
+
+
+fauna$bigeye$plot()
+```
+
+<img src="man/figures/README-unnamed-chunk-2-1.png" width="100%" />
+
+``` r
+
+a <- Sys.time()
+
+sim <- simmar(fauna = fauna,
+                  fleets = fleets,
+                  years = years)
+
+Sys.time() - a
+#> Time difference of 0.1297212 secs
+```
+
+we can then use `process_marlin` and `plot_marlin` to examine the
+simulation
+
+``` r
+
+processed_marlin <- process_marlin(sim = sim, time_step = time_step)
+
+plot_marlin(processed_marlin)
+```
+
+<img src="man/figures/README-unnamed-chunk-3-1.png" width="100%" />
+
+``` r
+
+plot_marlin(processed_marlin, plot_var = "c")
+```
+
+<img src="man/figures/README-unnamed-chunk-3-2.png" width="100%" />
+
+``` r
+
+plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", fauna = fauna)
+#> Warning in plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", :
+#> trying to plot too many steps at once, cutting down to 10
+#> dropping recruits from plot since drop_recruits = TRUE
+```
+
+<img src="man/figures/README-unnamed-chunk-3-3.png" width="100%" />
+
+``` r
+
+plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space")
+#> Warning in plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space"):
+#> Can only plot one time step for spatial plots, defaulting to last of the
+#> supplied steps
+```
+
+<img src="man/figures/README-unnamed-chunk-3-4.png" width="100%" />
+
+## Simple Example: seasonal habitat and movement and spatial q
+
+Now let’s add in different adult habitats by season, different movement
+rates by season, specified recruitment habitat, and a spatial dimension
+to catchability, and quarterly time steps
+
+``` r
+
+seasons <- 4
+
+time_step <-  1 / seasons
+
+bigeye_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 300, 100)) %>% 
+  pivot_wider(names_from = y, values_from = habitat) %>% 
+  select(-x) %>% 
+  as.matrix()
+
+
+bigeye_habitat2 <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  mutate(habitat =  dnorm((x ^ .2 + y ^ .2), 100, 100)) %>% 
+  pivot_wider(names_from = y, values_from = habitat) %>% 
+  select(-x) %>% 
+  as.matrix()
+
+bigeye_q <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  dplyr::mutate(habitat = rlnorm(resolution^2)) %>% 
+  pivot_wider(names_from = y, values_from = habitat) %>% 
+  select(-x) %>% 
+  as.matrix()
+
+
+fauna <- 
+  list(
+    "bigeye" = create_critter(
+      common_name = "bigeye tuna",
+      seasonal_habitat = list(bigeye_habitat,bigeye_habitat2),
+      season_blocks = list(c(1,2),c(3,4)),
+     adult_movement = list(c(0,0),c(10,10)),# the mean number of patches moved by adults
+      adult_movement_sigma = list(c(2,2), c(.1,.1)), # standard deviation of the number of patches moved by adults
+      rec_form = 2,
+      seasons = seasons,
+      init_explt =  .1,
+     explt_type = "f"
+    )
+  )
+#> ══  1 queries  ═══════════════
+#> 
+#> Retrieving data for taxon 'bigeye tuna'
+#> ✔  Found:  bigeye+tuna[Common Name]
+#> ══  Results  ═════════════════
+#> 
+#> ● Total: 1 
+#> ● Found: 1 
+#> ● Not Found: 0
+
+# create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
+# with lists for each species inside there. Price specifies the price per unit weight of that 
+# species for that fleet
+# sel_form can be one of logistic or dome
+
+
+fleets <- list(
+  "longline" = create_fleet(
+    list("bigeye" = Metier$new(
+        critter = fauna$bigeye,
+        price = 10,
+        sel_form = "logistic",
+        sel_start = 1,
+        sel_delta = .01,
+        catchability = 1e-3,
+        p_explt = 1,
+        spatial_catchability = bigeye_q
+      )
+    ),
+    base_effort = resolution ^ 2
+  )
+)
+
+a <- Sys.time()
+
+fleets <- tune_fleets(fauna, fleets) 
+
+Sys.time() - a
+#> Time difference of 3.820094 secs
+
+
+fauna$bigeye$plot()
+```
+
+<img src="man/figures/README-unnamed-chunk-4-1.png" width="100%" />
+
+``` r
+
+a <- Sys.time()
+
+sim2 <- simmar(fauna = fauna,
+                  fleets = fleets,
+                  years = years)
+
+Sys.time() - a
+#> Time difference of 1.374433 secs
+  
+
+processed_marlin <- process_marlin(sim = sim2, time_step = time_step)
+
+plot_marlin(processed_marlin)
+```
+
+<img src="man/figures/README-unnamed-chunk-4-2.png" width="100%" />
+
+``` r
+
+plot_marlin(processed_marlin, plot_var = "c")
+```
+
+<img src="man/figures/README-unnamed-chunk-4-3.png" width="100%" />
+
+``` r
+
+plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", fauna = fauna)
+#> Warning in plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", :
+#> trying to plot too many steps at once, cutting down to 10
+#> dropping recruits from plot since drop_recruits = TRUE
+```
+
+<img src="man/figures/README-unnamed-chunk-4-4.png" width="100%" />
+
+``` r
+
+plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space")
+#> Warning in plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space"):
+#> Can only plot one time step for spatial plots, defaulting to last of the
+#> supplied steps
+```
+
+<img src="man/figures/README-unnamed-chunk-4-5.png" width="100%" />
+
+## Two Species and two fleets with bells and whistles
+
+``` r
+
 seasons <- 4
 
 steps <- years * seasons
+
+time_step <- 1 / seasons
 # for now make up some habitat
 
 
@@ -117,9 +376,6 @@ bigeye_habitat2 <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
   select(-x) %>% 
   as.matrix()
 
-# create a fauna object, which is a list of lists
-# marlin::create_critter will look up relevant life history information
-# that you don't pass explicitly
 a <- Sys.time()
 
 fauna <- 
@@ -170,7 +426,7 @@ fauna <-
 #> ● Found: 1 
 #> ● Not Found: 0
 Sys.time() - a
-#> Time difference of 8.763404 secs
+#> Time difference of 6.852328 secs
 
 # create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
 # with lists for each species inside there. Price specifies the price per unit weight of that 
@@ -235,86 +491,225 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets) 
 
 Sys.time() - a
-#> Time difference of 8.00046 secs
-
+#> Time difference of 6.629604 secs
 
 
 # run simulations
 
-
 # run the simulation using marlin::simmar
 a <- Sys.time()
 
-storage <- simmar(fauna = fauna,
+sim3 <- simmar(fauna = fauna,
                   fleets = fleets,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 2.963687 secs
+#> Time difference of 2.931982 secs
   
+processed_marlin <- process_marlin(sim = sim3, time_step = time_step)
 
-# process results, will write some wrappers to automate this
-ssb_skj <- rowSums(storage[[steps]]$skipjack$ssb_p_a)
-
-check <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(skj = ssb_skj)
-
-ggplot(check, aes(x, y, fill = skj)) +
-  geom_tile() +
-  scale_fill_viridis_c() +
-  labs(title = "skipjack")
+plot_marlin(processed_marlin)
 ```
 
 <img src="man/figures/README-example-1.png" width="100%" />
 
 ``` r
 
-ssb_bet <- rowSums(storage[[steps]]$bigeye$ssb_p_a)
-
-check <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(bet = ssb_bet)
-
-ggplot(check, aes(x, y, fill = bet)) +
-  geom_tile() +
-  scale_fill_viridis_c() +
-  labs(title = "bigeye")
+plot_marlin(processed_marlin, plot_var = "c")
 ```
 
 <img src="man/figures/README-example-2.png" width="100%" />
 
 ``` r
 
-
-# double check that target depletions are reached
-
-(sum(ssb_bet) / fauna$bigeye$ssb0) / fauna$bigeye$fished_depletion
-#> [1] 0.7090787
-
-(sum(ssb_skj) / fauna$skipjack$ssb0) / fauna$skipjack$fished_depletion
-#> [1] 1.026284
+plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", fauna = fauna)
+#> Warning in plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", :
+#> trying to plot too many steps at once, cutting down to 10
+#> dropping recruits from plot since drop_recruits = TRUE
 ```
 
-Now, simulate effects of MPAs
+<img src="man/figures/README-example-3.png" width="100%" />
+
+``` r
+
+plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space")
+#> Warning in plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space"):
+#> Can only plot one time step for spatial plots, defaulting to last of the
+#> supplied steps
+```
+
+<img src="man/figures/README-example-4.png" width="100%" />
+
+## Evaluating MPAs
+
+Now let’s compare the effect of an MPA on two species
+
+sharks live nearshore
+
+``` r
+library(marlin)
+library(tidyverse)
+
+theme_set(marlin::theme_marlin())
+
+resolution <- 20 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
+
+seasons <- 1
+
+years <- 50
+
+tune_type <- "depletion"
+
+steps <- years * seasons
+
+# for now make up some habitat
+
+yft_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  mutate(habitat =  .05 * x) %>% 
+  pivot_wider(names_from = y, values_from = habitat) %>% 
+  select(-x) %>% 
+  as.matrix()
+ 
+
+mako_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  mutate(habitat =  dnorm(x,17,5)) %>% 
+  pivot_wider(names_from = y, values_from = habitat) %>% 
+  select(-x) %>% 
+  as.matrix()
+
+
+# create a fauna object, which is a list of lists
+
+fauna <- 
+  list(
+    "Yellowfin Tuna" = create_critter(
+      scientific_name = "Thunnus albacares",
+      seasonal_habitat = list(yft_habitat), # pass habitat as lists
+      recruit_habitat = yft_habitat,
+      adult_movement = 0,# the mean number of patches moved by adults
+      adult_movement_sigma = 4, # standard deviation of the number of patches moved by adults
+      fished_depletion = .4, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
+      rec_form = 1, # recruitment form, where 1 implies local recruitment
+      seasons = seasons,
+      init_explt = 0.12, 
+      explt_type = "f"
+      ),
+    "Shortfin Mako" = create_critter(
+      scientific_name = "Isurus oxyrinchus",
+      seasonal_habitat = list(mako_habitat), # pass habitat as lists
+      recruit_habitat = mako_habitat,
+      adult_movement = 5,
+      adult_movement_sigma = 3,
+      fished_depletion = .3,
+      rec_form = 1,
+      burn_years = 200,
+      seasons = seasons,
+      init_explt = .12, 
+      explt_type = "f",
+      fec_form = "linear",
+      weight_a = 2 # average two offspring per shark
+    )
+  )
+#> ══  1 queries  ═══════════════
+#> 
+#> Retrieving data for taxon 'Thunnus albacares'
+#> ✔  Found:  Thunnus+albacares
+#> ══  Results  ═════════════════
+#> 
+#> ● Total: 1 
+#> ● Found: 1 
+#> ● Not Found: 0
+#> ══  1 queries  ═══════════════
+#> 
+#> Retrieving data for taxon 'Isurus oxyrinchus'
+#> ✔  Found:  Isurus+oxyrinchus
+#> ══  Results  ═════════════════
+#> 
+#> ● Total: 1 
+#> ● Found: 1 
+#> ● Not Found: 0
+
+fauna$`Yellowfin Tuna`$plot()
+```
+
+<img src="man/figures/README-unnamed-chunk-5-1.png" width="100%" />
 
 ``` r
 
 
+# create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
+# with lists for each species inside there. Price specifies the price per unit weight of that 
+# species for that fleet
+# sel_form can be one of logistic or dome
+
+fleets <- list("longline" = create_fleet(list(
+  `Yellowfin Tuna` = Metier$new(
+    critter = fauna$`Yellowfin Tuna`,
+    price = 100, # price per unit weight
+    sel_form = "logistic", # selectivity form, one of logistic or dome
+    sel_start = .3, # percentage of length at maturity that selectivity starts
+    sel_delta = .1, # additional percentage of sel_start where selectivity asymptotes
+    catchability = .01, # overwritten by tune_fleet but can be set manually here
+    p_explt = 1
+    ),
+  `Shortfin Mako` = Metier$new(
+    critter = fauna$`Shortfin Mako`,
+    price = 10,
+    sel_form = "logistic",
+    sel_start = .1,
+    sel_delta = .01,
+    catchability = 0,
+    p_explt = 1
+  )),
+  mpa_response = "stay",
+  base_effort = resolution^2
+))
+
+a <- Sys.time()
+
+fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
+
+Sys.time() - a
+#> Time difference of 8.407858 secs
+
+# run simulations
+
+a <- Sys.time()
+
+nearshore <- simmar(fauna = fauna,
+                  fleets = fleets,
+                  years = years)
+
+Sys.time() - a
+#> Time difference of 0.2205288 secs
+  
+proc_nearshore <- process_marlin(nearshore, time_step =  fauna[[1]]$time_step)
+```
+
+create an MPA
+
+``` r
 set.seed(42)
 #specify some MPA locations
 mpa_locations <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  # mutate(mpa = rbinom(n(), 1, .25))
-mutate(mpa = between(x,7,13) & between(y,7,13))
-# 
-# mpa_locations %>% 
-#   ggplot(aes(x,y, fill = mpa)) + 
-#   geom_tile()
+mutate(mpa = x > 15 & y < 15)
 
+mpa_locations %>% 
+  ggplot(aes(x,y, fill = mpa)) + 
+  geom_tile() + 
+  scale_fill_brewer(palette = "Accent", direction  = -1, name = "MPA") + 
+  scale_x_continuous(name = "Lat") + 
+  scale_y_continuous(name = "Lon")
+```
 
+<img src="man/figures/README-unnamed-chunk-6-1.png" width="100%" />
 
-# run the simulation, starting the MPAs at year 50 of the simulation
+And now apply MPA
+
+``` r
 a <- Sys.time()
 
-mpa_storage <- simmar(
+nearshore_mpa <- simmar(
   fauna = fauna,
   fleets = fleets,
   years = years,
@@ -323,346 +718,270 @@ mpa_storage <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 2.802751 secs
+#> Time difference of 0.2250888 secs
 
-ssb_skj <- rowSums(mpa_storage[[steps]]$skipjack$ssb_p_a)
-
-check <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(skj = ssb_skj)
-
-ggplot(check, aes(x, y, fill = skj)) +
-  geom_tile() +
-  scale_fill_viridis_c() +
-  labs(title = "skipjack")
+proc_nearshore_mpa <- process_marlin(nearshore_mpa, time_step =  fauna[[1]]$time_step)
 ```
 
-<img src="man/figures/README-unnamed-chunk-2-1.png" width="100%" />
+Now though, consider a different scenario. Here the tunas still slightly
+prefer their same nearshore habitat, but now the shortfin mako
+population primarily lives farther offshore. We will first simulate that
+population without the MPA, and then assess the effects of the exact
+same MPA on this new scenario.
 
 ``` r
 
-ssb_bet <- rowSums(mpa_storage[[steps]]$bigeye$ssb_p_a)
+yft_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  mutate(habitat =  .2 * x) %>% 
+  pivot_wider(names_from = y, values_from = habitat) %>% 
+  select(-x) %>% 
+  as.matrix()
+ 
 
-check <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(bet = ssb_bet)
-
-# plot(check$bet[check$x == 1])
-
-ggplot(check, aes(x, y, fill = bet)) +
-  geom_tile() +
-  scale_fill_viridis_c() +
-  labs(title = "bigeye")
-```
-
-<img src="man/figures/README-unnamed-chunk-2-2.png" width="100%" />
-
-``` r
-
-# 
-
-mpa_storage[[77]]$bigeye$ssb_p_a -> a
-
-plot(a[which(mpa_locations$mpa == FALSE)[10],])
-```
-
-<img src="man/figures/README-unnamed-chunk-2-3.png" width="100%" />
-
-``` r
-# (sum(ssb_bet) / fauna$bigeye$ssb0) / fauna$bigeye$fished_depletion
-# 
-# (sum(ssb_skj) / fauna$skipjack$ssb0) / fauna$skipjack$fished_depletion
-
-bet_outside_trajectory <- map_dbl(mpa_storage,~ sum(.x$bigeye$ssb_p_a[mpa_locations$mpa == FALSE,]))
-
-plot(bet_outside_trajectory)
-```
-
-<img src="man/figures/README-unnamed-chunk-2-4.png" width="100%" />
-
-``` r
-
-
-bet_inside_trajectory <- map_dbl(mpa_storage,~ sum(.x$bigeye$ssb_p_a[mpa_locations$mpa == TRUE,]))
-
-plot(bet_inside_trajectory)
-```
-
-<img src="man/figures/README-unnamed-chunk-2-5.png" width="100%" />
-
-``` r
-
-bet_outside_trajectory <- map_dbl(mpa_storage,~ sum(.x$bigeye$ssb_p_a[mpa_locations$mpa == FALSE,]))
-
-plot(bet_outside_trajectory)
-```
-
-<img src="man/figures/README-unnamed-chunk-2-6.png" width="100%" />
-
-``` r
-
-
-bet_trajectory <- map_dbl(mpa_storage,~ sum(.x$bigeye$ssb_p_a))
-
-plot(bet_trajectory)
-```
-
-<img src="man/figures/README-unnamed-chunk-2-7.png" width="100%" />
-
-``` r
-
-skj_trajectory <- map_dbl(mpa_storage,~ sum(.x$skipjack$ssb_p_a))
-
-plot(skj_trajectory)
-```
-
-<img src="man/figures/README-unnamed-chunk-2-8.png" width="100%" />
-
-# Other Examples
-
-## Seasonal adult movement and different forms of density dependence
-
-``` r
-library(marlin)
-library(tidyverse)
-options(dplyr.summarise.inform = FALSE)
-
-resolution <- 25 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
-
-years <- 20
-
-seasons <- 4
-
-steps <- years * seasons
-# for now make up some habitat
-
-
-skipjack_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  dplyr::mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 20, 200)) %>% 
+mako_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  mutate(habitat =  dnorm(x, 9,5)) %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
   select(-x) %>% 
   as.matrix()
 
 
 # create a fauna object, which is a list of lists
-# marlin::create_critter will look up relevant life history information
-# that you don't pass explicitly
-a <- Sys.time()
 
 fauna <- 
   list(
-    "skipjack" = create_critter(
-      scientific_name = "Katsuwonus pelamis",
-      seasonal_habitat = list(skipjack_habitat, skipjack_habitat), # pass habitat as lists
-      season_blocks = list(c(1, 2), c(3, 4)), # seasons each habitat apply to
-      recruit_habitat = skipjack_habitat,
-      adult_movement = list(c(0,0),c(10,10)),# the mean number of patches moved by adults
-      adult_movement_sigma = list(c(2,2), c(.1,.1)), # standard deviation of the number of patches moved by adults
-      recruit_movement = 4,
-      recruit_movement_sigma = 1,
-      fished_depletion = .6, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
-      rec_form = 3, # recruitment form, where 1 implies local recruitment
+    "Yellowfin Tuna" = create_critter(
+      scientific_name = "Thunnus albacares",
+      seasonal_habitat = list(yft_habitat), # pass habitat as lists
+      recruit_habitat = yft_habitat,
+      adult_movement = 0,# the mean number of patches moved by adults
+      adult_movement_sigma = 20, # standard deviation of the number of patches moved by adults
+      fished_depletion = .4, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
+      rec_form = 1, # recruitment form, where 1 implies local recruitment
       seasons = seasons,
-      init_explt = 0.2, 
+      init_explt = .12, 
       explt_type = "f"
+      ),
+    "Shortfin Mako" = create_critter(
+      scientific_name = "Isurus oxyrinchus",
+      seasonal_habitat = list(mako_habitat), # pass habitat as lists
+      recruit_habitat = mako_habitat,
+      adult_movement = 3,
+      adult_movement_sigma = 1,
+      fished_depletion = .3,
+      rec_form = 1,
+      burn_years = 200,
+            seasons = seasons,
+            init_explt = .12, 
+      explt_type = "f",
+          fec_form = "linear",
+      weight_a = 2
     )
   )
 #> ══  1 queries  ═══════════════
 #> 
-#> Retrieving data for taxon 'Katsuwonus pelamis'
-#> ✔  Found:  Katsuwonus+pelamis
+#> Retrieving data for taxon 'Thunnus albacares'
+#> ✔  Found:  Thunnus+albacares
 #> ══  Results  ═════════════════
 #> 
 #> ● Total: 1 
 #> ● Found: 1 
 #> ● Not Found: 0
-Sys.time() - a
-#> Time difference of 2.579019 secs
+#> ══  1 queries  ═══════════════
+#> 
+#> Retrieving data for taxon 'Isurus oxyrinchus'
+#> ✔  Found:  Isurus+oxyrinchus
+#> ══  Results  ═════════════════
+#> 
+#> ● Total: 1 
+#> ● Found: 1 
+#> ● Not Found: 0
 
-
-fleets <- list(
-  "longline" = create_fleet(
-    list(
-      "skipjack" = Metier$new(
-        critter = fauna$skipjack,
-        price = 100,
-        # price per unit weight
-        sel_form = "logistic",
-        # selectivity form, one of logistic or dome
-        sel_start = .3,
-        # percentage of length at maturity that selectivity starts
-        sel_delta = .1,
-        # additional percentage of sel_start where selectivity asymptotes
-        catchability = .01,
-        # overwritten by tune_fleet but can be set manually here
-        p_explt = 1
-      )),
-    base_effort = resolution ^ 2
-  )
-)
-
-a <- Sys.time()
-
-fleets <- tune_fleets(fauna, fleets) 
-
-Sys.time() - a
-#> Time difference of 2.270182 secs
-
-
+fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 # run simulations
-
 
 # run the simulation using marlin::simmar
 a <- Sys.time()
 
-storage <- simmar(fauna = fauna,
+offshore <- simmar(fauna = fauna,
                   fleets = fleets,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.8444469 secs
+#> Time difference of 0.2119761 secs
+  
+proc_offshore <- process_marlin(offshore, time_step =  fauna[[1]]$time_step)
 
-# storage[[1]]$skipjack$n_p_a %>% View()
-# process results, will write some wrappers to automate this
-ssb_skj <- rowSums(storage[[steps]]$skipjack$ssb_p_a)
+a <- Sys.time()
 
-check <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(skj = ssb_skj)
+offshore_mpa_sim <- simmar(
+  fauna = fauna,
+  fleets = fleets,
+  years = years,
+  mpas = list(locations = mpa_locations,
+              mpa_year = floor(years * .5))
+)
 
-ggplot(check, aes(x, y, fill = skj)) +
-  geom_tile() +
-  scale_fill_viridis_c() +
-  labs(title = "skipjack")
+Sys.time() - a
+#> Time difference of 0.2097239 secs
+
+
+proc_offshore_mpa <- process_marlin(offshore_mpa_sim, time_step =  fauna[[1]]$time_step)
 ```
 
-<img src="man/figures/README-unnamed-chunk-3-1.png" width="100%" />
+``` r
+plot_marlin(
+  `MPA: Sharks Offshore` = proc_offshore_mpa,
+  `No MPA` = proc_nearshore,
+  `MPA: Sharks Nearshore` = proc_nearshore_mpa,
+  steps_to_plot = NA,
+  plot_var = "ssb"
+)
+```
 
-## spatial catchability
-
-Suppose that rather than habitat, we know something about catchability
-in space. Maybe certain species move closer to the surface in some
-areas, even if total biomass stays the same.
-
-This feature allows users to generate a resolution<sup>2</sup> matrix
-specifying relative catch rates in space.
+<img src="man/figures/README-unnamed-chunk-9-1.png" width="100%" />
 
 ``` r
-library(marlin)
-library(tidyverse)
-options(dplyr.summarise.inform = FALSE)
+plot_marlin(
+  `MPA: Sharks Offshore` = proc_offshore_mpa,
+  `No MPA` = proc_nearshore,
+  `MPA: Sharks Nearshore` = proc_nearshore_mpa,
+  plot_var = "b",
+  plot_type = "space",
+  steps_to_plot = c(1,25,50))
+#> Warning in plot_marlin(`MPA: Sharks Offshore` = proc_offshore_mpa, `No MPA` =
+#> proc_nearshore, : Can only plot one time step for spatial plots, defaulting to
+#> last of the supplied steps
+```
 
-resolution <- 25 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
+<img src="man/figures/README-unnamed-chunk-10-1.png" width="100%" />
 
-years <- 20
+## Defacto MPAs through bycatch penalties
 
-seasons <- 4
+Now consider a case where prices for shortfin mako are negative creating
+defacto MPAs
 
-steps <- years * seasons
-# for now make up some habitat
+``` r
+years <- 100
 
+tune_type <- "explt"
 
-skipjack_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  dplyr::mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 20, 200)) %>% 
+# make up some habitat
+
+yft_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  mutate(habitat =  .05 * x) %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
   select(-x) %>% 
   as.matrix()
 
 
-skipjack_q <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  dplyr::mutate(habitat = rlnorm(resolution^2)) %>% 
+mako_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  mutate(habitat =  x > 12 & y >12) %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
   select(-x) %>% 
   as.matrix()
 
 
 # create a fauna object, which is a list of lists
-# marlin::create_critter will look up relevant life history information
-# that you don't pass explicitly
-a <- Sys.time()
 
 fauna <- 
   list(
-    "skipjack" = create_critter(
-      scientific_name = "Katsuwonus pelamis",
-      seasonal_habitat = list(skipjack_habitat, skipjack_habitat), # pass habitat as lists
-      season_blocks = list(c(1, 2), c(3, 4)), # seasons each habitat apply to
-      recruit_habitat = skipjack_habitat,
-      adult_movement = list(c(0,0),c(10,10)),# the mean number of patches moved by adults
-      adult_movement_sigma = list(c(2,2), c(.1,.1)), # standard deviation of the number of patches moved by adults
-      recruit_movement = 4,
-      recruit_movement_sigma = 1,
-      fished_depletion = .6, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
-      rec_form = 3, # recruitment form, where 1 implies local recruitment
+    "Yellowfin Tuna" = create_critter(
+      scientific_name = "Thunnus albacares",
+      seasonal_habitat = list(yft_habitat), 
+      recruit_habitat = yft_habitat,
+      adult_movement = 0,
+      adult_movement_sigma = 4, 
+      fished_depletion = .4, 
+      rec_form = 1, 
       seasons = seasons,
-      init_explt = 0.2, 
+      init_explt = 0.12, 
+      explt_type = "f"
+    ),
+    "Shortfin Mako" = create_critter(
+      scientific_name = "Isurus oxyrinchus",
+      seasonal_habitat = list(mako_habitat), 
+      recruit_habitat = mako_habitat,
+      adult_movement = 5,
+      adult_movement_sigma = 3,
+      fished_depletion = .3,
+      rec_form = 1,
+      burn_years = 200,
+      seasons = seasons,
+      init_explt = 0.1, 
       explt_type = "f"
     )
   )
 #> ══  1 queries  ═══════════════
 #> 
-#> Retrieving data for taxon 'Katsuwonus pelamis'
-#> ✔  Found:  Katsuwonus+pelamis
+#> Retrieving data for taxon 'Thunnus albacares'
+#> ✔  Found:  Thunnus+albacares
 #> ══  Results  ═════════════════
 #> 
 #> ● Total: 1 
 #> ● Found: 1 
 #> ● Not Found: 0
-Sys.time() - a
-#> Time difference of 2.683213 secs
+#> ══  1 queries  ═══════════════
+#> 
+#> Retrieving data for taxon 'Isurus oxyrinchus'
+#> ✔  Found:  Isurus+oxyrinchus
+#> ══  Results  ═════════════════
+#> 
+#> ● Total: 1 
+#> ● Found: 1 
+#> ● Not Found: 0
 
+# create a fleets object, accounting a negative price to shortfin makos
 
-fleets <- list(
-  "longline" = create_fleet(
-    list(
-      "skipjack" = Metier$new(
-        critter = fauna$skipjack,
-        price = 100,
-        # price per unit weight
-        sel_form = "logistic",
-        # selectivity form, one of logistic or dome
-        sel_start = .3,
-        # percentage of length at maturity that selectivity starts
-        sel_delta = .1,
-        # additional percentage of sel_start where selectivity asymptotes
-        catchability = .01,
-        # overwritten by tune_fleet but can be set manually here
-        p_explt = 1,
-        spatial_catchability = skipjack_q
-      )),
-    base_effort = resolution ^ 2
-  )
-)
+fleets <- list("longline" = create_fleet(list(
+  `Yellowfin Tuna` = Metier$new(
+    critter = fauna$`Yellowfin Tuna`,
+    price = 100, # price per unit weight
+    sel_form = "logistic", # selectivity form, one of logistic or dome
+    sel_start = .3, # percentage of length at maturity that selectivity starts
+    sel_delta = .1, # additional percentage of sel_start where selectivity asymptotes
+    catchability = .01, # overwritten by tune_fleet but can be set manually here
+    p_explt = 1
+  ),
+  `Shortfin Mako` = Metier$new(
+    critter = fauna$`Shortfin Mako`,
+    price = -20000,
+    sel_form = "logistic",
+    sel_start = .1,
+    sel_delta = .01,
+    catchability = 0,
+    p_explt = 1
+  )),
+  mpa_response = "stay",
+  base_effort = resolution^2
+))
 
 a <- Sys.time()
 
-fleets <- tune_fleets(fauna, fleets) 
+fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
-#> Time difference of 2.047292 secs
-
-
+#> Time difference of 0.2139809 secs
 
 # run simulations
 
-
 # run the simulation using marlin::simmar
-a <- Sys.time()
+negative_prices <- simmar(fauna = fauna,
+                          fleets = fleets,
+                          years = years)
 
-storage <- simmar(fauna = fauna,
-                  fleets = fleets,
-                  years = years)
-
-Sys.time() - a
-#> Time difference of 0.8226402 secs
-
-ssb_skj <- rowSums(storage[[steps]]$skipjack$ssb_p_a)
-
-check <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(skj = ssb_skj)
-
-ggplot(check, aes(x, y, fill = skj)) +
-  geom_tile() +
-  scale_fill_viridis_c() +
-  labs(title = "skipjack")
+proc_negative_prices <- process_marlin(negative_prices, time_step =  fauna[[1]]$time_step)
 ```
 
-<img src="man/figures/README-unnamed-chunk-4-1.png" width="100%" />
+``` r
+plot_marlin(
+  `De-Facto MPA` = proc_negative_prices,
+  plot_var = "ssb",
+  plot_type = "space",
+  steps_to_plot = c(1,25,50))
+#> Warning in plot_marlin(`De-Facto MPA` = proc_negative_prices, plot_var =
+#> "ssb", : Can only plot one time step for spatial plots, defaulting to last of
+#> the supplied steps
+```
+
+<img src="man/figures/README-unnamed-chunk-12-1.png" width="100%" />
