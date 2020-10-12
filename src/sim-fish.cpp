@@ -23,6 +23,7 @@ NumericVector cpp_seq(int steps,double step_size) {
 List sim_fish(
     const NumericVector length_at_age, 
     const NumericVector weight_at_age,
+    const NumericVector fec_at_age,
     const NumericVector maturity_at_age,
     const NumericMatrix f_p_a, // fishing mortality by patch and age
     const List seasonal_movement,
@@ -97,6 +98,7 @@ List sim_fish(
       tmppop = sim_fish(
         length_at_age,
         weight_at_age,
+        fec_at_age,
         maturity_at_age,
         f_p_a,
         seasonal_movement,
@@ -167,8 +169,10 @@ List sim_fish(
 
     b_p_a(p,_) =  n_p_a(p,_) * weight_at_age;
 
-    ssb_p_a(p,_) =  b_p_a(p,_) * maturity_at_age;
+    // ssb_p_a(p,_) =  b_p_a(p,_) * maturity_at_age;
 
+    ssb_p_a(p,_) = n_p_a(p,_) * fec_at_age * maturity_at_age;
+    
   }
 
   //////////////////// spawn / recruit ////////////////////////

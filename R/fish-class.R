@@ -423,12 +423,23 @@ Fish <- R6::R6Class(
         
       }
       
-      if (fec_form == "linear"){
+      if (fec_form == "constant"){
         
-        weight_b <-  1
+        # weight_b <-  1
+        # 
+        # weight_a <- weight_a * 1 / mean(weight_at_age * maturity_at_age)
+        # 
+        # 
+        fec_at_age <- rep(weight_a, length(maturity_at_age))
         
-        weight_a <- weight_a * 1 / mean(weight_at_age * maturity_at_age)
-                                      
+        self$fec_at_age <- fec_at_age
+                                
+      } else {
+        
+        
+        fec_at_age <- weight_at_age
+        
+        self$fec_at_age <- fec_at_age
       }
       
       self$maturity_at_age <- maturity_at_age
@@ -586,6 +597,7 @@ Fish <- R6::R6Class(
       unfished <- marlin::sim_fish(
         length_at_age = length_at_age,
         weight_at_age = weight_at_age,
+        fec_at_age = fec_at_age,
         maturity_at_age = maturity_at_age,
         steepness = steepness,
         m_at_age = m_at_age,
@@ -670,6 +682,7 @@ Fish <- R6::R6Class(
         pop <- marlin::sim_fish(
           length_at_age = self$length_at_age,
           weight_at_age = self$weight_at_age,
+          fec_at_age = self$fec_at_age,
           maturity_at_age = self$maturity_at_age,
           steepness = self$steepness,
           m_at_age = self$m_at_age,

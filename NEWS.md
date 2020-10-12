@@ -1,4 +1,4 @@
-# marlin (development version)
+# marlin 1.0.1
 
 # marlin 1.0.0
 

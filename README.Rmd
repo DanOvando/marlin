@@ -256,6 +256,7 @@ plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space")
 ## Two Species and two fleets with bells and whistles
 
 
+
 ```{r example}
 
 seasons <- 4
@@ -478,13 +479,12 @@ fauna <-
       seasons = seasons,
       init_explt = .12, 
       explt_type = "f",
-      fec_form = "linear",
+      fec_form = "constant",
       weight_a = 2 # average two offspring per shark
     )
   )
 
-fauna$`Yellowfin Tuna`$plot()
-
+fauna$`Shortfin Mako`$plot()
 
 # create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
 # with lists for each species inside there. Price specifies the price per unit weight of that 
@@ -616,7 +616,7 @@ fauna <-
             seasons = seasons,
             init_explt = .12, 
       explt_type = "f",
-          fec_form = "linear",
+          fec_form = "constant",
       weight_a = 2
     )
   )
