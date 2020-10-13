@@ -43,6 +43,10 @@ create_critter <- function(common_name = 'white seabass',
                            ...) {
 
   
+  if (!is.list(seasonal_habitat)){
+    seasonal_habitat <-  list(seasonal_habitat)
+  }
+  
   init_explt <- init_explt / seasons # convert to seasonal exploitation rate
   
   if (critter_type == "fish"){

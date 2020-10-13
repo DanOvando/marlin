@@ -452,12 +452,12 @@ mako_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
 
 
 # create a fauna object, which is a list of lists
-
+browser()
 fauna <- 
   list(
     "Yellowfin Tuna" = create_critter(
       scientific_name = "Thunnus albacares",
-      seasonal_habitat = list(yft_habitat), # pass habitat as lists
+      seasonal_habitat = yft_habitat, # pass habitat as lists
       recruit_habitat = yft_habitat,
       adult_movement = 0,# the mean number of patches moved by adults
       adult_movement_sigma = 4, # standard deviation of the number of patches moved by adults
