@@ -192,7 +192,6 @@ simmar <- function(fauna = list(),
         )
       
       # process catch data
-      
       c_p_a_fl <-
         f_p_a_fl * array(pop$c_p_a, dim = c(patches, ages, length(fleets)),
                         dimnames = list(1:patches, fauna[[f]]$ages, names(fleets)))

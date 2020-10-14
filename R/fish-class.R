@@ -617,6 +617,8 @@ Fish <- R6::R6Class(
         rec_form = rec_form
       )
       
+      unfished$tmppop$ages <- ages
+      
       self$ssb0 <- unfished$ssb0
       
       self$ssb0_p <- unfished$ssb0_p
@@ -701,6 +703,9 @@ Fish <- R6::R6Class(
           tune_unfished = tune_unfished,
           rec_form = self$rec_form
         )
+        pop$ages <- self$ages
+        
+        return(pop)
         
       } # close swim
     

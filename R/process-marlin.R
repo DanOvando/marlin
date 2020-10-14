@@ -33,9 +33,13 @@ process_marlin <- function(sim,
     
     
     tidy_marlin <- function(y, z) {
+      
+      ages <- y$ages
+      
       pop <- y[c("n_p_a", "b_p_a", "ssb_p_a","c_p_a")]
       
       # create coordinates for each location
+      
       tmp <-
         purrr::imap_dfr(pop,
                         ~ cbind(
@@ -56,7 +60,7 @@ process_marlin <- function(sim,
                       critter = z) %>%
         tidyr::pivot_wider(names_from = metric, values_from = value) %>%  # spread out metrics
         dplyr::select(critter, dplyr::everything()) %>% 
-        dplyr::mutate(age =  rep(fauna[[z]]$ages, n_distinct(.$patch)))
+        dplyr::mutate(age =  rep(ages, n_distinct(.$patch)))
 
       return(tmp)
       

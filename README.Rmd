@@ -137,7 +137,6 @@ we can then use `process_marlin` and `plot_marlin` to examine the simulation
 
 
 ```{r}
-
 processed_marlin <- process_marlin(sim = sim, time_step = time_step)
 
 plot_marlin(processed_marlin)
@@ -452,7 +451,6 @@ mako_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
 
 
 # create a fauna object, which is a list of lists
-browser()
 fauna <- 
   list(
     "Yellowfin Tuna" = create_critter(
