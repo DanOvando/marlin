@@ -11,7 +11,8 @@ plot_marlin(
   plot_var = "ssb",
   plot_type = "time",
   fauna = NULL,
-  drop_recruits = TRUE
+  drop_recruits = TRUE,
+  plots = "fauna"
 )
 }
 \arguments{

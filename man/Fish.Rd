@@ -37,6 +37,7 @@ fill in fish object
   weight_a = NA,
   weight_b = NA,
   weight_units = "kg",
+  fec_form = "power",
   length_50_mature = NA,
   length_95_mature = NA,
   delta_mature = 0.1,

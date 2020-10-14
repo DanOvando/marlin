@@ -1,6 +1,6 @@
 Package: marlin
 Title: Simulation of Ocean Fisheries
-Version: 1.0.3
+Version: 1.0.3.9000
 Authors@R: 
     person(given = "Dan",
            family = "Ovando",
