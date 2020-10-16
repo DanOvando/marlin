@@ -79,12 +79,12 @@ the various options in `marlin`
 ``` r
 library(marlin)
 library(tidyverse)
-#> ── Attaching packages ─────────────────────────────── tidyverse 1.3.0 ──
+#> ── Attaching packages ───────────────────── tidyverse 1.3.0 ──
 #> ✓ ggplot2 3.3.2     ✓ purrr   0.3.4
 #> ✓ tibble  3.0.3     ✓ dplyr   1.0.2
 #> ✓ tidyr   1.1.2     ✓ stringr 1.4.0
 #> ✓ readr   1.4.0     ✓ forcats 0.5.0
-#> ── Conflicts ────────────────────────────────── tidyverse_conflicts() ──
+#> ── Conflicts ──────────────────────── tidyverse_conflicts() ──
 #> x dplyr::filter() masks stats::filter()
 #> x dplyr::lag()    masks stats::lag()
 options(dplyr.summarise.inform = FALSE)
@@ -148,7 +148,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = "depletion") 
 
 Sys.time() - a
-#> Time difference of 6.809542 secs
+#> Time difference of 6.76702 secs
 
 
 fauna$bigeye$plot()
@@ -165,14 +165,13 @@ sim <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.112251 secs
+#> Time difference of 0.1184869 secs
 ```
 
 we can then use `process_marlin` and `plot_marlin` to examine the
 simulation
 
 ``` r
-
 processed_marlin <- process_marlin(sim = sim, time_step = time_step)
 
 plot_marlin(processed_marlin)
@@ -291,7 +290,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets) 
 
 Sys.time() - a
-#> Time difference of 3.654184 secs
+#> Time difference of 3.783125 secs
 
 
 fauna$bigeye$plot()
@@ -308,7 +307,7 @@ sim2 <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 1.341094 secs
+#> Time difference of 1.44481 secs
   
 
 processed_marlin <- process_marlin(sim = sim2, time_step = time_step)
@@ -410,15 +409,6 @@ fauna <-
   )
 #> ══  1 queries  ═══════════════
 #> 
-#> Retrieving data for taxon 'Katsuwonus pelamis'
-#> ✔  Found:  Katsuwonus+pelamis
-#> ══  Results  ═════════════════
-#> 
-#> ● Total: 1 
-#> ● Found: 1 
-#> ● Not Found: 0
-#> ══  1 queries  ═══════════════
-#> 
 #> Retrieving data for taxon 'bigeye tuna'
 #> ✔  Found:  bigeye+tuna[Common Name]
 #> ══  Results  ═════════════════
@@ -427,7 +417,7 @@ fauna <-
 #> ● Found: 1 
 #> ● Not Found: 0
 Sys.time() - a
-#> Time difference of 7.88322 secs
+#> Time difference of 9.012858 secs
 
 # create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
 # with lists for each species inside there. Price specifies the price per unit weight of that 
@@ -492,7 +482,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets) 
 
 Sys.time() - a
-#> Time difference of 6.822457 secs
+#> Time difference of 6.770109 secs
 
 
 # run simulations
@@ -505,7 +495,7 @@ sim3 <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 2.833822 secs
+#> Time difference of 2.917941 secs
   
 processed_marlin <- process_marlin(sim = sim3, time_step = time_step)
 
@@ -580,8 +570,6 @@ mako_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
 
 
 # create a fauna object, which is a list of lists
-browser()
-#> Called from: eval(expr, envir, enclos)
 fauna <- 
   list(
     "Yellowfin Tuna" = create_critter(
@@ -612,24 +600,6 @@ fauna <-
       weight_a = 2 # average two offspring per shark
     )
   )
-#> ══  1 queries  ═══════════════
-#> 
-#> Retrieving data for taxon 'Thunnus albacares'
-#> ✔  Found:  Thunnus+albacares
-#> ══  Results  ═════════════════
-#> 
-#> ● Total: 1 
-#> ● Found: 1 
-#> ● Not Found: 0
-#> ══  1 queries  ═══════════════
-#> 
-#> Retrieving data for taxon 'Isurus oxyrinchus'
-#> ✔  Found:  Isurus+oxyrinchus
-#> ══  Results  ═════════════════
-#> 
-#> ● Total: 1 
-#> ● Found: 1 
-#> ● Not Found: 0
 
 fauna$`Shortfin Mako`$plot()
 ```
@@ -671,7 +641,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
-#> Time difference of 13.2525 secs
+#> Time difference of 13.54115 secs
 
 # run simulations
 
@@ -682,7 +652,7 @@ nearshore <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.2192142 secs
+#> Time difference of 0.2274568 secs
   
 proc_nearshore <- process_marlin(nearshore, time_step =  fauna[[1]]$time_step)
 ```
@@ -719,7 +689,7 @@ nearshore_mpa <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.222671 secs
+#> Time difference of 0.2314129 secs
 
 proc_nearshore_mpa <- process_marlin(nearshore_mpa, time_step =  fauna[[1]]$time_step)
 ```
@@ -773,29 +743,9 @@ fauna <-
       burn_years = 200,
             seasons = seasons,
             init_explt = .12, 
-      explt_type = "f",
-          fec_form = "constant",
-      weight_a = 2
+      explt_type = "f"
     )
   )
-#> ══  1 queries  ═══════════════
-#> 
-#> Retrieving data for taxon 'Thunnus albacares'
-#> ✔  Found:  Thunnus+albacares
-#> ══  Results  ═════════════════
-#> 
-#> ● Total: 1 
-#> ● Found: 1 
-#> ● Not Found: 0
-#> ══  1 queries  ═══════════════
-#> 
-#> Retrieving data for taxon 'Isurus oxyrinchus'
-#> ✔  Found:  Isurus+oxyrinchus
-#> ══  Results  ═════════════════
-#> 
-#> ● Total: 1 
-#> ● Found: 1 
-#> ● Not Found: 0
 
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
@@ -809,7 +759,7 @@ offshore <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.2156942 secs
+#> Time difference of 0.2345731 secs
   
 proc_offshore <- process_marlin(offshore, time_step =  fauna[[1]]$time_step)
 
@@ -824,7 +774,7 @@ offshore_mpa_sim <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.2513261 secs
+#> Time difference of 0.2317331 secs
 
 
 proc_offshore_mpa <- process_marlin(offshore_mpa_sim, time_step =  fauna[[1]]$time_step)
@@ -913,24 +863,6 @@ fauna <-
       explt_type = "f"
     )
   )
-#> ══  1 queries  ═══════════════
-#> 
-#> Retrieving data for taxon 'Thunnus albacares'
-#> ✔  Found:  Thunnus+albacares
-#> ══  Results  ═════════════════
-#> 
-#> ● Total: 1 
-#> ● Found: 1 
-#> ● Not Found: 0
-#> ══  1 queries  ═══════════════
-#> 
-#> Retrieving data for taxon 'Isurus oxyrinchus'
-#> ✔  Found:  Isurus+oxyrinchus
-#> ══  Results  ═════════════════
-#> 
-#> ● Total: 1 
-#> ● Found: 1 
-#> ● Not Found: 0
 
 # create a fleets object, accounting a negative price to shortfin makos
 
@@ -962,7 +894,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
-#> Time difference of 0.2207201 secs
+#> Time difference of 0.2236021 secs
 
 # run simulations
 

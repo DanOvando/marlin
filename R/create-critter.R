@@ -22,8 +22,9 @@
 #' @param explt_type f or fmsy
 #' @param ... 
 
-create_critter <- function(common_name = 'white seabass',
+create_critter <- function(common_name = NA,
                            scientific_name = NA,
+                           get_common_name = FALSE,
                            critter_type = "fish",
                            seasonal_habitat = list(),
                            season_blocks = list(),
@@ -68,7 +69,8 @@ create_critter <- function(common_name = 'white seabass',
         recruit_movement_sigma = recruit_movement_sigma,
         init_explt = init_explt,
         explt_type = explt_type,
-        burn_years = burn_years
+        burn_years = burn_years,
+        get_common_name = get_common_name
       )
     
   }

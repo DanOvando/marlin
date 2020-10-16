@@ -613,9 +613,7 @@ fauna <-
       burn_years = 200,
             seasons = seasons,
             init_explt = .12, 
-      explt_type = "f",
-          fec_form = "constant",
-      weight_a = 2
+      explt_type = "f"
     )
   )
 

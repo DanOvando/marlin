@@ -59,7 +59,7 @@ Fish <- R6::R6Class(
     #' @param seasons
     #' @param init_explt
     #' @param explt_type
-    initialize = function(common_name = 'white seabass',
+    initialize = function(common_name = NA,
                           scientific_name = NA,
                           linf = NA,
                           vbk = NA,
@@ -107,7 +107,8 @@ Fish <- R6::R6Class(
                           seasonal_hab = NA,
                           seasons = 1,
                           explt_type = "f",
-                          init_explt = .1) {
+                          init_explt = .1,
+                          get_common_name = FALSE) {
       seasons <- as.integer(seasons)
       
       if (seasons < 1) {
@@ -200,7 +201,7 @@ Fish <- R6::R6Class(
       
       patches <- resolution ^ 2
       
-      if (!is.na(scientific_name)) {
+      if (!is.na(scientific_name) & get_common_name == TRUE) {
         common_name <-
           taxize::sci2comm(scientific_name, db = "ncbi")[[1]][1]
         
