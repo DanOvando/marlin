@@ -19,7 +19,7 @@
 process_marlin <- function(sim,
                            steps_to_keep = NA,
                            time_step = 1) {
-  if (is.na(steps_to_keep)) {
+  if (all(is.na(steps_to_keep))) {
     steps_to_keep <-  seq_along(sim)
     
   }
