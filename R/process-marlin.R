@@ -125,6 +125,7 @@ process_marlin <- function(sim,
         purrr::set_names(paste0(colnames(.), "_effort")) %>%
         dplyr::mutate(patch = 1:nrow(.))
       
+      # hello? is it me?
       tidy_fleet <- tidy_catch %>%
         dplyr::left_join(tidy_effort, by = "patch") %>%
         dplyr::mutate(critter = z)
