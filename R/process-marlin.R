@@ -119,7 +119,7 @@ process_marlin <- function(sim,
         dplyr::mutate(patch = 1:nrow(.))
       
       tidy_catch <- tidy_catch %>%
-        left_join(coords, by = "patch")
+        dplyr::left_join(coords, by = "patch")
       
       tidy_effort <- x$e_p_fl %>%
         purrr::set_names(paste0(colnames(.), "_effort")) %>%
