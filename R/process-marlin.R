@@ -51,7 +51,7 @@ process_marlin <- function(sim,
                             dplyr::rowwise(.) %>%
                               dplyr::mutate(tmp = sum(dplyr::c_across(tidyselect::contains("V")))) %>%
                               dplyr::select(-contains("V")) %>%
-                              rename(V0 = tmp)
+                              dplyr::rename(V0 = tmp)
                           } else {
                             .
                           }
