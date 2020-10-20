@@ -21,13 +21,13 @@ process_marlin <- function(sim,
                            time_step = 1,
                            keep_age = TRUE) {
   if (all(is.na(steps_to_keep))) {
-    steps_to_keep <-  seq_along(sim)
+    
+    steps_to_keep <-  names(sim)
     
   }
   
-  
   sim <-
-    sim[steps_to_keep] # option to only select some years for memory's sake
+    sim[as.character(steps_to_keep)] # option to only select some years for memory's sake
   
   stepper <- function(x) {
     # x <- sim[[1]]
@@ -85,10 +85,10 @@ process_marlin <- function(sim,
     
   }
   
-  
+
   tidy_sim <-  purrr::imap_dfr(sim, ~ stepper(.x), .id = "step") %>%
-    dplyr::mutate(step = as.integer(step) * time_step,
-           year = floor(as.integer(step) * time_step))
+    dplyr::mutate(step = as.numeric(step),
+           year = floor(as.numeric(step)))
   
   # process fleets
   # ok this is the concept, but you need to wrap this in a map function to tidy by species
@@ -141,9 +141,14 @@ process_marlin <- function(sim,
   
   tidy_sim_fleet <-
     purrr::imap_dfr(sim, ~ fleet_stepper(.x), .id = "step") %>%
-    dplyr::mutate(step = as.integer(step) * time_step,
-                  year = floor(as.integer(step) * time_step))
+    dplyr::mutate(step = as.numeric(step),
+      year = floor(as.numeric(step)))
   
+  
+  # tidy_sim_fleet <-
+  #   purrr::imap_dfr(sim, ~ fleet_stepper(.x), .id = "step") %>%
+  #   dplyr::mutate(step = as.integer(step) * time_step,
+  #                 year = floor(as.integer(step) * time_step))
   out <- list(fauna = tidy_sim,
               fleets = tidy_sim_fleet)
   

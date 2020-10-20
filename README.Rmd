@@ -670,7 +670,7 @@ plot_marlin(
   `MPA: Sharks Nearshore` = proc_nearshore_mpa,
   plot_var = "b",
   plot_type = "space",
-  steps_to_plot = c(1,25,50))
+  steps_to_plot = c(1,25,49))
 ```
 
 
@@ -778,7 +778,7 @@ plot_marlin(
   `De-Facto MPA` = proc_negative_prices,
   plot_var = "ssb",
   plot_type = "space",
-  steps_to_plot = c(1,25,50))
+  steps_to_plot = c(0,25,49))
 ```
 
 

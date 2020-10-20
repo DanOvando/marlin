@@ -35,6 +35,8 @@ simmar <- function(fauna = list(),
   steps <-
     (years + 1) / time_step #tack on extra year for accounting
   
+  step_names <- seq(0, years + 1, by = time_step)
+  
   patches <- unique(purrr::map_dbl(fauna, "patches"))
   
   initial_conditions <-
@@ -217,6 +219,7 @@ simmar <- function(fauna = list(),
   
   storage <-
     storage[1:(steps - 1)] # since catch is retrospective, chop off last year to ensure that every step has a catch history
+  storage <- rlang::set_names(storage, nm = step_names[1:(steps - 1)])
   
   storage <- purrr::map(storage, ~ rlang::set_names(.x, fauni))
   
