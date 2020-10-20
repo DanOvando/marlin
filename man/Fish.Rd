@@ -25,7 +25,7 @@ Fish like to swim
 fill in fish object
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Fish$new(
-  common_name = "white seabass",
+  common_name = NA,
   scientific_name = NA,
   linf = NA,
   vbk = NA,
@@ -73,7 +73,8 @@ fill in fish object
   seasonal_hab = NA,
   seasons = 1,
   explt_type = "f",
-  init_explt = 0.1
+  init_explt = 0.1,
+  get_common_name = FALSE
 )}\if{html}{\out{</div>}}
 }
 
