@@ -33,9 +33,8 @@ simmar <- function(fauna = list(),
   }
   
   steps <-
-    (years + 1) / time_step #tack on extra year for accounting
+    (years) / time_step  + 1 # tack on extra year for accounting
   
-  step_names <- seq(0, years + 1, by = time_step)
   
   patches <- unique(purrr::map_dbl(fauna, "patches"))
   
@@ -69,15 +68,21 @@ simmar <- function(fauna = list(),
   
   fishable <- rep(1, patches)
   
-  step_seq <-
-    seq(1, steps, by = time_step) # create sequence of seasonal time steps
+  # step_seq <-
+  #   seq(0, steps, by = time_step) # create sequence of seasonal time steps
+  # 
+  step_names <- seq(0, years + 1, by = time_step)
+  
+  # browser()
   
   # loop over steps
   for (s in 2:steps) {
-    season <-
-      step_seq[s - 1] - floor(step_seq[s - 1]) # determine what season the last time step was
+    # season <-
+    #   step_seq[s - 1] - floor(step_seq[s - 1]) # determine what season the last time step was
+    # 
+   season <-  step_names[s - 1] - floor(step_names[s - 1]) # determine what season the last time step was
     
-    year <-  floor(step_seq[s])
+    year <-  floor(step_names[s])
     
     if (length(mpas) > 0) {
       # assign MPAs if needed
@@ -218,7 +223,7 @@ simmar <- function(fauna = list(),
   # Sys.time() - a
   
   storage <-
-    storage[1:(steps - 1)] # since catch is retrospective, chop off last year to ensure that every step has a catch history
+    storage[1:(steps - 1)] # since catch is retrospective, chop off last time step to ensure that every step has a catch history
   storage <- rlang::set_names(storage, nm = step_names[1:(steps - 1)])
   
   storage <- purrr::map(storage, ~ rlang::set_names(.x, fauni))

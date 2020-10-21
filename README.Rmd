@@ -14,10 +14,9 @@ knitr::opts_chunk$set(
 ```
 
 # marlin
-
 <!-- badges: start -->
-[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
-[![CRAN status](https://www.r-pkg.org/badges/version/mar)](https://CRAN.R-project.org/package=mar)
+<!-- [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental) -->
+<!-- [![CRAN status](https://www.r-pkg.org/badges/version/mar)](https://CRAN.R-project.org/package=mar) -->
 <!-- badges: end -->
 
 marlin is a package for efficiently running simulations of marine fauna and fisheries. Age-structured population model of different (independent) animal types in a 2D system with multiple fishing fleets. 
