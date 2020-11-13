@@ -87,11 +87,13 @@ simmar <- function(fauna = list(),
     if (length(mpas) > 0) {
       # assign MPAs if needed
       if (year == mpas$mpa_year) {
-        fishable <- mpas$locations$mpa == 0
-        
+                fishable <- mpas$locations$mpa == 0
       }
       
     } # close MPA if statement
+    
+
+    
     for (l in seq_along(fleet_names)) {
       # distribute fleets in space based on revenues
       
@@ -134,7 +136,7 @@ simmar <- function(fauna = list(),
               byrow = TRUE
             )
         ))
-        
+
         last_b_p <- rowSums(last_b_p_a * tmp) * fishable
         
         r_p_f[, f] <- last_b_p * fleets[[l]]$metiers[[fauni[f]]]$price
@@ -143,6 +145,7 @@ simmar <- function(fauna = list(),
         
       } # close fauni loop
 
+ 
       fleets[[l]]$e_p_s[, s] <-
         sum(fleets[[l]]$e_p_s[, s - 1] * concentrator) * pmax(rowSums(r_p_f), 0) / max(sum(pmax(rowSums(r_p_f),0)), 1e-6) # distribute fishing effort by fishable biomass
 
@@ -150,7 +153,7 @@ simmar <- function(fauna = list(),
     
     for (f in seq_along(fauni)) {
       # run population model for each species
-      
+
       ages <-  length(fauna[[f]]$length_at_age)
       
       last_n_p_a <-
@@ -198,6 +201,8 @@ simmar <- function(fauna = list(),
           last_n_p_a = last_n_p_a
         )
       
+ 
+
       # process catch data
       c_p_a_fl <-
         f_p_a_fl * array(pop$c_p_a, dim = c(patches, ages, length(fleets)),
@@ -221,11 +226,11 @@ simmar <- function(fauna = list(),
   } #close steps
   
   # Sys.time() - a
-  
   storage <-
     storage[1:(steps - 1)] # since catch is retrospective, chop off last time step to ensure that every step has a catch history
   storage <- rlang::set_names(storage, nm = step_names[1:(steps - 1)])
   
   storage <- purrr::map(storage, ~ rlang::set_names(.x, fauni))
+  
   
 } # close function

@@ -41,13 +41,14 @@ create_critter <- function(common_name = NA,
                            explt_type = "f",
                            burn_years = 50,
                            weight_a = NA,
+                           resolution = 20,
                            ...) {
 
   
   if (!is.list(seasonal_habitat)){
     seasonal_habitat <-  list(seasonal_habitat)
   }
-  
+
   init_explt <- init_explt / seasons # convert to seasonal exploitation rate
   
   if (critter_type == "fish"){
@@ -70,7 +71,8 @@ create_critter <- function(common_name = NA,
         init_explt = init_explt,
         explt_type = explt_type,
         burn_years = burn_years,
-        get_common_name = get_common_name
+        get_common_name = get_common_name,
+        resolution = resolution
       )
     
   }

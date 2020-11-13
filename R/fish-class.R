@@ -97,7 +97,7 @@ Fish <- R6::R6Class(
                           tune_weight = FALSE,
                           density_movement_modifier = 1,
                           linf_buffer = 1.2,
-                          resolution = 25,
+                          resolution = NA,
                           seasonal_habitat = list(),
                           season_blocks = list(),
                           recruit_habitat = NA,
@@ -115,6 +115,10 @@ Fish <- R6::R6Class(
         stop("seasons must be greater than or equal to 1")
       }
       #
+      
+      if (length(seasonal_habitat) > 1){
+        resolution <- nrow(seasonal_habitat[[1]])
+      }
       
       if (length(seasonal_habitat) == 0) {
         seasonal_habitat <-

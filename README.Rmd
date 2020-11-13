@@ -68,7 +68,7 @@ library(tidyverse)
 options(dplyr.summarise.inform = FALSE)
 theme_set(marlin::theme_marlin())
 
-resolution <- 25 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
+resolution <- 10 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
 
 years <- 20
 
@@ -86,7 +86,8 @@ fauna <-
       adult_movement_sigma = 10,
       rec_form = 1,
       seasons = seasons,
-      fished_depletion = .5
+      fished_depletion = .5,
+      resolution = resolution
     )
   )
 
