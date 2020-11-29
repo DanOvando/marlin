@@ -86,7 +86,7 @@ fauna <-
       adult_movement_sigma = 10,
       rec_form = 1,
       seasons = seasons,
-      fished_depletion = .5,
+      fished_depletion = .25,
       resolution = resolution
     )
   )
@@ -115,7 +115,7 @@ fleets <- list(
 
 a <- Sys.time()
 
-fleets <- tune_fleets(fauna, fleets, tune_type = "depletion") 
+test <- tune_fleets(fauna, fleets, tune_type = "depletion") 
 
 Sys.time() - a
 

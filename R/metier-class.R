@@ -18,6 +18,9 @@ Metier <- R6::R6Class("metier",
                                         spatial_catchability = NA,
                                         p_explt = 1) {
                     
+                    
+                      catchability <- pmax(1e-9,catchability)
+                      
                       self$price <- price
                       
                       self$sel_form <-  sel_form
@@ -95,7 +98,7 @@ Metier <- R6::R6Class("metier",
                           ) %>%
                           dplyr::mutate(catchability = catchability / mean(catchability))
                         
-                        self$spatial_catchability <- pmin(1,tmp$catchability * catchability)
+                        self$spatial_catchability <- tmp$catchability * catchability
                         
                       } # close deal with spatial q
                   } # close initialize

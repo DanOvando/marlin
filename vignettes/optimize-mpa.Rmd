@@ -183,7 +183,7 @@ theme_set(marlin::theme_marlin())
 
 tune_type <- "explt"
 
-plan(multisession, workers = workers)
+# plan(multisession, workers = workers)
 
 fauna_frame <- tibble(
   scientific_name =  c(
@@ -348,7 +348,7 @@ for (m in 1:mpa_patches) {
 }
 
 doParallel::stopImplicitCluster()
-
+write_rds(mpa_locations, "mpa_locations.rds")
 Sys.time() - a
 without_mpas <- simmar(fauna = fauna_frame$fauna[[1]],
                        fleets = fauna_frame$fleet[[1]],
@@ -360,6 +360,10 @@ with_mpas <- simmar(
   years = years,
   mpas = list(locations = mpa_locations, mpa_year = mpa_year)
 )
+
+mpa_locations %>% 
+  ggplot(aes(x,y,fill = mpa)) + 
+  geom_tile()
      
 proc_without_mpa <-
   process_marlin(without_mpas,
@@ -373,8 +377,136 @@ proc_with_mpa <-
 
 plot_marlin(with_mpas = proc_with_mpa,
             without_mpas = proc_without_mpa)
+
+plot_marlin(with_mpas = proc_with_mpa,
+            without_mpas = proc_without_mpa,
+            plot_type = "space")
+      
       
 ```
 
+Trying a modified MCMC idea
+
+
+```{r}
+
+mpa_size <- 0.2
+
+candidate_patches <- 1:(resolution ^ 2)
+
+mpa_patches <- round(mpa_size * resolution ^ 2)
+
+objective <- 0
+
+mpa_locations <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  mutate(mpa = FALSE,
+         patch_id = 1:nrow(.))
+
+objective_critters <- "Carcharhinus longimanus"
+
+mpa_year <- floor(years * .5)
+a <- Sys.time()
+doParallel::registerDoParallel(cores = parallel::detectCores() - 2)
+
+pn <- 0.1
+
+n_sample <- round(length(candidate_patches) * pn)
+
+patch_weights <- rep(1, length(candidate_patches))
+
+mpa_locations$patch_weights <- 1
+
+for (m in 1:mpa_patches) {
+  
+  patch_results <-
+    foreach::foreach(p = 1:length(candidate_patches), .combine = c) %dopar% {
+      tmp_mpa_locations <- mpa_locations
+      
+      tmp_mpa_locations$mpa[tmp_mpa_locations$patch_id == candidate_patches[p]] <-
+        TRUE
+      
+      tmp_result <- simmar(
+        fauna = fauna_frame$fauna[[1]],
+        fleets = fauna_frame$fleet[[1]],
+        years = years,
+        mpas = list(locations = tmp_mpa_locations,
+                    mpa_year = mpa_year)
+      )
+      
+      
+      proc_tmp <-
+        process_marlin(
+          tmp_result,
+          time_step =  fauna_frame$fauna[[1]][[1]]$time_step,
+          steps_to_keep = last(names(tmp_result)),
+          keep_age = FALSE
+        )
+      
+      # plot_marlin(proc_tmp)
+      
+      objective_result <- proc_tmp$fauna %>%
+        filter(critter %in% objective_critters) %>%
+        summarise(value = sum(ssb, na.rm = TRUE))
+      
+      out <- objective_result$value - objective
+      
+    }
+  
+  if (any(patch_results < 0)){
+  tmp <- patch_results - min(patch_results) + 1e-3
+  } else {
+    tmp <- tmp
+  }
+  
+  mpa_locations$patch_weights[candidate_patches] <- tmp / max(tmp)
+  
+  next_mpa <- candidate_patches[which(patch_results == max(patch_results))[1]]
+  
+  mpa_locations$mpa[mpa_locations$patch_id == next_mpa] <- TRUE
+  
+  objective <- objective + max(patch_results)
+  
+  candidate_patches <- sample(mpa_locations$patch_id[mpa_locations$mpa == FALSE], size = n_sample, prob = mpa_locations$patch_weights[mpa_locations$mpa == FALSE])
+ 
+  message(paste0(scales::percent(m / mpa_patches, accuracy = .01)," done"))
+}
+
+doParallel::stopImplicitCluster()
+write_rds(mpa_locations, "mcmc_mpa_locations.rds")
+Sys.time() - a
+without_mpas <- simmar(fauna = fauna_frame$fauna[[1]],
+                       fleets = fauna_frame$fleet[[1]],
+                       years = years)
+
+with_mpas <- simmar(
+  fauna = fauna_frame$fauna[[1]],
+  fleets = fauna_frame$fleet[[1]],
+  years = years,
+  mpas = list(locations = mpa_locations, mpa_year = mpa_year)
+)
+
+mpa_locations %>% 
+  ggplot(aes(x,y,fill = mpa)) + 
+  geom_tile()
+     
+proc_without_mpa <-
+  process_marlin(without_mpas,
+                 time_step =  fauna_frame$fauna[[1]][[1]]$time_step,
+                 keep_age = FALSE)
+
+proc_with_mpa <-
+  process_marlin(with_mpas,
+                 time_step =  fauna_frame$fauna[[1]][[1]]$time_step,
+                 keep_age = FALSE)
+
+plot_marlin(with_mpas = proc_with_mpa,
+            without_mpas = proc_without_mpa)
+
+plot_marlin(with_mpas = proc_with_mpa,
+            without_mpas = proc_without_mpa,
+            plot_type = "space")
+
+
+```
 
 
