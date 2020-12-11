@@ -38,7 +38,7 @@ fauna <-
       common_name = "bigeye tuna",
       age_95_mature = 3,
       adult_movement = 0,
-      adult_movement_sigma = 50,
+      adult_movement_sigma = 1,
       recruit_movement = 0,
       recruit_movement_sigma = 50,
       rec_form = 2,
@@ -93,77 +93,6 @@ Sys.time() - a
 fleets <- tune_fleets(fauna, fleets, tune_type = "explt") 
 
 effort_mult = 1.5
-
-
-find_msy <- function(effort_mult, fauna, fleets, opt = TRUE, target_critter) {
-  
-  
-  tmp_fleets <- fleets
-  
-  for (f in seq_along(fleets)){
-    
-    tmp_fleets[[f]]$base_effort <- tmp_fleets[[f]]$base_effort * effort_mult
-    
-  }
-  
-  
-  
-  sim <- simmar(fauna = fauna,
-                fleets = tmp_fleets,
-                years = years)
-  
-  
-  processed_marlin <-
-    process_marlin(
-      sim = sim,
-      time_step = time_step,
-      steps_to_keep = last(names(sim)),
-      keep_age = FALSE
-    )
-  
-  fauna_yield <- processed_marlin$fleets %>% 
-    dplyr::filter(critter == target_critter) %>% 
-    dplyr::summarise(yield = sum(catch))
-  
-  out <- -sum(fauna_yield$yield)
-  
-  if (opt == FALSE){
-    
-    out <- processed_marlin
-  }
-  # yield
-  # 
-  return(out)
-}
-
-assign_ref_points <- function(fauna, fleets){
-  
-  for (f in seq_along(fauna)){
-    
-    msy_mult <- nlminb(1e-3,find_msy, lower = 0, upper = 10, fauna = fauna, fleets = fleets, opt = TRUE,target_critter = names(fauna)[f])
-    
-    msy_state <- find_msy(msy_mult$par, fauna = fauna, fleets = fleets, opt = FALSE, target_critter =  names(fauna)[f])
-    
-    ref_points <- msy_state$fauna %>% 
-      dplyr::filter(critter == names(fauna)[f]) %>% 
-      dplyr::summarise(ssb_msy = sum(ssb), 
-                       b_msy  = sum(b),
-                       n_msy = sum(n),
-                       msy = sum(c),
-                       u_msy = sum(c) / sum(b))
-    
-    base_e_msy <- mean(purrr::map_dbl(fleets,"base_effort")) * msy_mult$par
-    
-    ref_points$base_e_msy_mult <- msy_mult$par
-    
-    ref_points$base_e_msy <- base_e_msy
-    
-    fauna[[f]]$ref_points <- ref_points
-    
-  }
-  
-  return(fauna)
-}
 
 fauna <- assign_ref_points(fauna = fauna, fleets = fleets)
 

@@ -63,7 +63,7 @@ fill in fish object
   tune_weight = FALSE,
   density_movement_modifier = 1,
   linf_buffer = 1.2,
-  resolution = 25,
+  resolution = NA,
   seasonal_habitat = list(),
   season_blocks = list(),
   recruit_habitat = NA,

@@ -24,6 +24,7 @@ create_critter(
   explt_type = "f",
   burn_years = 50,
   weight_a = NA,
+  resolution = 20,
   ...
 )
 }
