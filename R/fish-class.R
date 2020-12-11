@@ -632,7 +632,7 @@ Fish <- R6::R6Class(
       
       self$unfished <- unfished$tmppop
       
-     
+      self$ref_points <- NA
       
     }, # close initialize
     plot = function(type = 2) {
