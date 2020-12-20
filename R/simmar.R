@@ -55,7 +55,7 @@ simmar <- function(fauna = list(),
   fleets <-
     purrr::map(fleets, ~ purrr::list_modify(
       .x,
-      e_p_s = matrix(.x$base_effort / patches, nrow = patches, ncol = steps)
+      e_p_s = matrix(((.x$base_effort / patches)), nrow = patches, ncol = steps)
     )) # create blank for effort by fleet, space, and time
   
   r_p_f <-

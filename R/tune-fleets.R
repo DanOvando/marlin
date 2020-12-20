@@ -53,7 +53,7 @@ tune_fleets <- function(fauna,
       p_explt <-
         purrr::map_dbl(fleets, c("metiers",s, "p_explt"))[names(e_p_fl)]
       
-      explt_by_fleet <- fauna[[s]]$init_explt * p_explt
+      explt_by_fleet <- (fauna[[s]]$init_explt)  * p_explt
       
       # catchability <-  log(1 - explt_by_fleet) / -e_fl
       

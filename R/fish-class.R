@@ -351,7 +351,7 @@ Fish <- R6::R6Class(
       lmat_to_linf_ratio <- length_mature / linf
       
       m_at_age <-
-        rep(m * time_step, length(weight_at_age)) # place holder to allow for different m at age
+        rep(m, length(weight_at_age)) # place holder to allow for different m at age
       
       #
       
