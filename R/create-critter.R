@@ -50,7 +50,6 @@ create_critter <- function(common_name = NA,
   }
 
   init_explt <- init_explt / seasons # convert to seasonal exploitation rate
-  
   if (critter_type == "fish"){
     critter <-
       marlin::Fish$new(
@@ -72,7 +71,8 @@ create_critter <- function(common_name = NA,
         explt_type = explt_type,
         burn_years = burn_years,
         get_common_name = get_common_name,
-        resolution = resolution
+        resolution = resolution,
+        ...
       )
     
   }

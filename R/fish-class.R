@@ -109,6 +109,7 @@ Fish <- R6::R6Class(
                           explt_type = "f",
                           init_explt = .1,
                           get_common_name = FALSE) {
+      
       seasons <- as.integer(seasons)
       
       if (seasons < 1) {

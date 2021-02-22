@@ -87,7 +87,8 @@ fauna <-
       rec_form = 1,
       seasons = seasons,
       fished_depletion = .25,
-      resolution = resolution
+      resolution = resolution,
+      steepness = 0.6
     )
   )
 

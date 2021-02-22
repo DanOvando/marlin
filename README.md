@@ -107,7 +107,8 @@ fauna <-
       rec_form = 1,
       seasons = seasons,
       fished_depletion = .25,
-      resolution = resolution
+      resolution = resolution,
+      steepness = 0.6
     )
   )
 #> ══  1 queries  ═══════════════
@@ -147,7 +148,7 @@ a <- Sys.time()
 test <- tune_fleets(fauna, fleets, tune_type = "depletion") 
 
 Sys.time() - a
-#> Time difference of 1.059011 secs
+#> Time difference of 1.151028 secs
 
 
 fauna$bigeye$plot()
@@ -163,7 +164,7 @@ sim <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.0176661 secs
+#> Time difference of 0.02976203 secs
 ```
 
 we can then use `process_marlin` and `plot_marlin` to examine the
@@ -284,7 +285,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets) 
 
 Sys.time() - a
-#> Time difference of 0.4700811 secs
+#> Time difference of 0.5178478 secs
 
 
 fauna$bigeye$plot()
@@ -300,7 +301,7 @@ sim2 <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.2601101 secs
+#> Time difference of 0.3138149 secs
   
 
 processed_marlin <- process_marlin(sim = sim2, time_step = time_step)
@@ -406,7 +407,7 @@ fauna <-
 #> ● Found: 1 
 #> ● Not Found: 0
 Sys.time() - a
-#> Time difference of 1.328093 secs
+#> Time difference of 1.304592 secs
 
 # create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
 # with lists for each species inside there. Price specifies the price per unit weight of that 
@@ -471,7 +472,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets) 
 
 Sys.time() - a
-#> Time difference of 0.641566 secs
+#> Time difference of 0.8081942 secs
 
 
 # run simulations
@@ -484,7 +485,7 @@ sim3 <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.3544869 secs
+#> Time difference of 0.4278769 secs
   
 processed_marlin <- process_marlin(sim = sim3, time_step = time_step)
 
@@ -626,7 +627,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
-#> Time difference of 9.707644 secs
+#> Time difference of 13.02616 secs
 
 # run simulations
 
@@ -637,7 +638,7 @@ nearshore <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.2290571 secs
+#> Time difference of 0.2905922 secs
   
 proc_nearshore <- process_marlin(nearshore, time_step =  fauna[[1]]$time_step)
 ```
@@ -674,7 +675,7 @@ nearshore_mpa <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.2618179 secs
+#> Time difference of 0.2923138 secs
 
 proc_nearshore_mpa <- process_marlin(nearshore_mpa, time_step =  fauna[[1]]$time_step)
 ```
@@ -743,7 +744,7 @@ offshore <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.4609981 secs
+#> Time difference of 0.313364 secs
   
 proc_offshore <- process_marlin(offshore, time_step =  fauna[[1]]$time_step)
 
@@ -758,7 +759,7 @@ offshore_mpa_sim <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.2011101 secs
+#> Time difference of 0.2706771 secs
 
 
 proc_offshore_mpa <- process_marlin(offshore_mpa_sim, time_step =  fauna[[1]]$time_step)
@@ -878,7 +879,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
-#> Time difference of 0.3301899 secs
+#> Time difference of 0.2965002 secs
 
 # run simulations
 
