@@ -548,16 +548,72 @@ Fish <- R6::R6Class(
         ) %>%
         dplyr::mutate(rec_habitat = rec_habitat / sum(rec_habitat))
       
-      self$r0s <- r0 * r0s$rec_habitat
+      local_r0s <- r0 * r0s$rec_habitat
+      
+
+      
+      if (!is.na(ssb0)){
+        
+        
+        tune_ssb0 <-
+          function(r0,
+                   ssb0_target,
+                   rec_habitat,
+                   m,
+                   max_age,
+                   time_step,
+                   patches,
+                   length_at_age,
+                   weight_at_age,
+                   maturity_at_age) {
+            tmp_r0s <- r0 * rec_habitat
+            
+            init_pop <-
+              tmp_r0s * matrix(
+                rep(exp(-m * seq(0, max_age, by = time_step)), patches),
+                nrow = patches,
+                ncol = length(length_at_age),
+                byrow = TRUE
+              )
+            
+            ssb0 <-
+              sum(colSums(init_pop) * fec_at_age * maturity_at_age)
+            
+            delta <- ((ssb0) - (ssb0_target)) ^ 2
+            
+          }
+        tuned_r0 <- nlminb(
+          r0,
+          tune_ssb0,
+          lower = 1e-3,
+          ssb0_target = ssb0,
+          rec_habitat = r0s$rec_habitat,
+          m = m,
+          max_age = max_age,
+          time_step = time_step,
+          patches = patches,
+          length_at_age = length_at_age,
+          weight_at_age = weight_at_age,
+          maturity_at_age = maturity_at_age
+        )
+        
+        local_r0s <- tuned_r0$par * r0s$rec_habitat
+        
+      }
+      
       
       # tune SSB0 and unfished equilibrium
       init_pop <-
-        self$r0s * matrix(
+        local_r0s * matrix(
           rep(exp(-m * seq(0, max_age, by = time_step)), patches),
           nrow = patches,
           ncol = length(length_at_age),
           byrow = TRUE
         )
+      
+      self$r0s <- local_r0s
+      
+      
       f_p_a <-
         matrix(0, nrow = patches, ncol = length(length_at_age))
       
