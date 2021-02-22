@@ -12,6 +12,7 @@ Metier <- R6::R6Class("metier",
                   initialize = function(critter = NA, # this might be redundant
                                         price = 10,
                                         sel_form = "logistic",
+                                        sel_unit = "p_of_mat",
                                         sel_start = 1, 
                                         sel_delta = .1,
                                         catchability = 0.01,
@@ -36,11 +37,20 @@ Metier <- R6::R6Class("metier",
                       length_bins <-
                         as.numeric(colnames(critter$length_at_age_key))
                       
+                      if (sel_unit == "p_of_mat"){
                       l_50_sel <-
                         critter$length_50_mature * sel_start
                       
                       l_95_sel <-
                         critter$length_50_mature * (sel_start + sel_delta)
+                      
+                      } else if (sel_unit == "length"){
+                        
+                        l_50_sel <- sel_start
+                        
+                        l_95_sel <- sel_start + sel_delta
+                        
+                      }
                       
                       if (sel_form == "logistic") {
                         
