@@ -31,7 +31,7 @@ devtools::install_github("DanOvando/marlin")
 ```
 ## Naviation
 
-The core wrapper function is located in R/simmar.R. This funcion keeps track of each of the populations and fleets. 
+The core wrapper function is located in R/simmar.R. This function keeps track of each of the populations and fleets. 
 
 The actual population models are found in src/fish_model.cpp. Additional modules will be put in there as they are developed
 
