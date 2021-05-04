@@ -5,8 +5,9 @@
 \title{Create Critter}
 \usage{
 create_critter(
-  common_name = "white seabass",
+  common_name = NA,
   scientific_name = NA,
+  get_common_name = FALSE,
   critter_type = "fish",
   seasonal_habitat = list(),
   season_blocks = list(),
@@ -23,6 +24,7 @@ create_critter(
   explt_type = "f",
   burn_years = 50,
   weight_a = NA,
+  resolution = 20,
   ...
 )
 }

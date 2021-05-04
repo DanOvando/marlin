@@ -14,13 +14,12 @@ knitr::opts_chunk$set(
 ```
 
 # marlin
-
 <!-- badges: start -->
-[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
-[![CRAN status](https://www.r-pkg.org/badges/version/mar)](https://CRAN.R-project.org/package=mar)
+<!-- [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental) -->
+<!-- [![CRAN status](https://www.r-pkg.org/badges/version/mar)](https://CRAN.R-project.org/package=mar) -->
 <!-- badges: end -->
 
-marlin is a package for efficiently running simulations of marine fauna and fisheries. Age-structured population model of different (independent) animal types in a 2D system with multiple fishing fleets. 
+marlin is a package for efficiently running simulations of marine fauna and fisheries. It is an age-structured population model of different (independent) animal types in a 2D system with capacity for multiple fishing fleets with technical interactions across fleets and species. 
 
 ## Installation
 
@@ -37,6 +36,7 @@ The core wrapper function is located in R/simmar.R. This funcion keeps track of 
 The actual population models are found in src/fish_model.cpp. Additional modules will be put in there as they are developed
 
 ### Troubleshooting
+
 
 Make sure you try the install with a fresh R session (go to "Session>Restart R" to make sure)
 
@@ -68,7 +68,7 @@ library(tidyverse)
 options(dplyr.summarise.inform = FALSE)
 theme_set(marlin::theme_marlin())
 
-resolution <- 25 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
+resolution <- 10 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
 
 years <- 20
 
@@ -86,7 +86,10 @@ fauna <-
       adult_movement_sigma = 10,
       rec_form = 1,
       seasons = seasons,
-      fished_depletion = .5
+      fished_depletion = .25,
+      resolution = resolution,
+      steepness = 0.6,
+      ssb0 = 1000
     )
   )
 
@@ -114,7 +117,7 @@ fleets <- list(
 
 a <- Sys.time()
 
-fleets <- tune_fleets(fauna, fleets, tune_type = "depletion") 
+test <- tune_fleets(fauna, fleets, tune_type = "depletion") 
 
 Sys.time() - a
 
@@ -613,9 +616,7 @@ fauna <-
       burn_years = 200,
             seasons = seasons,
             init_explt = .12, 
-      explt_type = "f",
-          fec_form = "constant",
-      weight_a = 2
+      explt_type = "f"
     )
   )
 
@@ -671,7 +672,7 @@ plot_marlin(
   `MPA: Sharks Nearshore` = proc_nearshore_mpa,
   plot_var = "b",
   plot_type = "space",
-  steps_to_plot = c(1,25,50))
+  steps_to_plot = c(1,25,49))
 ```
 
 
@@ -779,7 +780,7 @@ plot_marlin(
   `De-Facto MPA` = proc_negative_prices,
   plot_var = "ssb",
   plot_type = "space",
-  steps_to_plot = c(1,25,50))
+  steps_to_plot = c(0,25,49))
 ```
 
 

@@ -4,16 +4,14 @@
 # marlin
 
 <!-- badges: start -->
-
-[![Lifecycle:
-experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
-[![CRAN
-status](https://www.r-pkg.org/badges/version/mar)](https://CRAN.R-project.org/package=mar)
+<!-- [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental) -->
+<!-- [![CRAN status](https://www.r-pkg.org/badges/version/mar)](https://CRAN.R-project.org/package=mar) -->
 <!-- badges: end -->
 
 marlin is a package for efficiently running simulations of marine fauna
-and fisheries. Age-structured population model of different
-(independent) animal types in a 2D system with multiple fishing fleets.
+and fisheries. It is an age-structured population model of different
+(independent) animal types in a 2D system with capacity for multiple
+fishing fleets with technical interactions across fleets and species.
 
 ## Installation
 
@@ -36,7 +34,7 @@ Additional modules will be put in there as they are developed
 ### Troubleshooting
 
 Make sure you try the install with a fresh R session (go to
-“Session\>Restart R” to make sure)
+“Session&gt;Restart R” to make sure)
 
 If you run into an error, first off try updating your R packages. From
 there….
@@ -55,16 +53,16 @@ and [`updateR`](https://github.com/AndreaCirilloAC/updateR) for Mac.
 
 From there…
 
-  - On Windows, make sure you have the appropriate version of Rtools
+-   On Windows, make sure you have the appropriate version of Rtools
     installed ([here](https://cran.r-project.org/bin/windows/Rtools/)),
     most likely Rtools35 if you have R version 3.3 or higher
-      - Make sure that you select the box that says something about
+    -   Make sure that you select the box that says something about
         adding Rtools to the PATH variable
-  - On macOS, there might be some issues with the your compiler,
+-   On macOS, there might be some issues with the your compiler,
     particularly if your version of R is less than 4.0.0.
 
-If you get an error that says something like `clang: error: unsupported
-option '-fopenmp'`, follow the instructions
+If you get an error that says something like
+`clang: error: unsupported option '-fopenmp'`, follow the instructions
 [here](https://thecoatlessprofessor.com/programming/cpp/r-compiler-tools-for-rcpp-on-macos-before-r-4.0.0/)
 
 Once you’ve tried those, restart your computer and try running
@@ -79,18 +77,18 @@ the various options in `marlin`
 ``` r
 library(marlin)
 library(tidyverse)
-#> ── Attaching packages ─────────────────────────────── tidyverse 1.3.0 ──
-#> ✓ ggplot2 3.3.2     ✓ purrr   0.3.4
-#> ✓ tibble  3.0.3     ✓ dplyr   1.0.2
-#> ✓ tidyr   1.1.2     ✓ stringr 1.4.0
-#> ✓ readr   1.4.0     ✓ forcats 0.5.0
-#> ── Conflicts ────────────────────────────────── tidyverse_conflicts() ──
+#> ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.0 ──
+#> ✓ ggplot2 3.3.3     ✓ purrr   0.3.4
+#> ✓ tibble  3.1.0     ✓ dplyr   1.0.5
+#> ✓ tidyr   1.1.3     ✓ stringr 1.4.0
+#> ✓ readr   1.4.0     ✓ forcats 0.5.1
+#> ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
 #> x dplyr::filter() masks stats::filter()
 #> x dplyr::lag()    masks stats::lag()
 options(dplyr.summarise.inform = FALSE)
 theme_set(marlin::theme_marlin())
 
-resolution <- 25 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
+resolution <- 10 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
 
 years <- 20
 
@@ -108,7 +106,10 @@ fauna <-
       adult_movement_sigma = 10,
       rec_form = 1,
       seasons = seasons,
-      fished_depletion = .5
+      fished_depletion = .25,
+      resolution = resolution,
+      steepness = 0.6,
+      ssb0 = 1000
     )
   )
 #> ══  1 queries  ═══════════════
@@ -145,10 +146,10 @@ fleets <- list(
 
 a <- Sys.time()
 
-fleets <- tune_fleets(fauna, fleets, tune_type = "depletion") 
+test <- tune_fleets(fauna, fleets, tune_type = "depletion") 
 
 Sys.time() - a
-#> Time difference of 6.809542 secs
+#> Time difference of 1.109109 secs
 
 
 fauna$bigeye$plot()
@@ -157,7 +158,6 @@ fauna$bigeye$plot()
 <img src="man/figures/README-unnamed-chunk-2-1.png" width="100%" />
 
 ``` r
-
 a <- Sys.time()
 
 sim <- simmar(fauna = fauna,
@@ -165,14 +165,13 @@ sim <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.112251 secs
+#> Time difference of 0.03033614 secs
 ```
 
 we can then use `process_marlin` and `plot_marlin` to examine the
 simulation
 
 ``` r
-
 processed_marlin <- process_marlin(sim = sim, time_step = time_step)
 
 plot_marlin(processed_marlin)
@@ -181,14 +180,12 @@ plot_marlin(processed_marlin)
 <img src="man/figures/README-unnamed-chunk-3-1.png" width="100%" />
 
 ``` r
-
 plot_marlin(processed_marlin, plot_var = "c")
 ```
 
 <img src="man/figures/README-unnamed-chunk-3-2.png" width="100%" />
 
 ``` r
-
 plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", fauna = fauna)
 #> Warning in plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", :
 #> trying to plot too many steps at once, cutting down to 10
@@ -198,7 +195,6 @@ plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", fauna = faun
 <img src="man/figures/README-unnamed-chunk-3-3.png" width="100%" />
 
 ``` r
-
 plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space")
 #> Warning in plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space"):
 #> Can only plot one time step for spatial plots, defaulting to last of the
@@ -214,7 +210,6 @@ rates by season, specified recruitment habitat, and a spatial dimension
 to catchability, and quarterly time steps
 
 ``` r
-
 seasons <- 4
 
 time_step <-  1 / seasons
@@ -291,7 +286,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets) 
 
 Sys.time() - a
-#> Time difference of 3.654184 secs
+#> Time difference of 0.484416 secs
 
 
 fauna$bigeye$plot()
@@ -300,7 +295,6 @@ fauna$bigeye$plot()
 <img src="man/figures/README-unnamed-chunk-4-1.png" width="100%" />
 
 ``` r
-
 a <- Sys.time()
 
 sim2 <- simmar(fauna = fauna,
@@ -308,7 +302,7 @@ sim2 <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 1.341094 secs
+#> Time difference of 0.3013039 secs
   
 
 processed_marlin <- process_marlin(sim = sim2, time_step = time_step)
@@ -319,14 +313,12 @@ plot_marlin(processed_marlin)
 <img src="man/figures/README-unnamed-chunk-4-2.png" width="100%" />
 
 ``` r
-
 plot_marlin(processed_marlin, plot_var = "c")
 ```
 
 <img src="man/figures/README-unnamed-chunk-4-3.png" width="100%" />
 
 ``` r
-
 plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", fauna = fauna)
 #> Warning in plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", :
 #> trying to plot too many steps at once, cutting down to 10
@@ -336,7 +328,6 @@ plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", fauna = faun
 <img src="man/figures/README-unnamed-chunk-4-4.png" width="100%" />
 
 ``` r
-
 plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space")
 #> Warning in plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space"):
 #> Can only plot one time step for spatial plots, defaulting to last of the
@@ -348,7 +339,6 @@ plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space")
 ## Two Species and two fleets with bells and whistles
 
 ``` r
-
 seasons <- 4
 
 steps <- years * seasons
@@ -410,15 +400,6 @@ fauna <-
   )
 #> ══  1 queries  ═══════════════
 #> 
-#> Retrieving data for taxon 'Katsuwonus pelamis'
-#> ✔  Found:  Katsuwonus+pelamis
-#> ══  Results  ═════════════════
-#> 
-#> ● Total: 1 
-#> ● Found: 1 
-#> ● Not Found: 0
-#> ══  1 queries  ═══════════════
-#> 
 #> Retrieving data for taxon 'bigeye tuna'
 #> ✔  Found:  bigeye+tuna[Common Name]
 #> ══  Results  ═════════════════
@@ -427,7 +408,7 @@ fauna <-
 #> ● Found: 1 
 #> ● Not Found: 0
 Sys.time() - a
-#> Time difference of 7.88322 secs
+#> Time difference of 1.335802 secs
 
 # create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
 # with lists for each species inside there. Price specifies the price per unit weight of that 
@@ -492,7 +473,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets) 
 
 Sys.time() - a
-#> Time difference of 6.822457 secs
+#> Time difference of 0.908644 secs
 
 
 # run simulations
@@ -505,7 +486,7 @@ sim3 <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 2.833822 secs
+#> Time difference of 0.272727 secs
   
 processed_marlin <- process_marlin(sim = sim3, time_step = time_step)
 
@@ -515,14 +496,12 @@ plot_marlin(processed_marlin)
 <img src="man/figures/README-example-1.png" width="100%" />
 
 ``` r
-
 plot_marlin(processed_marlin, plot_var = "c")
 ```
 
 <img src="man/figures/README-example-2.png" width="100%" />
 
 ``` r
-
 plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", fauna = fauna)
 #> Warning in plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", :
 #> trying to plot too many steps at once, cutting down to 10
@@ -532,7 +511,6 @@ plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", fauna = faun
 <img src="man/figures/README-example-3.png" width="100%" />
 
 ``` r
-
 plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space")
 #> Warning in plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space"):
 #> Can only plot one time step for spatial plots, defaulting to last of the
@@ -580,8 +558,6 @@ mako_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
 
 
 # create a fauna object, which is a list of lists
-browser()
-#> Called from: eval(expr, envir, enclos)
 fauna <- 
   list(
     "Yellowfin Tuna" = create_critter(
@@ -612,24 +588,6 @@ fauna <-
       weight_a = 2 # average two offspring per shark
     )
   )
-#> ══  1 queries  ═══════════════
-#> 
-#> Retrieving data for taxon 'Thunnus albacares'
-#> ✔  Found:  Thunnus+albacares
-#> ══  Results  ═════════════════
-#> 
-#> ● Total: 1 
-#> ● Found: 1 
-#> ● Not Found: 0
-#> ══  1 queries  ═══════════════
-#> 
-#> Retrieving data for taxon 'Isurus oxyrinchus'
-#> ✔  Found:  Isurus+oxyrinchus
-#> ══  Results  ═════════════════
-#> 
-#> ● Total: 1 
-#> ● Found: 1 
-#> ● Not Found: 0
 
 fauna$`Shortfin Mako`$plot()
 ```
@@ -637,7 +595,6 @@ fauna$`Shortfin Mako`$plot()
 <img src="man/figures/README-unnamed-chunk-5-1.png" width="100%" />
 
 ``` r
-
 # create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
 # with lists for each species inside there. Price specifies the price per unit weight of that 
 # species for that fleet
@@ -671,7 +628,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
-#> Time difference of 13.2525 secs
+#> Time difference of 13.65122 secs
 
 # run simulations
 
@@ -682,7 +639,7 @@ nearshore <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.2192142 secs
+#> Time difference of 0.288677 secs
   
 proc_nearshore <- process_marlin(nearshore, time_step =  fauna[[1]]$time_step)
 ```
@@ -719,7 +676,7 @@ nearshore_mpa <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.222671 secs
+#> Time difference of 0.520375 secs
 
 proc_nearshore_mpa <- process_marlin(nearshore_mpa, time_step =  fauna[[1]]$time_step)
 ```
@@ -731,7 +688,6 @@ population without the MPA, and then assess the effects of the exact
 same MPA on this new scenario.
 
 ``` r
-
 yft_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
   mutate(habitat =  .2 * x) %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
@@ -773,29 +729,9 @@ fauna <-
       burn_years = 200,
             seasons = seasons,
             init_explt = .12, 
-      explt_type = "f",
-          fec_form = "constant",
-      weight_a = 2
+      explt_type = "f"
     )
   )
-#> ══  1 queries  ═══════════════
-#> 
-#> Retrieving data for taxon 'Thunnus albacares'
-#> ✔  Found:  Thunnus+albacares
-#> ══  Results  ═════════════════
-#> 
-#> ● Total: 1 
-#> ● Found: 1 
-#> ● Not Found: 0
-#> ══  1 queries  ═══════════════
-#> 
-#> Retrieving data for taxon 'Isurus oxyrinchus'
-#> ✔  Found:  Isurus+oxyrinchus
-#> ══  Results  ═════════════════
-#> 
-#> ● Total: 1 
-#> ● Found: 1 
-#> ● Not Found: 0
 
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
@@ -809,7 +745,7 @@ offshore <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.2156942 secs
+#> Time difference of 0.2887321 secs
   
 proc_offshore <- process_marlin(offshore, time_step =  fauna[[1]]$time_step)
 
@@ -824,7 +760,7 @@ offshore_mpa_sim <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.2513261 secs
+#> Time difference of 0.280545 secs
 
 
 proc_offshore_mpa <- process_marlin(offshore_mpa_sim, time_step =  fauna[[1]]$time_step)
@@ -849,7 +785,7 @@ plot_marlin(
   `MPA: Sharks Nearshore` = proc_nearshore_mpa,
   plot_var = "b",
   plot_type = "space",
-  steps_to_plot = c(1,25,50))
+  steps_to_plot = c(1,25,49))
 #> Warning in plot_marlin(`MPA: Sharks Offshore` = proc_offshore_mpa, `No MPA` =
 #> proc_nearshore, : Can only plot one time step for spatial plots, defaulting to
 #> last of the supplied steps
@@ -913,24 +849,6 @@ fauna <-
       explt_type = "f"
     )
   )
-#> ══  1 queries  ═══════════════
-#> 
-#> Retrieving data for taxon 'Thunnus albacares'
-#> ✔  Found:  Thunnus+albacares
-#> ══  Results  ═════════════════
-#> 
-#> ● Total: 1 
-#> ● Found: 1 
-#> ● Not Found: 0
-#> ══  1 queries  ═══════════════
-#> 
-#> Retrieving data for taxon 'Isurus oxyrinchus'
-#> ✔  Found:  Isurus+oxyrinchus
-#> ══  Results  ═════════════════
-#> 
-#> ● Total: 1 
-#> ● Found: 1 
-#> ● Not Found: 0
 
 # create a fleets object, accounting a negative price to shortfin makos
 
@@ -962,7 +880,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
-#> Time difference of 0.2207201 secs
+#> Time difference of 0.339355 secs
 
 # run simulations
 
@@ -979,7 +897,7 @@ plot_marlin(
   `De-Facto MPA` = proc_negative_prices,
   plot_var = "ssb",
   plot_type = "space",
-  steps_to_plot = c(1,25,50))
+  steps_to_plot = c(0,25,49))
 #> Warning in plot_marlin(`De-Facto MPA` = proc_negative_prices, plot_var =
 #> "ssb", : Can only plot one time step for spatial plots, defaulting to last of
 #> the supplied steps

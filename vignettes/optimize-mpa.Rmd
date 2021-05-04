@@ -1,0 +1,512 @@
+---
+title: "optimize-mpa"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{optimize-mpa}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r}
+compile_fleet <- function(fauna, tune_type = "explt") {
+
+  # browser()
+  # fauna <- wtf
+
+  fleets <- list(
+    "longline" = create_fleet(
+      list(
+        "Thunnus obesus" = Metier$new(
+          critter = fauna$`Thunnus obesus`,
+          price = 10,
+          sel_form = "logistic",
+          sel_start = 1,
+          sel_delta = .01,
+          catchability = .1,
+          p_explt = .5
+        ),
+        `Katsuwonus pelamis` = Metier$new(
+          critter = fauna$`Katsuwonus pelamis`,
+          price = 1,
+          sel_form = "logistic",
+          sel_start = 1,
+          sel_delta = 0.01,
+          catchability = .1,
+          p_explt = .1
+        ),
+        "Thunnus albacares" = Metier$new(
+          critter = fauna$`Thunnus albacares`,
+          price = 15,
+          sel_form = "logistic",
+          sel_start = 1,
+          sel_delta = 0.01,
+          catchability = .1,
+          p_explt = .1
+        ),
+        `Kajikia audax` = Metier$new(
+          critter = fauna$`Kajikia audax`,
+          price = 5,
+          sel_form = "logistic",
+          sel_start = .2,
+          sel_delta = 0.01,
+          catchability = .1,
+          p_explt = .9
+        ),
+        "Carcharhinus longimanus" = Metier$new(
+          critter = fauna$`Carcharhinus longimanus`,
+          price = 0,
+          sel_form = "logistic",
+          sel_start = .1,
+          sel_delta = 0.01,
+          catchability = .1,
+          p_explt = .1
+        )
+      ),
+      base_effort = resolution ^ 2
+    ),
+    "purseseine" = create_fleet(
+      list(
+        `Thunnus obesus` = Metier$new(
+          critter = fauna$`Thunnus obesus`,
+          price = 1,
+          sel_form = "logistic",
+          sel_start = .25,
+          sel_delta = .01,
+          catchability = .1,
+          p_explt = .5
+        ),
+        `Katsuwonus pelamis` = Metier$new(
+          critter = fauna$`Katsuwonus pelamis`,
+          price = 5,
+          sel_form = "logistic",
+          sel_start = 1,
+          sel_delta = 0.01,
+          catchability = .1,
+          p_explt = .1
+        ),
+        `Thunnus albacares` = Metier$new(
+          critter = fauna$`Thunnus albacares`,
+          price = 1,
+          sel_form = "logistic",
+          sel_start = .25,
+          sel_delta = 0.01,
+          catchability = .1,
+          p_explt = .1
+        ),
+        `Kajikia audax` = Metier$new(
+          critter = fauna$`Kajikia audax`,
+          price = 10,
+          sel_form = "logistic",
+          sel_start = .25,
+          sel_delta = 0.01,
+          catchability = .1,
+          p_explt = .9
+        ),
+        `Carcharhinus longimanus` = Metier$new(
+          critter = fauna$`Carcharhinus longimanus`,
+          price = 0,
+          sel_form = "logistic",
+          sel_start = .25,
+          sel_delta = 0.01,
+          catchability = .1,
+          p_explt = .1
+        )
+      ),
+      base_effort = resolution ^ 2
+    )
+  )
+
+
+  # a <- Sys.time()
+
+  fleets <- tune_fleets(fauna, fleets, tune_type = tune_type)
+}
+
+```
+
+
+```{r setup}
+set.seed(42)
+library(tidyverse)
+
+library(marlin)
+
+library(here)
+
+library(furrr)
+
+library(ggridges)
+
+library(doParallel)
+
+options(dplyr.summarise.inform = FALSE)
+
+
+foos <- list.files(here("R"))
+
+walk(foos, ~ source(here("R", .x)))
+
+results_name <- "v0.5"
+
+results_path <- here("results", results_name)
+
+if (!dir.exists(results_path)){
+  dir.create(results_path, recursive = TRUE)
+
+  dir.create(file.path(results_path,"sims"))
+}
+
+draws <- 1
+
+resolution <- 20 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches
+
+years <- 40
+
+seasons <- 1
+
+time_step <- 1 / seasons
+
+workers <- 3
+
+steps <- years * seasons
+
+time_steps <- seq(0,years - 1, by = time_step)
+
+theme_set(marlin::theme_marlin())
+
+tune_type <- "explt"
+
+# plan(multisession, workers = workers)
+
+fauna_frame <- tibble(
+  scientific_name =  c(
+    "Thunnus obesus",
+    "Katsuwonus pelamis",
+    "Thunnus albacares",
+    "Kajikia audax",
+    "Carcharhinus longimanus"
+  ),
+  xid = list(1:draws)) %>%
+  unnest(cols = xid)
+
+
+hab1 <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  mutate(habitat =  .2 * x) %>%
+  pivot_wider(names_from = y, values_from = habitat) %>%
+  select(-x) %>%
+  as.matrix()
+
+
+hab2 <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  mutate(habitat =  dnorm(x, 9,5)) %>%
+  pivot_wider(names_from = y, values_from = habitat) %>%
+  select(-x) %>%
+  as.matrix()
+
+
+generate_traits <- function(scientific_name){
+
+  trait_frame <- tibble(
+    seasonal_habitat = list(sample(list(hab1, hab2),1, replace = TRUE)),
+    adult_movement = sample(c(0, 5),1, replace = TRUE),
+    adult_movement_sigma = sample(c(1, 10), 1,replace = TRUE),
+    seasons = seasons,
+    init_explt = sample(c(.05,.1,.2), 1, replace = TRUE),
+    rec_form = sample(c(0,1,2,3),1, replace = TRUE),
+    fec_form = c("power"),
+    weight_a = NA
+  )
+
+}
+
+
+fauna_frame <- fauna_frame %>%
+  mutate(traits = map(scientific_name,generate_traits))
+
+create_random_critter <- function(scientific_name, traits,seasons){
+
+  critter <- marlin::create_critter(
+    scientific_name = scientific_name,
+    seasonal_habitat = list(traits$seasonal_habitat),
+    adult_movement = traits$adult_movement,
+    adult_movement_sigma = traits$adult_movement_sigma,
+    rec_form = traits$rec_form,
+    seasons = seasons,
+    init_explt = traits$init_explt
+  )
+
+}
+
+fauna_frame <- fauna_frame %>%
+  mutate(
+    critter = future_map2(
+      scientific_name,
+      traits,
+      create_random_critter,
+      seasons = seasons,
+      .progress = TRUE
+    )
+  )
+
+
+# aggregate into lists of fauna
+
+fauna_frame <- fauna_frame %>%
+  group_by(xid) %>%
+  nest() %>%
+  mutate(fauna = map(data, ~.x$critter %>% set_names(.x$scientific_name)))
+
+# create a fleets object, which is a list of lists (of lists). Each fleet has one element,
+# with lists for each species inside there. Price specifies the price per unit weight of that
+# species for that fleet
+# sel_form can be one of logistic or dome
+
+
+fauna_frame <- fauna_frame %>%
+  ungroup() %>%
+  mutate(fleet = future_map(fauna, compile_fleet, .progress = TRUE))
+
+
+
+```
+
+
+OK, so that's an iteration, now let's see how long it takes to optimzie an MPA network. Let's build a simple one at first, maximize biomass of shortfin mako. 
+
+```{r}
+
+mpa_size <- 0.2
+
+candidate_patches <- 1:(resolution ^ 2)
+
+mpa_patches <- round(mpa_size * resolution ^ 2)
+
+objective <- 0
+
+mpa_locations <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  mutate(mpa = FALSE,
+         patch_id = 1:nrow(.))
+
+objective_critters <- "Carcharhinus longimanus"
+
+mpa_year <- floor(years * .5)
+a <- Sys.time()
+doParallel::registerDoParallel(cores = parallel::detectCores() - 2)
+
+for (m in 1:mpa_patches) {
+  
+  patch_results <-
+    foreach::foreach(p = 1:length(candidate_patches), .combine = c) %dopar% {
+      tmp_mpa_locations <- mpa_locations
+      
+      tmp_mpa_locations$mpa[tmp_mpa_locations$patch_id == candidate_patches[p]] <-
+        TRUE
+      
+      tmp_result <- simmar(
+        fauna = fauna_frame$fauna[[1]],
+        fleets = fauna_frame$fleet[[1]],
+        years = years,
+        mpas = list(locations = tmp_mpa_locations,
+                    mpa_year = mpa_year)
+      )
+      
+      
+      proc_tmp <-
+        process_marlin(
+          tmp_result,
+          time_step =  fauna_frame$fauna[[1]][[1]]$time_step,
+          steps_to_keep = last(names(tmp_result)),
+          keep_age = FALSE
+        )
+      
+      # plot_marlin(proc_tmp)
+      
+      objective_result <- proc_tmp$fauna %>%
+        filter(critter %in% objective_critters) %>%
+        summarise(value = sum(ssb, na.rm = TRUE))
+      
+      out <- objective_result$value - objective
+      
+    }
+  
+  next_mpa <- candidate_patches[which(patch_results == max(patch_results))[1]]
+  
+  mpa_locations$mpa[mpa_locations$patch_id == next_mpa] <- TRUE
+  
+  objective <- objective + max(patch_results)
+  
+  candidate_patches <- mpa_locations$patch_id[mpa_locations$mpa == FALSE]
+ 
+  message(paste0(scales::percent(m / mpa_patches, accuracy = .01)," done"))
+}
+
+doParallel::stopImplicitCluster()
+write_rds(mpa_locations, "mpa_locations.rds")
+Sys.time() - a
+without_mpas <- simmar(fauna = fauna_frame$fauna[[1]],
+                       fleets = fauna_frame$fleet[[1]],
+                       years = years)
+
+with_mpas <- simmar(
+  fauna = fauna_frame$fauna[[1]],
+  fleets = fauna_frame$fleet[[1]],
+  years = years,
+  mpas = list(locations = mpa_locations, mpa_year = mpa_year)
+)
+
+mpa_locations %>% 
+  ggplot(aes(x,y,fill = mpa)) + 
+  geom_tile()
+     
+proc_without_mpa <-
+  process_marlin(without_mpas,
+                 time_step =  fauna_frame$fauna[[1]][[1]]$time_step,
+                 keep_age = FALSE)
+
+proc_with_mpa <-
+  process_marlin(with_mpas,
+                 time_step =  fauna_frame$fauna[[1]][[1]]$time_step,
+                 keep_age = FALSE)
+
+plot_marlin(with_mpas = proc_with_mpa,
+            without_mpas = proc_without_mpa)
+
+plot_marlin(with_mpas = proc_with_mpa,
+            without_mpas = proc_without_mpa,
+            plot_type = "space")
+      
+      
+```
+
+Trying a modified MCMC idea
+
+
+```{r}
+
+mpa_size <- 0.2
+
+candidate_patches <- 1:(resolution ^ 2)
+
+mpa_patches <- round(mpa_size * resolution ^ 2)
+
+objective <- 0
+
+mpa_locations <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  mutate(mpa = FALSE,
+         patch_id = 1:nrow(.))
+
+objective_critters <- "Carcharhinus longimanus"
+
+mpa_year <- floor(years * .5)
+a <- Sys.time()
+doParallel::registerDoParallel(cores = parallel::detectCores() - 2)
+
+pn <- 0.1
+
+n_sample <- round(length(candidate_patches) * pn)
+
+patch_weights <- rep(1, length(candidate_patches))
+
+mpa_locations$patch_weights <- 1
+
+for (m in 1:mpa_patches) {
+  
+  patch_results <-
+    foreach::foreach(p = 1:length(candidate_patches), .combine = c) %dopar% {
+      tmp_mpa_locations <- mpa_locations
+      
+      tmp_mpa_locations$mpa[tmp_mpa_locations$patch_id == candidate_patches[p]] <-
+        TRUE
+      
+      tmp_result <- simmar(
+        fauna = fauna_frame$fauna[[1]],
+        fleets = fauna_frame$fleet[[1]],
+        years = years,
+        mpas = list(locations = tmp_mpa_locations,
+                    mpa_year = mpa_year)
+      )
+      
+      
+      proc_tmp <-
+        process_marlin(
+          tmp_result,
+          time_step =  fauna_frame$fauna[[1]][[1]]$time_step,
+          steps_to_keep = last(names(tmp_result)),
+          keep_age = FALSE
+        )
+      
+      # plot_marlin(proc_tmp)
+      
+      objective_result <- proc_tmp$fauna %>%
+        filter(critter %in% objective_critters) %>%
+        summarise(value = sum(ssb, na.rm = TRUE))
+      
+      out <- objective_result$value - objective
+      
+    }
+  
+  if (any(patch_results < 0)){
+  tmp <- patch_results - min(patch_results) + 1e-3
+  } else {
+    tmp <- tmp
+  }
+  
+  mpa_locations$patch_weights[candidate_patches] <- tmp / max(tmp)
+  
+  next_mpa <- candidate_patches[which(patch_results == max(patch_results))[1]]
+  
+  mpa_locations$mpa[mpa_locations$patch_id == next_mpa] <- TRUE
+  
+  objective <- objective + max(patch_results)
+  
+  candidate_patches <- sample(mpa_locations$patch_id[mpa_locations$mpa == FALSE], size = n_sample, prob = mpa_locations$patch_weights[mpa_locations$mpa == FALSE])
+ 
+  message(paste0(scales::percent(m / mpa_patches, accuracy = .01)," done"))
+}
+
+doParallel::stopImplicitCluster()
+write_rds(mpa_locations, "mcmc_mpa_locations.rds")
+Sys.time() - a
+without_mpas <- simmar(fauna = fauna_frame$fauna[[1]],
+                       fleets = fauna_frame$fleet[[1]],
+                       years = years)
+
+with_mpas <- simmar(
+  fauna = fauna_frame$fauna[[1]],
+  fleets = fauna_frame$fleet[[1]],
+  years = years,
+  mpas = list(locations = mpa_locations, mpa_year = mpa_year)
+)
+
+mpa_locations %>% 
+  ggplot(aes(x,y,fill = mpa)) + 
+  geom_tile()
+     
+proc_without_mpa <-
+  process_marlin(without_mpas,
+                 time_step =  fauna_frame$fauna[[1]][[1]]$time_step,
+                 keep_age = FALSE)
+
+proc_with_mpa <-
+  process_marlin(with_mpas,
+                 time_step =  fauna_frame$fauna[[1]][[1]]$time_step,
+                 keep_age = FALSE)
+
+plot_marlin(with_mpas = proc_with_mpa,
+            without_mpas = proc_without_mpa)
+
+plot_marlin(with_mpas = proc_with_mpa,
+            without_mpas = proc_without_mpa,
+            plot_type = "space")
+
+
+```
+
+

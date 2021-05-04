@@ -4,7 +4,7 @@
 \alias{process_marlin}
 \title{Process Marlin}
 \usage{
-process_marlin(sim, steps_to_keep = NA, time_step = 1)
+process_marlin(sim, steps_to_keep = NA, time_step = 1, keep_age = TRUE)
 }
 \arguments{
 \item{sim}{the output from simmar}

@@ -146,16 +146,16 @@ List sim_fish(
   //////////////////// grow ////////////////////////
 
 
-  NumericVector plus_group = last_n_p_a(_,ages - 1) * exp(-(m_at_age(ages - 1) +f_p_a(_,ages - 1))); // calculate numbers in the oldest group that survive
+  NumericVector plus_group = last_n_p_a(_,ages - 1) * exp(-time_step * (m_at_age(ages - 1) +f_p_a(_,ages - 1))); // calculate numbers in the oldest group that survive
   
-  c_p_a(_,ages - 1) =   (f_p_a(_,ages - 1) / (m_at_age(ages - 1) * time_step + f_p_a(_,ages - 1))) * last_n_p_a(_,ages - 1) * (1 - exp(-(m_at_age(ages - 1) * time_step + f_p_a(_,ages - 1))));
+  c_p_a(_,ages - 1) =   (f_p_a(_,ages - 1) / (m_at_age(ages - 1) + f_p_a(_,ages - 1))) * last_n_p_a(_,ages - 1) * (1 - exp(-time_step * (m_at_age(ages - 1) + f_p_a(_,ages - 1))));
   
   // age and die
   for (int a = 1; a < ages; a++){
 
-    n_p_a(_,a) =  last_n_p_a(_,a - 1) * exp(-(m_at_age(a - 1) + f_p_a(_,a - 1)));
+    n_p_a(_,a) =  last_n_p_a(_,a - 1) * exp(-time_step * (m_at_age(a - 1) + f_p_a(_,a - 1)));
     
-    c_p_a(_,a - 1) =   (f_p_a(_,a - 1) / (m_at_age(a - 1) * time_step + f_p_a(_,a - 1))) * last_n_p_a(_,a - 1) * (1 - exp(-(m_at_age(a - 1) * time_step + f_p_a(_,a - 1))));
+    c_p_a(_,a - 1) =   (f_p_a(_,a - 1) / (m_at_age(a - 1) + f_p_a(_,a - 1))) * last_n_p_a(_,a - 1) * (1 - exp(-time_step * (m_at_age(a - 1) + f_p_a(_,a - 1))));
 
   }
 

@@ -53,13 +53,15 @@ tune_fleets <- function(fauna,
       p_explt <-
         purrr::map_dbl(fleets, c("metiers",s, "p_explt"))[names(e_p_fl)]
       
-      explt_by_fleet <- fauna[[s]]$init_explt * p_explt
+      explt_by_fleet <- (fauna[[s]]$init_explt)  * p_explt
       
-      catchability <-  log(1 - explt_by_fleet) / -e_fl
+      # catchability <-  log(1 - explt_by_fleet) / -e_fl
+      
+      catchability <-  explt_by_fleet / e_fl
       
       for (f in fleeti) {
         fleets[[f]]$metiers[[s]]$catchability <- catchability[f]
-    
+        
         if (all(fleets[[f]]$metiers[[s]]$spatial_catchability == 0)) {
           # annoying step: if q = 0 from earlier, then this will be a matrix of zeros and can't get updated
           fleets[[f]]$metiers[[s]]$spatial_catchability <-
@@ -70,7 +72,7 @@ tune_fleets <- function(fauna,
         
         mean_q <- ifelse(mean_q == 0, 1e-9, mean_q)
         
-        fleets[[f]]$metiers[[s]]$spatial_catchability <-     pmin(1,(fleets[[f]]$metiers[[s]]$spatial_catchability  / mean_q) * catchability[f])
+        fleets[[f]]$metiers[[s]]$spatial_catchability <-    (fleets[[f]]$metiers[[s]]$spatial_catchability  / mean_q) * catchability[f]
         
       } # close internal fleet loop
       
@@ -97,8 +99,6 @@ tune_fleets <- function(fauna,
       
     }
         
-
-    
     qs <-
       nlminb(
         start = qs,
@@ -107,7 +107,7 @@ tune_fleets <- function(fauna,
         fauna = fauna,
         years = years,
         lower = rep(0, length(fauna) * length(fleets)),
-        upper = rep(.9, length(fauna) * length(fleets))
+        upper = rep(20, length(fauna) * length(fleets))
       )
     
     cc <- 1
@@ -128,7 +128,7 @@ tune_fleets <- function(fauna,
         mean_q <- ifelse(mean_q == 0, 1e-9, mean_q)
         
         
-        fleets[[f]]$metiers[[ff]]$spatial_catchability <-     pmin(1, fleets[[f]]$metiers[[ff]]$spatial_catchability  / mean_q * qs$par[cc])
+        fleets[[f]]$metiers[[ff]]$spatial_catchability <-fleets[[f]]$metiers[[ff]]$spatial_catchability  / mean_q * qs$par[cc]
         cc <- cc + 1
       } # close internal fauna loop
       
