@@ -19,7 +19,7 @@ knitr::opts_chunk$set(
 <!-- [![CRAN status](https://www.r-pkg.org/badges/version/mar)](https://CRAN.R-project.org/package=mar) -->
 <!-- badges: end -->
 
-marlin is a package for efficiently running simulations of marine fauna and fisheries. It is an age-structured population model of different (independent) animal types in a 2D system with capacity for multiple fishing fleets. 
+marlin is a package for efficiently running simulations of marine fauna and fisheries. It is an age-structured population model of different (independent) animal types in a 2D system with capacity for multiple fishing fleets with technical interactions across fleets and species. 
 
 ## Installation
 
