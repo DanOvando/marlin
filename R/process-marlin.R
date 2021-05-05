@@ -130,14 +130,14 @@ process_marlin <- function(sim,
       
       if (keep_age == FALSE){
         
-      
         tidy_catch <-  tidy_catch %>% 
-          dtplyr::lazy_dt() %>% 
+          # dtplyr::lazy_dt() %>% 
           dplyr::group_by(patch, fleet) %>% 
           dplyr::summarise(catch = sum(catch)) %>% 
-          dplyr::mutate(age = "all") %>% 
-          as_tibble()
+          dplyr::mutate(age = "all") #%>% 
+          # tibble::as_tibble()
         
+        # on.exit(unloadNamespace("dtplyr"))
         
       }
       

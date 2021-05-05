@@ -397,7 +397,6 @@ sim3 <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-# stop()  
 # a <- Sys.time()
 
 processed_marlin <- process_marlin(sim = sim3, time_step = time_step, keep_age = TRUE)
