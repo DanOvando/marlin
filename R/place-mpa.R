@@ -1,6 +1,6 @@
 #' Place MPA
 #' 
-#' Locates MPAs at the momentb based on numbers of arbitrary groups of species
+#' Locates MPAs at the moment based on numbers of arbitrary groups of species
 #'
 #' @param target_fauna a vector of critter names around which to base MPA
 #' @param size the proportion of available patches to place in an MPA
