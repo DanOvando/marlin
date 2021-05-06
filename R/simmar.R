@@ -166,6 +166,10 @@ simmar <- function(fauna = list(),
         array(0, dim = c(patches, ages, length(fleets)),
               dimnames = list(1:patches, fauna[[f]]$ages, names(fleets))) # storage for proportion of fishing mortality by patch, age, and fleet
 
+      p_p_a_fl <-
+        array(0, dim = c(patches, ages, length(fleets)),
+              dimnames = list(1:patches, fauna[[f]]$ages, names(fleets))) # storage for price by patch, age, and fleet
+      
       for (l in seq_along(fleet_names)) {
        
         tmp = 
@@ -186,6 +190,9 @@ simmar <- function(fauna = list(),
         
         f_p_a_fl[, , l] <-
           fleets[[l]]$e_p_s[, s] * tmp
+        
+        p_p_a_fl[,,l] <- fleets[[l]]$metiers[[fauni[f]]]$price
+        
       } # calculate cumulative f at age by patch
       # you can build a series of if statements here to sub in the correct species module
       f_p_a_fl <-
@@ -207,8 +214,14 @@ simmar <- function(fauna = list(),
       c_p_a_fl <-
         f_p_a_fl * array(pop$c_p_a, dim = c(patches, ages, length(fleets)),
                         dimnames = list(1:patches, fauna[[f]]$ages, names(fleets)))
+
+      r_p_a_fl <- c_p_a_fl * p_p_a_fl # revenue
+      
       storage[[s - 1]][[f]]$c_p_a_fl <-
         c_p_a_fl # catch stored in each model is the catch that came from the last time step, so put in the right place here
+      
+      storage[[s - 1]][[f]]$r_p_a_fl <-
+        r_p_a_fl # revenue stored in each model is the revenue that came from the last time step, so put in the right place here
       
       storage[[s - 1]][[f]]$c_p_a <-
         pop$c_p_a # catch stored in each model is the catch that came from the last time step, so put in the right place here
