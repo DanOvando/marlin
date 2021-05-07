@@ -117,7 +117,7 @@ List sim_fish(
         1, // this HAS to be 1 inside burn loop
         rec_form);
 
-      tmp_n_p_a = wrap(tmppop["n_p_a"]);
+      tmp_n_p_a = Rcpp::wrap(tmppop["n_p_a"]);
 
     }
 
@@ -141,7 +141,9 @@ List sim_fish(
 
   // SEXP tmp = Rcpp::wrap(tmpmat.transpose()); // convert from eigen to Rcpp
   
-  last_n_p_a = tmp; // set last population to post-movement last population
+  Rcpp::NumericMatrix tmp2(tmp); // attempt to resolve weird issue with random erros based on this https://stackoverflow.com/questions/62586950/how-do-you-convert-object-of-class-eigenmatrixxd-to-class-rcppnumericmatrix
+  
+  last_n_p_a = tmp2; // set last population to post-movement last population
 
   //////////////////// grow ////////////////////////
 
