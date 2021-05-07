@@ -57,6 +57,11 @@ List sim_fish(
 
   Eigen::MatrixXd movement = Eigen::MatrixXd::Zero(patches, patches);
   
+  NumericVector recruits(patches); // blank vector for recruits by patch
+  
+  VectorXd tmp_rec(as<VectorXd>(recruits)); 
+  
+  
   //////////////////// tune things ////////////////////////
   NumericMatrix tmp_n_p_a = clone(last_n_p_a);
 
@@ -143,7 +148,7 @@ List sim_fish(
   
   Rcpp::NumericMatrix tmp2(tmp); // attempt to resolve weird issue with random erros based on this https://stackoverflow.com/questions/62586950/how-do-you-convert-object-of-class-eigenmatrixxd-to-class-rcppnumericmatrix
   
-  last_n_p_a = tmp2; // set last population to post-movement last population
+  last_n_p_a = clone(tmp2); // set last population to post-movement last population
 
   //////////////////// grow ////////////////////////
 
@@ -183,8 +188,6 @@ List sim_fish(
   
   NumericVector ssb_p = rowSums(ssb_p_a); // spawning stock biomass by patch
   
-  NumericVector recruits(patches); // blank vector for recruits by patch
-  
     if (tune_unfished == 1){ // turn off stock recruitment relationship
 
       // if (rec_form == 0){
@@ -217,26 +220,28 @@ List sim_fish(
         
         recruits = ((0.8 * r0s * steepness * ssb_p) / (0.2 * (ssb0_p + 1e-6) * (1 - steepness) + (steepness - 0.2) * (ssb_p + 1e-6)));
         
-        VectorXd tmp(as<VectorXd>(recruits));
+        tmp_rec = as<VectorXd>(clone(recruits));
+        
+        // VectorXd tmp(as<VectorXd>(recruits));
 
-        tmp = rec_move_mat * tmp;
+        tmp_rec = rec_move_mat * tmp_rec;
 
-        SEXP recruits = Rcpp::wrap(tmp); // convert from eigen to Rcpp
+        recruits = Rcpp::wrap(tmp_rec); // convert from eigen to Rcpp
 
         // Rcpp::Rcout << "hello" << std::endl;
 
       } else if (rec_form == 3){ // disperse larvae then recruit locally per beverton-holt
         
-        
-        VectorXd tmp2(as<VectorXd>(ssb_p));
+        // hello
+        tmp_rec = as<VectorXd>(clone(ssb_p));
         // 
-        tmp2 = rec_move_mat * tmp2;
+        tmp_rec = rec_move_mat * tmp_rec;
         // 
-        SEXP wtf = Rcpp::wrap(tmp2.transpose()); // convert from eigen to Rcpp
+        SEXP wtf = Rcpp::wrap(tmp_rec.transpose()); // convert from eigen to Rcpp
         
         NumericVector huh(patches); // no idea why I have to do this
         
-        huh = wtf;
+        huh = clone(wtf);
         
         recruits = ((0.8 * r0s * steepness * huh) / (0.2 * (ssb0_p + 1e-6) * (1 - steepness) + (steepness - 0.2) * (huh + 1e-6)));
         

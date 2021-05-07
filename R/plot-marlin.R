@@ -193,7 +193,7 @@ out <- tmp %>%
       filter(step == max(steps_to_plot)) %>% 
       group_by(x, y, critter, fit) %>%
       dplyr::summarise(across({{plot_var}}, ~ sum(., na.rm = TRUE))) %>% 
-      group_by(critter, fit) %>% 
+      group_by(critter) %>% 
       dplyr::mutate(across({{plot_var}}, ~ (. / max(., na.rm = TRUE)))) %>% 
       dplyr::ungroup() %>% 
       ggplot(aes(x, y, fill = .data[[plot_var]])) +
