@@ -1,4 +1,7 @@
-#' tune fleets is an internal optimizer
+#' tune_fleets tunes parameters of the fleet model to achieve desired initial conditions. 
+#' note that this is not exact: post-tuning values will not perfectly match inputs since
+#' for example some tuning steps depend on prior tuning step, making it difficult to tune everything 
+#' at once. 
 #'
 #' @param fauna
 #' @param fleets
@@ -134,6 +137,45 @@ tune_fleets <- function(fauna,
       
     } # close fleet loop
   } # close depletion if
-  
+    
+    
+    # tune cost to revenue ratio
+    
+    init_sim <- simmar(fauna = fauna,
+                      fleets = fleets,
+                      years = years)
+    
+    # check <- process_marlin(init_conds)
+    
+    # plot_marlin(check)
+    
+    init_state <- init_sim[[length(init_sim)]]
+    
+    revenue <- purrr::map(init_state,~ reshape::melt(.x$r_p_a_fl) %>%
+                            purrr::set_names("patch", "age", "fleet", "revenue")) %>%
+      dplyr::bind_rows(.id = "critter") %>%
+      dplyr::group_by(fleet) %>%
+      dplyr::summarise(revenue = sum(revenue, na.rm = TRUE))      
+    
+    e_p_f <- purrr::map(init_state,"e_p_fl") %>%
+      dplyr::bind_rows(.id = "critter") %>%
+      tidyr::pivot_longer(-critter, names_to = "fleet", values_to = "effort") %>%
+      dplyr::group_by(critter, fleet) %>%
+      dplyr::mutate(patch = seq_along(effort)) %>%
+      dplyr::group_by(fleet) %>%
+      dplyr::summarise(effort = sum(effort))
+    
+    profits <- revenue %>% 
+      dplyr::left_join(e_p_f, by = "fleet") %>% 
+      dplyr::mutate(cost = (fleets[[f]]$cr_ratio * revenue) / effort)
+    
+    # assign cost per unit effort to each fleet
+    for (f in seq_along(fleets)){
+      
+      fleets[[f]]$cost_per_unit_effort <- profits$cost[profits$fleet == names(fleets)[f]]
+      
+    }
+    
+
   return(fleets)
 }
