@@ -17,8 +17,8 @@ create_fleet <-
   function(metiers,
            base_effort = 0,
            mpa_response = "stay",
-           spatial_allocation = "ideal_free",
-           cr_ratio = 1) {
+           spatial_allocation = "revenue",
+           cr_ratio = 0.9) {
     # idea: each fleet has a list of fauna inside of it specifying the price, selectivity, q for that species
     
    fleet <- list(metiers = metiers, 

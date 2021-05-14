@@ -16,7 +16,8 @@ simmar <- function(fauna = list(),
                    fleets = list(),
                    mpas = list(),
                    years = 100,
-                   tune_unfished = 0) {
+                   tune_unfished = 0,
+                   initial_conditions = NA) {
   fauni <- names(fauna)
   
   fleet_names <- names(fleets)
@@ -37,10 +38,13 @@ simmar <- function(fauna = list(),
   
   
   patches <- unique(purrr::map_dbl(fauna, "patches"))
-  
-  initial_conditions <-
-    purrr::map(fauna, c("unfished")) # pull out unfished conditions created by create_critter
-  
+  if (all(is.na(initial_conditions))){
+    
+    initial_conditions <-
+      purrr::map(fauna, c("unfished")) # pull out unfished conditions created by create_critter
+    
+  }
+
   if (length(patches) > 1) {
     stop(
       "fauna have different habitat resolutions: set resolution to same number for all species!"
@@ -145,6 +149,8 @@ simmar <- function(fauna = list(),
         
       } else if (fleets[[l]]$spatial_allocation == "ideal_free" &&
                  !is.na(fleets[[l]]$cost_per_unit_effort)) {
+        
+        stop("ideal free distribution not yet supported. Set spatial_allocation = 'revenue' in create_fleet")
 
         # calculate expected marginal revenue when effort = 0 in each patch
         # marginal revenue is fishable revenue (r_p_f) - marginal cost per unit effort
@@ -164,10 +170,10 @@ simmar <- function(fauna = list(),
         
         fishable_patches <- (1:patches)[(fishable == 1) & worth_fishing]
         
-        r_p_f_temp <-
+        r_p_f <-
           matrix(r_p_f[fishable_patches, ], nrow  = length(fishable_patches)) # seriously annoying step to preserve matrix structure when there is only one species
         
-        id_e_p[fishable_patches] <- ((rowSums(log(r_p_f_temp + 1))) - log(fleets[[l]]$cost_per_unit_effort)) / sum(f_q) # see TNC notebook for derivation of this
+        id_e_p[fishable_patches] <- ((rowSums(log(r_p_f + 1))) - log(fleets[[l]]$cost_per_unit_effort)) / sum(f_q) # see TNC notebook for derivation of this
         
         
         # for (pp in seq_along(fishable_patches)) {
@@ -202,6 +208,7 @@ simmar <- function(fauna = list(),
         # 
         fleets[[l]]$e_p_s[,s] <- 0
         
+        browser()
         fleets[[l]]$e_p_s[choices$patch, s] <- choices$alloc_effort
         
         
