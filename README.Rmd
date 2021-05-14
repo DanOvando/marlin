@@ -117,7 +117,7 @@ fleets <- list(
 
 a <- Sys.time()
 
-test <- tune_fleets(fauna, fleets, tune_type = "depletion") 
+fleets <- tune_fleets(fauna, fleets, tune_type = "depletion") 
 
 Sys.time() - a
 
@@ -410,6 +410,17 @@ plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", fauna = faun
 
 plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space")
 
+  e_p_f <- map(sim3[[length(sim3)]],"e_p_fl") %>%
+    bind_rows(.id = "critter") %>%
+    pivot_longer(-critter, names_to = "fleet", values_to = "effort") %>%
+    group_by(critter, fleet) %>%
+    mutate(patch = seq_along(effort)) %>%
+    group_by(fleet, patch) %>%
+    summarise(effort = sum(effort))
+  
+  e_p_f %>% 
+    ggplot(aes(patch, effort, color = fleet)) + 
+    geom_point()
 
 
 ```
