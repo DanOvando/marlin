@@ -493,13 +493,12 @@ fauna <-
       seasons = seasons,
       init_explt = .12, 
       explt_type = "f",
-      fec_form = "constant",
-      weight_a = 2 # average two offspring per shark
+      fec_form = "pups",
+      pups = 2
     )
   )
 
 fauna$`Shortfin Mako`$plot()
-
 # create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
 # with lists for each species inside there. Price specifies the price per unit weight of that 
 # species for that fleet
@@ -629,9 +628,13 @@ fauna <-
       burn_years = 200,
             seasons = seasons,
             init_explt = .12, 
-      explt_type = "f"
+      explt_type = "f",
+      fec_form = "pups",
+      pups = 2
     )
   )
+
+fauna$`Shortfin Mako`$plot()
 
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 

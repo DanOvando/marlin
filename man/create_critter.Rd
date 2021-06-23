@@ -14,7 +14,7 @@ create_critter(
   recruit_habitat = NA,
   seasons = 1,
   rec_form = 1,
-  fec_form = "power",
+  fec_form = "weight",
   adult_movement = 0,
   adult_movement_sigma = 2,
   recruit_movement = 0,
