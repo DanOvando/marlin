@@ -222,8 +222,6 @@ List sim_fish(
         
         tmp_rec = as<VectorXd>(clone(recruits));
         
-        // VectorXd tmp(as<VectorXd>(recruits));
-
         tmp_rec = rec_move_mat * tmp_rec;
 
         recruits = Rcpp::wrap(tmp_rec); // convert from eigen to Rcpp
@@ -236,12 +234,10 @@ List sim_fish(
         tmp_rec = as<VectorXd>(clone(ssb_p));
         // 
         tmp_rec = rec_move_mat * tmp_rec;
-        // 
-        SEXP wtf = Rcpp::wrap(tmp_rec.transpose()); // convert from eigen to Rcpp
         
         NumericVector huh(patches); // no idea why I have to do this
         
-        huh = clone(wtf);
+        huh = Rcpp::wrap(tmp_rec); // convert from eigen to Rcpp
         
         recruits = ((0.8 * r0s * steepness * huh) / (0.2 * (ssb0_p + 1e-6) * (1 - steepness) + (steepness - 0.2) * (huh + 1e-6)));
         

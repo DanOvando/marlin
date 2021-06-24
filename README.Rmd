@@ -84,7 +84,7 @@ fauna <-
       common_name = "bigeye tuna",
       adult_movement = 1,
       adult_movement_sigma = 10,
-      rec_form = 1,
+      rec_form = 3,
       seasons = seasons,
       fished_depletion = .25,
       resolution = resolution,
