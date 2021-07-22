@@ -194,7 +194,7 @@ fauna <-
       adult_movement_sigma = list(c(2,2), c(.1,.1)), # standard deviation of the number of patches moved by adults
       rec_form = 2,
       seasons = seasons,
-      init_explt =  .1,
+      init_explt =  1,
      explt_type = "f"
     )
   )
@@ -215,7 +215,7 @@ fleets <- list(
         sel_delta = .01,
         catchability = 1e-3,
         p_explt = 1,
-        spatial_catchability = bigeye_q
+        spatial_catchability = NA
       )
     ),
     base_effort = resolution ^ 2
@@ -249,8 +249,6 @@ plot_marlin(processed_marlin, plot_var = "c")
 plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", fauna = fauna)
 
 plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space")
-
-
 
 ```
 
