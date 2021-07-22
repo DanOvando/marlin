@@ -9,7 +9,8 @@ simmar(
   fleets = list(),
   mpas = list(),
   years = 100,
-  tune_unfished = 0
+  tune_unfished = 0,
+  initial_conditions = NA
 )
 }
 \arguments{

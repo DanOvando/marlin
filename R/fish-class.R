@@ -70,8 +70,9 @@ Fish <- R6::R6Class(
                           max_age = NA,
                           weight_a = NA,
                           weight_b = NA,
+                          pups = 10,
                           weight_units = 'kg',
-                          fec_form = "power",
+                          fec_form = "weight",
                           length_50_mature = NA,
                           length_95_mature = NA,
                           delta_mature = .1,
@@ -429,14 +430,9 @@ Fish <- R6::R6Class(
         
       }
       
-      if (fec_form == "constant"){
+      if (fec_form == "pups"){
         
-        # weight_b <-  1
-        # 
-        # weight_a <- weight_a * 1 / mean(weight_at_age * maturity_at_age)
-        # 
-        # 
-        fec_at_age <- rep(weight_a, length(maturity_at_age))
+        fec_at_age <- rep(pups, length(maturity_at_age))
         
         self$fec_at_age <- fec_at_age
                                 

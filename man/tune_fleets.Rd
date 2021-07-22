@@ -2,7 +2,10 @@
 % Please edit documentation in R/tune-fleets.R
 \name{tune_fleets}
 \alias{tune_fleets}
-\title{tune fleets is an internal optimizer}
+\title{tune_fleets tunes parameters of the fleet model to achieve desired initial conditions.
+note that this is not exact: post-tuning values will not perfectly match inputs since
+for example some tuning steps depend on prior tuning step, making it difficult to tune everything
+at once.}
 \usage{
 tune_fleets(fauna, fleets, years = 50, tune_type = "explt")
 }
@@ -13,5 +16,8 @@ tune_fleets(fauna, fleets, years = 50, tune_type = "explt")
 
 }
 \description{
-tune fleets is an internal optimizer
+tune_fleets tunes parameters of the fleet model to achieve desired initial conditions.
+note that this is not exact: post-tuning values will not perfectly match inputs since
+for example some tuning steps depend on prior tuning step, making it difficult to tune everything
+at once.
 }

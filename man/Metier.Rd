@@ -25,6 +25,7 @@ creates fleet object with spaces for selectivity, mpa response, etc.
   critter = NA,
   price = 10,
   sel_form = "logistic",
+  sel_unit = "p_of_mat",
   sel_start = 1,
   sel_delta = 0.1,
   catchability = 0.01,

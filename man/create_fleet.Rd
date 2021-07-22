@@ -4,17 +4,29 @@
 \alias{create_fleet}
 \title{Create Fleet}
 \usage{
-create_fleet(metiers, base_effort = 0, mpa_response = "stay")
+create_fleet(
+  metiers,
+  base_effort = 0,
+  mpa_response = "stay",
+  spatial_allocation = "revenue",
+  cr_ratio = 0.9
+)
 }
 \arguments{
-\item{base_effort}{}
+\item{base_effort}{base effort for the fleet}
+
+\item{mpa_response}{one of "stay" or "leave" indicating response of vessels that used to fish in MPA to MPA}
+
+\item{spatial_allocation}{spatial effort allocation strategy (ideal_free or revenue)}
+
+\item{cr_ratio}{cost to revenue ratio at initial conditions (1 implies OA equilibrium, total profits = 0)}
 
 \item{fleets}{}
 
 \item{fauna}{}
 }
 \value{
-
+a fleet object
 }
 \description{
 Creates a fleet object, mostly by adding in
