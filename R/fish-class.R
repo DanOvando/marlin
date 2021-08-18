@@ -12,6 +12,7 @@ Fish <- R6::R6Class(
   public = list(
     #' @description
     #' fill in fish object
+    #'
     #' @param common_name common name
     #' @param scientific_name
     #' @param linf
@@ -58,6 +59,11 @@ Fish <- R6::R6Class(
     #' @param seasonal_hab
     #' @param seasons
     #' @param init_explt
+    #' @param pups 
+    #' @param fec_form 
+    #' @param fec_expo exponent for fecundity at weight relationship, 1 = isometric > 1 hyperallometric
+    #' @param recruit_movement_sigma 
+    #' @param get_common_name 
     #' @param explt_type
     initialize = function(common_name = NA,
                           scientific_name = NA,
@@ -73,6 +79,7 @@ Fish <- R6::R6Class(
                           pups = 10,
                           weight_units = 'kg',
                           fec_form = "weight",
+                          fec_expo = 1,
                           length_50_mature = NA,
                           length_95_mature = NA,
                           delta_mature = .1,
@@ -439,7 +446,7 @@ Fish <- R6::R6Class(
       } else {
         
         
-        fec_at_age <- weight_at_age
+        fec_at_age <- weight_at_age^fec_expo
         
         self$fec_at_age <- fec_at_age
       }

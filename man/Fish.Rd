@@ -39,6 +39,7 @@ fill in fish object
   pups = 10,
   weight_units = "kg",
   fec_form = "weight",
+  fec_expo = 1,
   length_50_mature = NA,
   length_95_mature = NA,
   delta_mature = 0.1,
@@ -84,9 +85,19 @@ fill in fish object
 \describe{
 \item{\code{common_name}}{common name}
 
+\item{\code{pups}}{}
+
+\item{\code{fec_form}}{}
+
+\item{\code{fec_expo}}{exponent for fecundity at weight relationship, 1 = isometric > 1 hyperallometric}
+
+\item{\code{recruit_movement_sigma}}{}
+
 \item{\code{explt_type}}{Swim
 
 Swim advances the population one time step}
+
+\item{\code{get_common_name}}{}
 }
 \if{html}{\out{</div>}}
 }

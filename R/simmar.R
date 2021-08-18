@@ -208,7 +208,6 @@ simmar <- function(fauna = list(),
         # 
         fleets[[l]]$e_p_s[,s] <- 0
         
-        browser()
         fleets[[l]]$e_p_s[choices$patch, s] <- choices$alloc_effort
         
         
@@ -298,6 +297,9 @@ simmar <- function(fauna = list(),
         )
       
       r_p_a_fl <- c_p_a_fl * p_p_a_fl # revenue
+      
+      # storage[[s - 1]][[f]]$rpue_p_a_fl <- r_p_a_fl / 
+        
       
       storage[[s - 1]][[f]]$c_p_a_fl <-
         c_p_a_fl # catch stored in each model is the catch that came from the last time step, so put in the right place here

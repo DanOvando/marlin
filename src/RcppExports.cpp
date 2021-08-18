@@ -6,6 +6,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // sample_problem
 Eigen::MatrixXd sample_problem(Eigen::MatrixXd x, Eigen::MatrixXd y);
 RcppExport SEXP _marlin_sample_problem(SEXP xSEXP, SEXP ySEXP) {
