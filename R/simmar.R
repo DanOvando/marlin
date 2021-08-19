@@ -145,7 +145,12 @@ simmar <- function(fauna = list(),
       if (fleets[[l]]$spatial_allocation == "revenue" ||
           is.na(fleets[[l]]$cost_per_unit_effort)) {
         fleets[[l]]$e_p_s[, s] <-
-          total_effort * pmax(rowSums(r_p_f), 0) / max(sum(pmax(rowSums(r_p_f), 0)), 1e-6) # distribute fishing effort by fishable biomass
+          total_effort * (pmax(rowSums(r_p_f, na.rm = TRUE), 0) / max(sum(pmax(rowSums(r_p_f, na.rm = TRUE), 0), na.rm = TRUE), 1e-6)) # distribute fishing effort by fishable biomass
+        
+        if (round(sum(fleets[[l]]$e_p_s[, s])) != round(total_effort)){
+          browser()
+          stop("Revenue effort allocation has failed, post fleet model effort does not equal pre")
+        }
         
       } else if (fleets[[l]]$spatial_allocation == "ideal_free" &&
                  !is.na(fleets[[l]]$cost_per_unit_effort)) {
