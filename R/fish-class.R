@@ -684,6 +684,8 @@ Fish <- R6::R6Class(
       
       unfished$tmppop$ages <- ages
       
+      self$b0 <- sum(unfished$tmppop$b_p_a)
+      
       self$ssb0 <- unfished$ssb0
       
       self$ssb0_p <- unfished$ssb0_p

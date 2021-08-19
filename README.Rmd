@@ -23,7 +23,7 @@ marlin is a package for efficiently running simulations of marine fauna and fish
 
 ## Installation
 
-You can install the development version from [GitHub](https://github.com/) with:
+You can install the development version from [GitHub](https://github.com/) using:
 
 ``` r
 # install.packages("devtools")
