@@ -144,11 +144,20 @@ simmar <- function(fauna = list(),
       
       if (fleets[[l]]$spatial_allocation == "revenue" ||
           is.na(fleets[[l]]$cost_per_unit_effort)) {
+        
+        if (sum(r_p_f, na.rm = TRUE) == 0){
+          # if there is no revenue anywhere just distribute fleet evenly as an edge case for extreme overfishing
+          alloc <- 1 / nrow(r_p_f)
+        } else {
+          
+          alloc <- rowSums(r_p_f, na.rm = TRUE) / sum(rowSums(r_p_f, na.rm = TRUE), na.rm = TRUE) # just extra cautios
+          
+        }
+        
         fleets[[l]]$e_p_s[, s] <-
-          total_effort * (pmax(rowSums(r_p_f, na.rm = TRUE), 0) / max(sum(pmax(rowSums(r_p_f, na.rm = TRUE), 0), na.rm = TRUE), 1e-6)) # distribute fishing effort by fishable biomass
+          total_effort * alloc # distribute fishing effort by fishable biomass
         
         if (round(sum(fleets[[l]]$e_p_s[, s])) != round(total_effort)){
-          browser()
           stop("Revenue effort allocation has failed, post fleet model effort does not equal pre")
         }
         

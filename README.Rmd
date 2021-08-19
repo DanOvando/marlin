@@ -416,10 +416,6 @@ plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space")
     group_by(fleet, patch) %>%
     summarise(effort = sum(effort))
   
-  e_p_f %>% 
-    ggplot(aes(patch, effort, color = fleet)) + 
-    geom_point()
-
 
 ```
 
