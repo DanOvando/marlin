@@ -147,7 +147,7 @@ simmar <- function(fauna = list(),
         
         if (sum(r_p_f, na.rm = TRUE) == 0){
           # if there is no revenue anywhere just distribute fleet evenly as an edge case for extreme overfishing
-          alloc <- 1 / nrow(r_p_f)
+          alloc <- 0 #1 / nrow(r_p_f)
         } else {
           
           alloc <- rowSums(r_p_f, na.rm = TRUE) / sum(rowSums(r_p_f, na.rm = TRUE), na.rm = TRUE) # just extra cautios
