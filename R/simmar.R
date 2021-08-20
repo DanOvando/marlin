@@ -157,9 +157,9 @@ simmar <- function(fauna = list(),
         fleets[[l]]$e_p_s[, s] <-
           total_effort * alloc # distribute fishing effort by fishable biomass
         
-        if (round(sum(fleets[[l]]$e_p_s[, s])) != round(total_effort)){
-          stop("Revenue effort allocation has failed, post fleet model effort does not equal pre")
-        }
+        # if (round(sum(fleets[[l]]$e_p_s[, s])) != round(total_effort)){
+        #   stop("Revenue effort allocation has failed, post fleet model effort does not equal pre")
+        # }
         
       } else if (fleets[[l]]$spatial_allocation == "ideal_free" &&
                  !is.na(fleets[[l]]$cost_per_unit_effort)) {
