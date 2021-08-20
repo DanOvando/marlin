@@ -145,9 +145,14 @@ simmar <- function(fauna = list(),
       if (fleets[[l]]$spatial_allocation == "revenue" ||
           is.na(fleets[[l]]$cost_per_unit_effort)) {
         
-        if (sum(r_p_f, na.rm = TRUE) == 0){
+        if (sum(fishable) == 0){
+          alloc <- 0
+        } else if (sum(r_p_f, na.rm = TRUE) == 0){
           # if there is no revenue anywhere just distribute fleet evenly as an edge case for extreme overfishing
-          alloc <- 0 #1 / nrow(r_p_f)
+          
+          alloc <- fishable / sum(fishable)
+            
+            0 #1 / nrow(r_p_f)
         } else {
           
           alloc <- rowSums(r_p_f, na.rm = TRUE) / sum(rowSums(r_p_f, na.rm = TRUE), na.rm = TRUE) # just extra cautios
