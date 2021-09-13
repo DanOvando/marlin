@@ -6,11 +6,11 @@ library(doParallel)
 library(furrr)
 library(tictoc)
 
-workers <- 4
+workers <- 1
 
 seasons <- 4
 
-n <- 250
+n <- 100
 
 years <- 10
 
@@ -166,25 +166,27 @@ task <- function(i,fauna, fleets, years, mpas){
     (map_df(mpa_sim[[length(mpa_sim)]], ~ sum(.x$ssb_p_a) / .x$ssb0)) %>%
     pivot_longer(everything(), names_to = "critter",values_to = "biodiv")
   # calculate biodiversity component of objective function
-  
+
   # econ <- sum(map_dbl(res, ~sum(.x$c_p_a))) #  calculate econ component of objective function
   #
   econ <-
     (map_df(mpa_sim[[length(mpa_sim)]], ~ sum(.x$r_p_a_fl, na.rm = TRUE))) %>%
     pivot_longer(everything(), names_to = "critter",values_to = "econ")
   #  calculate econ component of objective function, currently revenues across all fleets and species
-  
+
   # out <- tibble(biodiv = biodiv, econ = econ)
-  
+
   objective_outcomes <- biodiv %>%
     left_join(econ, by = "critter")
-  
+
   outcomes <- list()
-  
+
   outcomes$obj <- objective_outcomes
-  
+
   outcomes$mpa <- mpas
-  
+
+  rm(mpa_sim)
+  gc()
   return(outcomes)
   
 }
@@ -207,6 +209,9 @@ furrr_test <- tibble(i = 1:n) %>%
     )
   )
 toc()
+
+# test mclapply --------------------------------------------------------------
+
 
 # test dopar --------------------------------------------------------------
 
