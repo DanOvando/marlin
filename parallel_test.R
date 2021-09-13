@@ -148,7 +148,7 @@ Sys.time() - a
 # run the simulation using marlin::simmar
 a <- Sys.time()
 
-mpa_locations <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+mpas <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
   mutate(mpa = x > 15 & y < 15)
 
 task <- function(i,fauna, fleets, years, mpas){
@@ -203,7 +203,7 @@ furrr_test <- tibble(i = 1:n) %>%
       fauna = fauna,
       fleets = fleets,
       years = years,
-      mpas = mpa_locations,
+      mpas = mpas,
       .options = furrr_options(seed = TRUE),
       .progress = TRUE
     )
@@ -220,7 +220,7 @@ doParallel::registerDoParallel(cores = workers)
 tic()
 dopar_test <- foreach(i = 1:n) %dopar% {
   
-  task(fauna = fauna, fleets = fleets, years = years, mpas = mpa_locations)
+  task(fauna = fauna, fleets = fleets, years = years, mpas = mpas)
   
 }
 toc()
