@@ -103,19 +103,24 @@ simmar <- function(fauna = list(),
       concentrator <-
         rep(1, patches) # reset fishing effort concentrator by fleet
       
+      if (length(mpas) > 0) {
+        if (year >= mpas$mpa_year & fleets[[l]]$mpa_response == "leave") {
+          concentrator <- as.numeric(fishable)
+        }
+      }
+      
+      
+      if (s <= 2){
       for (f in seq_along(fauni)) {
         last_b_p_a <- storage[[s - 1]][[f]]$b_p_a
         
         last_e_p <- fleets[[l]]$e_p_s[, s - 1]
 
-        if (length(mpas) > 0) {
-          if (year >= mpas$mpa_year & fleets[[l]]$mpa_response == "leave") {
-            concentrator <- as.numeric(fishable)
-          }
-        }
-        
         # calculate fishable biomass in each patch for each species for that fleet
         
+        # browser()
+        # last_revenue <-  sum((sapply(storage[[s-2]], function(x) sum(x$r_p_a_fl[,,l], na.rm = TRUE))), na.rm = TRUE) # pull out total revenue for fleet l
+        # 
         # account for spatial catchability
         tmp = 1 - exp(-(
           matrix(
@@ -140,7 +145,14 @@ simmar <- function(fauna = list(),
         f_q[f] <- fleets[[l]]$metiers[[fauni[f]]]$catchability
         
       } # close fauni loop
+        
+        last_r_p <- rowSums(r_p_f, na.rm = TRUE)
       
+      } else {
+        
+        last_r_p <-  rowSums((sapply(storage[[s-2]], function(x) rowSums(x$r_p_a_fl[,,l], na.rm = TRUE))), na.rm = TRUE) * fishable # pull out total revenue for fleet l
+        
+      }
       
       total_effort <- sum(fleets[[l]]$e_p_s[, s - 1] * concentrator)
       
@@ -153,10 +165,11 @@ simmar <- function(fauna = list(),
         if (s > 2){ # no past revenue available in first two time steps for accoutning
         
 
-          # browser()
-          # last_revenue <-  sum(purrr::map_dbl(storage[[s-2]], ~ sum(.x$r_p_a_fl[,,l])), na.rm = TRUE) # pull out total revenue for fleet l
           
-        last_revenue <-  sum((sapply(storage[[s-2]], function(x) sum(x$r_p_a_fl[,,l], na.rm = TRUE))), na.rm = TRUE) # pull out total revenue for fleet l
+          last_revenue <-  sum(last_r_p, na.rm = TRUE) # pull out total revenue for fleet l
+          
+          
+        # last_revenue <-  sum((sapply(storage[[s-2]], function(x) sum(x$r_p_a_fl[,,l], na.rm = TRUE))), na.rm = TRUE) # pull out total revenue for fleet l
         # 
         last_profits <- last_revenue - fleets[[l]]$cost_per_unit_effort * sum(fleets[[l]]$e_p_s[, s - 1])^2 # calculate profits in the last time step
         # 
@@ -172,7 +185,7 @@ simmar <- function(fauna = list(),
         
         if (sum(fishable) == 0){
           alloc <- 0
-        } else if (sum(r_p_f, na.rm = TRUE) == 0){
+        } else if (sum(last_r_p, na.rm = TRUE) == 0){
           # if there is no revenue anywhere just distribute fleet evenly as an edge case for extreme overfishing
           
           alloc <- fishable / sum(fishable)
@@ -180,15 +193,15 @@ simmar <- function(fauna = list(),
             #1 / nrow(r_p_f)
         } else {
           
-          alloc <- (rowSums(r_p_f, na.rm = TRUE) / sum(rowSums(r_p_f, na.rm = TRUE), na.rm = TRUE)) / e_p # just extra cautios.
-          
-          alloc[!is.finite(alloc)] <-  0
-          
-          alloc <-  alloc / sum(alloc)
+          # alloc <- (last_r_p / sum(last_r_p, na.rm = TRUE)) / e_p # just extra cautios.
+          # 
+          # alloc[!is.finite(alloc)] <-  0
+          # 
+          # alloc <-  alloc / sum(alloc)
           
           alloc <-
-            (rowSums(r_p_f, na.rm = TRUE) / sum(rowSums(r_p_f, na.rm = TRUE), na.rm = TRUE)) # just extra cautios.
-          
+            (last_r_p/ sum(last_r_p, na.rm = TRUE)) # just extra cautios.
+
           
         }
         
@@ -201,7 +214,7 @@ simmar <- function(fauna = list(),
         
         if (sum(fishable) == 0){
           alloc <- 0
-        } else if (sum(r_p_f, na.rm = TRUE) == 0){
+        } else if (sum(last_r_p, na.rm = TRUE) == 0){
           # if there is no revenue anywhere just distribute fleet evenly as an edge case for extreme overfishing
           
           alloc <- fishable / sum(fishable)
@@ -209,7 +222,7 @@ simmar <- function(fauna = list(),
           #1 / nrow(r_p_f)
         } else {
           
-          alloc <- (rowSums(r_p_f, na.rm = TRUE) / sum(rowSums(r_p_f, na.rm = TRUE), na.rm = TRUE)) / e_p # just extra cautios.
+          alloc <- (last_r_p / sum(last_r_p, na.rm = TRUE)) / e_p # just extra cautios.
           
         }
         
@@ -229,7 +242,7 @@ simmar <- function(fauna = list(),
         # marginal revenue is fishable revenue (r_p_f) - marginal cost per unit effort
         
         worth_fishing <-
-          rowSums(r_p_f - fleets[[l]]$cost_per_unit_effort, na.rm = TRUE) > 0 # check whether any effort could be positive, factoring in potential for negative price,
+          (last_r_p - fleets[[l]]$cost_per_unit_effort) > 0 # check whether any effort could be positive, factoring in potential for negative price,
         
         # for patches that will support any fishing, solve for effort such that marginal profits are equal in space
         
@@ -243,6 +256,7 @@ simmar <- function(fauna = list(),
         
         fishable_patches <- (1:patches)[(fishable == 1) & worth_fishing]
         
+        stop("broken here")
         r_p_f <-
           matrix(r_p_f[fishable_patches, ], nrow  = length(fishable_patches)) # seriously annoying step to preserve matrix structure when there is only one species
         
