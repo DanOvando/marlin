@@ -150,9 +150,13 @@ simmar <- function(fauna = list(),
           stop("open access fleet model requires both cost_per_unit_effort and profit_sensitivity parameters")
         }
 
-        if (s > 2){ # no past revenut available in first two time steps for accoutning
+        if (s > 2){ # no past revenue available in first two time steps for accoutning
         
-        last_revenue <-  sum(as.data.frame(lapply(storage[[s-2]], function(x) x$r_p_a_fl[,,l])), na.rm = TRUE) # pull out total revenue for fleet l
+
+          # browser()
+          # last_revenue <-  sum(purrr::map_dbl(storage[[s-2]], ~ sum(.x$r_p_a_fl[,,l])), na.rm = TRUE) # pull out total revenue for fleet l
+          
+        last_revenue <-  sum((sapply(storage[[s-2]], function(x) sum(x$r_p_a_fl[,,l], na.rm = TRUE))), na.rm = TRUE) # pull out total revenue for fleet l
         # 
         last_profits <- last_revenue - fleets[[l]]$cost_per_unit_effort * sum(fleets[[l]]$e_p_s[, s - 1])^2 # calculate profits in the last time step
         # 
