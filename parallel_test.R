@@ -6,7 +6,7 @@ library(doParallel)
 library(furrr)
 library(tictoc)
 
-workers <- 1
+workers <- 4
 
 seasons <- 4
 

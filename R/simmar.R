@@ -106,6 +106,8 @@ simmar <- function(fauna = list(),
       for (f in seq_along(fauni)) {
         last_b_p_a <- storage[[s - 1]][[f]]$b_p_a
         
+        last_e_p <- fleets[[l]]$e_p_s[, s - 1]
+
         if (length(mpas) > 0) {
           if (year >= mpas$mpa_year & fleets[[l]]$mpa_response == "leave") {
             concentrator <- as.numeric(fishable)
@@ -142,8 +144,27 @@ simmar <- function(fauna = list(),
       
       total_effort <- sum(fleets[[l]]$e_p_s[, s - 1] * concentrator)
       
-      if (fleets[[l]]$spatial_allocation == "revenue" ||
-          is.na(fleets[[l]]$cost_per_unit_effort)) {
+      if (fleets[[l]]$fleet_model == "open access"){
+        
+        if (is.na(fleets[[l]]$cost_per_unit_effort) | is.na(fleets[[l]]$profit_sensitivity)){
+          stop("open access fleet model requires both cost_per_unit_effort and profit_sensitivity parameters")
+        }
+
+        if (s > 2){ # no past revenut available in first two time steps for accoutning
+        
+        last_revenue <-  sum(as.data.frame(lapply(storage[[s-2]], function(x) x$r_p_a_fl[,,l])), na.rm = TRUE) # pull out total revenue for fleet l
+        # 
+        last_profits <- last_revenue - fleets[[l]]$cost_per_unit_effort * sum(fleets[[l]]$e_p_s[, s - 1])^2 # calculate profits in the last time step
+        # 
+        total_effort <- total_effort * exp(fleets[[l]]$profit_sensitivity * last_profits) # adjust effort per open access
+
+        }
+        
+      }
+      
+      e_p <- fleets[[l]]$e_p_s[, s - 1]
+      
+      if (fleets[[l]]$spatial_allocation == "revenue") {
         
         if (sum(fishable) == 0){
           alloc <- 0
@@ -152,22 +173,51 @@ simmar <- function(fauna = list(),
           
           alloc <- fishable / sum(fishable)
             
-            0 #1 / nrow(r_p_f)
+            #1 / nrow(r_p_f)
         } else {
           
-          alloc <- rowSums(r_p_f, na.rm = TRUE) / sum(rowSums(r_p_f, na.rm = TRUE), na.rm = TRUE) # just extra cautios
+          alloc <- (rowSums(r_p_f, na.rm = TRUE) / sum(rowSums(r_p_f, na.rm = TRUE), na.rm = TRUE)) / e_p # just extra cautios.
+          
+          alloc[!is.finite(alloc)] <-  0
+          
+          alloc <-  alloc / sum(alloc)
+          
+          alloc <-
+            (rowSums(r_p_f, na.rm = TRUE) / sum(rowSums(r_p_f, na.rm = TRUE), na.rm = TRUE)) # just extra cautios.
+          
           
         }
         
         fleets[[l]]$e_p_s[, s] <-
           total_effort * alloc # distribute fishing effort by fishable biomass
         
-        # if (round(sum(fleets[[l]]$e_p_s[, s])) != round(total_effort)){
-        #   stop("Revenue effort allocation has failed, post fleet model effort does not equal pre")
-        # }
+        
+      } else if (fleets[[l]]$spatial_allocation == "rpue") {
+        
+        
+        if (sum(fishable) == 0){
+          alloc <- 0
+        } else if (sum(r_p_f, na.rm = TRUE) == 0){
+          # if there is no revenue anywhere just distribute fleet evenly as an edge case for extreme overfishing
+          
+          alloc <- fishable / sum(fishable)
+          
+          #1 / nrow(r_p_f)
+        } else {
+          
+          alloc <- (rowSums(r_p_f, na.rm = TRUE) / sum(rowSums(r_p_f, na.rm = TRUE), na.rm = TRUE)) / e_p # just extra cautios.
+          
+        }
+        
+        fleets[[l]]$e_p_s[, s] <-
+          total_effort * alloc # distribute fishing effort by fishable biomass
+        
+        
         
       } else if (fleets[[l]]$spatial_allocation == "ideal_free" &&
                  !is.na(fleets[[l]]$cost_per_unit_effort)) {
+        
+        
         
         stop("ideal free distribution not yet supported. Set spatial_allocation = 'revenue' in create_fleet")
 
@@ -230,8 +280,7 @@ simmar <- function(fauna = list(),
         fleets[[l]]$e_p_s[choices$patch, s] <- choices$alloc_effort
         
         
-      } # close ide else
-      
+      } # close ifd else
       else {
         stop(
           "spatial effort allocation strategy not properly defined, check spatial_allocation and cost_per_unit_effort in fleet object"
