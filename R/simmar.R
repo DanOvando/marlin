@@ -193,11 +193,6 @@ simmar <- function(fauna = list(),
             #1 / nrow(r_p_f)
         } else {
           
-          # alloc <- (last_r_p / sum(last_r_p, na.rm = TRUE)) / e_p # just extra cautios.
-          # 
-          # alloc[!is.finite(alloc)] <-  0
-          # 
-          # alloc <-  alloc / sum(alloc)
           
           alloc <-
             (last_r_p/ sum(last_r_p, na.rm = TRUE)) # just extra cautios.
@@ -222,13 +217,17 @@ simmar <- function(fauna = list(),
           #1 / nrow(r_p_f)
         } else {
           
+
           alloc <- (last_r_p / sum(last_r_p, na.rm = TRUE)) / e_p # just extra cautios.
+
+          alloc[!is.finite(alloc)] <-  0
+
+          alloc <-  alloc / sum(alloc)
           
         }
         
         fleets[[l]]$e_p_s[, s] <-
           total_effort * alloc # distribute fishing effort by fishable biomass
-        
         
         
       } else if (fleets[[l]]$spatial_allocation == "ideal_free" &&
