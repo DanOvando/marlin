@@ -174,7 +174,7 @@ simmar <- function(fauna = list(),
           
         # last_revenue <-  sum((sapply(storage[[s-2]], function(x) sum(x$r_p_a_fl[,,l], na.rm = TRUE))), na.rm = TRUE) # pull out total revenue for fleet l
         # 
-        last_profits <- last_revenue - fleets[[l]]$cost_per_unit_effort * sum(fleets[[l]]$e_p_s[, s - 1]) # calculate profits in the last time step
+        last_profits <- last_revenue - fleets[[l]]$cost_per_unit_effort * sum(fleets[[l]]$e_p_s[, s - 1]^2) # calculate profits in the last time step
         # 
         total_effort <- total_effort * exp(fleets[[l]]$profit_sensitivity * last_profits) # adjust effort per open access
 
@@ -247,7 +247,7 @@ simmar <- function(fauna = list(),
           #1 / nrow(r_p_f)
         } else {
           
-          alloc = ((last_r_p - fleets[[l]]$cost_per_unit_effort * e_p) / e_p) * fishable
+          alloc = ((last_r_p - fleets[[l]]$cost_per_unit_effort * e_p^2) / e_p) * fishable
           
           alloc[!is.finite(alloc)] <-  0
           
