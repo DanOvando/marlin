@@ -150,7 +150,10 @@ simmar <- function(fauna = list(),
       
       } else {
         
-        last_r_p <-  rowSums((sapply(storage[[s-2]], function(x) rowSums(x$r_p_a_fl[,,l], na.rm = TRUE))), na.rm = TRUE) * fishable # pull out total revenue for fleet l
+        r_p_f <- (sapply(storage[[s-2]], function(x) rowSums(x$r_p_a_fl[,,l], na.rm = TRUE)))
+        
+        last_r_p <-  rowSums(r_p_f, na.rm = TRUE) # pull out total revenue for fleet l
+        
         
       }
       
@@ -171,7 +174,7 @@ simmar <- function(fauna = list(),
           
         # last_revenue <-  sum((sapply(storage[[s-2]], function(x) sum(x$r_p_a_fl[,,l], na.rm = TRUE))), na.rm = TRUE) # pull out total revenue for fleet l
         # 
-        last_profits <- last_revenue - fleets[[l]]$cost_per_unit_effort * sum(fleets[[l]]$e_p_s[, s - 1])^2 # calculate profits in the last time step
+        last_profits <- last_revenue - fleets[[l]]$cost_per_unit_effort * sum(fleets[[l]]$e_p_s[, s - 1]) # calculate profits in the last time step
         # 
         total_effort <- total_effort * exp(fleets[[l]]$profit_sensitivity * last_profits) # adjust effort per open access
 
@@ -195,7 +198,7 @@ simmar <- function(fauna = list(),
           
           
           alloc <-
-            (last_r_p/ sum(last_r_p, na.rm = TRUE)) # just extra cautios.
+            ((last_r_p * fishable)/ sum(last_r_p * fishable, na.rm = TRUE)) # just extra cautios.
 
           
         }
@@ -217,12 +220,11 @@ simmar <- function(fauna = list(),
           #1 / nrow(r_p_f)
         } else {
           
-
-          alloc <- (last_r_p / sum(last_r_p, na.rm = TRUE)) / e_p # just extra cautios.
-
+          alloc = (last_r_p / e_p) * fishable
+          
           alloc[!is.finite(alloc)] <-  0
-
-          alloc <-  alloc / sum(alloc)
+          
+          alloc <-  alloc / sum(alloc, na.rm= TRUE)
           
         }
         
@@ -230,18 +232,48 @@ simmar <- function(fauna = list(),
           total_effort * alloc # distribute fishing effort by fishable biomass
         
         
-      } else if (fleets[[l]]$spatial_allocation == "ideal_free" &&
+      } else if (fleets[[l]]$spatial_allocation == "ppue" &&
+                          !is.na(fleets[[l]]$cost_per_unit_effort)){
+        
+        
+        
+        if (sum(fishable) == 0){
+          alloc <- 0
+        } else if (sum(last_r_p, na.rm = TRUE) == 0){
+          # if there is no revenue anywhere just distribute fleet evenly as an edge case for extreme overfishing
+          
+          alloc <- fishable / sum(fishable)
+          
+          #1 / nrow(r_p_f)
+        } else {
+          
+          alloc = ((last_r_p - fleets[[l]]$cost_per_unit_effort * e_p) / e_p) * fishable
+          
+          alloc[!is.finite(alloc)] <-  0
+          
+          alloc <- alloc - min(alloc, na.rm = TRUE) + 1 # rescale to be greater than or equal to 1
+          
+          alloc <-  alloc / sum(alloc, na.rm= TRUE)
+
+        }
+        
+        fleets[[l]]$e_p_s[, s] <-
+          total_effort * alloc # distribute fishing effort by fishable biomass
+        
+      
+        
+        }
+        else if (fleets[[l]]$spatial_allocation == "ideal_free" &&
                  !is.na(fleets[[l]]$cost_per_unit_effort)) {
         
-        
-        
+
         stop("ideal free distribution not yet supported. Set spatial_allocation = 'revenue' in create_fleet")
 
         # calculate expected marginal revenue when effort = 0 in each patch
         # marginal revenue is fishable revenue (r_p_f) - marginal cost per unit effort
         
         worth_fishing <-
-          (last_r_p - fleets[[l]]$cost_per_unit_effort) > 0 # check whether any effort could be positive, factoring in potential for negative price,
+          ((last_r_p - fleets[[l]]$cost_per_unit_effort) * fishable) > 0 # check whether any effort could be positive, factoring in potential for negative price,
         
         # for patches that will support any fishing, solve for effort such that marginal profits are equal in space
         
@@ -255,11 +287,11 @@ simmar <- function(fauna = list(),
         
         fishable_patches <- (1:patches)[(fishable == 1) & worth_fishing]
         
-        stop("broken here")
         r_p_f <-
           matrix(r_p_f[fishable_patches, ], nrow  = length(fishable_patches)) # seriously annoying step to preserve matrix structure when there is only one species
+        tmp <- matrix(rep(f_q, nrow(r_p_f)), nrow = nrow(r_p_f), byrow = TRUE)
         
-        id_e_p[fishable_patches] <- ((rowSums(log(r_p_f + 1))) - log(fleets[[l]]$cost_per_unit_effort)) / sum(f_q) # see TNC notebook for derivation of this
+        id_e_p[fishable_patches] <- ((rowSums(log(r_p_f * tmp))) - log(fleets[[l]]$cost_per_unit_effort)) / sum(tmp) # see physical paper TNC notebook for derivation of this, asumes that profits = p * b * exp(-(q * E)) - c
         
         
         # for (pp in seq_along(fishable_patches)) {
@@ -285,8 +317,8 @@ simmar <- function(fauna = list(),
         choices <- choices[choices$cumu_effort < total_effort,]
         
         choices$alloc_effort <- total_effort * (choices$effort / sum(choices$effort))
-        
-        # choices <- data.frame(patch = 1:patches, effort = id_e_p) %>% 
+    
+            # choices <- data.frame(patch = 1:patches, effort = id_e_p) %>% 
         #   dplyr::arrange(desc(effort)) %>% 
         #   dplyr::mutate(cumu_effort = cumsum(effort)) %>% 
         #   dplyr::filter(cumu_effort <= total_effort) %>% 
