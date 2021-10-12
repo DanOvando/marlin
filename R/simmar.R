@@ -69,6 +69,14 @@ simmar <- function(fauna = list(),
   
   f_q <- rep(0, length(fauni)) # storage for q by fauna
   
+  c_p_fl <- matrix(nrow = patches, ncol = length(fleets), dimnames = list(NULL, fleet_names))
+  
+  r_p_fl <- matrix(nrow = patches, ncol = length(fleets), dimnames = list(NULL, fleet_names))
+  
+  prof_p_fl <- matrix(nrow = patches, ncol = length(fleets), dimnames = list(NULL, fleet_names))
+  
+  
+
   fishable <- rep(1, patches)
   
   # step_seq <-
@@ -160,6 +168,10 @@ simmar <- function(fauna = list(),
       
       total_effort <- sum(fleets[[l]]$e_p_s[, s - 1] * concentrator)
       
+      last_revenue <-  sum(last_r_p, na.rm = TRUE) # pull out total revenue for fleet l
+      
+      last_profits <- last_revenue - fleets[[l]]$cost_per_unit_effort * sum((fleets[[l]]$e_p_s[, s - 1] + 1)^fleets[[l]]$effort_cost_exponent) # calculate profits in the last time step
+      
       if (fleets[[l]]$fleet_model == "open access"){
         
         if (is.na(fleets[[l]]$cost_per_unit_effort) | is.na(fleets[[l]]$profit_sensitivity)){
@@ -167,15 +179,11 @@ simmar <- function(fauna = list(),
         }
 
         if (s > 3){ # no past revenue available in first two time steps for accounting, and then need to allow fleet to move correctly. 
-        
-
-          
-          last_revenue <-  sum(last_r_p, na.rm = TRUE) # pull out total revenue for fleet l
+      
           
         # last_revenue <-  sum((sapply(storage[[s-2]], function(x) sum(x$r_p_a_fl[,,l], na.rm = TRUE))), na.rm = TRUE) # pull out total revenue for fleet l
         # 
-        last_profits <- last_revenue - fleets[[l]]$cost_per_unit_effort * sum(fleets[[l]]$e_p_s[, s - 1]^1) # calculate profits in the last time step
-        
+
         total_effort <- total_effort * exp(fleets[[l]]$profit_sensitivity * last_profits) # adjust effort per open access
 
         }
@@ -200,6 +208,22 @@ simmar <- function(fauna = list(),
           alloc <-
             ((last_r_p * fishable)/ sum(last_r_p * fishable, na.rm = TRUE)) # just extra cautios.
 
+          alloc <- alloc - min(alloc, na.rm = TRUE) + 1 # rescale to be greater than or equal to 1
+          
+          alloc <- alloc / sum(alloc)
+          
+          if (s > 2){
+            
+            alloc <- rowSums(sapply(storage[[s-2]], function(x) x$r_p_fl[,l]), na.rm = TRUE)
+            
+            alloc <- alloc - min(alloc, na.rm = TRUE) + 1 # rescale to be greater than or equal to 1
+            
+            alloc <- alloc * fishable
+            
+            alloc <- alloc / sum(alloc)
+            
+          }
+          
           
         }
         
@@ -220,11 +244,27 @@ simmar <- function(fauna = list(),
           #1 / nrow(r_p_f)
         } else {
           
-          alloc = (last_r_p / e_p) * fishable
+          alloc = (last_r_p / (e_p + 1)) * fishable
           
           alloc[!is.finite(alloc)] <-  0
           
+          alloc <- alloc - min(alloc, na.rm = TRUE) + 1 # rescale to be greater than or equal to 1, in case prices are negative
+          
           alloc <-  alloc / sum(alloc, na.rm= TRUE)
+          
+          if (s > 2){
+            
+            alloc <- rowSums(sapply(storage[[s-2]], function(x) x$r_p_fl[,l]), na.rm = TRUE) / (e_p + 1)
+            
+            alloc[!is.finite(alloc)] <-  0
+            
+            alloc <- alloc - min(alloc, na.rm = TRUE) + 1 # rescale to be greater than or equal to 1
+            
+            alloc <- alloc * fishable
+            
+            alloc <- alloc / sum(alloc)
+            
+          }
           
         }
         
@@ -247,13 +287,26 @@ simmar <- function(fauna = list(),
           #1 / nrow(r_p_f)
         } else {
           
-          alloc = ((last_r_p - fleets[[l]]$cost_per_unit_effort * e_p^1) / e_p) * fishable
+          alloc = ((last_r_p - fleets[[l]]$cost_per_unit_effort * (e_p + 1)^fleets[[l]]$effort_cost_exponent) / (e_p +1)) * fishable
           
           alloc[!is.finite(alloc)] <-  0
           
           alloc <- alloc - min(alloc, na.rm = TRUE) + 1 # rescale to be greater than or equal to 1
           
           alloc <-  alloc / sum(alloc, na.rm= TRUE)
+          
+          if (s > 2){
+            
+            alloc <- rowSums(sapply(storage[[s-2]], function(x) x$prof_p_fl[,l]), na.rm = TRUE) / (e_p + 1)
+            
+            alloc[!is.finite(alloc)] <-  0
+            
+            alloc <- fishable * (alloc - min(alloc, na.rm = TRUE) + 1) # rescale to be greater than or equal to 1
+            
+            alloc <- alloc / sum(alloc)
+          
+            
+          }
 
         }
         
@@ -262,8 +315,54 @@ simmar <- function(fauna = list(),
         
       
         
-        }
-        else if (fleets[[l]]$spatial_allocation == "ideal_free" &&
+        } else if (fleets[[l]]$spatial_allocation == "profit" &&
+                           !is.na(fleets[[l]]$cost_per_unit_effort)){
+          
+          
+          
+          if (sum(fishable) == 0){
+            alloc <- 0
+          } else if (sum(last_r_p, na.rm = TRUE) == 0){
+            # if there is no revenue anywhere just distribute fleet evenly as an edge case for extreme overfishing
+            
+            alloc <- fishable / sum(fishable)
+            
+            #1 / nrow(r_p_f)
+          } else {
+            
+            alloc = (last_r_p - fleets[[l]]$cost_per_unit_effort * (e_p + 1)^fleets[[l]]$effort_cost_exponent)
+            
+            alloc[!is.finite(alloc)] <-  0
+            
+            alloc <- fishable * (alloc - min(alloc, na.rm = TRUE) + 1) # rescale to be greater than or equal to 1
+            
+            alloc <-  alloc / sum(alloc, na.rm= TRUE)
+            
+              if (s > 2){
+                
+              alloc <- rowSums(sapply(storage[[s-2]], function(x) x$prof_p_fl[,l]), na.rm = TRUE)
+              
+              alloc <- fishable * (alloc - min(alloc, na.rm = TRUE) + 1) # rescale to be greater than or equal to 1
+              
+              alloc <- alloc / sum(alloc)
+              
+            }
+      
+                
+            
+            
+            # alloc_2 <-(last_r_p / e_p) * fishable
+            # 
+            # alloc_2 = alloc_2 / sum(alloc_2)
+
+          }
+          
+          fleets[[l]]$e_p_s[, s] <-
+            total_effort * alloc # distribute fishing effort by fishable biomass
+          
+          
+          
+        } else if (fleets[[l]]$spatial_allocation == "ideal_free" &&
                  !is.na(fleets[[l]]$cost_per_unit_effort)) {
         
 
@@ -413,11 +512,32 @@ simmar <- function(fauna = list(),
           dimnames = list(1:patches, fauna[[f]]$ages, names(fleets))
         )
       
-      r_p_a_fl <- c_p_a_fl * p_p_a_fl # revenue
       
+      r_p_a_fl <- c_p_a_fl * p_p_a_fl
+      
+    
+      tmp_e_p_fl = purrr::map_dfc(fleets, ~ .x$e_p_s[, s])
+      
+      
+      for (fl in 1:length(fleets)){
+        
+        c_p_fl[,fl] <- rowSums(c_p_a_fl[,,fl], na.rm = TRUE)
+        
+        r_p_fl[,fl] <-  rowSums(r_p_a_fl[,,fl], na.rm = TRUE)
+        
+        prof_p_fl[,fl] <-   r_p_fl[,fl] - fleets[[fl]]$cost_per_unit_effort * (as.matrix(tmp_e_p_fl[,fl]+1)^fleets[[fl]]$effort_cost_exponent) / length(fauna)
+        
+      }
+    
       # storage[[s - 1]][[f]]$rpue_p_a_fl <- r_p_a_fl / 
         
       
+      storage[[s - 1]][[f]]$c_p_fl <-c_p_fl # store catch by patch  by fleet
+      
+      storage[[s - 1]][[f]]$r_p_fl <-r_p_fl # store revenue by patch  by fleet
+      
+      storage[[s - 1]][[f]]$prof_p_fl <-prof_p_fl # store profits by patch by fleet
+
       storage[[s - 1]][[f]]$c_p_a_fl <-
         c_p_a_fl # catch stored in each model is the catch that came from the last time step, so put in the right place here
       
@@ -430,13 +550,22 @@ simmar <- function(fauna = list(),
       # storage[[s - 1]][[f]]$f_p_a_fl <-
       #   f_p_a_fl # proportion of f by fleet
       
-      tmp_e_p_fl = purrr::map_dfc(fleets, ~ .x$e_p_s[, s])
       
       storage[[s - 1]][[f]]$e_p_fl <-
         tmp_e_p_fl # store effort by patch by fleet (note that this is the same across species)
+      
+      if (any(tmp_e_p_fl < 0)){
+        browser()
+        
+        stop("something hase gone very wrong, effort is negative")
+      }
+      
       storage[[s]][[f]] <- pop
       
     } # close fauni, much faster this way than dopar, who knew
+    
+    
+    
     
   } #close steps
   

@@ -22,7 +22,8 @@ create_fleet <-
            fleet_model = "constant effort",
            profit_sensitivity = NA,
            cost_per_unit_effort = NA,
-           spatial_allocation = "revenue",
+           spatial_allocation = "rpue",
+           effort_cost_exponent = 1.3,
            cr_ratio = 0.9) {
     # idea: each fleet has a list of fauna inside of it specifying the price, selectivity, q for that species
     
@@ -33,7 +34,8 @@ create_fleet <-
                  cost_per_unit_effort = cost_per_unit_effort,
                  profit_sensitivity = profit_sensitivity,
                  spatial_allocation = spatial_allocation,
-                 fleet_model = fleet_model)
+                 fleet_model = fleet_model,
+                 effort_cost_exponent = effort_cost_exponent)
 
     
     return(fleet)
