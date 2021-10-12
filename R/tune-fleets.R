@@ -33,7 +33,7 @@ tune_fleets <- function(fauna,
       
       fleets[[f]]$metiers[[s]]$p_explt <- as.numeric(p_explts[f])
       
-      fleets[[f]]$cost_per_unit_effort <- NA # reset cost per unit effort if tuning
+      # fleets[[f]]$cost_per_unit_effort <- NA # reset cost per unit effort if tuning
       
     } # close fleet loop
     
@@ -52,7 +52,7 @@ tune_fleets <- function(fauna,
   
   for (f in seq_along(fleets)){
 
-    fleets[[f]]$cost_per_unit_effort <- 1e-9
+    # fleets[[f]]$cost_per_unit_effort <- 1e-9
 
   }
   

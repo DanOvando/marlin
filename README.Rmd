@@ -510,7 +510,7 @@ fleets <- list("longline" = create_fleet(list(
     ),
   `Shortfin Mako` = Metier$new(
     critter = fauna$`Shortfin Mako`,
-    price = 10,
+    price = 0,
     sel_form = "logistic",
     sel_start = .1,
     sel_delta = .01,
@@ -581,12 +581,6 @@ Now though, consider a different scenario. Here the tunas still slightly prefer 
 
 ```{r}
 
-yft_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(habitat =  .2 * x) %>% 
-  pivot_wider(names_from = y, values_from = habitat) %>% 
-  select(-x) %>% 
-  as.matrix()
- 
 
 mako_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
   mutate(habitat =  dnorm(x, 9,5)) %>% 
@@ -601,27 +595,27 @@ fauna <-
   list(
     "Yellowfin Tuna" = create_critter(
       scientific_name = "Thunnus albacares",
-      seasonal_habitat = list(yft_habitat), # pass habitat as lists
+      seasonal_habitat = yft_habitat, # pass habitat as lists
       recruit_habitat = yft_habitat,
       adult_movement = 0,# the mean number of patches moved by adults
-      adult_movement_sigma = 20, # standard deviation of the number of patches moved by adults
+      adult_movement_sigma = 4, # standard deviation of the number of patches moved by adults
       fished_depletion = .4, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
       rec_form = 1, # recruitment form, where 1 implies local recruitment
       seasons = seasons,
-      init_explt = .12, 
+      init_explt = 0.12, 
       explt_type = "f"
       ),
     "Shortfin Mako" = create_critter(
       scientific_name = "Isurus oxyrinchus",
       seasonal_habitat = list(mako_habitat), # pass habitat as lists
       recruit_habitat = mako_habitat,
-      adult_movement = 3,
-      adult_movement_sigma = 1,
+      adult_movement = 5,
+      adult_movement_sigma = 3,
       fished_depletion = .3,
       rec_form = 1,
       burn_years = 200,
-            seasons = seasons,
-            init_explt = .12, 
+      seasons = seasons,
+      init_explt = .12, 
       explt_type = "f",
       fec_form = "pups",
       pups = 2
@@ -670,7 +664,8 @@ plot_marlin(
   `No MPA` = proc_nearshore,
   `MPA: Sharks Nearshore` = proc_nearshore_mpa,
   steps_to_plot = NA,
-  plot_var = "ssb"
+  plot_var = "ssb",
+  max_scale = FALSE
 )
 
 ```
@@ -680,9 +675,9 @@ plot_marlin(
   `MPA: Sharks Offshore` = proc_offshore_mpa,
   `No MPA` = proc_nearshore,
   `MPA: Sharks Nearshore` = proc_nearshore_mpa,
-  plot_var = "b",
+  plot_var = "ssb",
   plot_type = "space",
-  steps_to_plot = c(1,25,49))
+  steps_to_plot = c(years-1))
 ```
 
 
