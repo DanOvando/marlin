@@ -11,7 +11,8 @@ create_fleet(
   fleet_model = "constant effort",
   profit_sensitivity = NA,
   cost_per_unit_effort = NA,
-  spatial_allocation = "revenue",
+  spatial_allocation = "rpue",
+  effort_cost_exponent = 1.3,
   cr_ratio = 0.9
 )
 }

@@ -38,3 +38,4 @@ Imports:
 Remotes: 
     james-thorson/FishLife
 VignetteBuilder: knitr
+URL: https://danovando.github.io/marlin/, https://github.com/danovando/marlin

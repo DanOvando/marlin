@@ -12,7 +12,8 @@ plot_marlin(
   plot_type = "time",
   fauna = NULL,
   drop_recruits = TRUE,
-  plots = "fauna"
+  plots = "fauna",
+  max_scale = TRUE
 )
 }
 \arguments{
