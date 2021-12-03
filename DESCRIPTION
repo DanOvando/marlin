@@ -36,7 +36,7 @@ Imports:
     R6,
     reshape
 Remotes: 
-    james-thorson/FishLife
+    James-Thorson-NOAA/FishLife
 VignetteBuilder: knitr
 URL: https://danovando.github.io/marlin/,
     https://github.com/danovando/marlin
