@@ -34,9 +34,13 @@ Imports:
     magrittr,
     tidyr,
     R6,
-    reshape
-Remotes: 
-    James-Thorson-NOAA/FishLife
+    reshape,
+    ThorsonUtilities (>= 1.0),
+    TMBhelper (>= 1.3.0)
+Remotes:  
+    James-Thorson-NOAA/FishLife,
+    github:kaskr/TMB_contrib_R/TMBhelper,
+    github:James-Thorson/utilities
 VignetteBuilder: knitr
 URL: https://danovando.github.io/marlin/,
     https://github.com/danovando/marlin
