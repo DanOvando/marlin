@@ -1,0 +1,9 @@
+pandoc: 2.11.4
+pkgdown: 2.0.1
+pkgdown_sha: ~
+articles: {}
+last_built: 2021-12-03T19:11Z
+urls:
+  reference: https://danovando.github.io/marlin/reference
+  article: https://danovando.github.io/marlin/articles
+
