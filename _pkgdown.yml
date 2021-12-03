@@ -1,4 +1,4 @@
 url: https://danovando.github.io/marlin
 template:
   bootstrap: 5
-  bootswatch: yeti
+  bootswatch: cerulean
