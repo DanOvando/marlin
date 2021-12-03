@@ -40,7 +40,7 @@ Imports:
 Remotes:  
     James-Thorson-NOAA/FishLife,
     kaskr/TMB_contrib_R/TMBhelper,
-    James-Thorson/utilities
+    James-Thorson/ThorsonUtilities
 VignetteBuilder: knitr
 URL: https://danovando.github.io/marlin/,
     https://github.com/danovando/marlin
