@@ -661,7 +661,7 @@ proc_offshore_mpa <- process_marlin(offshore_mpa_sim, time_step =  fauna[[1]]$ti
 ```{r}
 plot_marlin(
   `MPA: Sharks Offshore` = proc_offshore_mpa,
-  `No MPA` = proc_nearshore,
+  `No MPA: Sharks Nearshore` = proc_nearshore,
   `MPA: Sharks Nearshore` = proc_nearshore_mpa,
   steps_to_plot = NA,
   plot_var = "ssb",
@@ -673,11 +673,18 @@ plot_marlin(
 ```{r}
 plot_marlin(
   `MPA: Sharks Offshore` = proc_offshore_mpa,
-  `No MPA` = proc_nearshore,
+  `Sharks Onshore` = proc_nearshore,
+  `Sharks Offshore` = proc_offshore,
   `MPA: Sharks Nearshore` = proc_nearshore_mpa,
   plot_var = "ssb",
   plot_type = "space",
-  steps_to_plot = c(years-1))
+  steps_to_plot = c(years-1)) + 
+  scale_fill_viridis_c(name = "Spawning Biomass", guide = guide_colorbar(barwidth = unit(13, "lines"), frame.colour = "black")) + 
+  theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.ticks = element_blank())
 ```
 
 

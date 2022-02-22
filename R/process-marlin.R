@@ -125,7 +125,7 @@ process_marlin <- function(sim,
       # tidy_catch <-  reshape::melt(sim[[1]]$bigeye$c_p_a_fl) %>%
       #   purrr::set_names("patch","age","fleet","catch")
       #
-      tidy_catch <-  reshape::melt(x$c_p_a_fl) %>%
+      tidy_catch <-  reshape2::melt(x$c_p_a_fl) %>%
         purrr::set_names("patch", "age", "fleet", "catch")
       
       if (keep_age == FALSE){

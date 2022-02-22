@@ -43,7 +43,7 @@ tune_fleets <- function(fauna,
                       fleets = fleets,
                       years = years)
     
-  revenue <- purrr::map(storage[[1]],~ reshape::melt(.x$r_p_a_fl) %>%
+  revenue <- purrr::map(storage[[1]],~ reshape2::melt(.x$r_p_a_fl) %>%
                           purrr::set_names("patch", "age", "fleet", "revenue")) %>%
     dplyr::bind_rows(.id = "critter") %>%
     dplyr::group_by(fleet) %>%
