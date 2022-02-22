@@ -684,7 +684,8 @@ plot_marlin(
         axis.text.y = element_blank(),
         axis.title.x = element_blank(),
         axis.title.y = element_blank(),
-        axis.ticks = element_blank())
+        axis.ticks = element_blank(),
+        strip.text = element_text(size = 9))
 ```
 
 
