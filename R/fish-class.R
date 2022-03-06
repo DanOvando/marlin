@@ -701,7 +701,10 @@ Fish <- R6::R6Class(
      
       tmp <- as.list(self)
       
-      ogives <- tmp[which(str_detect(names(tmp), "at_age$"))]
+      # ogives <- tmp[which(str_detect(names(tmp), "at_age$"))]
+      
+      ogives <- tmp[which(grepl("at_age$",names(tmp)))]
+      
       
       tidy_ogives <-
         purrr::map_df(ogives, ~ data.frame(
