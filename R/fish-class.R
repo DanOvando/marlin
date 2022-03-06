@@ -243,8 +243,7 @@ Fish <- R6::R6Class(
             Genus = genus, Species = species
           ),
           sq))
-        
-        
+
         if (!is.null(fish_life$life_traits[[1]]$error)) {
           stop("No match in FishLife: check spelling or supply your own life history values")
         }

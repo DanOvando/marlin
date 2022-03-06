@@ -22,7 +22,6 @@ LinkingTo:
     RcppEigen,
 Imports: 
     Rcpp,
-    FishLife (>= 2.0.0),
     doParallel,
     foreach,
     iterators,
@@ -34,13 +33,10 @@ Imports:
     magrittr,
     tidyr,
     R6,
-    ThorsonUtilities (>= 1.0),
-    TMBhelper (>= 1.3.0),
-    reshape2
-Remotes: 
-    James-Thorson-NOAA/FishLife,
-    kaskr/TMB_contrib_R/TMBhelper,
-    James-Thorson/utilities
+    reshape2,
+    rfishbase
 VignetteBuilder: knitr
 URL: https://danovando.github.io/marlin/,
     https://github.com/danovando/marlin
+Depends: 
+    R (>= 2.10)

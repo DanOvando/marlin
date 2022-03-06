@@ -22,9 +22,9 @@
 get_traits <- function( Class="predictive", Order="predictive", Family="predictive", Genus="predictive", Species="predictive",verbose = FALSE) {
 
 
-  closest_match <- FishLife::Search_species(Class = Class, Order = Order, Family = Family, Genus = Genus, Species = Species)
-
-  trait_table <- as.data.frame(t(FishLife::FishBase_and_RAM$ParHat$beta_gj[closest_match$GroupNum[[1]],]))
+  closest_match <- marlin::search_species(Class = Class, Order = Order, Family = Family, Genus = Genus, Species = Species)
+  
+  trait_table <- as.data.frame(t(marlin::FishBase_and_RAM$ParHat$beta_gj[closest_match$GroupNum[[1]],]))
 
   trait_table[colnames(trait_table) != 'Temperature'] <-
     exp(trait_table[colnames(trait_table) != 'Temperature'])
