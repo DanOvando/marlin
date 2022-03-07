@@ -128,14 +128,24 @@ process_marlin <- function(sim,
       tidy_catch <-  reshape2::melt(x$c_p_a_fl) %>%
         purrr::set_names("patch", "age", "fleet", "catch")
       
+      tidy_rev <-  reshape2::melt(x$r_p_a_fl) %>%
+        purrr::set_names("patch", "age", "fleet", "revenue")
+      
+      
       if (keep_age == FALSE){
         
         tidy_catch <-  tidy_catch %>% 
           # dtplyr::lazy_dt() %>% 
           dplyr::group_by(patch, fleet) %>% 
-          dplyr::summarise(catch = sum(catch)) %>% 
+          dplyr::summarise(catch = sum(catch, na.rm = TRUE)) %>% 
           dplyr::mutate(age = "all") #%>% 
           # tibble::as_tibble()
+        
+        tidy_rev <-  tidy_rev %>% 
+          # dtplyr::lazy_dt() %>% 
+          dplyr::group_by(patch, fleet) %>% 
+          dplyr::summarise(revenue = sum(revenue, na.rm = TRUE)) %>% 
+          dplyr::mutate(age = "all") #%>% 
         
         # on.exit(unloadNamespace("dtplyr"))
         
@@ -147,12 +157,17 @@ process_marlin <- function(sim,
       tidy_catch <- tidy_catch %>%
         dplyr::left_join(coords, by = "patch")
       
+      tidy_rev <- tidy_rev %>%
+        dplyr::left_join(coords, by = "patch")
+      
+      
       tidy_effort <- x$e_p_fl %>%
         purrr::set_names(paste0(colnames(.), "_effort")) %>%
         dplyr::mutate(patch = 1:nrow(.))
       
-      # hello? is it me?
+      # hello? is it me you're looking for?
       tidy_fleet <- tidy_catch %>%
+        dplyr::left_join(tidy_rev, by = c("patch", "age","fleet","x","y")) %>%
         dplyr::left_join(tidy_effort, by = "patch") %>%
         dplyr::mutate(critter = z)
       
