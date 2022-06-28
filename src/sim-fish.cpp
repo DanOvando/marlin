@@ -28,7 +28,7 @@ List sim_fish(
     const NumericMatrix f_p_a, // fishing mortality by patch and age
     const List seasonal_movement,
     const List movement_seasons,
-    Eigen::MatrixXd rec_move_mat,
+    Eigen::MatrixXd recruit_movement,
     Rcpp::NumericMatrix last_n_p_a, // last numbers by patch and age
     const int patches,
     const int burn_steps, // number of burn steps if burn is in effect
@@ -108,7 +108,7 @@ List sim_fish(
         f_p_a,
         seasonal_movement,
         movement_seasons,
-        rec_move_mat,
+        recruit_movement,
         tmp_n_p_a,
         patches,
         0,
@@ -222,7 +222,7 @@ List sim_fish(
         
         tmp_rec = as<VectorXd>(clone(recruits));
         
-        tmp_rec = rec_move_mat * tmp_rec;
+        tmp_rec = recruit_movement * tmp_rec;
 
         recruits = Rcpp::wrap(tmp_rec); // convert from eigen to Rcpp
 
@@ -233,7 +233,7 @@ List sim_fish(
         // hello
         tmp_rec = as<VectorXd>(clone(ssb_p));
         // 
-        tmp_rec = rec_move_mat * tmp_rec;
+        tmp_rec = recruit_movement * tmp_rec;
         
         NumericVector huh(patches); // no idea why I have to do this
         

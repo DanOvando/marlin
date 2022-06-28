@@ -493,11 +493,16 @@ simmar <- function(fauna = list(),
           dimnames = list(1:patches, fauna[[f]]$ages, names(fleets))
         ) # f by patch, age, and fleet
       # season <- (season / self$seasons) - self$time_step
+
+      adult_movement <-
+        lapply(fauna[[f]]$seasonal_diffusion, function(x, seasons)
+          t(as.matrix(Matrix::expm(x * 1 / seasons))), seasons = seasons)
       
       pop <-
         fauna[[f]]$swim(
           season = (season + fauna[[f]]$time_step) * fauna[[f]]$seasons,
           # annoying step to get seasons back to which season is it, not decimal season
+          adult_movement = adult_movement,
           f_p_a = f_p_a,
           last_n_p_a = last_n_p_a
         )

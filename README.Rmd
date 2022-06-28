@@ -66,7 +66,7 @@ Let's start with a simple one-fleet one-critter example to illustrate the variou
 library(marlin)
 library(tidyverse)
 options(dplyr.summarise.inform = FALSE)
-theme_set(marlin::theme_marlin())
+theme_set(marlin::theme_marlin(base_size = 42))
 
 resolution <- 10 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
 
@@ -122,8 +122,7 @@ fleets <- tune_fleets(fauna, fleets, tune_type = "depletion")
 Sys.time() - a
 
 
-fauna$bigeye$plot()
-
+fauna$bigeye$plot() + theme_minimal(base_size = 42)
 a <- Sys.time()
 
 sim <- simmar(fauna = fauna,
@@ -198,6 +197,7 @@ fauna <-
      explt_type = "f"
     )
   )
+
 
 # create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
 # with lists for each species inside there. Price specifies the price per unit weight of that 
