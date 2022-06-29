@@ -3,7 +3,7 @@ library(tidyverse)
 
 years <- 20
 
-resolution <-  4
+resolution <-  10
 
 seasons <- 4
 
@@ -11,15 +11,34 @@ steps <- years * seasons
 
 time_step <-  1 / seasons
 
-bigeye_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 300, 100)) %>% 
+h1 <-  expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  mutate(habitat =  .5 * x)
+
+h2 <-  expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  mutate(habitat =  -.5 * x)
+
+
+h1 %>% 
+  ggplot(aes(x,y,fill = habitat)) + 
+  geom_tile()
+
+
+bigeye_habitat <- h1 %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
   select(-x) %>% 
   as.matrix()
 
 
-bigeye_habitat2 <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(habitat =  dnorm((x ^ .2 + y ^ .2), 100, 100)) %>% 
+huh <- tidyr::pivot_longer(as.data.frame(bigeye_habitat), tidyr::everything())
+
+h1$habitat2 <- as.numeric(huh$value)
+
+h1 %>% 
+  ggplot(aes(x,y,fill = habitat2)) + 
+  geom_tile()
+
+
+bigeye_habitat2 <- h2 %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
   select(-x) %>% 
   as.matrix()
@@ -34,18 +53,32 @@ bigeye_q <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
 fauna <- 
   list(
     "bigeye" = create_critter(
-      common_name = "bigeye tuna",
-      seasonal_habitat = list(bigeye_habitat,bigeye_habitat2),
+      scientific_name = "thunnus obesus",
+      base_habitat = list(bigeye_habitat,bigeye_habitat2),
       recruit_habitat = bigeye_habitat,
       season_blocks = list(c(1,2),c(3,4)),
-      adult_diffusion = list(c(10,10), c(10,10)), # standard deviation of the number of patches moved by adults
-      recruit_diffusion = 0.01,
-      rec_form = 2,
+      adult_diffusion = list(c(5,5), c(5,5)), # standard deviation of the number of patches moved by adults
+      recruit_diffusion = 10,
+      rec_form = 3,
       seasons = seasons,
       init_explt =  1,
       explt_type = "f"
     )
   )
+
+
+fauna <- 
+  list(
+    "bigeye" = create_critter(
+      scientific_name = "thunnus obesus",
+      recruit_diffusion = 10,
+      rec_form = 3,
+      seasons = seasons,
+      init_explt =  1,
+      explt_type = "f"
+    )
+  )
+
 
 fauna$bigeye$plot()
 # create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
@@ -90,13 +123,14 @@ Sys.time() - a
 processed_marlin <- process_marlin(sim = sim2, time_step = time_step)
 
 processed_marlin$fauna %>% 
-  filter(age == (min(age)) | age == max(age)) %>% 
-  group_by(age) %>% 
+  filter(age == max(age)) %>% 
+  group_by(step) %>% 
   mutate(n = n / sum(n)) %>% 
   ungroup() %>% 
   ggplot(aes(x,y,fill = n)) + 
   geom_tile() + 
-  facet_wrap(~age)
+  facet_wrap(~step) + 
+  scale_fill_viridis_c()
 
 plot_marlin(processed_marlin)
 

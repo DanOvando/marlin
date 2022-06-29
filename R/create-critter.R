@@ -10,7 +10,7 @@
 #' @param common_name 
 #' @param scientific_name 
 #' @param critter_type 
-#' @param seasonal_habitat 
+#' @param base_habitat 
 #' @param season_blocks 
 #' @param rec_habitat 
 #' @param seasons 
@@ -26,7 +26,7 @@ create_critter <- function(common_name = NA,
                            scientific_name = NA,
                            get_common_name = FALSE,
                            critter_type = "fish",
-                           seasonal_habitat = list(),
+                           base_habitat = list(),
                            season_blocks = list(),
                            recruit_habitat = NA,
                            seasons = 1,
@@ -44,8 +44,8 @@ create_critter <- function(common_name = NA,
                            ...) {
 
   
-  if (!is.list(seasonal_habitat)){
-    seasonal_habitat <-  list(seasonal_habitat)
+  if (!is.list(base_habitat)){
+    base_habitat <-  list(base_habitat)
   }
 
   init_explt <- init_explt / seasons # convert to seasonal exploitation rate
@@ -54,7 +54,7 @@ create_critter <- function(common_name = NA,
       marlin::Fish$new(
         common_name = common_name,
         scientific_name = scientific_name,
-        seasonal_habitat = seasonal_habitat,
+        base_habitat = base_habitat,
         season_blocks = season_blocks,
         recruit_habitat = recruit_habitat,
         seasons = seasons,
