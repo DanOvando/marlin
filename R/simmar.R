@@ -496,7 +496,7 @@ simmar <- function(fauna = list(),
 
       adult_movement <-
         lapply(fauna[[f]]$seasonal_diffusion, function(x, seasons)
-          t(as.matrix(Matrix::expm(x * 1 / seasons))), seasons = seasons)
+          (as.matrix(Matrix::expm(x * 1 / seasons))), seasons = seasons)
       
       pop <-
         fauna[[f]]$swim(

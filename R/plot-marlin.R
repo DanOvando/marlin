@@ -93,21 +93,22 @@ plot_marlin <- function(...,
       ggplot(aes(step, .data[[plot_var]], color = fit)) +
       ggplot2::geom_hline(aes(yintercept = 0)) +
       ggplot2::geom_line(size = 3) +
-      ggplot2::facet_wrap( ~ critter, scales = "free_y") + {
-      if (max_scale) {
-        ggplot2::scale_y_continuous(
-          limits = c(0, NA),
-          labels = scales::percent,
-          # name = "% of Unfished Biomass",
-          expand = ggplot2::expansion(mult = c(0, .1)) 
-        ) 
-      }
-    else {
-      ggplot2::scale_y_continuous(limits = c(0, NA),
-                                  # name = "% of Unfished Biomass",
-                                  expand = ggplot2::expansion(mult = c(0, .1))) 
-      
-    }} + ggplot2::scale_x_continuous(name = "Year") +
+      ggplot2::facet_wrap(~ critter, scales = "free_y") + {
+        if (max_scale) {
+          ggplot2::scale_y_continuous(
+            limits = c(0, NA),
+            labels = scales::percent,
+            # name = "% of Unfished Biomass",
+            expand = ggplot2::expansion(mult = c(0, .1))
+          )
+        }
+        else {
+          ggplot2::scale_y_continuous(limits = c(0, NA),
+                                      # name = "% of Unfished Biomass",
+                                      expand = ggplot2::expansion(mult = c(0, .1)))
+          
+        }
+      } + ggplot2::scale_x_continuous(name = "Year") +
       ggplot2::scale_color_manual(
         name = "Fit",
         values = marlin::marlin_pal(palette = "diverging_fish")(n_distinct(fit_frame$fit))
@@ -217,20 +218,27 @@ plot_marlin <- function(...,
     
     
     out <- fit_frame %>%
-      filter(step == max(steps_to_plot)) %>%
-      group_by(x, y, critter, fit) %>%
-      dplyr::summarise(across({
-        {
-          plot_var
-        }
-      }, ~ sum(., na.rm = TRUE))) %>%
-      group_by(critter) %>%
-      dplyr::mutate(across({
-        {
-          plot_var
-        }
-      }, ~ (. / max(., na.rm = TRUE)))) %>%
-      dplyr::ungroup() %>%
+      filter(step == max(steps_to_plot))
+    
+    
+    if (max_scale) {
+      out <- out %>%
+        group_by(x, y, critter, fit) %>%
+        dplyr::summarise(across({
+          {
+            plot_var
+          }
+        }, ~ sum(., na.rm = TRUE))) %>%
+        group_by(critter) %>%
+        dplyr::mutate(across({
+          {
+            plot_var
+          }
+        }, ~ (. / max(., na.rm = TRUE)))) %>%
+        dplyr::ungroup()
+    }
+    
+    out <- out %>%
       ggplot(aes(x, y, fill = .data[[plot_var]])) +
       ggplot2::geom_tile() +
       ggplot2::scale_fill_viridis_c(

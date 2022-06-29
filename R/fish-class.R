@@ -455,6 +455,11 @@ Fish <- R6::R6Class(
                  time_step,
                  resolution) {
           
+          # reminder, 
+          # 
+          # .2^2 == exp(2 * log(.2)), hence strange notation in Thorson et al. going back and forth
+     
+  
           adjacent <-
             tidyr::expand_grid(x = 1:resolution, y = 1:resolution) %>%
             dist() %>%
@@ -483,7 +488,7 @@ Fish <- R6::R6Class(
       
       # ideally, you would set things up with mean environmental conditions, but for now, set up a placeholder for movement ignoring taxis for unfished conditions... 
       
-      tmp_movement <- lapply(self$seasonal_diffusion, function(x, seasons) t(as.matrix(Matrix::expm(x * 1 / seasons))), seasons = seasons)
+      tmp_movement <- lapply(self$seasonal_diffusion, function(x, seasons) as.matrix(Matrix::expm(x * 1 / seasons)), seasons = seasons)
       
       self$movement_seasons <- season_blocks
       
@@ -715,7 +720,7 @@ Fish <- R6::R6Class(
         if (is.null(last_n_p_a)) {
           last_n_p_a <- self$n_p_a_0
         }
-        
+    
         pop <- marlin::sim_fish(
           length_at_age = self$length_at_age,
           weight_at_age = self$weight_at_age,
