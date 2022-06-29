@@ -190,20 +190,7 @@ List sim_fish(
   
     if (tune_unfished == 1){ // turn off stock recruitment relationship
 
-      // if (rec_form == 0){
-      
-      // recruits = rep(r0 / patches, patches);
-      
       recruits = r0s;
-      
-      // } else if (rec_form == 1){
-        
-        // recruits = rep(r0 / patches, patches);
-        
-        // recruits = r0s;
-        
-        
-      // }
       
     } else { // if stock recruitment relationship is in effect
 
@@ -230,9 +217,8 @@ List sim_fish(
 
       } else if (rec_form == 3){ // disperse larvae then recruit locally per beverton-holt
         
-        // hello
         tmp_rec = as<VectorXd>(clone(ssb_p));
-        // 
+        
         tmp_rec = recruit_movement * tmp_rec;
         
         NumericVector huh(patches); // no idea why I have to do this

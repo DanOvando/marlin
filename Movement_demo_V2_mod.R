@@ -7,7 +7,7 @@ lat_g = seq(55, 65, length=n_g)
 Temp_g = seq(15, 5, length=n_g)
 
 # Parameters
-diffusion = .1^2
+diffusion = .8^2
 preference_g =  (-.1 * (Temp_g - 10)^2)
 
 # plot
@@ -20,7 +20,7 @@ A_gg = ifelse( round(abs(outer(lat_g,lat_g,"-")),2) == round(mean(diff(lat_g)),2
 diffusion_gg = A_gg * diffusion
 diag(diffusion_gg) = -1 * colSums(diffusion_gg)
 # Taxis
-taxis_gg = A_gg * outer(preference_g, preference_g, "-")
+taxis_gg = A_gg * exp(outer(preference_g, preference_g, "-"))
 diag(taxis_gg) = -1 * colSums(taxis_gg)
 # Total
 mrate_gg = diffusion_gg + taxis_gg
@@ -35,9 +35,9 @@ n <- matrix(ncol = 1, nrow = n_g,rep(0,n_g))
 
 n[1,1] <-  100
 
-for (y in 1:100){
+for (y in 1:10){
   
- n <-  mfraction_gg %*% n
+ n <-  mfraction_gg * n
   
 }
 
