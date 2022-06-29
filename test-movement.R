@@ -1,6 +1,6 @@
 library(marlin)
 library(tidyverse)
-
+library(gganimate)
 years <- 20
 
 resolution <-  10
@@ -12,7 +12,7 @@ steps <- years * seasons
 time_step <-  1 / seasons
 
 h1 <-  expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(habitat =  .5 * x)
+  mutate(habitat =  -((x - resolution / 2)^2 + (y - resolution / 2)^2))
 
 h2 <-  expand_grid(x = 1:resolution, y = 1:resolution) %>%
   mutate(habitat =  -.5 * x)
@@ -55,11 +55,10 @@ fauna <-
     "bigeye" = create_critter(
       scientific_name = "thunnus obesus",
       base_habitat = list(bigeye_habitat,bigeye_habitat2),
-      recruit_habitat = bigeye_habitat,
       season_blocks = list(c(1,2),c(3,4)),
       adult_diffusion = list(c(5,5), c(5,5)), # standard deviation of the number of patches moved by adults
       recruit_diffusion = 10,
-      rec_form = 3,
+      rec_form = 0,
       seasons = seasons,
       init_explt =  1,
       explt_type = "f"
@@ -67,17 +66,17 @@ fauna <-
   )
 
 
-fauna <- 
-  list(
-    "bigeye" = create_critter(
-      scientific_name = "thunnus obesus",
-      recruit_diffusion = 10,
-      rec_form = 3,
-      seasons = seasons,
-      init_explt =  1,
-      explt_type = "f"
-    )
-  )
+# fauna <- 
+#   list(
+#     "bigeye" = create_critter(
+#       scientific_name = "thunnus obesus",
+#       recruit_diffusion = 10,
+#       rec_form = 3,
+#       seasons = seasons,
+#       init_explt =  1,
+#       explt_type = "f"
+#     )
+#   )
 
 
 fauna$bigeye$plot()
@@ -122,15 +121,24 @@ Sys.time() - a
 
 processed_marlin <- process_marlin(sim = sim2, time_step = time_step)
 
-processed_marlin$fauna %>% 
+
+
+spawning_agg <- processed_marlin$fauna %>% 
   filter(age == max(age)) %>% 
   group_by(step) %>% 
   mutate(n = n / sum(n)) %>% 
   ungroup() %>% 
   ggplot(aes(x,y,fill = n)) + 
   geom_tile() + 
-  facet_wrap(~step) + 
-  scale_fill_viridis_c()
+  transition_time(step) +
+  ease_aes('linear') +
+  scale_fill_viridis_c(name = "Tunas") + 
+  scale_x_continuous(name = "longitude") + 
+  scale_y_continuous(name = "latitude")
+
+
+animate(spawning_agg, nframes = 100, fps=2)
+anim_save("spawning_agg.gif")
 
 plot_marlin(processed_marlin)
 
@@ -139,3 +147,58 @@ plot_marlin(processed_marlin, plot_var = "c")
 plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", fauna = fauna)
 
 plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space", max_scale = TRUE)
+
+
+# test habitat vector -----------------------------------------------------
+
+range_shift <- vector(mode = "list", length = years)
+
+for (i in 1:years){
+  
+  range_shift[[i]] <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+    mutate(habitat =  -((y - (1 + i))^2) / 10) %>% 
+    pivot_wider(names_from = y, values_from = habitat) %>% 
+    select(-x) %>% 
+    as.matrix()
+  
+  
+}
+
+
+
+critter_habitat <- list(bigeye = range_shift)
+
+
+image(critter_habitat$bigeye[[1]])
+
+image(critter_habitat$bigeye[[years]])
+
+
+a <- Sys.time()
+
+sim_climate <- simmar(fauna = fauna,
+               fleets = fleets,
+               habitat = critter_habitat,
+               years = years)
+
+Sys.time() - a
+
+
+processed_marlin <- process_marlin(sim = sim_climate, time_step = time_step, keep_age = FALSE)
+
+
+range_shift <- processed_marlin$fauna %>% 
+  group_by(step) %>% 
+  mutate(n = n / max(n)) %>% 
+  ungroup() %>% 
+  ggplot(aes(x,y,fill = n)) + 
+  geom_tile() + 
+  transition_time(step) +
+  ease_aes('linear') +
+  scale_fill_viridis_c(name = "Tunas") + 
+  scale_x_continuous(name = "longitude") + 
+  scale_y_continuous(name = "latitude")
+
+
+animate(range_shift, nframes = 100, fps=2)
+anim_save("range_shift.gif")

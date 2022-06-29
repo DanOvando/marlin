@@ -452,39 +452,12 @@ Fish <- R6::R6Class(
       
       
       
-      prep_movement <-
-        function(multiplier,
-                 time_step,
-                 resolution) {
-          
-          # reminder, 
-          # 
-          # .2^2 == exp(2 * log(.2)), hence strange notation in Thorson et al. going back and forth
-     
-  
-          adjacent <-
-            tidyr::expand_grid(x = 1:resolution, y = 1:resolution) %>%
-            dist() %>%
-            as.matrix()
-          
-          
-          adjacent[adjacent != 1] <- 0
-          
-          move_mat <- adjacent * multiplier
-          
-          diag(move_mat) <-  -1 * colSums(move_mat)
-          
-          move_mat <- as.matrix(move_mat)
-          
-          return(move_mat)
-          
-        } # close calc_move_mat
+
       self$seasonal_diffusion <-
         purrr::pmap(
           list(multiplier = adult_diffusion),
           prep_movement,
-          resolution = resolution,
-          time_step = time_step
+          resolution = resolution
         )
       
       
@@ -502,8 +475,7 @@ Fish <- R6::R6Class(
       purrr::pmap(
         list(multiplier = tmp_habitat),
         prep_movement,
-        resolution = resolution,
-        time_step = time_step
+        resolution = resolution
       )
       
       # ideally, you would set things up with mean environmental conditions, but for now, set up a placeholder for movement ignoring taxis for unfished conditions... 
@@ -517,8 +489,7 @@ Fish <- R6::R6Class(
       self$recruit_movement <-
         prep_movement(
           multiplier = recruit_diffusion,
-          resolution = resolution,
-          time_step = time_step
+          resolution = resolution
         )
       
       self$recruit_movement <-as.matrix(Matrix::expm(self$recruit_movement * 1 / seasons))

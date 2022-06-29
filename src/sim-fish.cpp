@@ -97,8 +97,6 @@ List sim_fish(
       // these HAVE to be in the same order
       // as function call: get lots of warnings
       // if you try and name them
-      // 
-      // 
       
       tmppop = sim_fish(
         length_at_age,
@@ -137,15 +135,10 @@ List sim_fish(
 
   //////////////////// move ////////////////////////
 
-
-  // tmpmat =  tmpmat.transpose() * movement; // matrix multiplication of numbers at age by movement matrix
-
   tmpmat =  movement * tmpmat; // matrix multiplication of numbers at age by movement matrix
   
   SEXP tmp = Rcpp::wrap(tmpmat); // convert from eigen to Rcpp
 
-  // SEXP tmp = Rcpp::wrap(tmpmat.transpose()); // convert from eigen to Rcpp
-  
   Rcpp::NumericMatrix tmp2(tmp); // attempt to resolve weird issue with random erros based on this https://stackoverflow.com/questions/62586950/how-do-you-convert-object-of-class-eigenmatrixxd-to-class-rcppnumericmatrix
   
   last_n_p_a = clone(tmp2); // set last population to post-movement last population
