@@ -121,7 +121,7 @@ fleets <- tune_fleets(fauna, fleets, tune_type = "depletion")
 Sys.time() - a
 
 
-fauna$bigeye$plot() + theme_minimal(base_size = 42)
+fauna$bigeye$plot()
 a <- Sys.time()
 
 sim <- simmar(fauna = fauna,
@@ -450,7 +450,7 @@ yft_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
  
 
 mako_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(habitat =  dnorm(x,17,5)) %>% 
+  mutate(habitat =  dnorm(x,resolution, 5)) %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
   select(-x) %>% 
   as.matrix()
@@ -577,7 +577,7 @@ Now though, consider a different scenario. Here the tunas still slightly prefer 
 
 
 mako_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(habitat =  -2 * x) %>% 
+  mutate(habitat =  dnorm(x,.3 * resolution, 3)) %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
   select(-x) %>% 
   as.matrix()
@@ -665,7 +665,7 @@ plot_marlin(
 ```{r}
 plot_marlin(
   `MPA: Sharks Offshore` = proc_offshore_mpa,
-  `Sharks Onshore` = proc_nearshore,
+  `Sharks Nearshore` = proc_nearshore,
   `Sharks Offshore` = proc_offshore,
   `MPA: Sharks Nearshore` = proc_nearshore_mpa,
   plot_var = "ssb",

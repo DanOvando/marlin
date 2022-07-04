@@ -239,9 +239,10 @@ plot_marlin <- function(...,
     }
     
     out <- out %>%
-      ggplot(aes(x, y, fill = .data[[plot_var]])) +
+      ggplot(aes(x, y, fill = round(.data[[plot_var]],2))) +
       ggplot2::geom_tile() +
       ggplot2::scale_fill_viridis_c(
+        name = plot_var,
         guide = ggplot2::guide_colorbar(
           frame.colour = "black",
           tick.colour = "black",
