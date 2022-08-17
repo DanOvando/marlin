@@ -29,7 +29,7 @@ You can install the development version from [GitHub](https://github.com/) using
 # install.packages("devtools")
 devtools::install_github("DanOvando/marlin")
 ```
-## Naviation
+## Repo Naviation
 
 The core wrapper function is located in R/simmar.R. This function keeps track of each of the populations and fleets. 
 
