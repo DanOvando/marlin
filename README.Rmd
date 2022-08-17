@@ -683,7 +683,7 @@ plot_marlin(
 
 ## Defacto MPAs through bycatch penalties
 
-Now consider a case where prices for shortfin mako are negative creating *de facto* MPAs
+We can also run a case where prices for shortfin mako are negative creating *de facto* MPAs, by imposing a severe negative price on shortfin mako that causes the fishing fleet to avoid taht area. 
 
 
 ```{r}

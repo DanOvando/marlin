@@ -570,7 +570,7 @@ simmar <- function(fauna = list(),
         current_habitat <- as.numeric(current_habitat$value)
         
         current_habitat <-
-          exp(outer(log(current_habitat + 1e-6), log(current_habitat + 1e-6), "-")) # calculate difference in habitat between each patch
+          exp(outer(current_habitat, current_habitat, "-")) # calculate difference in habitat between each patch
         
         current_habitat <- prep_movement(multiplier = current_habitat, resolution = resolution)
         

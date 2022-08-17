@@ -468,7 +468,7 @@ Fish <- R6::R6Class(
     
       tmp_habitat[[i]] <- as.numeric(tmp_habitat[[i]]$value)
       
-      tmp_habitat[[i]] <- exp(outer(log(tmp_habitat[[i]] + 1e-6), log(tmp_habitat[[i]] + 1e-6),"-"))
+      tmp_habitat[[i]] <- exp(outer(tmp_habitat[[i]], tmp_habitat[[i]],"-"))
     }  
 
     self$base_habitat <-
