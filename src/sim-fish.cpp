@@ -28,7 +28,7 @@ List sim_fish(
     const NumericMatrix f_p_a, // fishing mortality by patch and age
     const List seasonal_movement,
     const List movement_seasons,
-    Eigen::MatrixXd rec_move_mat,
+    Eigen::MatrixXd recruit_movement,
     Rcpp::NumericMatrix last_n_p_a, // last numbers by patch and age
     const int patches,
     const int burn_steps, // number of burn steps if burn is in effect
@@ -97,8 +97,6 @@ List sim_fish(
       // these HAVE to be in the same order
       // as function call: get lots of warnings
       // if you try and name them
-      // 
-      // 
       
       tmppop = sim_fish(
         length_at_age,
@@ -108,7 +106,7 @@ List sim_fish(
         f_p_a,
         seasonal_movement,
         movement_seasons,
-        rec_move_mat,
+        recruit_movement,
         tmp_n_p_a,
         patches,
         0,
@@ -137,15 +135,10 @@ List sim_fish(
 
   //////////////////// move ////////////////////////
 
-
-  // tmpmat =  tmpmat.transpose() * movement; // matrix multiplication of numbers at age by movement matrix
-
   tmpmat =  movement * tmpmat; // matrix multiplication of numbers at age by movement matrix
   
   SEXP tmp = Rcpp::wrap(tmpmat); // convert from eigen to Rcpp
 
-  // SEXP tmp = Rcpp::wrap(tmpmat.transpose()); // convert from eigen to Rcpp
-  
   Rcpp::NumericMatrix tmp2(tmp); // attempt to resolve weird issue with random erros based on this https://stackoverflow.com/questions/62586950/how-do-you-convert-object-of-class-eigenmatrixxd-to-class-rcppnumericmatrix
   
   last_n_p_a = clone(tmp2); // set last population to post-movement last population
@@ -190,20 +183,7 @@ List sim_fish(
   
     if (tune_unfished == 1){ // turn off stock recruitment relationship
 
-      // if (rec_form == 0){
-      
-      // recruits = rep(r0 / patches, patches);
-      
       recruits = r0s;
-      
-      // } else if (rec_form == 1){
-        
-        // recruits = rep(r0 / patches, patches);
-        
-        // recruits = r0s;
-        
-        
-      // }
       
     } else { // if stock recruitment relationship is in effect
 
@@ -222,7 +202,7 @@ List sim_fish(
         
         tmp_rec = as<VectorXd>(clone(recruits));
         
-        tmp_rec = rec_move_mat * tmp_rec;
+        tmp_rec = recruit_movement * tmp_rec;
 
         recruits = Rcpp::wrap(tmp_rec); // convert from eigen to Rcpp
 
@@ -230,10 +210,9 @@ List sim_fish(
 
       } else if (rec_form == 3){ // disperse larvae then recruit locally per beverton-holt
         
-        // hello
         tmp_rec = as<VectorXd>(clone(ssb_p));
-        // 
-        tmp_rec = rec_move_mat * tmp_rec;
+        
+        tmp_rec = recruit_movement * tmp_rec;
         
         NumericVector huh(patches); // no idea why I have to do this
         

@@ -66,7 +66,7 @@ Let's start with a simple one-fleet one-critter example to illustrate the variou
 library(marlin)
 library(tidyverse)
 options(dplyr.summarise.inform = FALSE)
-theme_set(marlin::theme_marlin())
+theme_set(marlin::theme_marlin(base_size = 42))
 
 resolution <- 10 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
 
@@ -82,8 +82,7 @@ fauna <-
   list(
     "bigeye" = create_critter(
       common_name = "bigeye tuna",
-      adult_movement = 1,
-      adult_movement_sigma = 10,
+      adult_diffusion = 10,
       rec_form = 3,
       seasons = seasons,
       fished_depletion = .25,
@@ -123,7 +122,6 @@ Sys.time() - a
 
 
 fauna$bigeye$plot()
-
 a <- Sys.time()
 
 sim <- simmar(fauna = fauna,
@@ -188,16 +186,16 @@ fauna <-
   list(
     "bigeye" = create_critter(
       common_name = "bigeye tuna",
-      seasonal_habitat = list(bigeye_habitat,bigeye_habitat2),
+      base_habitat = list(bigeye_habitat,bigeye_habitat2),
       season_blocks = list(c(1,2),c(3,4)),
-     adult_movement = list(c(0,0),c(10,10)),# the mean number of patches moved by adults
-      adult_movement_sigma = list(c(2,2), c(.1,.1)), # standard deviation of the number of patches moved by adults
+      adult_diffusion = list(c(2,2), c(.1,.1)), # standard deviation of the number of patches moved by adults
       rec_form = 2,
       seasons = seasons,
       init_explt =  1,
      explt_type = "f"
     )
   )
+
 
 # create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
 # with lists for each species inside there. Price specifies the price per unit weight of that 
@@ -293,11 +291,10 @@ fauna <-
   list(
     "skipjack" = create_critter(
       scientific_name = "Katsuwonus pelamis",
-      seasonal_habitat = list(skipjack_habitat, skipjack_habitat), # pass habitat as lists
+      base_habitat = list(skipjack_habitat, skipjack_habitat), # pass habitat as lists
       season_blocks = list(c(1, 2), c(3, 4)), # seasons each habitat apply to
       recruit_habitat = skipjack_habitat,
-      adult_movement = 2,# the mean number of patches moved by adults
-      adult_movement_sigma = 2, # standard deviation of the number of patches moved by adults
+      adult_diffusion = 2, # standard deviation of the number of patches moved by adults
       fished_depletion = .6, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
       rec_form = 1, # recruitment form, where 1 implies local recruitment
       seasons = seasons,
@@ -306,11 +303,10 @@ fauna <-
       ),
     "bigeye" = create_critter(
       common_name = "bigeye tuna",
-      seasonal_habitat = list(bigeye_habitat, bigeye_habitat2), # pass habitat as lists
+      base_habitat = list(bigeye_habitat, bigeye_habitat2), # pass habitat as lists
       season_blocks = list(c(1, 2), c(3, 4)), # seasons each habitat apply to
       recruit_habitat = bigeye_habitat,
-      adult_movement = 3,
-      adult_movement_sigma = 1,
+      adult_diffusion = 1,
       fished_depletion = .1,
       rec_form = 1,
       seasons = seasons,
@@ -454,7 +450,7 @@ yft_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
  
 
 mako_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(habitat =  dnorm(x,17,5)) %>% 
+  mutate(habitat =  dnorm(x,resolution, 5)) %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
   select(-x) %>% 
   as.matrix()
@@ -465,10 +461,9 @@ fauna <-
   list(
     "Yellowfin Tuna" = create_critter(
       scientific_name = "Thunnus albacares",
-      seasonal_habitat = yft_habitat, # pass habitat as lists
+      base_habitat = yft_habitat, # pass habitat as lists
       recruit_habitat = yft_habitat,
-      adult_movement = 0,# the mean number of patches moved by adults
-      adult_movement_sigma = 4, # standard deviation of the number of patches moved by adults
+      adult_diffusion = 4, # standard deviation of the number of patches moved by adults
       fished_depletion = .4, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
       rec_form = 1, # recruitment form, where 1 implies local recruitment
       seasons = seasons,
@@ -477,10 +472,9 @@ fauna <-
       ),
     "Shortfin Mako" = create_critter(
       scientific_name = "Isurus oxyrinchus",
-      seasonal_habitat = list(mako_habitat), # pass habitat as lists
+      base_habitat = list(mako_habitat), # pass habitat as lists
       recruit_habitat = mako_habitat,
-      adult_movement = 5,
-      adult_movement_sigma = 3,
+      adult_diffusion = 3,
       fished_depletion = .3,
       rec_form = 1,
       burn_years = 200,
@@ -583,7 +577,7 @@ Now though, consider a different scenario. Here the tunas still slightly prefer 
 
 
 mako_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(habitat =  dnorm(x, 9,5)) %>% 
+  mutate(habitat =  dnorm(x,.3 * resolution, 3)) %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
   select(-x) %>% 
   as.matrix()
@@ -595,10 +589,9 @@ fauna <-
   list(
     "Yellowfin Tuna" = create_critter(
       scientific_name = "Thunnus albacares",
-      seasonal_habitat = yft_habitat, # pass habitat as lists
+      base_habitat = yft_habitat, # pass habitat as lists
       recruit_habitat = yft_habitat,
-      adult_movement = 0,# the mean number of patches moved by adults
-      adult_movement_sigma = 4, # standard deviation of the number of patches moved by adults
+      adult_diffusion = 4, # standard deviation of the number of patches moved by adults
       fished_depletion = .4, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
       rec_form = 1, # recruitment form, where 1 implies local recruitment
       seasons = seasons,
@@ -607,10 +600,9 @@ fauna <-
       ),
     "Shortfin Mako" = create_critter(
       scientific_name = "Isurus oxyrinchus",
-      seasonal_habitat = list(mako_habitat), # pass habitat as lists
+      base_habitat = list(mako_habitat), # pass habitat as lists
       recruit_habitat = mako_habitat,
-      adult_movement = 5,
-      adult_movement_sigma = 3,
+      adult_diffusion = 3,
       fished_depletion = .3,
       rec_form = 1,
       burn_years = 200,
@@ -673,7 +665,7 @@ plot_marlin(
 ```{r}
 plot_marlin(
   `MPA: Sharks Offshore` = proc_offshore_mpa,
-  `Sharks Onshore` = proc_nearshore,
+  `Sharks Nearshore` = proc_nearshore,
   `Sharks Offshore` = proc_offshore,
   `MPA: Sharks Nearshore` = proc_nearshore_mpa,
   plot_var = "ssb",
@@ -691,7 +683,7 @@ plot_marlin(
 
 ## Defacto MPAs through bycatch penalties
 
-Now consider a case where prices for shortfin mako are negative creating *de facto* MPAs
+We can also run a case where prices for shortfin mako are negative creating *de facto* MPAs, by imposing a severe negative price on shortfin mako that causes the fishing fleet to avoid taht area. 
 
 
 ```{r}
@@ -721,10 +713,9 @@ fauna <-
   list(
     "Yellowfin Tuna" = create_critter(
       scientific_name = "Thunnus albacares",
-      seasonal_habitat = list(yft_habitat), 
+      base_habitat = list(yft_habitat), 
       recruit_habitat = yft_habitat,
-      adult_movement = 0,
-      adult_movement_sigma = 4, 
+      adult_diffusion = 4, 
       fished_depletion = .4, 
       rec_form = 1, 
       seasons = seasons,
@@ -733,10 +724,9 @@ fauna <-
     ),
     "Shortfin Mako" = create_critter(
       scientific_name = "Isurus oxyrinchus",
-      seasonal_habitat = list(mako_habitat), 
+      base_habitat = list(mako_habitat), 
       recruit_habitat = mako_habitat,
-      adult_movement = 5,
-      adult_movement_sigma = 3,
+      adult_diffusion = 3,
       fished_depletion = .3,
       rec_form = 1,
       burn_years = 200,

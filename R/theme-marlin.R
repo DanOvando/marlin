@@ -10,7 +10,7 @@
 #' 
 #' ggplot(mtcars, aes(mpg)) + geom_histogram() + marlin::theme_marlin()
 #' 
-theme_marlin <- function(...) {
+theme_marlin <- function(base_size = 14,...) {
   ggplot2::theme_classic(...) %+replace%
     ggplot2::theme(
       # background
@@ -47,6 +47,9 @@ theme_marlin <- function(...) {
         vjust = 0.5
       ),
       # legends
-      legend.title = ggplot2::element_text(face = "italic", hjust = 0.5)
+      legend.title = ggplot2::element_text(face = "italic", hjust = 0.5),
+      #text
+      axis.title = element_text(size = base_size),
+      axis.text = element_text(size = 0.75 * base_size)
     )
 }

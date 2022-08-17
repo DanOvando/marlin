@@ -50,11 +50,11 @@ tune_fleets <- function(fauna,
     dplyr::summarise(revenue = sum(revenue, na.rm = TRUE))
   
   
-  for (f in seq_along(fleets)){
-
-    # fleets[[f]]$cost_per_unit_effort <- 1e-9
-
-  }
+  # for (f in seq_along(fleets)){
+  # 
+  #   # fleets[[f]]$cost_per_unit_effort <- 1e-9
+  # 
+  # }
   
   
     fauni <- names(fauna)

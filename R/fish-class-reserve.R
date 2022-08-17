@@ -6,8 +6,8 @@
 #' @details
 #' Fish like to swim
 
-Fish <- R6::R6Class(
-  "Fish",
+Fishold <- R6::R6Class(
+  "Fishold",
   lock_objects = FALSE,
   public = list(
     #' @description
@@ -101,7 +101,7 @@ Fish <- R6::R6Class(
                           density_movement_modifier = 1,
                           linf_buffer = 1.2,
                           resolution = NA,
-                          base_habitat = list(),
+                          seasonal_habitat = list(),
                           season_blocks = list(),
                           recruit_habitat = NA,
                           fished_depletion = 1,
@@ -118,17 +118,14 @@ Fish <- R6::R6Class(
       if (seasons < 1) {
         stop("seasons must be greater than or equal to 1")
       }
+      #
       
-      if (length(base_habitat) > 1){
-  
-        resolution <- nrow(base_habitat[[1]])
-      
+      if (length(seasonal_habitat) > 1){
+        resolution <- nrow(seasonal_habitat[[1]])
       }
       
-      patches <- resolution^2
-      
-      if (length(base_habitat) == 0) {
-        base_habitat <-
+      if (length(seasonal_habitat) == 0) {
+        seasonal_habitat <-
           purrr::map(1:seq_along(seasons), function(x, res)
             matrix(1, nrow = res, ncol = res), res = resolution)
         
@@ -136,34 +133,34 @@ Fish <- R6::R6Class(
       
       if (length(season_blocks) == 0) {
         
-        seasons_per_habitat <- seasons / length(base_habitat) # determine how many seasons to assign to each habitat block
-       
-        tmp <- data.frame(block =  rep(seq_along(base_habitat), each = seasons_per_habitat), season =  1:seasons)
+        seasons_per_habitat <- seasons / length(seasonal_habitat) # determine how many seasons to assign to each habitat block
         
-        season_blocks <- vector(mode = "list", length = length(base_habitat))
+        tmp <- data.frame(block =  rep(seq_along(seasonal_habitat), each = seasons_per_habitat), season =  1:seasons)
         
-        for (i in seq_along(base_habitat)){
+        season_blocks <- vector(mode = "list", length = length(seasonal_habitat))
+        
+        for (i in seq_along(seasonal_habitat)){
           
           season_blocks[[i]] <- tmp$season[tmp$block == i]
           
         }
-  
+        
       }
       
-      if (length(base_habitat) != length(season_blocks)) {
-        stop("length of base_habitat and movement must equal length of season_blocks")
+      if (length(seasonal_habitat) != length(season_blocks)) {
+        stop("length of seasonal_habitat and movement must equal length of season_blocks")
       }
       
       
-      if (length(adult_diffusion) > 1 & length(adult_diffusion) != length(base_habitat)){
+      if (length(adult_diffusion) > 1 & length(adult_diffusion) != length(seasonal_habitat)){
         stop("As of now adult movement and seasonal habitat lists but be same length")
       }
       
       # if adult movement is constant, make it same shape as seasonal habitat
       if (length(season_blocks) != length(adult_diffusion) & length(adult_diffusion) == 1) {
         
-
-        adult_diffusion <- as.list(rep(adult_diffusion, length(season_blocks)))
+        
+        adult_diffusion <- as.list(rep(adult_diffusion, length(seasonal_habitat)))
         
       }
       
@@ -197,12 +194,12 @@ Fish <- R6::R6Class(
                    time_step = time_step,
                    seasons = seasons)
       
-      if (!is.null(dim(base_habitat[[1]]))) {
-        resolution <- nrow(base_habitat[[1]])
+      if (!is.null(dim(seasonal_habitat[[1]]))) {
+        resolution <- nrow(seasonal_habitat[[1]])
         
       }
       
-      es <- resolution ^ 2
+      patches <- resolution ^ 2
       
       if (!is.na(scientific_name) & get_common_name == TRUE) {
         common_name <-
@@ -233,7 +230,7 @@ Fish <- R6::R6Class(
             Genus = genus, Species = species
           ),
           sq))
-
+        
         if (!is.null(fish_life$life_traits[[1]]$error)) {
           stop("No match in FishLife: check spelling or supply your own life history values")
         }
@@ -344,8 +341,8 @@ Fish <- R6::R6Class(
       weight_at_age <-
         weight_a * length_at_age ^ weight_b
       
-  
-    
+      
+      
       lmat_to_linf_ratio <- length_mature / linf
       
       m_at_age <-
@@ -431,7 +428,7 @@ Fish <- R6::R6Class(
         fec_at_age <- rep(pups, length(maturity_at_age))
         
         self$fec_at_age <- fec_at_age
-                                
+        
       } else {
         
         
@@ -452,44 +449,53 @@ Fish <- R6::R6Class(
       
       
       
-
+      calc_diffusion_mat <-
+        function(diffusion_rate,
+                 time_step,
+                 resolution) {
+          
+          # reminder, 
+          # 
+          # .2^2 == exp(2 * log(.2)), hence strange notation in Thorson et al. going back and forth
+          
+          
+          adjacent <-
+            tidyr::expand_grid(x = 1:resolution, y = 1:resolution) %>%
+            dist() %>%
+            as.matrix()
+          
+          
+          adjacent[adjacent != 1] <- 0
+          
+          diffusion <- adjacent * diffusion_rate
+          
+          diag(diffusion) <-  -1 * colSums(diffusion)
+          
+          diffusion <- as.matrix(diffusion)
+          
+          # as.matrix(Matrix::expm(diffusion)) %>% image()
+          return(diffusion)
+          
+        } # close calc_move_mat
       self$seasonal_diffusion <-
         purrr::pmap(
-          list(multiplier = adult_diffusion),
-          prep_movement,
-          resolution = resolution
+          list(diffusion_rate = adult_diffusion),
+          calc_diffusion_mat,
+          resolution = resolution,
+          time_step = time_step
         )
-      
-      
-    tmp_habitat <- base_habitat
-    # reshape to vector, for some reason doesn't work inside function
-    for (i in seq_along(tmp_habitat)){
-      tmp_habitat[[i]] <- tidyr::pivot_longer(as.data.frame(tmp_habitat[[i]]), tidyr::everything()) # need to use pivot_longer to match patch order from expand_grid
-    
-      tmp_habitat[[i]] <- as.numeric(tmp_habitat[[i]]$value)
-      
-      tmp_habitat[[i]] <- exp(outer(tmp_habitat[[i]], tmp_habitat[[i]],"-"))
-    }  
-
-    self$base_habitat <-
-      purrr::pmap(
-        list(multiplier = tmp_habitat),
-        prep_movement,
-        resolution = resolution
-      )
       
       # ideally, you would set things up with mean environmental conditions, but for now, set up a placeholder for movement ignoring taxis for unfished conditions... 
       
-    self$base_movement <- purrr::map2(self$seasonal_diffusion, self$base_habitat, ~ as.matrix(Matrix::expm((.x + .y) / seasons)))
-    
-      # tmp_movement <- lapply(self$seasonal_diffusion, function(x, seasons) as.matrix(Matrix::expm(x * 1 / seasons)), seasons = seasons)
+      tmp_movement <- lapply(self$seasonal_diffusion, function(x, seasons) as.matrix(Matrix::expm(x * 1 / seasons)), seasons = seasons)
       
       self$movement_seasons <- season_blocks
       
       self$recruit_movement <-
-        prep_movement(
-          multiplier = recruit_diffusion,
-          resolution = resolution
+        calc_diffusion_mat(
+          diffusion_rate = recruit_diffusion,
+          resolution = resolution,
+          time_step = time_step
         )
       
       self$recruit_movement <-as.matrix(Matrix::expm(self$recruit_movement * 1 / seasons))
@@ -515,7 +521,7 @@ Fish <- R6::R6Class(
       
       local_r0s <- r0 * r0s$rec_habitat
       
-
+      
       
       if (!is.na(ssb0)){
         
@@ -636,7 +642,7 @@ Fish <- R6::R6Class(
         ssb0 = NA,
         ssb0_p = rep(-999, patches),
         f_p_a = f_p_a,
-        seasonal_movement =  self$base_movement,
+        seasonal_movement = tmp_movement,
         movement_seasons = self$movement_seasons,
         recruit_movement = self$recruit_movement,
         last_n_p_a = init_pop,
@@ -659,88 +665,88 @@ Fish <- R6::R6Class(
       self$ref_points <- NA
       
     }, # close initialize
-    plot = function(type = 2) {
-     
-      tmp <- as.list(self)
-      
-      # ogives <- tmp[which(str_detect(names(tmp), "at_age$"))]
-      
-      ogives <- tmp[which(grepl("at_age$",names(tmp)))]
-      
-      
-      tidy_ogives <-
-        purrr::map_df(ogives, ~ data.frame(
-          val_at_age = .x,
-          age = seq(self$min_age, self$max_age, by = self$time_step)
-        ), .id = "trait")
-      
-      tidy_ogives %>%
-        ggplot2::ggplot(aes(age, val_at_age, color = trait)) +
-        ggplot2::geom_line(show.legend = FALSE) +
-        ggplot2::facet_wrap( ~ trait, scales = "free_y") + 
-        marlin::theme_marlin() + 
-        ggplot2::scale_fill_manual(values = marlin::marlin_pal("diverging_fish")(length(unique(tidy_ogives$trait))))    
-      
-    },
-    #' Swim
-    #'
-    #' Swim advances the population one time step
-    #'
-    #' @param burn_steps number of steps for burn in period if applicable
-    #' @param season the current season
-    #' @param f_p_a matrix of fishing mortality by patch and age
-    #' @param last_n_p_a matrix of initial numbers by patch and age
-    #' @param tune_unfished boolean indicating whether to tune unfished
-    #'
-    #' @return the population in the next time step
-    swim = function(burn_steps = 0,
-               season = 1,
-               f_p_a = NULL,
-               last_n_p_a = NULL,
-               adult_movement = NULL,
-               tune_unfished = 0) {
-      
-      season <- (season / self$seasons) - self$time_step
-        
-        if (is.null(f_p_a)) {
-          f_p_a <-
-            matrix(0,
-                   nrow = self$patches,
-                   ncol = length(self$length_at_age))
-          
-        }
-        
-        if (is.null(last_n_p_a)) {
-          last_n_p_a <- self$n_p_a_0
-        }
+  plot = function(type = 2) {
     
-        pop <- marlin::sim_fish(
-          length_at_age = self$length_at_age,
-          weight_at_age = self$weight_at_age,
-          fec_at_age = self$fec_at_age,
-          maturity_at_age = self$maturity_at_age,
-          steepness = self$steepness,
-          m_at_age = self$m_at_age,
-          patches = self$patches,
-          burn_steps = burn_steps,
-          time_step = self$time_step,
-          season = season,
-          r0s = self$r0s,
-          ssb0 = self$ssb0,
-          ssb0_p = self$ssb0_p,
-          seasonal_movement = adult_movement,
-          movement_seasons = self$movement_seasons,
-          recruit_movement = self$recruit_movement,
-          f_p_a = f_p_a,
-          last_n_p_a = last_n_p_a,
-          tune_unfished = tune_unfished,
-          rec_form = self$rec_form
-        )
-        pop$ages <- self$ages
-        
-        return(pop)
-        
-      } # close swim
+    tmp <- as.list(self)
     
+    # ogives <- tmp[which(str_detect(names(tmp), "at_age$"))]
+    
+    ogives <- tmp[which(grepl("at_age$",names(tmp)))]
+    
+    
+    tidy_ogives <-
+      purrr::map_df(ogives, ~ data.frame(
+        val_at_age = .x,
+        age = seq(self$min_age, self$max_age, by = self$time_step)
+      ), .id = "trait")
+    
+    tidy_ogives %>%
+      ggplot2::ggplot(aes(age, val_at_age, color = trait)) +
+      ggplot2::geom_line(show.legend = FALSE) +
+      ggplot2::facet_wrap( ~ trait, scales = "free_y") + 
+      marlin::theme_marlin() + 
+      ggplot2::scale_fill_manual(values = marlin::marlin_pal("diverging_fish")(length(unique(tidy_ogives$trait))))    
+    
+  },
+  #' Swim
+  #'
+  #' Swim advances the population one time step
+  #'
+  #' @param burn_steps number of steps for burn in period if applicable
+  #' @param season the current season
+  #' @param f_p_a matrix of fishing mortality by patch and age
+  #' @param last_n_p_a matrix of initial numbers by patch and age
+  #' @param tune_unfished boolean indicating whether to tune unfished
+  #'
+  #' @return the population in the next time step
+  swim = function(burn_steps = 0,
+                  season = 1,
+                  f_p_a = NULL,
+                  last_n_p_a = NULL,
+                  adult_movement = NULL,
+                  tune_unfished = 0) {
+    
+    season <- (season / self$seasons) - self$time_step
+    
+    if (is.null(f_p_a)) {
+      f_p_a <-
+        matrix(0,
+               nrow = self$patches,
+               ncol = length(self$length_at_age))
+      
+    }
+    
+    if (is.null(last_n_p_a)) {
+      last_n_p_a <- self$n_p_a_0
+    }
+    
+    pop <- marlin::sim_fish(
+      length_at_age = self$length_at_age,
+      weight_at_age = self$weight_at_age,
+      fec_at_age = self$fec_at_age,
+      maturity_at_age = self$maturity_at_age,
+      steepness = self$steepness,
+      m_at_age = self$m_at_age,
+      patches = self$patches,
+      burn_steps = burn_steps,
+      time_step = self$time_step,
+      season = season,
+      r0s = self$r0s,
+      ssb0 = self$ssb0,
+      ssb0_p = self$ssb0_p,
+      seasonal_movement = adult_movement,
+      movement_seasons = self$movement_seasons,
+      recruit_movement = self$recruit_movement,
+      f_p_a = f_p_a,
+      last_n_p_a = last_n_p_a,
+      tune_unfished = tune_unfished,
+      rec_form = self$rec_form
+    )
+    pop$ages <- self$ages
+    
+    return(pop)
+    
+  } # close swim
+  
   ) # close public
 ) # close object

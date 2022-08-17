@@ -10,7 +10,7 @@
 #' @param common_name 
 #' @param scientific_name 
 #' @param critter_type 
-#' @param seasonal_habitat 
+#' @param base_habitat 
 #' @param season_blocks 
 #' @param rec_habitat 
 #' @param seasons 
@@ -26,16 +26,14 @@ create_critter <- function(common_name = NA,
                            scientific_name = NA,
                            get_common_name = FALSE,
                            critter_type = "fish",
-                           seasonal_habitat = list(),
+                           base_habitat = list(),
                            season_blocks = list(),
                            recruit_habitat = NA,
                            seasons = 1,
                            rec_form = 1,
                            fec_form = "weight",
-                           adult_movement = 0, 
-                           adult_movement_sigma = 2,
-                           recruit_movement = 0,
-                           recruit_movement_sigma = 10,
+                           adult_diffusion = 2,
+                           recruit_diffusion = 10,
                            fished_depletion = 0.4,
                            init_explt = .1,
                            explt_type = "f",
@@ -46,8 +44,8 @@ create_critter <- function(common_name = NA,
                            ...) {
 
   
-  if (!is.list(seasonal_habitat)){
-    seasonal_habitat <-  list(seasonal_habitat)
+  if (!is.list(base_habitat)){
+    base_habitat <-  list(base_habitat)
   }
 
   init_explt <- init_explt / seasons # convert to seasonal exploitation rate
@@ -56,7 +54,7 @@ create_critter <- function(common_name = NA,
       marlin::Fish$new(
         common_name = common_name,
         scientific_name = scientific_name,
-        seasonal_habitat = seasonal_habitat,
+        base_habitat = base_habitat,
         season_blocks = season_blocks,
         recruit_habitat = recruit_habitat,
         seasons = seasons,
@@ -65,10 +63,8 @@ create_critter <- function(common_name = NA,
         fec_expo = fec_expo,
         weight_a = weight_a,
         fished_depletion = fished_depletion,
-        adult_movement = adult_movement,
-        adult_movement_sigma = adult_movement_sigma,
-        recruit_movement = recruit_movement,
-        recruit_movement_sigma = recruit_movement_sigma,
+        adult_diffusion = adult_diffusion,
+        recruit_diffusion = recruit_diffusion,
         init_explt = init_explt,
         explt_type = explt_type,
         burn_years = burn_years,

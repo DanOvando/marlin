@@ -1,6 +1,7 @@
 # specific things
 marlin-notebook.Rmd
 scratch.R
+*.gif
 
 # History files
 .Rhistory

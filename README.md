@@ -29,13 +29,13 @@ devtools::install_github("DanOvando/marlin")
 The core wrapper function is located in R/simmar.R. This function keeps
 track of each of the populations and fleets.
 
-The actual population models are found in src/fish\_model.cpp.
-Additional modules will be put in there as they are developed
+The actual population models are found in src/fish_model.cpp. Additional
+modules will be put in there as they are developed
 
 ### Troubleshooting
 
 Make sure you try the install with a fresh R session (go to
-“Session&gt;Restart R” to make sure)
+“Session\>Restart R” to make sure)
 
 If you run into an error, first off try updating your R packages. From
 there….
@@ -79,15 +79,15 @@ the various options in `marlin`
 library(marlin)
 library(tidyverse)
 #> ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.1 ──
-#> ✓ ggplot2 3.3.5     ✓ purrr   0.3.4
-#> ✓ tibble  3.1.6     ✓ dplyr   1.0.8
-#> ✓ tidyr   1.2.0     ✓ stringr 1.4.0
-#> ✓ readr   2.1.2     ✓ forcats 0.5.1
+#> ✔ ggplot2 3.3.6     ✔ purrr   0.3.4
+#> ✔ tibble  3.1.8     ✔ dplyr   1.0.9
+#> ✔ tidyr   1.2.0     ✔ stringr 1.4.0
+#> ✔ readr   2.1.2     ✔ forcats 0.5.1
 #> ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
-#> x dplyr::filter() masks stats::filter()
-#> x dplyr::lag()    masks stats::lag()
+#> ✖ dplyr::filter() masks stats::filter()
+#> ✖ dplyr::lag()    masks stats::lag()
 options(dplyr.summarise.inform = FALSE)
-theme_set(marlin::theme_marlin())
+theme_set(marlin::theme_marlin(base_size = 42))
 
 resolution <- 10 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
 
@@ -103,8 +103,7 @@ fauna <-
   list(
     "bigeye" = create_critter(
       common_name = "bigeye tuna",
-      adult_movement = 1,
-      adult_movement_sigma = 10,
+      adult_diffusion = 10,
       rec_form = 3,
       seasons = seasons,
       fished_depletion = .25,
@@ -150,7 +149,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = "depletion") 
 
 Sys.time() - a
-#> Time difference of 3.592084 secs
+#> Time difference of 4.220893 secs
 
 
 fauna$bigeye$plot()
@@ -166,7 +165,7 @@ sim <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.05311203 secs
+#> Time difference of 0.03854299 secs
 ```
 
 we can then use `process_marlin` and `plot_marlin` to examine the
@@ -181,12 +180,14 @@ plot_marlin(processed_marlin)
 <img src="man/figures/README-unnamed-chunk-3-1.png" width="100%" />
 
 ``` r
+
 plot_marlin(processed_marlin, plot_var = "c")
 ```
 
 <img src="man/figures/README-unnamed-chunk-3-2.png" width="100%" />
 
 ``` r
+
 plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", fauna = fauna)
 #> Warning in plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", :
 #> trying to plot too many steps at once, cutting down to 10
@@ -196,6 +197,7 @@ plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", fauna = faun
 <img src="man/figures/README-unnamed-chunk-3-3.png" width="100%" />
 
 ``` r
+
 plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space")
 #> Warning in plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space"):
 #> Can only plot one time step for spatial plots, defaulting to last of the
@@ -211,6 +213,7 @@ rates by season, specified recruitment habitat, and a spatial dimension
 to catchability, and quarterly time steps
 
 ``` r
+
 seasons <- 4
 
 time_step <-  1 / seasons
@@ -239,10 +242,9 @@ fauna <-
   list(
     "bigeye" = create_critter(
       common_name = "bigeye tuna",
-      seasonal_habitat = list(bigeye_habitat,bigeye_habitat2),
+      base_habitat = list(bigeye_habitat,bigeye_habitat2),
       season_blocks = list(c(1,2),c(3,4)),
-     adult_movement = list(c(0,0),c(10,10)),# the mean number of patches moved by adults
-      adult_movement_sigma = list(c(2,2), c(.1,.1)), # standard deviation of the number of patches moved by adults
+      adult_diffusion = list(c(2,2), c(.1,.1)), # standard deviation of the number of patches moved by adults
       rec_form = 2,
       seasons = seasons,
       init_explt =  1,
@@ -258,6 +260,7 @@ fauna <-
 #> • Total: 1 
 #> • Found: 1 
 #> • Not Found: 0
+
 
 # create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
 # with lists for each species inside there. Price specifies the price per unit weight of that 
@@ -287,7 +290,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets) 
 
 Sys.time() - a
-#> Time difference of 0.823977 secs
+#> Time difference of 0.879312 secs
 
 
 fauna$bigeye$plot()
@@ -296,6 +299,7 @@ fauna$bigeye$plot()
 <img src="man/figures/README-unnamed-chunk-4-1.png" width="100%" />
 
 ``` r
+
 a <- Sys.time()
 
 sim2 <- simmar(fauna = fauna,
@@ -303,7 +307,7 @@ sim2 <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.2713621 secs
+#> Time difference of 0.237231 secs
   
 
 processed_marlin <- process_marlin(sim = sim2, time_step = time_step)
@@ -314,12 +318,14 @@ plot_marlin(processed_marlin)
 <img src="man/figures/README-unnamed-chunk-4-2.png" width="100%" />
 
 ``` r
+
 plot_marlin(processed_marlin, plot_var = "c")
 ```
 
 <img src="man/figures/README-unnamed-chunk-4-3.png" width="100%" />
 
 ``` r
+
 plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", fauna = fauna)
 #> Warning in plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", :
 #> trying to plot too many steps at once, cutting down to 10
@@ -329,6 +335,7 @@ plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", fauna = faun
 <img src="man/figures/README-unnamed-chunk-4-4.png" width="100%" />
 
 ``` r
+
 plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space")
 #> Warning in plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space"):
 #> Can only plot one time step for spatial plots, defaulting to last of the
@@ -340,6 +347,7 @@ plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space")
 ## Two Species and two fleets with bells and whistles
 
 ``` r
+
 seasons <- 4
 
 steps <- years * seasons
@@ -374,11 +382,10 @@ fauna <-
   list(
     "skipjack" = create_critter(
       scientific_name = "Katsuwonus pelamis",
-      seasonal_habitat = list(skipjack_habitat, skipjack_habitat), # pass habitat as lists
+      base_habitat = list(skipjack_habitat, skipjack_habitat), # pass habitat as lists
       season_blocks = list(c(1, 2), c(3, 4)), # seasons each habitat apply to
       recruit_habitat = skipjack_habitat,
-      adult_movement = 2,# the mean number of patches moved by adults
-      adult_movement_sigma = 2, # standard deviation of the number of patches moved by adults
+      adult_diffusion = 2, # standard deviation of the number of patches moved by adults
       fished_depletion = .6, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
       rec_form = 1, # recruitment form, where 1 implies local recruitment
       seasons = seasons,
@@ -387,11 +394,10 @@ fauna <-
       ),
     "bigeye" = create_critter(
       common_name = "bigeye tuna",
-      seasonal_habitat = list(bigeye_habitat, bigeye_habitat2), # pass habitat as lists
+      base_habitat = list(bigeye_habitat, bigeye_habitat2), # pass habitat as lists
       season_blocks = list(c(1, 2), c(3, 4)), # seasons each habitat apply to
       recruit_habitat = bigeye_habitat,
-      adult_movement = 3,
-      adult_movement_sigma = 1,
+      adult_diffusion = 1,
       fished_depletion = .1,
       rec_form = 1,
       seasons = seasons,
@@ -409,7 +415,7 @@ fauna <-
 #> • Found: 1 
 #> • Not Found: 0
 Sys.time() - a
-#> Time difference of 1.355579 secs
+#> Time difference of 1.129782 secs
 
 # create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
 # with lists for each species inside there. Price specifies the price per unit weight of that 
@@ -474,7 +480,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets) 
 
 Sys.time() - a
-#> Time difference of 1.511465 secs
+#> Time difference of 1.145813 secs
 
 
 # run simulations
@@ -487,7 +493,7 @@ sim3 <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.6795058 secs
+#> Time difference of 0.6158221 secs
 # a <- Sys.time()
 
 processed_marlin <- process_marlin(sim = sim3, time_step = time_step, keep_age = TRUE)
@@ -499,12 +505,14 @@ plot_marlin(processed_marlin)
 <img src="man/figures/README-example-1.png" width="100%" />
 
 ``` r
+
 plot_marlin(processed_marlin, plot_var = "c")
 ```
 
 <img src="man/figures/README-example-2.png" width="100%" />
 
 ``` r
+
 plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", fauna = fauna)
 #> Warning in plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", :
 #> trying to plot too many steps at once, cutting down to 10
@@ -514,6 +522,7 @@ plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", fauna = faun
 <img src="man/figures/README-example-3.png" width="100%" />
 
 ``` r
+
 plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space")
 #> Warning in plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space"):
 #> Can only plot one time step for spatial plots, defaulting to last of the
@@ -523,6 +532,7 @@ plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space")
 <img src="man/figures/README-example-4.png" width="100%" />
 
 ``` r
+
   e_p_f <- map(sim3[[length(sim3)]],"e_p_fl") %>%
     bind_rows(.id = "critter") %>%
     pivot_longer(-critter, names_to = "fleet", values_to = "effort") %>%
@@ -565,7 +575,7 @@ yft_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
  
 
 mako_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(habitat =  dnorm(x,17,5)) %>% 
+  mutate(habitat =  dnorm(x,resolution, 5)) %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
   select(-x) %>% 
   as.matrix()
@@ -576,10 +586,9 @@ fauna <-
   list(
     "Yellowfin Tuna" = create_critter(
       scientific_name = "Thunnus albacares",
-      seasonal_habitat = yft_habitat, # pass habitat as lists
+      base_habitat = yft_habitat, # pass habitat as lists
       recruit_habitat = yft_habitat,
-      adult_movement = 0,# the mean number of patches moved by adults
-      adult_movement_sigma = 4, # standard deviation of the number of patches moved by adults
+      adult_diffusion = 4, # standard deviation of the number of patches moved by adults
       fished_depletion = .4, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
       rec_form = 1, # recruitment form, where 1 implies local recruitment
       seasons = seasons,
@@ -588,10 +597,9 @@ fauna <-
       ),
     "Shortfin Mako" = create_critter(
       scientific_name = "Isurus oxyrinchus",
-      seasonal_habitat = list(mako_habitat), # pass habitat as lists
+      base_habitat = list(mako_habitat), # pass habitat as lists
       recruit_habitat = mako_habitat,
-      adult_movement = 5,
-      adult_movement_sigma = 3,
+      adult_diffusion = 3,
       fished_depletion = .3,
       rec_form = 1,
       burn_years = 200,
@@ -642,7 +650,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
-#> Time difference of 16.13682 secs
+#> Time difference of 19.61834 secs
 
 # run simulations
 
@@ -653,7 +661,7 @@ nearshore <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.3997629 secs
+#> Time difference of 0.3989861 secs
   
 proc_nearshore <- process_marlin(nearshore, time_step =  fauna[[1]]$time_step)
 ```
@@ -690,7 +698,7 @@ nearshore_mpa <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.4164259 secs
+#> Time difference of 0.537678 secs
 
 proc_nearshore_mpa <- process_marlin(nearshore_mpa, time_step =  fauna[[1]]$time_step)
 ```
@@ -703,8 +711,9 @@ same MPA on this new scenario.
 
 ``` r
 
+
 mako_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(habitat =  dnorm(x, 9,5)) %>% 
+  mutate(habitat =  dnorm(x,.3 * resolution, 3)) %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
   select(-x) %>% 
   as.matrix()
@@ -716,10 +725,9 @@ fauna <-
   list(
     "Yellowfin Tuna" = create_critter(
       scientific_name = "Thunnus albacares",
-      seasonal_habitat = yft_habitat, # pass habitat as lists
+      base_habitat = yft_habitat, # pass habitat as lists
       recruit_habitat = yft_habitat,
-      adult_movement = 0,# the mean number of patches moved by adults
-      adult_movement_sigma = 4, # standard deviation of the number of patches moved by adults
+      adult_diffusion = 4, # standard deviation of the number of patches moved by adults
       fished_depletion = .4, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
       rec_form = 1, # recruitment form, where 1 implies local recruitment
       seasons = seasons,
@@ -728,10 +736,9 @@ fauna <-
       ),
     "Shortfin Mako" = create_critter(
       scientific_name = "Isurus oxyrinchus",
-      seasonal_habitat = list(mako_habitat), # pass habitat as lists
+      base_habitat = list(mako_habitat), # pass habitat as lists
       recruit_habitat = mako_habitat,
-      adult_movement = 5,
-      adult_movement_sigma = 3,
+      adult_diffusion = 3,
       fished_depletion = .3,
       rec_form = 1,
       burn_years = 200,
@@ -749,6 +756,7 @@ fauna$`Shortfin Mako`$plot()
 <img src="man/figures/README-unnamed-chunk-8-1.png" width="100%" />
 
 ``` r
+
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 # run simulations
@@ -761,7 +769,7 @@ offshore <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.3991401 secs
+#> Time difference of 0.3965878 secs
   
 proc_offshore <- process_marlin(offshore, time_step =  fauna[[1]]$time_step)
 
@@ -776,7 +784,7 @@ offshore_mpa_sim <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.393539 secs
+#> Time difference of 0.4141049 secs
 
 
 proc_offshore_mpa <- process_marlin(offshore_mpa_sim, time_step =  fauna[[1]]$time_step)
@@ -798,7 +806,7 @@ plot_marlin(
 ``` r
 plot_marlin(
   `MPA: Sharks Offshore` = proc_offshore_mpa,
-  `Sharks Onshore` = proc_nearshore,
+  `Sharks Nearshore` = proc_nearshore,
   `Sharks Offshore` = proc_offshore,
   `MPA: Sharks Nearshore` = proc_nearshore_mpa,
   plot_var = "ssb",
@@ -819,8 +827,9 @@ plot_marlin(
 
 ## Defacto MPAs through bycatch penalties
 
-Now consider a case where prices for shortfin mako are negative creating
-*de facto* MPAs
+We can also run a case where prices for shortfin mako are negative
+creating *de facto* MPAs, by imposing a severe negative price on
+shortfin mako that causes the fishing fleet to avoid taht area.
 
 ``` r
 years <- 100
@@ -849,10 +858,9 @@ fauna <-
   list(
     "Yellowfin Tuna" = create_critter(
       scientific_name = "Thunnus albacares",
-      seasonal_habitat = list(yft_habitat), 
+      base_habitat = list(yft_habitat), 
       recruit_habitat = yft_habitat,
-      adult_movement = 0,
-      adult_movement_sigma = 4, 
+      adult_diffusion = 4, 
       fished_depletion = .4, 
       rec_form = 1, 
       seasons = seasons,
@@ -861,10 +869,9 @@ fauna <-
     ),
     "Shortfin Mako" = create_critter(
       scientific_name = "Isurus oxyrinchus",
-      seasonal_habitat = list(mako_habitat), 
+      base_habitat = list(mako_habitat), 
       recruit_habitat = mako_habitat,
-      adult_movement = 5,
-      adult_movement_sigma = 3,
+      adult_diffusion = 3,
       fished_depletion = .3,
       rec_form = 1,
       burn_years = 200,
@@ -904,7 +911,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
-#> Time difference of 0.5962229 secs
+#> Time difference of 0.380626 secs
 
 # run simulations
 
