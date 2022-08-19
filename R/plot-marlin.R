@@ -111,7 +111,7 @@ plot_marlin <- function(...,
       } + ggplot2::scale_x_continuous(name = "Year") +
       ggplot2::scale_color_manual(
         name = "Fit",
-        values = marlin::marlin_pal(palette = "diverging_fish")(n_distinct(fit_frame$fit))
+        values = marlin::marlin_pal(palette = "diverging_fish")(dplyr::n_distinct(fit_frame$fit))
       ) +
       marlin::theme_marlin() +
       ggplot2::theme(legend.position = "top")
@@ -121,7 +121,7 @@ plot_marlin <- function(...,
       stop("plotting length compositions requires a supplied fauna object")
     }
     
-    if (n_distinct(steps_to_plot) > 10) {
+    if (dplyr::n_distinct(steps_to_plot) > 10) {
       warning("trying to plot too many steps at once, cutting down to 10")
       
       steps_to_plot <-
@@ -202,14 +202,14 @@ plot_marlin <- function(...,
       ggplot2::scale_x_continuous(name = "Length") +
       ggplot2::scale_fill_manual(
         name = "Fit",
-        values = marlin::marlin_pal(palette = "diverging_fish")(n_distinct(fit_frame$fit))
+        values = marlin::marlin_pal(palette = "diverging_fish")(dplyr::n_distinct(fit_frame$fit))
       ) +
       marlin::theme_marlin()
     
   } else if (plot_type == "age") {
     
   } else if (plot_type == "space") {
-    if (n_distinct(steps_to_plot) > 1) {
+    if (dplyr::n_distinct(steps_to_plot) > 1) {
       warning(
         "Can only plot one time step for spatial plots, defaulting to last of the supplied steps"
       )

@@ -24,8 +24,38 @@ create_fleet <-
            cost_per_unit_effort = NA,
            spatial_allocation = "rpue",
            effort_cost_exponent = 1.3,
-           cr_ratio = 0.9) {
+           ports = NULL,
+           cost_per_distance = 1,
+           cr_ratio = 0.9,
+           resolution) {
     # idea: each fleet has a list of fauna inside of it specifying the price, selectivity, q for that species
+    
+    
+    if (is.null(ports)){
+      
+      cost_per_patch <- rep(0, resolution^2)
+      
+    } else {
+      
+      patches <- tidyr::expand_grid(x = 1:resolution, y = 1:resolution) %>% 
+        dplyr::mutate(patch = 1:nrow(.)) # extra step to make sure patch ordering is consistent
+      
+      ports <- ports %>% 
+        dplyr::left_join(patches, by = c("x","y"))
+      
+      # calculate the distance between each of the patches
+      port_distance <- distance <-
+        tidyr::expand_grid(x = 1:resolution, y = 1:resolution) %>%
+        dist(diag = TRUE) %>%
+        as.matrix()
+      
+      
+      port_distances <- apply(port_distance[ports$patch,],2,min) # calculate the distance from each patch to the port patches, then find the minimum distance
+      
+      cost_per_patch <- port_distances * cost_per_distance # calculate total travel cost per patch
+      
+      
+    }
     
    fleet <- list(metiers = metiers, 
                  base_effort = base_effort, 
@@ -35,7 +65,8 @@ create_fleet <-
                  profit_sensitivity = profit_sensitivity,
                  spatial_allocation = spatial_allocation,
                  fleet_model = fleet_model,
-                 effort_cost_exponent = effort_cost_exponent)
+                 effort_cost_exponent = effort_cost_exponent,
+                 cost_per_patch = cost_per_patch)
 
     
     return(fleet)
