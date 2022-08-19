@@ -34,6 +34,8 @@ Metier <- R6::R6Class("metier",
                     
                       self$p_explt <- p_explt
                       
+                      self$port_distance <- NA
+                      
                       length_bins <-
                         as.numeric(colnames(critter$length_at_age_key))
                       
@@ -78,6 +80,8 @@ Metier <- R6::R6Class("metier",
                         
                       } # close dome shaped
                       
+                      
+                      
                       if (all(is.na(spatial_catchability))){
                         
                         self$spatial_catchability <- rep(catchability, critter$patches) 
@@ -92,6 +96,7 @@ Metier <- R6::R6Class("metier",
                           )
                         } #close dim check
                         
+                     
                         if (any(spatial_catchability < 0)){
                           spatial_catchability <- spatial_catchability - min(spatial_catchability)
                           

@@ -49,7 +49,7 @@ theme_marlin <- function(base_size = 14,...) {
       # legends
       legend.title = ggplot2::element_text(face = "italic", hjust = 0.5),
       #text
-      axis.title = element_text(size = base_size),
-      axis.text = element_text(size = 0.75 * base_size)
+      axis.title = ggplot2::element_text(size = base_size),
+      axis.text = ggplot2::element_text(size = 0.75 * base_size)
     )
 }

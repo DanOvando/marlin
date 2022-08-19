@@ -1,5 +1,26 @@
+---
+title: "migrations"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{migrations}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Spawning Aggregation
+
+```{r setup}
 library(marlin)
-library(tidyverse)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
 library(gganimate)
 years <- 20
 
@@ -12,20 +33,12 @@ steps <- years * seasons
 time_step <-  1 / seasons
 
 h1 <-  expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(habitat =  -((x - resolution / 2)^2 + (y - resolution / 2)^2)) %>% 
-mutate(habitat = habitat * (x <5)) 
+  mutate(habitat =  -((x - resolution / 2)^2 + (y - resolution / 2)^2))
   
 
 h2 <-  expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(habitat =  -.5 * x) %>% 
-  mutate(habitat = habitat *(x <5)) 
+  mutate(habitat =  -.5 * x)
   
-
-
-h1 %>% 
-  ggplot(aes(x,y,fill = habitat)) + 
-  geom_tile()
-
 
 bigeye_habitat <- h1 %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
@@ -36,11 +49,6 @@ bigeye_habitat <- h1 %>%
 huh <- tidyr::pivot_longer(as.data.frame(bigeye_habitat), tidyr::everything())
 
 h1$habitat2 <- as.numeric(huh$value)
-
-h1 %>% 
-  ggplot(aes(x,y,fill = habitat2)) + 
-  geom_tile()
-
 
 bigeye_habitat2 <- h2 %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
@@ -70,26 +78,6 @@ fauna <-
   )
 
 
-# fauna <- 
-#   list(
-#     "bigeye" = create_critter(
-#       scientific_name = "thunnus obesus",
-#       recruit_diffusion = 10,
-#       rec_form = 3,
-#       seasons = seasons,
-#       init_explt =  1,
-#       explt_type = "f"
-#     )
-#   )
-
-
-fauna$bigeye$plot()
-# create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
-# with lists for each species inside there. Price specifies the price per unit weight of that 
-# species for that fleet
-# sel_form can be one of logistic or dome
-
-
 fleets <- list(
   "longline" = create_fleet(
     list("bigeye" = Metier$new(
@@ -103,28 +91,22 @@ fleets <- list(
       spatial_catchability = NA
     )
     ),
-    base_effort = resolution ^ 2
+    base_effort = resolution ^ 2,
+    resolution = resolution
   )
 )
 
-a <- Sys.time()
 
 fleets <- tune_fleets(fauna, fleets) 
 
-Sys.time() - a
 
-
-a <- Sys.time()
 
 sim2 <- simmar(fauna = fauna,
                fleets = fleets,
                years = years)
 
-Sys.time() - a
-
 
 processed_marlin <- process_marlin(sim = sim2, time_step = time_step)
-
 
 
 spawning_agg <- processed_marlin$fauna %>% 
@@ -142,16 +124,13 @@ spawning_agg <- processed_marlin$fauna %>%
 
 
 animate(spawning_agg, nframes = 100, fps=2)
-anim_save("spawning_agg.gif")
 
-plot_marlin(processed_marlin)
+```
 
-plot_marlin(processed_marlin, plot_var = "c")
 
-plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", fauna = fauna)
+## Range Shift
 
-plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space", max_scale = TRUE)
-
+```{r}
 
 # test habitat vector -----------------------------------------------------
 
@@ -169,23 +148,14 @@ for (i in 1:years){
 }
 
 
-
 critter_habitat <- list(bigeye = range_shift)
 
 
-image(critter_habitat$bigeye[[1]])
-
-image(critter_habitat$bigeye[[years]])
-
-
-a <- Sys.time()
 
 sim_climate <- simmar(fauna = fauna,
                fleets = fleets,
                habitat = critter_habitat,
                years = years)
-
-Sys.time() - a
 
 
 processed_marlin <- process_marlin(sim = sim_climate, time_step = time_step, keep_age = FALSE)
@@ -205,4 +175,5 @@ range_shift <- processed_marlin$fauna %>%
 
 
 animate(range_shift, nframes = 100, fps=2)
-anim_save("range_shift.gif")
+
+```

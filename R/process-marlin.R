@@ -92,7 +92,7 @@ process_marlin <- function(sim,
         tidyr::pivot_wider(names_from = metric, values_from = value) %>%  # spread out metrics
         dplyr::select(critter, dplyr::everything()) %>% {
           if (keep_age == TRUE) {
-            dplyr::mutate(., age =  rep(ages, n_distinct(.$patch)))
+            dplyr::mutate(., age =  rep(ages, dplyr::n_distinct(.$patch)))
           } else {
             dplyr::mutate(., age = "all")
             
