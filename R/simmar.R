@@ -5,7 +5,7 @@
 #'
 #' @param fauna
 #' @param fleets
-#' @param mpas
+#' @param manager
 #' @param steps
 #' @param tune_unfished
 #'
@@ -14,7 +14,7 @@
 #'
 simmar <- function(fauna = list(),
                    fleets = list(),
-                   mpas = list(),
+                   manager = list(),
                    habitat = list(),
                    years = 100,
                    tune_unfished = 0,
@@ -137,10 +137,10 @@ simmar <- function(fauna = list(),
     
     year <-  floor(step_names[s])
     
-    if (length(mpas) > 0) {
+    if (length(manager$mpas) > 0) {
       # assign MPAs if needed
-      if (year == mpas$mpa_year) {
-        fishable <- mpas$locations$mpa == 0
+      if (year == manager$mpas$mpa_year) {
+        fishable <- manager$mpas$locations$mpa == 0
       }
       
     } # close MPA if statement
@@ -152,8 +152,8 @@ simmar <- function(fauna = list(),
       concentrator <-
         rep(1, patches) # reset fishing effort concentrator by fleet
       
-      if (length(mpas) > 0) {
-        if (year >= mpas$mpa_year & fleets[[l]]$mpa_response == "leave") {
+      if (length(manager$mpas) > 0) {
+        if (year >= manager$mpas$mpa_year & fleets[[l]]$mpa_response == "leave") {
           concentrator <- as.numeric(fishable)
         }
       }

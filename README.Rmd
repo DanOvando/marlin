@@ -566,8 +566,8 @@ nearshore_mpa <- simmar(
   fauna = fauna,
   fleets = fleets,
   years = years,
-  mpas = list(locations = mpa_locations,
-              mpa_year = floor(years * .5))
+  manager = list(mpas = list(locations = mpa_locations,
+              mpa_year = floor(years * .5)))
 )
 
 Sys.time() - a
@@ -644,8 +644,8 @@ offshore_mpa_sim <- simmar(
   fauna = fauna,
   fleets = fleets,
   years = years,
-  mpas = list(locations = mpa_locations,
-              mpa_year = floor(years * .5))
+  manager = list(mpas = list(locations = mpa_locations,
+              mpa_year = floor(years * .5)))
 )
 
 Sys.time() - a
