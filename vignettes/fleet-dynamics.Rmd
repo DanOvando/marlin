@@ -67,6 +67,7 @@ fleets <- list(
     base_effort = resolution ^ 2,
     resolution = resolution,
     responsiveness = .5,
+    cost_per_unit_effort = 1,
     fleet_model = "open access")
 ,
 "handline" = create_fleet(
@@ -125,12 +126,12 @@ mpa_locations %>%
 with_mpa <- simmar(fauna = fauna,
                   fleets = fleets,
                   years = years,
-                  mpas = list(locations = mpa_locations,
-              mpa_year = floor(years * .5)))
+                  manager = list(mpas = list(locations = mpa_locations,
+              mpa_year = floor(years * .5))))
 
 proc_mpa_sim <- process_marlin(with_mpa)
 
-plot_marlin(proc_mpa_sim, plot_var = "c")
+plot_marlin(proc_mpa_sim, plot_var = "c", max_scale = FALSE)
 
 plot_marlin(proc_mpa_sim,plot_type = "space")
 
@@ -143,5 +144,20 @@ proc_mpa_sim$fleets %>%
 
 
 ```
+
+## Quotas
+
+```{r}
+sim_quota <- simmar(fauna = fauna,
+                  fleets = fleets,
+                  years = years,
+                  manager = list(quotas = list(bigeye = 200)))
+
+proc_sim_quota <- process_marlin(sim_quota)
+
+plot_marlin(proc_sim_quota, plot_var = "c", max_scale = FALSE)
+
+```
+
 
 

@@ -232,18 +232,8 @@ simmar <- function(fauna = list(),
         if (s > 3) {
           # no past revenue available in first two time steps for accounting, and then need to allow fleet to move correctly.
           
-          # ratio <- seq(.01,2, by = .01)
-          # 
-          # change <- theta * log(ratio)
-          # 
-          # plot(ratio, exp(change))
-          
-          
           total_effort <- total_effort * exp(fleets[[l]]$responsiveness * log(last_revenue / pmax(1e-6,last_cost))) # adjust effort per an open access dynamics model
           
-          # total_effort <-
-          #   pmax(1e-6,total_effort + fleets[[l]]$profit_sensitivity * last_profits) # adjust effort per open access
-          # 
         }
         
       }
@@ -596,7 +586,6 @@ simmar <- function(fauna = list(),
           f_p_a = f_p_a,
           last_n_p_a = last_n_p_a
         )
-      
       # process catch data
       c_p_a_fl <-
         f_p_a_fl * array(
@@ -604,6 +593,61 @@ simmar <- function(fauna = list(),
           dim = c(patches, ages, length(fleets)),
           dimnames = list(1:patches, fauna[[f]]$ages, names(fleets))
         )
+      
+      # if there are any quotas to evaluate
+      if (length(manager$quotas[names(fauna)[f]]) >0) {
+        
+        if (manager$quotas[[names(fauna)[f]]] < sum(c_p_a_fl, na.rm = TRUE)){
+          
+          quota <- manager$quotas[[names(fauna)[f]]]
+          
+          quota_finder <- function(fmult, quota, fauna, current_season, movement,f_p_a,last_n_p_a,f_p_a_fl){
+            
+            tmp_pop <-
+              fauna[[f]]$swim(
+                season = current_season,
+                adult_movement = movement,
+                f_p_a = fmult * f_p_a,
+                last_n_p_a = last_n_p_a
+              )
+            
+            tmp_catch <-
+              f_p_a_fl * array(
+                tmp_pop$c_p_a,
+                dim = c(patches, ages, length(fleets)),
+                dimnames = list(1:patches, fauna[[f]]$ages, names(fleets))
+              )
+            
+            log_ss <- (sum(tmp_catch, na.rm = TRUE) - quota)^2
+            
+            
+          }
+          
+          fmult <- nlminb(0.9, quota_finder, quota = quota, fauna = fauna, current_season = current_season, movement = movement,f_p_a = f_p_a,last_n_p_a = last_n_p_a,f_p_a_fl = f_p_a_fl, lower = 0, upper = 1)
+        
+          f_p_a <- f_p_a * fmult$par
+          
+          # f_p_a_fl <- f_p_a_fl * fmult$par
+          
+          pop <-
+            fauna[[f]]$swim(
+              season = current_season,
+              adult_movement = movement,
+              f_p_a = f_p_a,
+              last_n_p_a = last_n_p_a
+            )
+          # process catch data
+          c_p_a_fl <-
+            f_p_a_fl * array(
+              pop$c_p_a,
+              dim = c(patches, ages, length(fleets)),
+              dimnames = list(1:patches, fauna[[f]]$ages, names(fleets))
+            )
+          
+          } # if the quota is less than the catch, enforce the quota
+        
+        
+      }
       
       r_p_a_fl <- c_p_a_fl * p_p_a_fl
       
