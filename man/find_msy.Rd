@@ -20,8 +20,6 @@ find_msy(effort_mult, fauna, fleets, opt = TRUE, target_critter)
 \item{target_critter}{the name of the critter to find MSY for}
 }
 \value{
-
-
 MSY conditions
 }
 \description{

@@ -213,9 +213,13 @@ simmar <- function(fauna = list(),
       last_revenue <-
         sum(last_r_p, na.rm = TRUE) # pull out total revenue for fleet l
       
+      last_cost <-  fleets[[l]]$cost_per_unit_effort * sum((fleets[[l]]$e_p_s[, s - 1]) ^
+                                                             fleets[[l]]$effort_cost_exponent) + sum(fleets[[l]]$cost_per_patch * fleets[[l]]$e_p_s[,s-1])
+      
       last_profits <-
-        last_revenue - fleets[[l]]$cost_per_unit_effort * sum((fleets[[l]]$e_p_s[, s - 1] + 1) ^
-                                                                fleets[[l]]$effort_cost_exponent) - sum(fleets[[l]]$cost_per_patch * fleets[[l]]$e_p_s[,s-1]) # calculate profits in the last time step
+        last_revenue - last_cost # calculate profits in the last time step.
+      
+      last_r_to_c <- last_revenue / last_cost
       
       if (fleets[[l]]$fleet_model == "open access") {
         if (is.na(fleets[[l]]$cost_per_unit_effort) |
@@ -230,7 +234,7 @@ simmar <- function(fauna = list(),
           
           
           total_effort <-
-            total_effort * exp(fleets[[l]]$profit_sensitivity * last_profits) # adjust effort per open access
+            pmax(1e-6,total_effort + fleets[[l]]$profit_sensitivity * last_profits) # adjust effort per open access
           
         }
         
@@ -374,7 +378,7 @@ simmar <- function(fauna = list(),
           #1 / nrow(r_p_f)
         } else {
           alloc = (
-            last_r_p - fleets[[l]]$cost_per_unit_effort * (e_p + 1) ^ fleets[[l]]$effort_cost_exponent -  fleets[[l]]$cost_per_patch * e_p
+            last_r_p - fleets[[l]]$cost_per_unit_effort * (e_p) ^ fleets[[l]]$effort_cost_exponent -  fleets[[l]]$cost_per_patch * e_p
           )
           
           alloc[!is.finite(alloc)] <-  0
@@ -603,8 +607,7 @@ simmar <- function(fauna = list(),
         r_p_fl[, fl] <-  rowSums(r_p_a_fl[, , fl], na.rm = TRUE)
         
         prof_p_fl[, fl] <-
-          r_p_fl[, fl] - fleets[[fl]]$cost_per_unit_effort * (as.matrix(tmp_e_p_fl[, fl] +
-                                                                          1) ^ fleets[[fl]]$effort_cost_exponent) / length(fauna) - as.matrix(tmp_e_p_fl[,fl] * fleets[[fl]]$cost_per_patch) / length(fauna)
+          r_p_fl[, fl] - fleets[[fl]]$cost_per_unit_effort * (as.matrix(tmp_e_p_fl[, fl]) ^ fleets[[fl]]$effort_cost_exponent) / length(fauna) - as.matrix(tmp_e_p_fl[,fl] * fleets[[fl]]$cost_per_patch) / length(fauna)
         
       }
       

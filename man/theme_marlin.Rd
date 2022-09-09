@@ -4,13 +4,10 @@
 \alias{theme_marlin}
 \title{ggplot2 theme for marlin}
 \usage{
-theme_marlin(...)
+theme_marlin(base_size = 14, ...)
 }
 \arguments{
 \item{...}{}
-}
-\value{
-
 }
 \description{
 ggplot2 theme for marlin

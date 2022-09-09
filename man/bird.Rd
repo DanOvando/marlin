@@ -11,15 +11,15 @@ Title
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
-\item \href{#method-new}{\code{bird$new()}}
-\item \href{#method-set_hair}{\code{bird$set_hair()}}
-\item \href{#method-greet}{\code{bird$greet()}}
-\item \href{#method-clone}{\code{bird$clone()}}
+\item \href{#method-Bird-new}{\code{bird$new()}}
+\item \href{#method-Bird-set_hair}{\code{bird$set_hair()}}
+\item \href{#method-Bird-greet}{\code{bird$greet()}}
+\item \href{#method-Bird-clone}{\code{bird$clone()}}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-new"></a>}}
-\if{latex}{\out{\hypertarget{method-new}{}}}
+\if{html}{\out{<a id="method-Bird-new"></a>}}
+\if{latex}{\out{\hypertarget{method-Bird-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{bird$new(name = NA, hair = NA)}\if{html}{\out{</div>}}
@@ -27,8 +27,8 @@ Title
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-set_hair"></a>}}
-\if{latex}{\out{\hypertarget{method-set_hair}{}}}
+\if{html}{\out{<a id="method-Bird-set_hair"></a>}}
+\if{latex}{\out{\hypertarget{method-Bird-set_hair}{}}}
 \subsection{Method \code{set_hair()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{bird$set_hair(val)}\if{html}{\out{</div>}}
@@ -41,13 +41,10 @@ Title
 }
 \if{html}{\out{</div>}}
 }
-\subsection{Returns}{
-
-}
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-greet"></a>}}
-\if{latex}{\out{\hypertarget{method-greet}{}}}
+\if{html}{\out{<a id="method-Bird-greet"></a>}}
+\if{latex}{\out{\hypertarget{method-Bird-greet}{}}}
 \subsection{Method \code{greet()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{bird$greet()}\if{html}{\out{</div>}}
@@ -55,8 +52,8 @@ Title
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-clone"></a>}}
-\if{latex}{\out{\hypertarget{method-clone}{}}}
+\if{html}{\out{<a id="method-Bird-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-Bird-clone}{}}}
 \subsection{Method \code{clone()}}{
 The objects of this class are cloneable with this method.
 \subsection{Usage}{

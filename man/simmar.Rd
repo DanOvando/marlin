@@ -8,6 +8,7 @@ simmar(
   fauna = list(),
   fleets = list(),
   mpas = list(),
+  habitat = list(),
   years = 100,
   tune_unfished = 0,
   initial_conditions = NA
@@ -15,9 +16,6 @@ simmar(
 }
 \arguments{
 \item{tune_unfished}{}
-}
-\value{
-
 }
 \description{
 when passed fauna and fleet objects, simmar will advance

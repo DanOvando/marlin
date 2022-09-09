@@ -9,11 +9,14 @@ create_fleet(
   base_effort = 0,
   mpa_response = "stay",
   fleet_model = "constant effort",
-  profit_sensitivity = NA,
+  profit_sensitivity = 0.1,
   cost_per_unit_effort = NA,
   spatial_allocation = "rpue",
   effort_cost_exponent = 1.3,
-  cr_ratio = 0.9
+  ports = NULL,
+  cost_per_distance = 1,
+  cr_ratio = 1,
+  resolution
 )
 }
 \arguments{

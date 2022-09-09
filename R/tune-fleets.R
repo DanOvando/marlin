@@ -3,24 +3,33 @@
 #' for example some tuning steps depend on prior tuning step, making it difficult to tune everything 
 #' at once. 
 #'
-#' @param fauna
-#' @param fleets
-#' @param years
+#' @param fauna a fauna object
+#' @param fleets a fleet object
+#' @param years the number of years to tune over
 #'
-#' @return
+#' @return tuned fleet object
 #' @export
 #'
 #' @examples
 tune_fleets <- function(fauna,
                         fleets,
                         years = 50,
-                        tune_type = "explt") {
+                        tune_type = "explt",
+                        tune_costs = TRUE) {
   
   # might be best to define costs based on unfished rather than EQ to get around weird tuning behavior with tuning assuming revenue distribution but fleet model assuming IFD  
   
   fleet_names <- names(fleets)
   
   fauni <- names(fauna)
+  
+  og_fleet_model <- character(length = length(fleets))
+  names(og_fleet_model) <- names(fleets)
+  
+  for (f in names(fleets)){
+    og_fleet_model[f] <- fleets[[f]]$fleet_model
+    fleets[[f]]$fleet_model <- "constant effort" 
+  }
   
   # normalize p_explt to make sure it sums to 1
   
@@ -48,14 +57,6 @@ tune_fleets <- function(fauna,
     dplyr::bind_rows(.id = "critter") %>%
     dplyr::group_by(fleet) %>%
     dplyr::summarise(revenue = sum(revenue, na.rm = TRUE))
-  
-  
-  # for (f in seq_along(fleets)){
-  # 
-  #   # fleets[[f]]$cost_per_unit_effort <- 1e-9
-  # 
-  # }
-  
   
     fauni <- names(fauna)
     
@@ -153,46 +154,60 @@ tune_fleets <- function(fauna,
       } # close internal fauna loop
       
     } # close fleet loop
-  } # close depletion if
+  } # close depletion 
     
+    if (tune_costs){
     
-    # tune cost to revenue ratio
+    init_sim <- simmar(fauna = fauna,
+                      fleets = fleets,
+                      years = years)
+
+    eq <- init_sim[[length(init_sim)]]
+
+    revenue <-
+      purrr::map_dfr(eq,
+                     ~ data.frame( revenue = (colSums(.x$r_p_fl))),
+                     .id = "critter") %>%
+      tibble::rownames_to_column("fleet") %>%
+      dplyr::group_by(fleet) %>%
+      dplyr::summarise(revenue = sum(revenue))
+
+    effort <-    purrr::map_dfr(eq[1],
+                                ~ data.frame(.x$e_p_fl) %>% dplyr::mutate(patch = 1:nrow(.)),
+                                .id = "critter") %>%
+      tidyr::pivot_longer(-c(critter, patch), names_to = "fleet", values_to = "effort") # effort is the same per fleet for all critters so only selecting first entry
+
+
+    cost_per_patch <-
+      purrr::map_dfr(fleets,
+                     ~ data.frame(
+                       patch = 1:length(.x$cost_per_patch),
+                       cost = .x$cost_per_patch
+                     ),
+                     .id = "fleet")
+
+    base_cr_ratio <- purrr::map_dfr(fleets, ~data.frame(base_cr_ratio = .x$cr_ratio), .id = "fleet")
     
-    # init_sim <- simmar(fauna = fauna,
-    #                   fleets = fleets,
-    #                   years = years)
-    # 
-    # # check <- process_marlin(init_conds)
-    # 
-    # # plot_marlin(check)
-    # 
-    # init_state <- init_sim[[length(init_sim)]]
-    # 
-    # revenue <- purrr::map(init_state,~ reshape::melt(.x$r_p_a_fl) %>%
-    #                         purrr::set_names("patch", "age", "fleet", "revenue")) %>%
-    #   dplyr::bind_rows(.id = "critter") %>%
-    #   dplyr::group_by(fleet) %>%
-    #   dplyr::summarise(revenue = sum(revenue, na.rm = TRUE))      
-    # 
-    # e_p_f <- purrr::map(init_state,"e_p_fl") %>%
-    #   dplyr::bind_rows(.id = "critter") %>%
-    #   tidyr::pivot_longer(-critter, names_to = "fleet", values_to = "effort") %>%
-    #   dplyr::group_by(critter, fleet) %>%
-    #   dplyr::mutate(patch = seq_along(effort)) %>%
-    #   dplyr::group_by(fleet) %>%
-    #   dplyr::summarise(effort = sum(effort) / time_step) # roughly extrapolate
-    # 
-    # profits <- revenue %>% 
-    #   dplyr::left_join(e_p_f, by = "fleet") %>% 
-    #   dplyr::mutate(cost = (fleets[[f]]$cr_ratio * revenue) / effort)
-    # 
-    # # assign cost per unit effort to each fleet
-    # for (f in seq_along(fleets)){
-    #   
-    #   fleets[[f]]$cost_per_unit_effort <- profits$cost[profits$fleet == names(fleets)[f]]
-    #   
-    # }
+    effort_and_costs <- effort %>%
+      dplyr::left_join(cost_per_patch, by = c("fleet", "patch")) %>%
+      dplyr::group_by(fleet) %>%
+      dplyr::summarise(effort = sum(effort),
+                       travel_cost = sum(effort * cost)) %>%
+      dplyr::left_join(revenue, by = "fleet") %>%
+      dplyr::left_join(base_cr_ratio, by = "fleet") %>%
+      dplyr::mutate(cost_per_unit_effort = (base_cr_ratio * revenue - travel_cost) / effort) %>%
+      dplyr::mutate(profits =  revenue - (cost_per_unit_effort * effort + travel_cost))
     
+    for (f in names(fleets)){
+      fleets[[f]]$cost_per_unit_effort <- effort_and_costs$cost_per_unit_effort[effort_and_costs$fleet == f]
+      
+      fleets[[f]]$fleet_model <-    og_fleet_model[f]
+      
+    }
+
+    }
+    
+  
 
   return(fleets)
 }

@@ -15,9 +15,6 @@ fleet_tuner(qs, fauna, fleets, years = 50)
 
 \item{years}{}
 }
-\value{
-
-}
 \description{
 finds catchability (q) by fleet such that
 target fished depletion is achieved

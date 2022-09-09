@@ -12,17 +12,18 @@ steps <- years * seasons
 time_step <-  1 / seasons
 
 h1 <-  expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(habitat =  -((x - resolution / 2)^2 + (y - resolution / 2)^2)) %>% 
-mutate(habitat = habitat * (x <5)) 
+  mutate(habitat =  dnorm(x, resolution / 2, .05 * resolution) *  dnorm(y, resolution / 2, .05 * resolution)) %>% 
+  mutate(habitat = habitat * (x >= 4))
+
   
 
 h2 <-  expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(habitat =  -.5 * x) %>% 
-  mutate(habitat = habitat *(x <5)) 
+  mutate(habitat =  -.5 * x + 10) %>% 
+  mutate(habitat = habitat * (x < 4))
   
 
 
-h1 %>% 
+h2 %>% 
   ggplot(aes(x,y,fill = habitat)) + 
   geom_tile()
 
@@ -103,7 +104,8 @@ fleets <- list(
       spatial_catchability = NA
     )
     ),
-    base_effort = resolution ^ 2
+    base_effort = resolution ^ 2,
+    resolution = resolution
   )
 )
 

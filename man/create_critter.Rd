@@ -9,16 +9,14 @@ create_critter(
   scientific_name = NA,
   get_common_name = FALSE,
   critter_type = "fish",
-  seasonal_habitat = list(),
+  base_habitat = list(),
   season_blocks = list(),
   recruit_habitat = NA,
   seasons = 1,
   rec_form = 1,
   fec_form = "weight",
-  adult_movement = 0,
-  adult_movement_sigma = 2,
-  recruit_movement = 0,
-  recruit_movement_sigma = 10,
+  adult_diffusion = 2,
+  recruit_diffusion = 10,
   fished_depletion = 0.4,
   init_explt = 0.1,
   explt_type = "f",
@@ -36,17 +34,13 @@ create_critter(
 
 \item{critter_type}{}
 
-\item{seasonal_habitat}{}
+\item{base_habitat}{}
 
 \item{season_blocks}{}
 
 \item{seasons}{}
 
 \item{rec_form}{}
-
-\item{adult_movement}{}
-
-\item{adult_movement_sigma}{}
 
 \item{fished_depletion}{}
 
@@ -57,6 +51,10 @@ create_critter(
 \item{...}{}
 
 \item{rec_habitat}{}
+
+\item{adult_movement}{}
+
+\item{adult_movement_sigma}{}
 }
 \description{
 Creates a critter object. If only a scientific name is provided
