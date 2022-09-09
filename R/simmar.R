@@ -223,19 +223,27 @@ simmar <- function(fauna = list(),
       
       if (fleets[[l]]$fleet_model == "open access") {
         if (is.na(fleets[[l]]$cost_per_unit_effort) |
-            is.na(fleets[[l]]$profit_sensitivity)) {
+            is.na(fleets[[l]]$responsiveness)) {
           stop(
-            "open access fleet model requires both cost_per_unit_effort and profit_sensitivity parameters"
+            "open access fleet model requires both cost_per_unit_effort and responsiveness parameters"
           )
         }
         
         if (s > 3) {
           # no past revenue available in first two time steps for accounting, and then need to allow fleet to move correctly.
           
+          # ratio <- seq(.01,2, by = .01)
+          # 
+          # change <- theta * log(ratio)
+          # 
+          # plot(ratio, exp(change))
           
-          total_effort <-
-            pmax(1e-6,total_effort + fleets[[l]]$profit_sensitivity * last_profits) # adjust effort per open access
           
+          total_effort <- total_effort * exp(fleets[[l]]$responsiveness * log(last_revenue / pmax(1e-6,last_cost))) # adjust effort per an open access dynamics model
+          
+          # total_effort <-
+          #   pmax(1e-6,total_effort + fleets[[l]]$profit_sensitivity * last_profits) # adjust effort per open access
+          # 
         }
         
       }

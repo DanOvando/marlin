@@ -24,7 +24,7 @@ library(marlin)
 ```{r}
 resolution <- 10 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
 
-years <- 20
+years <- 100
 
 seasons <- 1
 
@@ -39,7 +39,7 @@ fauna <-
       adult_diffusion = 10,
       rec_form = 3,
       seasons = seasons,
-      fished_depletion = .5,
+      fished_depletion = 0.2,
       resolution = resolution,
       steepness = 0.6,
       ssb0 = 1000
@@ -66,6 +66,7 @@ fleets <- list(
     ),
     base_effort = resolution ^ 2,
     resolution = resolution,
+    responsiveness = .5,
     fleet_model = "open access")
 ,
 "handline" = create_fleet(
@@ -94,6 +95,53 @@ proc_sim <- process_marlin(sim)
 
 plot_marlin(proc_sim)
 
+proc_sim$fleets %>% 
+  pivot_longer(contains("_effort"), names_to = "fleet2", values_to = "effort") %>% 
+  group_by(step, fleet2) %>%
+  summarise(effort = sum(effort)) %>% 
+  ggplot(aes(step, effort, color = fleet2)) + 
+  geom_line()
+
 
 ```
+
+To see the effect of the fleet model choices, let's examine the trajectory of each fleet after the addition of an MPA. 
+
+
+```{r}
+
+set.seed(42)
+#specify some MPA locations
+mpa_locations <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+mutate(mpa = x > 4 & y < 6)
+
+mpa_locations %>% 
+  ggplot(aes(x,y, fill = mpa)) + 
+  geom_tile() + 
+  scale_fill_brewer(palette = "Accent", direction  = -1, name = "MPA") + 
+  scale_x_continuous(name = "Lat") + 
+  scale_y_continuous(name = "Lon")
+
+with_mpa <- simmar(fauna = fauna,
+                  fleets = fleets,
+                  years = years,
+                  mpas = list(locations = mpa_locations,
+              mpa_year = floor(years * .5)))
+
+proc_mpa_sim <- process_marlin(with_mpa)
+
+plot_marlin(proc_mpa_sim, plot_var = "c")
+
+plot_marlin(proc_mpa_sim,plot_type = "space")
+
+proc_mpa_sim$fleets %>% 
+  pivot_longer(contains("_effort"), names_to = "fleet2", values_to = "effort") %>% 
+  group_by(step, fleet2) %>%
+  summarise(effort = sum(effort)) %>% 
+  ggplot(aes(step, effort, color = fleet2)) + 
+  geom_line()
+
+
+```
+
 
