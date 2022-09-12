@@ -32,7 +32,7 @@ ports <-  data.frame(x =  c(2,10), y = c(1,8))
 
 ```
 
-Now we'll create a popultion of bigeye tuna. 
+Now we'll create a population of bigeye tuna. 
 
 ```{r}
 
@@ -71,7 +71,7 @@ fleets <- list(
     resolution  = resolution,
     spatial_allocation = "profit",
     cost_per_unit_effort = 1,
-    cost_per_distance = 20
+    cost_per_distance = 2
   )
 )
 

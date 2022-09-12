@@ -41,6 +41,7 @@ create_critter <- function(common_name = NA,
                            weight_a = NA,
                            fec_expo = 1,
                            resolution = 20,
+                           spawning_seasons = NA,
                            ...) {
 
   
@@ -70,6 +71,7 @@ create_critter <- function(common_name = NA,
         burn_years = burn_years,
         get_common_name = get_common_name,
         resolution = resolution,
+        spawning_seasons = spawning_seasons,
         ...
       )
     

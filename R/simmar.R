@@ -232,7 +232,7 @@ simmar <- function(fauna = list(),
         if (s > 3) {
           # no past revenue available in first two time steps for accounting, and then need to allow fleet to move correctly.
           
-          total_effort <- total_effort * exp(fleets[[l]]$responsiveness * log(last_revenue / pmax(1e-6,last_cost))) # adjust effort per an open access dynamics model
+          total_effort <- total_effort * exp(fleets[[l]]$responsiveness * log(pmax(last_revenue, 1e-6) / pmax(1e-6,last_cost))) # adjust effort per an open access dynamics model
           
         }
         
@@ -543,6 +543,7 @@ simmar <- function(fauna = list(),
         (season + fauna[[f]]$time_step) * fauna[[f]]$seasons  # annoying step to get seasons back to which season is it, not decimal season
       
       
+      
       movement <- fauna[[f]]$base_movement
       
       
@@ -579,6 +580,18 @@ simmar <- function(fauna = list(),
         }
         
       }
+      
+      
+      if (length(manager$closed_seasons[names(fauna)[f]]) >0) {
+        
+        if (current_season %in% manager$closed_seasons[[names(fauna)[f]]]){
+          
+          f_p_a <- f_p_a * 0
+          
+        }
+        
+      }
+      
       pop <-
         fauna[[f]]$swim(
           season = current_season,
@@ -595,6 +608,8 @@ simmar <- function(fauna = list(),
         )
       
       # if there are any quotas to evaluate
+      fmult <- 1
+      
       if (length(manager$quotas[names(fauna)[f]]) >0) {
         
         if (manager$quotas[[names(fauna)[f]]] < sum(c_p_a_fl, na.rm = TRUE)){
@@ -623,11 +638,11 @@ simmar <- function(fauna = list(),
             
           }
           
-          fmult <- nlminb(0.9, quota_finder, quota = quota, fauna = fauna, current_season = current_season, movement = movement,f_p_a = f_p_a,last_n_p_a = last_n_p_a,f_p_a_fl = f_p_a_fl, lower = 0, upper = 1)
+          fmulter <- nlminb(0.9, quota_finder, quota = quota, fauna = fauna, current_season = current_season, movement = movement,f_p_a = f_p_a,last_n_p_a = last_n_p_a,f_p_a_fl = f_p_a_fl, lower = 0, upper = 1)
         
-          f_p_a <- f_p_a * fmult$par
+          fmult <- fmulter$par
           
-          # f_p_a_fl <- f_p_a_fl * fmult$par
+          f_p_a <- f_p_a * fmult
           
           pop <-
             fauna[[f]]$swim(
@@ -647,11 +662,11 @@ simmar <- function(fauna = list(),
           } # if the quota is less than the catch, enforce the quota
         
         
-      }
+      } # close quota evaluation
       
       r_p_a_fl <- c_p_a_fl * p_p_a_fl
       
-      tmp_e_p_fl <-  purrr::map_dfc(fleets, ~ .x$e_p_s[, s])
+      tmp_e_p_fl <-  purrr::map_dfc(fleets, ~ .x$e_p_s[, s] * fmult)
       
       for (fl in 1:length(fleets)) {
         c_p_fl[, fl] <- rowSums(c_p_a_fl[, , fl], na.rm = TRUE)
@@ -696,7 +711,7 @@ simmar <- function(fauna = list(),
     
     
   } #close steps
-  
+  s
   storage <-
     storage[1:(steps - 1)] # since catch is retrospective, chop off last time step to ensure that every step has a catch history
   storage <-
