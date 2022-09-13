@@ -15,15 +15,19 @@ knitr::opts_chunk$set(
 ```
 
 ```{r setup}
+library(marlin)
+
+library(tidyverse)
+
 resolution <- 10 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
 
-years <- 1
+burn_years <- 20
+
+sim_years <- 20
 
 seasons <- 4
 
 time_step <- 1 / seasons
-
-steps <- years * seasons
 
 fauna <- 
   list(
@@ -82,29 +86,61 @@ fleets <- list(
 fleets <- tune_fleets(fauna, fleets, tune_type = "depletion") 
 
 
-sim <- simmar(fauna = fauna,
+hcr_cutoff <- 0.2
+
+hcr_target <- 0.5
+
+max_u <- 0.2
+
+depletion <- seq(0,1, by= 0.1)
+
+hcr_slope <- max_u / (hcr_target - hcr_cutoff)
+
+hcr_intercept <- -hcr_slope * hcr_cutoff
+
+hcr <- pmin(max_u,pmax(.01,hcr_slope * depletion + hcr_intercept))
+
+plot(depletion, hcr)
+
+mse_sim <- simmar(fauna = fauna,
                   fleets = fleets,
-                  years = years,
-              manager = list(closed_seasons = list(bigeye = c(1,2,3))))
+                  years = burn_years)
 
-proc_sim <- process_marlin(sim)
+initial_conditions <- mse_sim[[length(mse_sim)]]
 
-plot_marlin(proc_sim, plot_var = "c")
+starting_step = as.numeric(last(names(mse_sim)))
 
-proc_sim$fleets %>% 
-  pivot_longer(contains("_effort"), names_to = "fleet2", values_to = "effort") %>% 
-  group_by(step, fleet2) %>%
-  summarise(effort = sum(effort)) %>% 
-  ggplot(aes(step, effort, color = fleet2)) + 
-  geom_point()
+for (y in 2:sim_years){
+  
+  depletion <- purrr::map(mse_sim[[length(mse_sim)]], ~ sum(.x$ssb_p_a) / .x$ssb0)
+  
+  u <- map(depletion, ~  pmin(max_u,pmax(0.01,hcr_slope * .x + hcr_intercept)))
+  
+  quotas <- purrr::map2(mse_sim[[length(mse_sim)]], u, ~ sum(.x$ssb_p_a) * .y)
+  
+  next_year <- simmar(
+  fauna = fauna,
+  fleets = fleets,
+  years = 1,
+  initial_conditions = initial_conditions,
+  manager = list(quotas = quotas),
+  starting_step = starting_step,
+  keep_starting_step = FALSE
+)
 
-initial_conditions <- sim[[length(sim)]]
+  initial_conditions <- next_year[[length(next_year)]]
+  
+  starting_step <- as.numeric(last(names(next_year)))
 
-sim2 <- simmar(fauna = fauna,
-                  fleets = fleets,
-                  years = years,
-               initial_conditions = initial_conditions,
-              manager = list(closed_seasons = list(bigeye = c(1,2,3))))
+  mse_sim <- append(mse_sim, next_year)
+  
+}
+
+processed_mse_sim <- process_marlin(mse_sim)
+
+plot_marlin(processed_mse_sim, plot_var = "c", max_scale = FALSE)
+
+plot_marlin(processed_mse_sim, plot_var = "ssb", max_scale = FALSE)
 
 
 ```

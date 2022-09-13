@@ -18,7 +18,13 @@ simmar <- function(fauna = list(),
                    habitat = list(),
                    years = 100,
                    tune_unfished = 0,
-                   initial_conditions = NA) {
+                   initial_conditions = NA,
+                   starting_step = 0, 
+                   keep_starting_step = TRUE) {
+  
+  
+  init_cond_provided <- !all(is.na(initial_conditions)) # marker in case initial conditions were provided
+  
   fauni <- names(fauna)
   
   fleet_names <- names(fleets)
@@ -37,7 +43,7 @@ simmar <- function(fauna = list(),
   steps <-
     (years) / time_step  + 1 # tack on extra year for accounting
   
-  step_names <- seq(0, years + 1, by = time_step)
+  step_names <- seq(0 + starting_step, years + 1 + starting_step, by = time_step)
   
   patches <- unique(purrr::map_dbl(fauna, "patches"))
   if (all(is.na(initial_conditions))) {
@@ -113,6 +119,16 @@ simmar <- function(fauna = list(),
                                             e_p_s = matrix(((.x$base_effort / patches)
                                             ), nrow = patches, ncol = steps))) # create blank for effort by fleet, space, and time
   
+  if (init_cond_provided){
+    # fill in first step of effort from initial conditions
+    for (i in names(fleets)){
+      
+      fleets[[i]]$e_p_s[,1] <- getElement(initial_conditions[[1]]$e_p_fl,i)
+      
+    }
+    
+  }
+  
   r_p_f <-
     matrix(0, patches, length(fauni)) # fishable revenue by patch and fauna
   
@@ -180,8 +196,18 @@ simmar <- function(fauna = list(),
         }
       }
       
-      #add ability to incorporate past revenues here. Idea. have a marker that lets you know if initial conditions were passed in. If s<= 2 or there were no initial conditions, pull this. If s<= 2 but there were initial conditions, pull the initial conditions for those steps
-      if (s <= 2) {
+      # xx add ability to incorporate past revenues here. Idea. have a marker that lets you know if initial conditions were passed in. If s<= 2 or there were no initial conditions, pull this. If s<= 2 but there were initial conditions, pull the initial conditions for those steps
+      
+      if (s == 1 & init_cond_provided){
+        
+        r_p_f <-
+          (sapply(initial_conditions, function(x)
+            rowSums(x$r_p_a_fl[, , l], na.rm = TRUE)))
+        
+        last_r_p <-
+          rowSums(r_p_f, na.rm = TRUE) # pull out total revenue for fleet l
+        
+      } else if (s <= 2) {
         for (f in seq_along(fauni)) {
           last_b_p_a <- storage[[s - 1]][[f]]$b_p_a
           
@@ -719,6 +745,10 @@ simmar <- function(fauna = list(),
       storage[[s - 1]][[f]]$e_p_fl <-
         tmp_e_p_fl # store effort by patch by fleet (note that this is the same across species)
       
+      
+      storage[[s - 1]][[f]]$f_p_a_fl <-
+        f_p_a_fl # store effort by patch by fleet (note that this is the same across species)
+      
       if (any(tmp_e_p_fl < 0)) {
 
         stop("something hase gone very wrong, effort is negative")
@@ -731,11 +761,11 @@ simmar <- function(fauna = list(),
     
     
   } #close steps
-  s
+  
   storage <-
-    storage[1:(steps - 1)] # since catch is retrospective, chop off last time step to ensure that every step has a catch history
+    storage[ifelse(keep_starting_step,1,2):(steps - 1)] # since catch is retrospective, chop off last time step to ensure that every step has a catch history
   storage <-
-    rlang::set_names(storage, nm = step_names[1:(steps - 1)])
+    rlang::set_names(storage, nm = step_names[ifelse(keep_starting_step,1,2):(steps - 1)])
   
   storage <- purrr::map(storage, ~ rlang::set_names(.x, fauni))
   
