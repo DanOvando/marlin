@@ -260,7 +260,7 @@ proc_sim$fleets %>%
   group_by(step, fleet2) %>%
   summarise(effort = sum(effort)) %>% 
   ggplot(aes(step, effort, color = fleet2)) + 
-  geom_line()
+  geom_point()
 
 
 ```

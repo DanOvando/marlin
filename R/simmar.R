@@ -229,6 +229,7 @@ simmar <- function(fauna = list(),
       
       total_effort <- sum(fleets[[l]]$e_p_s[, s - 1] * concentrator)
       
+      if (sum(last_r_p, na.rm = TRUE) > 0){ # the only way for revenues in the last step to be literally zero is 100% mpas or all target species seasons closed or last effort = zero
         last_revenue <-
           sum(last_r_p, na.rm = TRUE) # pull out total revenue for fleet l
         
@@ -239,7 +240,7 @@ simmar <- function(fauna = list(),
           last_revenue - last_cost # calculate profits in the last time step.
         
         last_r_to_c <- last_revenue / last_cost
-        
+      }
       
       if (fleets[[l]]$fleet_model == "open access") {
         if (is.na(fleets[[l]]$cost_per_unit_effort) |
@@ -255,7 +256,7 @@ simmar <- function(fauna = list(),
           if (exists("last_revenue")){
           
           total_effort <- total_effort * exp(fleets[[l]]$responsiveness * log(pmax(last_revenue, 1e-6) / pmax(1e-6,last_cost))) # adjust effort per an open access dynamics model
-          } # in edge case where the fishery is closed for the first few seasons of the simulation
+          } # in edge case where the fishery is closed for the first few seasons of the simulation stick with last value
         
           }
         
