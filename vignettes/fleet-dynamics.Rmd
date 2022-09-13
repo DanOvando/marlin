@@ -249,7 +249,7 @@ fleets <- tune_fleets(fauna, fleets, tune_type = "depletion")
 sim <- simmar(fauna = fauna,
                   fleets = fleets,
                   years = years,
-              manager = list(closed_seasons = list(bigeye = c(1,2))))
+              manager = list(closed_seasons = list(bigeye = c(1,2,3))))
 
 proc_sim <- process_marlin(sim)
 

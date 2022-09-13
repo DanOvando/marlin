@@ -1,0 +1,110 @@
+---
+title: "MSE"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{MSE}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+resolution <- 10 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
+
+years <- 1
+
+seasons <- 4
+
+time_step <- 1 / seasons
+
+steps <- years * seasons
+
+fauna <- 
+  list(
+    "striped marlin" = create_critter(
+      common_name = "striped marlin",
+      adult_diffusion = 10,
+      rec_form = 3,
+      seasons = seasons,
+      fished_depletion = 0.2,
+      resolution = resolution,
+      steepness = 0.6,
+      ssb0 = 1000
+    )
+  )
+
+# create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
+# with lists for each species inside there. Price specifies the price per unit weight of that 
+# species for that fleet
+# sel_form can be one of logistic or dome
+
+
+fleets <- list(
+  "longline" = create_fleet(
+    list("striped marlin" = Metier$new(
+        critter = fauna$`striped marlin`,
+        price = 10,
+        sel_form = "logistic",
+        sel_start = 1,
+        sel_delta = .01,
+        catchability = 0,
+        p_explt = 2
+      )
+    ),
+    base_effort = resolution ^ 2,
+    resolution = resolution,
+    responsiveness = .5,
+    cost_per_unit_effort = 1,
+    fleet_model = "open access")
+,
+"handline" = create_fleet(
+  list("striped marlin" = Metier$new(
+    critter = fauna$`striped marlin`,
+    price = 10,
+    sel_form = "logistic",
+    sel_start = 1,
+    sel_delta = .01,
+    catchability = 0,
+    p_explt = 1
+  )
+  ),
+  base_effort = resolution ^ 2,
+  resolution = resolution,
+  fleet_model = "constant effort"
+))
+
+fleets <- tune_fleets(fauna, fleets, tune_type = "depletion") 
+
+
+sim <- simmar(fauna = fauna,
+                  fleets = fleets,
+                  years = years,
+              manager = list(closed_seasons = list(bigeye = c(1,2,3))))
+
+proc_sim <- process_marlin(sim)
+
+plot_marlin(proc_sim, plot_var = "c")
+
+proc_sim$fleets %>% 
+  pivot_longer(contains("_effort"), names_to = "fleet2", values_to = "effort") %>% 
+  group_by(step, fleet2) %>%
+  summarise(effort = sum(effort)) %>% 
+  ggplot(aes(step, effort, color = fleet2)) + 
+  geom_point()
+
+initial_conditions <- sim[[length(sim)]]
+
+sim2 <- simmar(fauna = fauna,
+                  fleets = fleets,
+                  years = years,
+               initial_conditions = initial_conditions,
+              manager = list(closed_seasons = list(bigeye = c(1,2,3))))
+
+
+```

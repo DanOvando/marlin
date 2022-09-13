@@ -180,7 +180,7 @@ simmar <- function(fauna = list(),
         }
       }
       
-      
+      #add ability to incorporate past revenues here. Idea. have a marker that lets you know if initial conditions were passed in. If s<= 2 or there were no initial conditions, pull this. If s<= 2 but there were initial conditions, pull the initial conditions for those steps
       if (s <= 2) {
         for (f in seq_along(fauni)) {
           last_b_p_a <- storage[[s - 1]][[f]]$b_p_a
@@ -250,15 +250,13 @@ simmar <- function(fauna = list(),
           )
         }
         
-        if (s > 3) {
-          # no past revenue available in first two time steps for accounting, and then need to allow fleet to move correctly.
 
           if (exists("last_revenue")){
           
           total_effort <- total_effort * exp(fleets[[l]]$responsiveness * log(pmax(last_revenue, 1e-6) / pmax(1e-6,last_cost))) # adjust effort per an open access dynamics model
           } # in edge case where the fishery is closed for the first few seasons of the simulation stick with last value
         
-          }
+
         
       } # close open access
       
