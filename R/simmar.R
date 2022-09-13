@@ -158,7 +158,7 @@ simmar <- function(fauna = list(),
       dimnames = list(NULL, fleet_names)
     )
   
-  
+  log_rec_devs <- vector("list", length(fauna)) 
   
   fishable <- rep(1, patches)
   
@@ -636,14 +636,24 @@ simmar <- function(fauna = list(),
         
       }
       
+      new_rec_devs <-  rnorm(patches, 0, fauna[[f]]$sigma_r)
+      # update recruitment deviates allowing for autocorrelation within each critter  
       
+      if (s > 2){
+        log_rec_devs[[f]] <- fauna[[f]]$rec_ac *  log_rec_devs[[f]] + sqrt(1 - fauna[[f]]$rec_ac^2) * new_rec_devs
+      } else {
+        log_rec_devs[[f]] <- new_rec_devs
+      }
+      
+      rec_devs <- exp(log_rec_devs[[f]] - fauna[[f]]$sigma_r^2/2)
       
       pop <-
         fauna[[f]]$swim(
           season = current_season,
           adult_movement = movement,
           f_p_a = f_p_a,
-          last_n_p_a = last_n_p_a
+          last_n_p_a = last_n_p_a,
+          rec_devs = rec_devs
         )
       # process catch data
       c_p_a_fl <-
@@ -669,7 +679,8 @@ simmar <- function(fauna = list(),
                 season = current_season,
                 adult_movement = movement,
                 f_p_a = fmult * f_p_a,
-                last_n_p_a = last_n_p_a
+                last_n_p_a = last_n_p_a,
+                rec_devs = rec_devs
               )
             
             tmp_catch <-
@@ -695,7 +706,8 @@ simmar <- function(fauna = list(),
               season = current_season,
               adult_movement = movement,
               f_p_a = f_p_a,
-              last_n_p_a = last_n_p_a
+              last_n_p_a = last_n_p_a,
+              rec_devs = rec_devs
             )
           # process catch data
           c_p_a_fl <-

@@ -41,7 +41,8 @@ List sim_fish(
     const NumericVector m_at_age,
     bool tune_unfished, //0 = use a spawner recruit relationship, 1 = don't
     const int rec_form,
-    const NumericVector spawning_seasons) // recruitment form, one of ....
+    const NumericVector spawning_seasons,
+    const NumericVector rec_devs) // recruitment form, one of ....
   { 
 
   int ages = length_at_age.length();
@@ -122,7 +123,8 @@ List sim_fish(
         m_at_age,
         1, // this HAS to be 1 inside burn loop
         rec_form,
-        spawning_seasons);
+        spawning_seasons,
+        rec_devs);
 
       tmp_n_p_a = Rcpp::wrap(tmppop["n_p_a"]);
 
@@ -237,7 +239,7 @@ List sim_fish(
     }   // overall recruitment switch
     
     // assign recruits
-    n_p_a(_,0) = recruits;
+    n_p_a(_,0) = recruits * rec_devs;
     
     b_p_a(_,0) =   n_p_a(_,0) * weight_at_age(0);
     

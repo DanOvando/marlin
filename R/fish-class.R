@@ -631,6 +631,10 @@ Fish <- R6::R6Class(
       
       self$spawning_seasons <- spawning_seasons
       
+      self$sigma_r <- sigma_r
+      
+      self$rec_ac <- rec_ac
+      
       unfished <- marlin::sim_fish(
         length_at_age = length_at_age,
         weight_at_age = weight_at_age,
@@ -652,7 +656,8 @@ Fish <- R6::R6Class(
         last_n_p_a = init_pop,
         tune_unfished = 1,
         rec_form = rec_form,
-        spawning_seasons = self$spawning_seasons
+        spawning_seasons = self$spawning_seasons,
+        rec_devs = rep(1, patches)
       )
       
       unfished$tmppop$ages <- ages
@@ -711,7 +716,8 @@ Fish <- R6::R6Class(
                   f_p_a = NULL,
                   last_n_p_a = NULL,
                   adult_movement = NULL,
-                  tune_unfished = 0) {
+                  tune_unfished = 0,
+                  rec_devs = NA) {
     season <- (season / self$seasons) - self$time_step
     
     if (is.null(f_p_a)) {
@@ -724,6 +730,10 @@ Fish <- R6::R6Class(
     
     if (is.null(last_n_p_a)) {
       last_n_p_a <- self$n_p_a_0
+    }
+    
+    if (all(is.na(rec_devs))){
+      rec_devs <- exp(rnorm(self$patches, 0, self$sigma_r) - self$sigma_r^2/2)
     }
     
     pop <- marlin::sim_fish(
@@ -747,7 +757,8 @@ Fish <- R6::R6Class(
       last_n_p_a = last_n_p_a,
       tune_unfished = tune_unfished,
       rec_form = self$rec_form,
-      spawning_seasons = self$spawning_seasons
+      spawning_seasons = self$spawning_seasons,
+      rec_devs = rec_devs
     )
     pop$ages <- self$ages
     

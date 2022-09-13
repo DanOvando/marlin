@@ -18,10 +18,17 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library(marlin)
+
 library(dplyr)
+
 library(tidyr)
+
 library(ggplot2)
+
 library(gganimate)
+
+library(ggridges)
+
 years <- 20
 
 resolution <-  10
@@ -33,7 +40,7 @@ steps <- years * seasons
 time_step <-  1 / seasons
 
 h1 <-  expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(habitat =  dnorm(x, resolution / 2, .05 * resolution) *  dnorm(y, resolution / 2, .05 * resolution)) %>% 
+  mutate(habitat =  dnorm(x, resolution / 2, .025 * resolution) *  dnorm(y, resolution / 2, .025 * resolution)) %>% 
   mutate(habitat = habitat * (x >= 4))
 
   
@@ -76,7 +83,10 @@ fauna <-
       rec_form = 0,
       seasons = seasons,
       init_explt =  1,
-      explt_type = "f"
+      explt_type = "f",
+      spawning_seasons = c(1,2),
+      sigma_r = .4,
+      rec_ac = .2
     )
   )
 
@@ -125,6 +135,23 @@ spawning_agg <- processed_marlin$fauna %>%
   scale_x_continuous(name = "longitude") + 
   scale_y_continuous(name = "latitude")
 
+
+processed_marlin$fauna %>% 
+  group_by(critter, step, age) %>% 
+  summarise(numbers = sum(n)) %>% 
+  ungroup() %>% 
+  filter(age == min(age)) %>% 
+  ggplot(aes(step, numbers)) + 
+  geom_point()
+
+processed_marlin$fauna %>% 
+  group_by(critter, step, age) %>% 
+  summarise(numbers = sum(n)) %>% 
+  ungroup() %>% 
+  filter(step > 10) %>% 
+  ggplot(aes(x = age, y = step, height = numbers, group = step)) + 
+  geom_density_ridges(stat = 'identity') + 
+  facet_wrap(~critter)
 
 animate(spawning_agg, nframes = 100, fps=2)
 
