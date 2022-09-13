@@ -52,7 +52,25 @@ simmar <- function(fauna = list(),
     )
   }
   
+  #  determine open fishing seasons
   
+  season_foo <- function(fauni, name, manager){
+    
+    open_seasons <- 1:fauni$seasons
+    
+    if (length(manager$closed_seasons[name]) > 0){
+      
+      open_seasons <- open_seasons[!(open_seasons %in% manager$closed_seasons[[name]])]
+      
+    }
+    
+    return(open_seasons)
+    
+  }
+
+  fishing_seasons <- purrr::imap(fauna, season_foo, manager = manager) # figure out which seasons are open for each critter 
+  
+
   if (length(habitat) > 0) {
     
     if (!any(names(habitat) %in% fauni)){
@@ -137,6 +155,10 @@ simmar <- function(fauna = list(),
     
     year <-  floor(step_names[s])
     
+    current_season <-
+      (season + fauna[[1]]$time_step) * fauna[[1]]$seasons  # annoying step to get seasons back to which season is it, not decimal season
+    
+    
     if (length(manager$mpas) > 0) {
       # assign MPAs if needed
       if (year == manager$mpas$mpa_year) {
@@ -167,9 +189,6 @@ simmar <- function(fauna = list(),
           
           # calculate fishable biomass in each patch for each species for that fleet
           
-          # browser()
-          # last_revenue <-  sum((sapply(storage[[s-2]], function(x) sum(x$r_p_a_fl[,,l], na.rm = TRUE))), na.rm = TRUE) # pull out total revenue for fleet l
-          #
           # account for spatial catchability
           tmp = 1 - exp(-(
             matrix(
@@ -186,7 +205,7 @@ simmar <- function(fauna = list(),
               )
           ))
           
-          last_b_p <- rowSums(last_b_p_a * tmp) * fishable
+          last_b_p <- rowSums(last_b_p_a * tmp * (current_season %in% fishing_seasons[[f]])) * fishable
           
           r_p_f[, f] <-
             last_b_p * fleets[[l]]$metiers[[fauni[f]]]$price
@@ -210,16 +229,17 @@ simmar <- function(fauna = list(),
       
       total_effort <- sum(fleets[[l]]$e_p_s[, s - 1] * concentrator)
       
-      last_revenue <-
-        sum(last_r_p, na.rm = TRUE) # pull out total revenue for fleet l
-      
-      last_cost <-  fleets[[l]]$cost_per_unit_effort * sum((fleets[[l]]$e_p_s[, s - 1]) ^
-                                                             fleets[[l]]$effort_cost_exponent) + sum(fleets[[l]]$cost_per_patch * fleets[[l]]$e_p_s[,s-1])
-      
-      last_profits <-
-        last_revenue - last_cost # calculate profits in the last time step.
-      
-      last_r_to_c <- last_revenue / last_cost
+        last_revenue <-
+          sum(last_r_p, na.rm = TRUE) # pull out total revenue for fleet l
+        
+        last_cost <-  fleets[[l]]$cost_per_unit_effort * sum((fleets[[l]]$e_p_s[, s - 1]) ^
+                                                               fleets[[l]]$effort_cost_exponent) + sum(fleets[[l]]$cost_per_patch * fleets[[l]]$e_p_s[,s-1])
+        
+        last_profits <-
+          last_revenue - last_cost # calculate profits in the last time step.
+        
+        last_r_to_c <- last_revenue / last_cost
+        
       
       if (fleets[[l]]$fleet_model == "open access") {
         if (is.na(fleets[[l]]$cost_per_unit_effort) |
@@ -231,12 +251,15 @@ simmar <- function(fauna = list(),
         
         if (s > 3) {
           # no past revenue available in first two time steps for accounting, and then need to allow fleet to move correctly.
+
+          if (exists("last_revenue")){
           
           total_effort <- total_effort * exp(fleets[[l]]$responsiveness * log(pmax(last_revenue, 1e-6) / pmax(1e-6,last_cost))) # adjust effort per an open access dynamics model
-          
-        }
+          } # in edge case where the fishery is closed for the first few seasons of the simulation
         
-      }
+          }
+        
+      } # close open access
       
       e_p <- fleets[[l]]$e_p_s[, s - 1]
       
@@ -539,9 +562,7 @@ simmar <- function(fauna = list(),
           dimnames = list(1:patches, fauna[[f]]$ages, names(fleets))
         ) # f by patch, age, and fleet
       
-      current_season <-
-        (season + fauna[[f]]$time_step) * fauna[[f]]$seasons  # annoying step to get seasons back to which season is it, not decimal season
-      
+
       
       
       movement <- fauna[[f]]$base_movement
@@ -581,16 +602,16 @@ simmar <- function(fauna = list(),
         
       }
       
+
       
-      if (length(manager$closed_seasons[names(fauna)[f]]) >0) {
+      
+      if (!(current_season %in% fishing_seasons[[names(fauna)[f]]])) {
         
-        if (current_season %in% manager$closed_seasons[[names(fauna)[f]]]){
-          
-          f_p_a <- f_p_a * 0
-          
-        }
+        f_p_a <- f_p_a * 0 # turn off fishing if the season is closed
         
       }
+      
+      
       
       pop <-
         fauna[[f]]$swim(
