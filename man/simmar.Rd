@@ -7,11 +7,13 @@
 simmar(
   fauna = list(),
   fleets = list(),
-  mpas = list(),
+  manager = list(),
   habitat = list(),
   years = 100,
   tune_unfished = 0,
-  initial_conditions = NA
+  initial_conditions = NA,
+  starting_step = 0,
+  keep_starting_step = TRUE
 )
 }
 \arguments{

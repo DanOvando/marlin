@@ -1,0 +1,261 @@
+---
+title: "fleet-management"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{fleet-management}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  message = FALSE
+)
+```
+
+
+`marlin` allows for a wide range of options to govern both the management and internal dynamics of fishing fleets. 
+
+Things you can adjust include 
+
+- The `fleet_model` option, which at the moment supports `constant effort`, in which total fishing effort remains constant,  and `open access` where total effort increases or decreases in response to profits. 
+
+- Closed fishing seasons per critter, for example enforcing a closed season for species X but not species Y
+
+- Catch quotas per species
+
+- Size limits and selectivity forms per metier and critter
+
+- no-take Marine Protected Areas
+
+You can mix and match most of these options (e.g. an open-access fleet subjected to a total quota for some species but not for others). 
+
+First, let's set up the system and the critters we will deal with, in this case a simple example of one bigeye tuna population. 
+
+```{r setup}
+library(marlin)
+
+library(tidyverse)
+
+theme_set(theme_marlin(base_size = 14) + theme(legend.position = "top"))
+
+resolution <- 10 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
+
+years <- 50
+
+seasons <- 4
+
+time_step <- 1 / seasons
+
+steps <- years * seasons
+
+fauna <- 
+  list(
+    "bigeye" = create_critter(
+      scientific_name = "Thunnus obesus",
+      adult_diffusion = 10,
+      rec_form = 3,
+      seasons = seasons,
+      fished_depletion = 0.2,
+      resolution = resolution,
+      steepness = 0.6,
+      ssb0 = 1000
+    )
+  )
+```
+
+
+## Open Access
+
+Let's set up two fleets, one open access, one constant effort. open access dynamics are based around the profitability of the fishery, and so require a few more parameters, though reasonable defaults are provided. 
+
+The open access fleet model is 
+
+$$E_{t+1,f} = E_{t,f} \times e^{\theta log(R_{t,f} / C_{t,f})} $$
+
+where *E* is total effort in time *t* for fleet *f*. $\theta$ controls the responsiveness of effort to the ratio of revenues *R* to costs *C* in log space. A value of 0.1 means that a 1 unit increase in the revenue to cost ratio results in a roughly 10% increase in effort. 
+
+Revenue is defined as
+
+$$R_{t,f} = \sum_{s=1}^Sp_{f,s}Catch_{f,s}$$
+where *p* is the price and *Catch* is the catch for species *s* caught by fleet *f*
+
+Costs are defined as
+
+
+$$C_{t,f} = \sum_{p=1}^P \gamma_f  E_{t,p,f}^{\beta_f} + \eta_{f,p} E_{t,p}$$
+
+where $$\gamma_f$$ is the base cost per unit effort for fleet *f*, $\beta$ allows for thec cost of effort to scale non-linearly, and $\eta$ is the cost of fishing in each patch *p*, allowing for the model to account for travel costs for different patches. 
+
+Many of these parameters are intuitive and easy to set (e.g. price), but others are not. In particular, the cost per unit effort parameter $\gamma$ can be difficult to adjust as it depends on the units of effort and biomass to work correctly. 
+
+As such, the model works bets when specifying a `cr_ratio` rather than a $\gamma$. The `cr_ratio` specifies the ratio of costs to revenue at equilibrium conditions. So, a value of 1 means that profits are zero at equilibrium, >1 that profits are negative, < 1 that profits are positive. 
+
+The function `tune_fleets` then takes these parameters and finds the cost parameters that results in the desired equilibrium `cr_ratio`. 
+
+
+
+```{r}
+
+fleets <- list(
+  "longline" = create_fleet(
+    list("bigeye" = Metier$new(
+        critter = fauna$bigeye,
+        price = 10,
+        sel_form = "logistic",
+        sel_start = 1,
+        sel_delta = .01,
+        catchability = 0,
+        p_explt = 2
+      )
+    ),
+    base_effort = resolution ^ 2,
+    resolution = resolution,
+    responsiveness = .5,
+    cr_ratio = 1,
+    cost_per_distance = 1,
+    fleet_model = "open access")
+,
+"handline" = create_fleet(
+  list("bigeye" = Metier$new(
+    critter = fauna$bigeye,
+    price = 10,
+    sel_form = "logistic",
+    sel_start = 1,
+    sel_delta = .01,
+    catchability = 0,
+    p_explt = 1
+  )
+  ),
+  base_effort = resolution ^ 2,
+  resolution = resolution,
+  fleet_model = "constant effort"
+))
+
+fleets <- tune_fleets(fauna, fleets, tune_type = "depletion") 
+
+```
+
+
+We can now run our simulation and examine the resulting fleet dynamics
+
+```{r}
+
+sim <- simmar(fauna = fauna,
+                  fleets = fleets,
+                  years = years)
+proc_sim <- process_marlin(sim)
+
+plot_marlin(proc_sim)
+
+proc_sim$fleets %>% 
+  pivot_longer(contains("_effort"), names_to = "fleet2", values_to = "effort") %>% 
+  group_by(step, fleet2) %>%
+  summarise(effort = sum(effort)) %>% 
+  ggplot(aes(step * time_step, effort, color = fleet2)) + 
+  geom_line() + 
+    scale_x_continuous(name = "Year")
+
+
+
+```
+
+
+## Open Access and MPAs
+
+
+To see the effect of the fleet model choices, let's examine the trajectory of each fleet after the addition of an MPA. Under the default constant effort with reallocation dynamics of the model, when an MPA is put in place, the total effort in the fishery remains the same but is reallocated to from inside the MPA to the remaining fishable patches. Under the open access model, effort reacts to the MPA in accordance to the MPAs impacts on fishing profits. 
+
+
+As a result, when the MPA is put in place effort decreases rapidly, until profits increase some due to spillover from the MPA, at which time effort increases until a new open access equilibrium of zero profits with the MPAs is achieved. 
+
+```{r}
+
+set.seed(42)
+#specify some MPA locations
+mpa_locations <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+mutate(mpa = x > 4 & y < 6)
+
+with_mpa <- simmar(fauna = fauna,
+                  fleets = fleets,
+                  years = years,
+                  manager = list(mpas = list(locations = mpa_locations,
+              mpa_year = floor(years * .5))))
+
+proc_mpa_sim <- process_marlin(with_mpa)
+
+
+proc_mpa_sim$fleets %>% 
+  pivot_longer(contains("_effort"), names_to = "fleet2", values_to = "effort") %>% 
+  group_by(step, fleet2) %>%
+  summarise(effort = sum(effort)) %>% 
+  ggplot(aes(step * time_step, effort, color = fleet2)) + 
+  geom_line() + 
+  scale_x_continuous(name = "year")
+
+
+```
+
+## Quotas
+
+We can also layer quotas onto the fleet model. Here, we will impose a total quota of 100 tons of bigeye caught across all fleets. Notice that quotas impose a *cap*, not a requirement, on catch. So, in the early days of the fishery when catches would have been high, the quota is in effect. However, in the later days of the fishery, the fleets have no incentive to catch up to the quota, and so catch less than the allowable amount. 
+
+```{r}
+sim_quota <- simmar(fauna = fauna,
+                  fleets = fleets,
+                  years = years,
+                  manager = list(quotas = list(bigeye = 50)))
+
+proc_sim_quota <- process_marlin(sim_quota)
+
+plot_marlin(proc_sim_quota, plot_var = "c", max_scale = FALSE)
+
+proc_sim_quota$fleets %>% 
+  group_by(step, fleet) %>% 
+  summarise(catch = sum(catch)) %>% 
+  ggplot(aes(step * time_step, catch, color = fleet)) + 
+  geom_line()+
+    scale_x_continuous(name = "Year")
+
+
+proc_sim_quota$fleets %>% 
+  pivot_longer(contains("_effort"), names_to = "fleet2", values_to = "effort") %>% 
+  group_by(step, fleet2) %>%
+  summarise(effort = sum(effort)) %>% 
+  ggplot(aes(step * time_step, effort, color = fleet2)) + 
+  geom_line() + 
+    scale_x_continuous(name = "Year")
+
+
+```
+
+## Seasons
+
+We can also impose closed fishing seasons that apply to one or more targeted species
+
+```{r}
+
+sim <- simmar(fauna = fauna,
+                  fleets = fleets,
+                  years = years,
+              manager = list(closed_seasons = list(bigeye = c(1,2))))
+
+proc_sim <- process_marlin(sim)
+
+plot_marlin(proc_sim, plot_var = "c")
+
+proc_sim$fleets %>% 
+  pivot_longer(contains("_effort"), names_to = "fleet2", values_to = "effort") %>% 
+  group_by(step, fleet2) %>%
+  summarise(effort = sum(effort)) %>% 
+  ggplot(aes(step * time_step, effort, color = fleet2)) + 
+  geom_point() + 
+  scale_x_continuous(name = "Year")
+
+
+```
+
+
+
