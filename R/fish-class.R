@@ -457,15 +457,7 @@ Fish <- R6::R6Class(
       
       # create habitat and movement matrices
       
-      
-      
-      
-      
-      self$seasonal_diffusion <-
-        purrr::pmap(list(multiplier = adult_diffusion),
-                    prep_movement,
-                    resolution = resolution)
-      
+
       
       tmp_habitat <- base_habitat
       # reshape to vector, for some reason doesn't work inside function
@@ -484,6 +476,26 @@ Fish <- R6::R6Class(
                     prep_movement,
                     resolution = resolution)
       
+      test <- tmp_habitat[[1]]
+      test[!is.na(test)] <- 1
+      
+      foo <- function(x,y){
+        
+        x[!is.na(x)] <- 1
+        
+        z <- x * y 
+        
+      }
+      
+      diff_foundation <- purrr::map2(tmp_habitat, adult_diffusion,foo ) # prepare adult diffusion matrix account for potential land
+      
+      self$seasonal_diffusion <-
+        purrr::pmap(list(multiplier = diff_foundation),
+                    prep_movement,
+                    resolution = resolution)
+      
+      
+      
       # ideally, you would set things up with mean environmental conditions, but for now, set up a placeholder for movement ignoring taxis for unfished conditions...
       
       self$base_movement <-
@@ -495,8 +507,10 @@ Fish <- R6::R6Class(
       
       self$movement_seasons <- season_blocks
       
+      rec_diff_foundation <- purrr::map2(tmp_habitat, recruit_diffusion,foo ) # prepare adult diffusion matrix account for potential land
+      
       self$recruit_movement <-
-        prep_movement(multiplier = recruit_diffusion,
+        prep_movement(multiplier = rec_diff_foundation[[1]],
                       resolution = resolution)
       
       self$recruit_movement <-
@@ -508,6 +522,8 @@ Fish <- R6::R6Class(
         recruit_habitat <- matrix(1, nrow = resolution, ncol = resolution)
         
       }
+      
+      recruit_habitat[is.na(recruit_habitat)] <- 0
       
       r0s <- recruit_habitat %>%
         as.data.frame() %>%

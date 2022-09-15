@@ -608,6 +608,7 @@ simmar <- function(fauna = list(),
         
         current_habitat <- as.numeric(current_habitat$value)
         
+        
         current_habitat <-
           exp(outer(current_habitat, current_habitat, "-")) # calculate difference in habitat between each patch
         

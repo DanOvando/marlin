@@ -13,7 +13,7 @@ prep_movement <-
     
     # reminder, 
     # 
-    # .2^2 == exp(2 * log(.2)), hence strange notation in Thorson et al. going back and forth
+    # .2^2 == exp(2 * log(.2)), hence notation in Thorson et al. going back and forth between different structures
     
     
     # set up spatial grid
@@ -25,6 +25,14 @@ prep_movement <-
     
     # Mark adjacent cells
     adjacent[adjacent != 1] <- 0
+    
+    # mark off water
+    
+    water <- !is.na(multiplier)
+    
+    multiplier[is.na(multiplier)] <- 0
+    
+    adjacent <-  adjacent * water # set as non-adjacent any patches that contain land
     
     # generate base movement matrix
     move_mat <- adjacent * multiplier

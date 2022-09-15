@@ -1,8 +1,8 @@
 ---
-title: "migrations"
+title: "habitat"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{migrations}
+  %\VignetteIndexEntry{habitat}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -10,7 +10,9 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  message = FALSE,
+  warning = FALSE
 )
 ```
 
@@ -39,15 +41,26 @@ steps <- years * seasons
 
 time_step <-  1 / seasons
 
+land <- expand_grid(x = 1:resolution, y = 1:resolution) %>% 
+  filter(between(x,7,10) & between(y, 4,7)) %>% 
+  mutate(land = TRUE)
+
+
 h1 <-  expand_grid(x = 1:resolution, y = 1:resolution) %>%
   mutate(habitat =  dnorm(x, resolution / 2, .025 * resolution) *  dnorm(y, resolution / 2, .025 * resolution)) %>% 
-  mutate(habitat = habitat * (x >= 4))
+  mutate(habitat = habitat * (x >= 4)) %>% 
+    left_join(land, by =c("x","y")) %>% 
+    mutate(habitat = ifelse(is.na(land), habitat, NA)) %>% 
+    select(-land) 
 
   
 
 h2 <-  expand_grid(x = 1:resolution, y = 1:resolution) %>%
   mutate(habitat =  -.5 * x + 10) %>% 
-  mutate(habitat = habitat * (x < 4))
+  mutate(habitat = habitat * (x < 4)) %>% 
+    left_join(land, by =c("x","y")) %>% 
+    mutate(habitat = ifelse(is.na(land), habitat, NA)) %>% 
+    select(-land) 
   
 
 bigeye_habitat <- h1 %>% 
@@ -71,6 +84,11 @@ bigeye_q <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
   select(-x) %>% 
   as.matrix()
 
+# best idea for terrestrial: replace habitat with NAs! then, inside the code, find NAs to find land, and then replace with 0 as habitat values. To work properly though need to enforce habitat being >= 0. 
+
+recruit_habitat <- bigeye_habitat
+
+recruit_habitat[!is.na(recruit_habitat)] <-  1
 
 fauna <- 
   list(
@@ -78,8 +96,9 @@ fauna <-
       scientific_name = "thunnus obesus",
       base_habitat = list(bigeye_habitat,bigeye_habitat2),
       season_blocks = list(c(1,2),c(3,4)),
-      adult_diffusion = list(c(5,5), c(5,5)), # standard deviation of the number of patches moved by adults
+      adult_diffusion = list(5, 5), # standard deviation of the number of patches moved by adults
       recruit_diffusion = 10,
+      recruit_habitat = recruit_habitat,
       rec_form = 0,
       seasons = seasons,
       init_explt =  1,
@@ -155,6 +174,9 @@ processed_marlin$fauna %>%
 
 animate(spawning_agg, nframes = 100, fps=2)
 
+gganimate::anim_save("spawning_aggregation.gif")
+
+
 ```
 
 
@@ -164,12 +186,17 @@ animate(spawning_agg, nframes = 100, fps=2)
 
 # test habitat vector -----------------------------------------------------
 
-range_shift <- vector(mode = "list", length = years)
+shifting_habitat <- vector(mode = "list", length = years)
+
+
 
 for (i in 1:years){
   
-  range_shift[[i]] <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  shifting_habitat[[i]] <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
     mutate(habitat =  -((y - (1 + i))^2) / 10) %>% 
+    left_join(land, by =c("x","y")) %>% 
+    mutate(habitat = ifelse(is.na(land), habitat, NA)) %>% 
+    select(-land) %>% 
     pivot_wider(names_from = y, values_from = habitat) %>% 
     select(-x) %>% 
     as.matrix()
@@ -178,7 +205,8 @@ for (i in 1:years){
 }
 
 
-critter_habitat <- list(bigeye = range_shift)
+critter_habitat <- list(bigeye = shifting_habitat)
+
 
 
 
@@ -205,5 +233,7 @@ range_shift <- processed_marlin$fauna %>%
 
 
 animate(range_shift, nframes = 100, fps=2)
+
+gganimate::anim_save("range_shift_with_land.gif")
 
 ```
