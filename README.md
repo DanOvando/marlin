@@ -9,10 +9,45 @@
 <!-- badges: end -->
 
 `marlin` is a package for efficiently running simulations of marine
-fauna and fisheries. It is an age-structured population model of
-different (independent) animal types in a 2D system with capacity for
-multiple fishing fleets with technical interactions across fleets and
-species.
+fauna and fisheries. It can track the age-structured populations of
+multiple independent animals targeted by multiple fishing fleets across
+a two dimensional space. It allows users to simulate a wide range of
+life histories, movement dynamics, fishing fleet behaviors, and
+management strategies. See examples below and vignettes under the
+articles tab for how to use `marlin` to do things like simulate… - the
+impacts of displaced fishing effort across multiple species - seasonal
+spawning aggregations or climate induced range shifts - the impacts of
+port distance in fleet dynamics - optimized marine protected area
+network design
+
+## What is `marlin` for?
+
+`marlin` is best suited for asking *what if* rather that *what will*
+questions. In other words, `marlin` is better suited to asking “how
+might the design or impacts of my proposed MPA network change if fishing
+effort is displaced rather than removed?” rather than “*what will* the
+impacts of my proposed MPA network be on biodiversity down to the 6th
+decimal place”. This is because `marlin` is a *structural* rather than
+*statistical* simulation model, meaning it cannot by fit to explain
+processes in observed data. Rather, users must manually adjust the
+parameters of the model to reflect the general dynamics of the system
+they are interested in. This means that “how much of an impact does
+hyperallometry have on MPA outcomes” is a much simpler question than
+“what will be the catch and biodiversity impacts of the MPA I am
+designing for 13 different data-limited species in a rapidly changing
+small bay”. Both are doable, and marlin can provide general insights in
+both cases, but the more specific and *what will* style question you
+ask, the harder it will be to ensure the model is appropriately set up.
+
+Some use cases we envision for marlin are
+
+-   Assessing sensitivity of MPA network designs to key ecological and
+    economic unknowns
+
+-   Design of dynamic ocean management strategies under climate change
+
+-   Management strategy evaluation of spatially-explicit fisheries
+    management
 
 ## Installation
 
@@ -24,15 +59,7 @@ You can install the development version from
 devtools::install_github("DanOvando/marlin")
 ```
 
-## Repo Naviation
-
-The core wrapper function is located in R/simmar.R. This function keeps
-track of each of the populations and fleets.
-
-The actual population models are found in src/fish_model.cpp. Additional
-modules will be put in there as they are developed
-
-### Troubleshooting
+### Installation Troubleshooting
 
 Make sure you try the install with a fresh R session (go to
 “Session\>Restart R” to make sure)
@@ -40,23 +67,14 @@ Make sure you try the install with a fresh R session (go to
 If you run into an error, first off try updating your R packages. From
 there….
 
-If your version of R is lower than 3.5, you might want to consider
-updating R itself. Updating from 3.51 to 3.52 shouldn’t be any hassle.
-BIG WARNING THOUGH, updating from say R 3.1 to 3.5 is a major update,
-and you’ll lose all your installed packages in the process. I recommend
-following the instructions
-[here](https://www.datascienceriot.com/r/upgrade-R-packages/) to deal
-with that, but even with that fix it can take a while, so I don’t
-recommend doing a major R update if you’re on a deadline. There are also
-packages to help you with this process, specifically
-[`installR`](https://github.com/talgalili/installr/issues) for Windows
-and [`updateR`](https://github.com/AndreaCirilloAC/updateR) for Mac.
+If your version of R is lower than 4.0, you might want to consider
+updating R itself.
 
 From there…
 
 -   On Windows, make sure you have the appropriate version of Rtools
     installed ([here](https://cran.r-project.org/bin/windows/Rtools/)),
-    most likely Rtools35 if you have R version 3.3 or higher
+    most likely Rtools4X if you have R version 4.X
     -   Make sure that you select the box that says something about
         adding Rtools to the PATH variable
 -   On macOS, there might be some issues with the your compiler,
@@ -67,13 +85,47 @@ If you get an error that says something like
 [here](https://thecoatlessprofessor.com/programming/cpp/r-compiler-tools-for-rcpp-on-macos-before-r-4.0.0/)
 
 Once you’ve tried those, restart your computer and try running
+re-installing `marlin`.
 
-Below are a bunch of examples showing what `marlin` can do
+## A Caveat
+
+`marlin` is designed to be fast and relatively user friendly, at least
+for the complexity of the modeling it enables users to do. However, it
+is not a tool for fully automated MPA design; users will still need to
+be able to understand the core functionality of the model, and mileage
+with the model will depend greatly on the creativity and R skills of the
+user.
+
+In particular, while we provide some wrappers for organizing common
+outputs and plots, `marlin` produces far more outputs, and is designed
+for more use cases, than we can preemptively plan for.
+
+Given that `marlin` tracks populations and fleet dynamics across ages,
+time steps, space, species, and fleet units, the outputs are rather
+unruly. Skills in wrangling list objects will serve you will, along with
+tidy-data manipulation.
+
+You do not need the `tidyverse` to run `marlin`, but you will see that
+we make extensive use of it, in particular `dplyr`, `tidyr`, `ggplot2`
+and `purrr` in the examples below, to extract useful results from
+`marlin`.
 
 ## Simple Example
 
 Let’s start with a simple one-fleet one-critter example to illustrate
-the various options in `marlin`
+the various options in `marlin`.
+
+Some of the core options for `marlin`
+
+-   `resolution`: the number of patches to a side of the 2D population
+    grid. So, setting a resolution of 10 means you will be simulating a
+    10x10 system, i.e. 100 patches
+
+-   `years`: the number of years to run the simulation
+
+-   `seasons`: the number of seasons per year. 2 would mean that each
+    year is divided into two time steps, 4 would mean a quarterly model,
+    12 a monthly model, etc.
 
 ``` r
 library(marlin)
@@ -90,7 +142,26 @@ seasons <- 1
 time_step <- 1 / seasons
 
 steps <- years * seasons
+```
 
+From there, `marlin` works be specifying three list objects
+
+-   `fauna`: a list object of the life histories of the different
+    species being simulated
+
+-   `fleets`: a list object of the fleet dynamics to be simulated
+
+-   `manager`: a list of the management strategies being employed
+
+The `fauna` object is a list with individual slots for every “critter”
+you want to simulate, created by the `create_critter` function. If you
+supply a common or scientific name, the model will try and populate the
+life history values for your species based on the values reported in
+[FishLife](https://github.com/James-Thorson-NOAA/FishLife), though for
+more specific applications you should always check these values and
+replace them with more local and specific values as needed.
+
+``` r
 fauna <- 
   list(
     "bigeye" = create_critter(
@@ -112,11 +183,24 @@ fauna <-
 #> • Found: 1 
 #> • Not Found: 0
 
-# create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
-# with lists for each species inside there. Price specifies the price per unit weight of that 
-# species for that fleet
-# sel_form can be one of logistic or dome
+fauna$bigeye$plot()
+```
 
+<img src="man/figures/README-unnamed-chunk-3-1.png" width="100%" />
+
+The `fleets` object is a list of individual fishing fleets created by
+the `create_fleet` function. Importantly, each fleet is broken up into
+metiers specifying the dynamics of a fishing fleet with regards to a
+matching critter in the `fauna` object. So, in this case we have a
+longline fleet, with a metier for bigeye tuna specifying things like the
+price per unit weight, selectivity, and p_explt. `p_explt` tracks the
+relative exploitation of each metier in the total exploitation of each
+species. So, if one metier has a `p_explt` of 1 for species X, and
+another a `p_explt` of 2 for the same species, 50% of the mortality for
+species X comes from the first metier (p_explt values are relative, not
+absolute).
+
+``` r
 
 fleets <- list(
   "longline" = create_fleet(
@@ -134,62 +218,67 @@ fleets <- list(
     resolution = resolution
   )
 )
-
-a <- Sys.time()
-
-fleets <- tune_fleets(fauna, fleets, tune_type = "depletion") 
-
-Sys.time() - a
-#> Time difference of 4.915057 secs
-
-
-fauna$bigeye$plot()
 ```
 
-<img src="man/figures/README-unnamed-chunk-2-1.png" width="100%" />
+We then use the `tune_fleets` function as needed to tune the dynamics of
+the fleet to achieve specific objectives. In this case, we specified a
+target equilibrium fished depletion of 25% (meaning biomass at
+equilibrium is 25% of unfished biomass). `tune_fleets` adjusts the
+catchability coefficients by fleet to achieve the desired depletion
+level, taking into account the dynamics and `p_explt` values per metier.
 
 ``` r
-a <- Sys.time()
 
-sim <- simmar(fauna = fauna,
+
+fleets <- tune_fleets(fauna, fleets, tune_type = "depletion") 
+```
+
+From there, we run the simulation by passing the `fauna` and `fleet`
+options to the `simmar` function
+
+``` r
+
+start_time <- Sys.time()
+
+example_sim <- simmar(fauna = fauna,
                   fleets = fleets,
                   years = years)
 
-Sys.time() - a
-#> Time difference of 0.05547094 secs
+Sys.time() - start_time
+#> Time difference of 0.04281306 secs
 ```
 
 we can then use `process_marlin` and `plot_marlin` to examine the
 simulation
 
 ``` r
-processed_marlin <- process_marlin(sim = sim, time_step = time_step)
+processed_marlin <- process_marlin(sim = example_sim, time_step = time_step)
 
 plot_marlin(processed_marlin)
 ```
 
-<img src="man/figures/README-unnamed-chunk-3-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-7-1.png" width="100%" />
 
 ``` r
 
-plot_marlin(processed_marlin, plot_var = "c")
+plot_marlin(processed_marlin, plot_var = "c", max_scale = FALSE)
 ```
 
-<img src="man/figures/README-unnamed-chunk-3-2.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-7-2.png" width="100%" />
 
 ``` r
 
 plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", fauna = fauna)
 ```
 
-<img src="man/figures/README-unnamed-chunk-3-3.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-7-3.png" width="100%" />
 
 ``` r
 
-plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space")
+plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space", steps_to_plot = max(processed_marlin$fauna$step))
 ```
 
-<img src="man/figures/README-unnamed-chunk-3-4.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-7-4.png" width="100%" />
 
 ## Simple Example: seasonal habitat and movement and spatial q
 
@@ -275,13 +364,13 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets) 
 
 Sys.time() - a
-#> Time difference of 1.711875 secs
+#> Time difference of 2.002918 secs
 
 
 fauna$bigeye$plot()
 ```
 
-<img src="man/figures/README-unnamed-chunk-4-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-8-1.png" width="100%" />
 
 ``` r
 
@@ -292,7 +381,7 @@ sim2 <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.2271891 secs
+#> Time difference of 0.237659 secs
   
 
 processed_marlin <- process_marlin(sim = sim2, time_step = time_step)
@@ -300,30 +389,33 @@ processed_marlin <- process_marlin(sim = sim2, time_step = time_step)
 plot_marlin(processed_marlin)
 ```
 
-<img src="man/figures/README-unnamed-chunk-4-2.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-8-2.png" width="100%" />
 
 ``` r
 
 plot_marlin(processed_marlin, plot_var = "c")
 ```
 
-<img src="man/figures/README-unnamed-chunk-4-3.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-8-3.png" width="100%" />
 
 ``` r
 
 plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", fauna = fauna)
 ```
 
-<img src="man/figures/README-unnamed-chunk-4-4.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-8-4.png" width="100%" />
 
 ``` r
 
 plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space")
 ```
 
-<img src="man/figures/README-unnamed-chunk-4-5.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-8-5.png" width="100%" />
 
 ## Two Species and two fleets with bells and whistles
+
+Now, let’s make this a two species and two fleet example with some
+seasonal dynamics
 
 ``` r
 
@@ -392,7 +484,7 @@ fauna <-
 #> • Found: 1 
 #> • Not Found: 0
 Sys.time() - a
-#> Time difference of 1.096199 secs
+#> Time difference of 1.134254 secs
 
 # create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
 # with lists for each species inside there. Price specifies the price per unit weight of that 
@@ -460,7 +552,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets) 
 
 Sys.time() - a
-#> Time difference of 3.631283 secs
+#> Time difference of 3.399425 secs
 
 
 # run simulations
@@ -473,7 +565,7 @@ sim3 <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.6010461 secs
+#> Time difference of 0.6005359 secs
 # a <- Sys.time()
 
 processed_marlin <- process_marlin(sim = sim3, time_step = time_step, keep_age = TRUE)
@@ -519,9 +611,11 @@ plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space")
 
 ## Evaluating MPAs
 
-Now let’s compare the effect of an MPA on two species
-
-sharks live nearshore
+Now let’s compare the effect of an MPA on two species: a shark
+population and a yellowfin tuna population. In one simulation, the
+sharks and the tuna will share the same habitat. In the second, the
+tunas life onshore, but the sharks live further offshore. In both, we
+will design an MPA based on the distribution of tunas.
 
 ``` r
 library(marlin)
@@ -588,7 +682,7 @@ fauna <-
 fauna$`Shortfin Mako`$plot()
 ```
 
-<img src="man/figures/README-unnamed-chunk-5-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-9-1.png" width="100%" />
 
 ``` r
 # create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
@@ -625,7 +719,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
-#> Time difference of 18.91638 secs
+#> Time difference of 21.19382 secs
 
 # run simulations
 
@@ -636,12 +730,13 @@ nearshore <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.4016111 secs
+#> Time difference of 0.4395318 secs
   
 proc_nearshore <- process_marlin(nearshore, time_step =  fauna[[1]]$time_step)
 ```
 
-create an MPA
+We will now design and implement an MPA network by specifying a data
+frame with columns x,y, and mpa denoting the coordinates of MPA patches.
 
 ``` r
 set.seed(42)
@@ -657,9 +752,10 @@ mpa_locations %>%
   scale_y_continuous(name = "Lon")
 ```
 
-<img src="man/figures/README-unnamed-chunk-6-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-10-1.png" width="100%" />
 
-And now apply MPA
+We will now simulate the impacts of those MPAs by passing them to the
+manager slot.
 
 ``` r
 a <- Sys.time()
@@ -673,7 +769,7 @@ nearshore_mpa <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.3672621 secs
+#> Time difference of 0.3704839 secs
 
 proc_nearshore_mpa <- process_marlin(nearshore_mpa, time_step =  fauna[[1]]$time_step)
 ```
@@ -728,7 +824,7 @@ fauna <-
 fauna$`Shortfin Mako`$plot()
 ```
 
-<img src="man/figures/README-unnamed-chunk-8-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-12-1.png" width="100%" />
 
 ``` r
 
@@ -744,7 +840,7 @@ offshore <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.3501601 secs
+#> Time difference of 0.3850229 secs
   
 proc_offshore <- process_marlin(offshore, time_step =  fauna[[1]]$time_step)
 
@@ -759,7 +855,7 @@ offshore_mpa_sim <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.349232 secs
+#> Time difference of 0.390085 secs
 
 
 proc_offshore_mpa <- process_marlin(offshore_mpa_sim, time_step =  fauna[[1]]$time_step)
@@ -776,7 +872,7 @@ plot_marlin(
 )
 ```
 
-<img src="man/figures/README-unnamed-chunk-9-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-13-1.png" width="100%" />
 
 ``` r
 plot_marlin(
@@ -796,13 +892,13 @@ plot_marlin(
         strip.text = element_text(size = 9))
 ```
 
-<img src="man/figures/README-unnamed-chunk-10-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-14-1.png" width="100%" />
 
 ## Defacto MPAs through bycatch penalties
 
 We can also run a case where prices for shortfin mako are negative
 creating *de facto* MPAs, by imposing a severe negative price on
-shortfin mako that causes the fishing fleet to avoid taht area.
+shortfin mako that causes the fishing fleet to avoid that area.
 
 ``` r
 years <- 100
@@ -885,7 +981,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
-#> Time difference of 0.7250898 secs
+#> Time difference of 0.798255 secs
 
 # run simulations
 
@@ -905,4 +1001,12 @@ plot_marlin(
   steps_to_plot = c(0,25,49))
 ```
 
-<img src="man/figures/README-unnamed-chunk-12-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-16-1.png" width="100%" />
+
+## Repo Naviation
+
+The core wrapper function is located in R/simmar.R. This function keeps
+track of each of the populations and fleets.
+
+The actual population models are found in src/fish_model.cpp. Additional
+modules will be put in there as they are developed
