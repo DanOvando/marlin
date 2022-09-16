@@ -1,8 +1,8 @@
 ---
-title: "optimize_mpa"
+title: "optimize-mpas"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{optimize_mpa}
+  %\VignetteIndexEntry{optimize-mpas}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

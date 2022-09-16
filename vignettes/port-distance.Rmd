@@ -1,8 +1,8 @@
 ---
-title: "port_distance"
+title: "port-distance"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{port_distance}
+  %\VignetteIndexEntry{port-distance}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
