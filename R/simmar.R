@@ -626,7 +626,7 @@ simmar <- function(fauna = list(),
           )
         }
         
-      }
+      } # close habitat update
       
 
       

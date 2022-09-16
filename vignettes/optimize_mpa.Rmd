@@ -14,6 +14,13 @@ knitr::opts_chunk$set(
 )
 ```
 
+
+One of the hardest questions of marine protected area (MPA) design is the simple "how big should it be and where should it go"? `marlin` can't tell you how big it should be, but it *can* help you evaluate the impacts to different objectives of different MPA networks, and if you supply it with an objective function weighting scheme, the best network to maximize your objective function. 
+
+This is achieved with the `optimize_mpa` function, that at its core requires an `alpha` parameter that specifies the relative weighting of conservation to economic interests, where 1 means that the only objective is conservation, zero means the only objective is economic. 
+
+`optimize_mpa` then finds the MPA network of a specified size that maximizes your objective function. 
+
 ```{r setup}
 library(marlin)
 

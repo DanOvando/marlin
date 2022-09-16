@@ -14,6 +14,22 @@ knitr::opts_chunk$set(
 )
 ```
 
+`marlin` has a lot of features built into it to simulate dynamics over time. However, we cannot possibly build in every possible use case a researcher might have. 
+
+To that end, and important feature of `marlin` is that the outputs of a `marlin` simulation can be passed as the input to a `marlin` simulation. This means you can run the model for one time step, *insert whatever whacky stuff you want to do*, then run a new step. 
+
+As an example, we'll do a very cartonish version of a "management strategy evaluation", where we 
+
+1. Simulate a fishery for a time step
+
+2. Simulate a perfect stock assessment that tells us *depletion* (biomass / unfished biomass)
+
+3. Applies a harvest control rule that sets a catch quota based on the results of our assessment
+
+4. Run another time step with the supplied quota. 
+
+5. Repeat process
+
 ```{r setup}
 library(marlin)
 
@@ -32,7 +48,7 @@ time_step <- 1 / seasons
 fauna <- 
   list(
     "striped marlin" = create_critter(
-      common_name = "striped marlin",
+      scientific_name = "Kajikia audax",
       adult_diffusion = 10,
       rec_form = 3,
       seasons = seasons,
@@ -42,11 +58,6 @@ fauna <-
       ssb0 = 1000
     )
   )
-
-# create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
-# with lists for each species inside there. Price specifies the price per unit weight of that 
-# species for that fleet
-# sel_form can be one of logistic or dome
 
 
 fleets <- list(
@@ -102,6 +113,10 @@ hcr <- pmin(max_u,pmax(.01,hcr_slope * depletion + hcr_intercept))
 
 plot(depletion, hcr)
 
+```
+
+
+```{r}
 mse_sim <- simmar(fauna = fauna,
                   fleets = fleets,
                   years = burn_years)
