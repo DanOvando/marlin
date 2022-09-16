@@ -1,0 +1,240 @@
+---
+title: "dynamic-habitat"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{dynamic-habitat}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  message = FALSE,
+  warning = FALSE
+)
+```
+
+Along with allowing users to create simulation where habitat varies in space, or where regulations vary in space, you can also allow for habitat that changes in time, either cyclically or with a trend. 
+
+## Spawning Aggregations
+
+In this first example, we'll create a scenario where the year is split up into four seasons. In this simulation, bigeye tuna spend half the season in the far "east" of the domain, and half the season concentrated on a spawning ground where spawning occurs. 
+
+As an added twist, you can add landmasses to your model by setting the habitat value to `NA` in the patches covered by land. This is different than setting habitat to 0, as a zero value simply implies that organisms don't want to live in that patch, where land prohibits them from passing over or through those cells. 
+
+By default if the length of the habitat vectors is less than the time steps, the model treats the supplied habitat list as being seasonal. 
+
+```{r setup}
+library(marlin)
+
+library(tidyverse)
+
+library(gganimate)
+
+library(ggridges)
+
+years <- 20
+
+resolution <-  10
+
+seasons <- 4
+
+steps <- years * seasons
+
+time_step <-  1 / seasons
+
+land <- expand_grid(x = 1:resolution, y = 1:resolution) %>% 
+  filter(between(x,7,10) & between(y, 4,7)) %>% 
+  mutate(land = TRUE)
+
+
+h1 <-  expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  mutate(habitat =  dnorm(x, resolution / 2, .025 * resolution) *  dnorm(y, resolution / 2, .025 * resolution)) %>% 
+  mutate(habitat = habitat * (x >= 4)) %>% 
+    left_join(land, by =c("x","y")) %>% 
+    mutate(habitat = ifelse(is.na(land), habitat, NA)) %>% 
+    select(-land) 
+
+  
+
+h2 <-  expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  mutate(habitat =  -.5 * x + 10) %>% 
+  mutate(habitat = habitat * (x < 4)) %>% 
+    left_join(land, by =c("x","y")) %>% 
+    mutate(habitat = ifelse(is.na(land), habitat, NA)) %>% 
+    select(-land) 
+  
+
+bigeye_habitat <- h1 %>% 
+  pivot_wider(names_from = y, values_from = habitat) %>% 
+  select(-x) %>% 
+  as.matrix()
+
+
+# huh <- tidyr::pivot_longer(as.data.frame(bigeye_habitat), tidyr::everything())
+# 
+# h1$habitat2 <- as.numeric(huh$value)
+
+bigeye_habitat2 <- h2 %>% 
+  pivot_wider(names_from = y, values_from = habitat) %>% 
+  select(-x) %>% 
+  as.matrix()
+
+bigeye_q <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  dplyr::mutate(habitat = rlnorm(resolution^2)) %>% 
+  pivot_wider(names_from = y, values_from = habitat) %>% 
+  select(-x) %>% 
+  as.matrix()
+
+
+recruit_habitat <- bigeye_habitat
+
+recruit_habitat[!is.na(recruit_habitat)] <-  1
+
+fauna <- 
+  list(
+    "bigeye" = create_critter(
+      scientific_name = "thunnus obesus",
+      base_habitat = list(bigeye_habitat,bigeye_habitat2),
+      season_blocks = list(c(1,2),c(3,4)),
+      adult_diffusion = list(5, 5), # standard deviation of the number of patches moved by adults
+      recruit_diffusion = 10,
+      recruit_habitat = recruit_habitat,
+      rec_form = 0,
+      seasons = seasons,
+      init_explt =  1,
+      explt_type = "f",
+      spawning_seasons = c(1,2),
+      sigma_r = .4,
+      rec_ac = .2
+    )
+  )
+
+
+fleets <- list(
+  "longline" = create_fleet(
+    list("bigeye" = Metier$new(
+      critter = fauna$bigeye,
+      price = 10,
+      sel_form = "logistic",
+      sel_start = 1,
+      sel_delta = .01,
+      catchability = 1e-3,
+      p_explt = 1,
+      spatial_catchability = NA
+    )
+    ),
+    base_effort = resolution ^ 2,
+    resolution = resolution
+  )
+)
+
+
+fleets <- tune_fleets(fauna, fleets) 
+
+
+
+spawning_ground_sim <- simmar(fauna = fauna,
+               fleets = fleets,
+               years = years)
+
+
+processed_spawning_grounds <- process_marlin(sim = spawning_ground_sim, time_step = time_step)
+
+
+spawning_agg <- processed_spawning_grounds$fauna %>% 
+  filter(age == max(age)) %>% 
+  group_by(step) %>% 
+  mutate(n = n / sum(n)) %>% 
+  ungroup() %>% 
+  ggplot(aes(x,y,fill = n)) + 
+  geom_tile() + 
+  transition_time(step) +
+  ease_aes('linear') +
+  scale_fill_viridis_c(name = "Tunas") + 
+  scale_x_continuous(name = "longitude") + 
+  scale_y_continuous(name = "latitude")
+
+
+processed_spawning_grounds$fauna %>% 
+  group_by(critter, step, age) %>% 
+  summarise(numbers = sum(n)) %>% 
+  ungroup() %>% 
+  filter(age == min(age)) %>% 
+  ggplot(aes(step, numbers)) + 
+  geom_point()
+
+processed_spawning_grounds$fauna %>% 
+  group_by(critter, step, age) %>% 
+  summarise(numbers = sum(n)) %>% 
+  ungroup() %>% 
+  filter(step > 10) %>% 
+  ggplot(aes(x = age, y = step, height = numbers, group = step)) + 
+  geom_density_ridges(stat = 'identity') + 
+  facet_wrap(~critter)
+
+animate(spawning_agg, nframes = 100, fps=2)
+
+
+```
+
+
+## Range Shifts
+
+In addition to seasonal dynamics, we may be interested in active range shifts of species. The mechanics of this work similarly to seasonal dynamics, but require a vectors a vector of habitats equal to either the number of years or the number of steps (where steps is years times seasons per year). 
+
+In this case, we sill simulate habitat for bigeye tuna that changes over time, first shifting east and south and then north, while moving around a land mass. 
+
+```{r}
+
+# test habitat vector -----------------------------------------------------
+
+shifting_habitat <- vector(mode = "list", length = years)
+
+
+
+for (i in 1:years){
+  
+  shifting_habitat[[i]] <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+    mutate(habitat =  -((y - (1 + i))^2) / 10) %>% 
+    left_join(land, by =c("x","y")) %>% 
+    mutate(habitat = ifelse(is.na(land), habitat, NA)) %>% 
+    select(-land) %>% 
+    pivot_wider(names_from = y, values_from = habitat) %>% 
+    select(-x) %>% 
+    as.matrix()
+  
+  
+}
+
+
+critter_habitat <- list(bigeye = shifting_habitat)
+
+
+sim_climate <- simmar(fauna = fauna,
+               fleets = fleets,
+               habitat = critter_habitat,
+               years = years)
+
+
+processed_marlin <- process_marlin(sim = sim_climate, time_step = time_step, keep_age = FALSE)
+
+
+range_shift <- processed_marlin$fauna %>% 
+  group_by(step) %>% 
+  mutate(n = n / max(n)) %>% 
+  ungroup() %>% 
+  ggplot(aes(x,y,fill = n)) + 
+  geom_tile() + 
+  transition_time(step) +
+  ease_aes('linear') +
+  scale_fill_viridis_c(name = "Tunas") + 
+  scale_x_continuous(name = "longitude") + 
+  scale_y_continuous(name = "latitude")
+
+
+animate(range_shift, nframes = 100, fps=2)
+
+```

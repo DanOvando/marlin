@@ -40,7 +40,9 @@ List sim_fish(
     NumericVector ssb0_p, // unfished spawning stock biomass in each patch
     const NumericVector m_at_age,
     bool tune_unfished, //0 = use a spawner recruit relationship, 1 = don't
-    const int rec_form) // recruitment form, one of ....
+    const int rec_form,
+    const NumericVector spawning_seasons,
+    const NumericVector rec_devs) // recruitment form, one of ....
   { 
 
   int ages = length_at_age.length();
@@ -65,6 +67,8 @@ List sim_fish(
   //////////////////// tune things ////////////////////////
   NumericMatrix tmp_n_p_a = clone(last_n_p_a);
 
+  NumericVector zero_recruits (patches);
+  
   Rcpp::List tmppop; // annoying step related to memory pointers
 
   
@@ -118,7 +122,9 @@ List sim_fish(
         ssb0_p,
         m_at_age,
         1, // this HAS to be 1 inside burn loop
-        rec_form);
+        rec_form,
+        spawning_seasons,
+        rec_devs);
 
       tmp_n_p_a = Rcpp::wrap(tmppop["n_p_a"]);
 
@@ -187,6 +193,10 @@ List sim_fish(
       
     } else { // if stock recruitment relationship is in effect
 
+    // add in seasonal spawning here
+    
+      if (Rcpp::any(season == spawning_seasons).is_true()){
+      
 
       if (rec_form == 0){  // global beverton-holt density dependence, distribute recruits according to recruitment habitat
 
@@ -221,11 +231,15 @@ List sim_fish(
         recruits = ((0.8 * r0s * steepness * huh) / (0.2 * (ssb0_p + 1e-6) * (1 - steepness) + (steepness - 0.2) * (huh + 1e-6)));
         
       }
+      
+      }  else {
+        recruits = zero_recruits;
+      } // close spawning seasons
         
-    }   // close recruitment ifs
+    }   // overall recruitment switch
     
     // assign recruits
-    n_p_a(_,0) = recruits;
+    n_p_a(_,0) = recruits * rec_devs;
     
     b_p_a(_,0) =   n_p_a(_,0) * weight_at_age(0);
     

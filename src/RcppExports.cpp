@@ -61,8 +61,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // sim_fish
-List sim_fish(const NumericVector length_at_age, const NumericVector weight_at_age, const NumericVector fec_at_age, const NumericVector maturity_at_age, const NumericMatrix f_p_a, const List seasonal_movement, const List movement_seasons, Eigen::MatrixXd recruit_movement, Rcpp::NumericMatrix last_n_p_a, const int patches, const int burn_steps, const double time_step, double season, const double steepness, const NumericVector r0s, double ssb0, NumericVector ssb0_p, const NumericVector m_at_age, bool tune_unfished, const int rec_form);
-RcppExport SEXP _marlin_sim_fish(SEXP length_at_ageSEXP, SEXP weight_at_ageSEXP, SEXP fec_at_ageSEXP, SEXP maturity_at_ageSEXP, SEXP f_p_aSEXP, SEXP seasonal_movementSEXP, SEXP movement_seasonsSEXP, SEXP recruit_movementSEXP, SEXP last_n_p_aSEXP, SEXP patchesSEXP, SEXP burn_stepsSEXP, SEXP time_stepSEXP, SEXP seasonSEXP, SEXP steepnessSEXP, SEXP r0sSEXP, SEXP ssb0SEXP, SEXP ssb0_pSEXP, SEXP m_at_ageSEXP, SEXP tune_unfishedSEXP, SEXP rec_formSEXP) {
+List sim_fish(const NumericVector length_at_age, const NumericVector weight_at_age, const NumericVector fec_at_age, const NumericVector maturity_at_age, const NumericMatrix f_p_a, const List seasonal_movement, const List movement_seasons, Eigen::MatrixXd recruit_movement, Rcpp::NumericMatrix last_n_p_a, const int patches, const int burn_steps, const double time_step, double season, const double steepness, const NumericVector r0s, double ssb0, NumericVector ssb0_p, const NumericVector m_at_age, bool tune_unfished, const int rec_form, const NumericVector spawning_seasons, const NumericVector rec_devs);
+RcppExport SEXP _marlin_sim_fish(SEXP length_at_ageSEXP, SEXP weight_at_ageSEXP, SEXP fec_at_ageSEXP, SEXP maturity_at_ageSEXP, SEXP f_p_aSEXP, SEXP seasonal_movementSEXP, SEXP movement_seasonsSEXP, SEXP recruit_movementSEXP, SEXP last_n_p_aSEXP, SEXP patchesSEXP, SEXP burn_stepsSEXP, SEXP time_stepSEXP, SEXP seasonSEXP, SEXP steepnessSEXP, SEXP r0sSEXP, SEXP ssb0SEXP, SEXP ssb0_pSEXP, SEXP m_at_ageSEXP, SEXP tune_unfishedSEXP, SEXP rec_formSEXP, SEXP spawning_seasonsSEXP, SEXP rec_devsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -86,7 +86,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const NumericVector >::type m_at_age(m_at_ageSEXP);
     Rcpp::traits::input_parameter< bool >::type tune_unfished(tune_unfishedSEXP);
     Rcpp::traits::input_parameter< const int >::type rec_form(rec_formSEXP);
-    rcpp_result_gen = Rcpp::wrap(sim_fish(length_at_age, weight_at_age, fec_at_age, maturity_at_age, f_p_a, seasonal_movement, movement_seasons, recruit_movement, last_n_p_a, patches, burn_steps, time_step, season, steepness, r0s, ssb0, ssb0_p, m_at_age, tune_unfished, rec_form));
+    Rcpp::traits::input_parameter< const NumericVector >::type spawning_seasons(spawning_seasonsSEXP);
+    Rcpp::traits::input_parameter< const NumericVector >::type rec_devs(rec_devsSEXP);
+    rcpp_result_gen = Rcpp::wrap(sim_fish(length_at_age, weight_at_age, fec_at_age, maturity_at_age, f_p_a, seasonal_movement, movement_seasons, recruit_movement, last_n_p_a, patches, burn_steps, time_step, season, steepness, r0s, ssb0, ssb0_p, m_at_age, tune_unfished, rec_form, spawning_seasons, rec_devs));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -96,7 +98,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_marlin_move_test", (DL_FUNC) &_marlin_move_test, 3},
     {"_marlin_move", (DL_FUNC) &_marlin_move, 2},
     {"_marlin_cpp_seq", (DL_FUNC) &_marlin_cpp_seq, 2},
-    {"_marlin_sim_fish", (DL_FUNC) &_marlin_sim_fish, 20},
+    {"_marlin_sim_fish", (DL_FUNC) &_marlin_sim_fish, 22},
     {NULL, NULL, 0}
 };
 

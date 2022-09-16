@@ -78,14 +78,6 @@ the various options in `marlin`
 ``` r
 library(marlin)
 library(tidyverse)
-#> ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.1 ──
-#> ✔ ggplot2 3.3.6     ✔ purrr   0.3.4
-#> ✔ tibble  3.1.8     ✔ dplyr   1.0.9
-#> ✔ tidyr   1.2.0     ✔ stringr 1.4.0
-#> ✔ readr   2.1.2     ✔ forcats 0.5.1
-#> ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
-#> ✖ dplyr::filter() masks stats::filter()
-#> ✖ dplyr::lag()    masks stats::lag()
 options(dplyr.summarise.inform = FALSE)
 theme_set(marlin::theme_marlin(base_size = 42))
 
@@ -113,8 +105,6 @@ fauna <-
     )
   )
 #> ══  1 queries  ═══════════════
-#> 
-#> Retrieving data for taxon 'bigeye tuna'
 #> ✔  Found:  bigeye+tuna[Common Name]
 #> ══  Results  ═════════════════
 #> 
@@ -150,7 +140,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = "depletion") 
 
 Sys.time() - a
-#> Time difference of 4.834965 secs
+#> Time difference of 4.915057 secs
 
 
 fauna$bigeye$plot()
@@ -166,7 +156,7 @@ sim <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.04848099 secs
+#> Time difference of 0.05547094 secs
 ```
 
 we can then use `process_marlin` and `plot_marlin` to examine the
@@ -190,9 +180,6 @@ plot_marlin(processed_marlin, plot_var = "c")
 ``` r
 
 plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", fauna = fauna)
-#> Warning in plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", :
-#> trying to plot too many steps at once, cutting down to 10
-#> dropping recruits from plot since drop_recruits = TRUE
 ```
 
 <img src="man/figures/README-unnamed-chunk-3-3.png" width="100%" />
@@ -200,9 +187,6 @@ plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", fauna = faun
 ``` r
 
 plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space")
-#> Warning in plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space"):
-#> Can only plot one time step for spatial plots, defaulting to last of the
-#> supplied steps
 ```
 
 <img src="man/figures/README-unnamed-chunk-3-4.png" width="100%" />
@@ -253,8 +237,6 @@ fauna <-
     )
   )
 #> ══  1 queries  ═══════════════
-#> 
-#> Retrieving data for taxon 'bigeye tuna'
 #> ✔  Found:  bigeye+tuna[Common Name]
 #> ══  Results  ═════════════════
 #> 
@@ -293,7 +275,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets) 
 
 Sys.time() - a
-#> Time difference of 0.8127091 secs
+#> Time difference of 1.711875 secs
 
 
 fauna$bigeye$plot()
@@ -310,7 +292,7 @@ sim2 <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.23753 secs
+#> Time difference of 0.2271891 secs
   
 
 processed_marlin <- process_marlin(sim = sim2, time_step = time_step)
@@ -330,9 +312,6 @@ plot_marlin(processed_marlin, plot_var = "c")
 ``` r
 
 plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", fauna = fauna)
-#> Warning in plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", :
-#> trying to plot too many steps at once, cutting down to 10
-#> dropping recruits from plot since drop_recruits = TRUE
 ```
 
 <img src="man/figures/README-unnamed-chunk-4-4.png" width="100%" />
@@ -340,9 +319,6 @@ plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", fauna = faun
 ``` r
 
 plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space")
-#> Warning in plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space"):
-#> Can only plot one time step for spatial plots, defaulting to last of the
-#> supplied steps
 ```
 
 <img src="man/figures/README-unnamed-chunk-4-5.png" width="100%" />
@@ -409,8 +385,6 @@ fauna <-
     )
   )
 #> ══  1 queries  ═══════════════
-#> 
-#> Retrieving data for taxon 'bigeye tuna'
 #> ✔  Found:  bigeye+tuna[Common Name]
 #> ══  Results  ═════════════════
 #> 
@@ -418,7 +392,7 @@ fauna <-
 #> • Found: 1 
 #> • Not Found: 0
 Sys.time() - a
-#> Time difference of 1.085328 secs
+#> Time difference of 1.096199 secs
 
 # create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
 # with lists for each species inside there. Price specifies the price per unit weight of that 
@@ -486,7 +460,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets) 
 
 Sys.time() - a
-#> Time difference of 1.482614 secs
+#> Time difference of 3.631283 secs
 
 
 # run simulations
@@ -499,7 +473,7 @@ sim3 <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.6204722 secs
+#> Time difference of 0.6010461 secs
 # a <- Sys.time()
 
 processed_marlin <- process_marlin(sim = sim3, time_step = time_step, keep_age = TRUE)
@@ -520,9 +494,6 @@ plot_marlin(processed_marlin, plot_var = "c")
 ``` r
 
 plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", fauna = fauna)
-#> Warning in plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", :
-#> trying to plot too many steps at once, cutting down to 10
-#> dropping recruits from plot since drop_recruits = TRUE
 ```
 
 <img src="man/figures/README-example-3.png" width="100%" />
@@ -530,9 +501,6 @@ plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", fauna = faun
 ``` r
 
 plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space")
-#> Warning in plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space"):
-#> Can only plot one time step for spatial plots, defaulting to last of the
-#> supplied steps
 ```
 
 <img src="man/figures/README-example-4.png" width="100%" />
@@ -657,7 +625,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
-#> Time difference of 18.36397 secs
+#> Time difference of 18.91638 secs
 
 # run simulations
 
@@ -668,7 +636,7 @@ nearshore <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.3818851 secs
+#> Time difference of 0.4016111 secs
   
 proc_nearshore <- process_marlin(nearshore, time_step =  fauna[[1]]$time_step)
 ```
@@ -700,12 +668,12 @@ nearshore_mpa <- simmar(
   fauna = fauna,
   fleets = fleets,
   years = years,
-  mpas = list(locations = mpa_locations,
-              mpa_year = floor(years * .5))
+  manager = list(mpas = list(locations = mpa_locations,
+              mpa_year = floor(years * .5)))
 )
 
 Sys.time() - a
-#> Time difference of 0.524776 secs
+#> Time difference of 0.3672621 secs
 
 proc_nearshore_mpa <- process_marlin(nearshore_mpa, time_step =  fauna[[1]]$time_step)
 ```
@@ -776,7 +744,7 @@ offshore <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.357691 secs
+#> Time difference of 0.3501601 secs
   
 proc_offshore <- process_marlin(offshore, time_step =  fauna[[1]]$time_step)
 
@@ -786,12 +754,12 @@ offshore_mpa_sim <- simmar(
   fauna = fauna,
   fleets = fleets,
   years = years,
-  mpas = list(locations = mpa_locations,
-              mpa_year = floor(years * .5))
+  manager = list(mpas = list(locations = mpa_locations,
+              mpa_year = floor(years * .5)))
 )
 
 Sys.time() - a
-#> Time difference of 0.5485048 secs
+#> Time difference of 0.349232 secs
 
 
 proc_offshore_mpa <- process_marlin(offshore_mpa_sim, time_step =  fauna[[1]]$time_step)
@@ -826,8 +794,6 @@ plot_marlin(
         axis.title.y = element_blank(),
         axis.ticks = element_blank(),
         strip.text = element_text(size = 9))
-#> Scale for 'fill' is already present. Adding another scale for 'fill', which
-#> will replace the existing scale.
 ```
 
 <img src="man/figures/README-unnamed-chunk-10-1.png" width="100%" />
@@ -919,7 +885,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
-#> Time difference of 0.3784909 secs
+#> Time difference of 0.7250898 secs
 
 # run simulations
 
@@ -937,9 +903,6 @@ plot_marlin(
   plot_var = "ssb",
   plot_type = "space",
   steps_to_plot = c(0,25,49))
-#> Warning in plot_marlin(`De-Facto MPA` = proc_negative_prices, plot_var =
-#> "ssb", : Can only plot one time step for spatial plots, defaulting to last of
-#> the supplied steps
 ```
 
 <img src="man/figures/README-unnamed-chunk-12-1.png" width="100%" />

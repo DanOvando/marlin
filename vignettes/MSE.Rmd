@@ -1,0 +1,161 @@
+---
+title: "MSE"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{MSE}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+`marlin` has a lot of features built into it to simulate dynamics over time. However, we cannot possibly build in every possible use case a researcher might have. 
+
+To that end, and important feature of `marlin` is that the outputs of a `marlin` simulation can be passed as the input to a `marlin` simulation. This means you can run the model for one time step, *insert whatever whacky stuff you want to do*, then run a new step. 
+
+As an example, we'll do a very cartonish version of a "management strategy evaluation", where we 
+
+1. Simulate a fishery for a time step
+
+2. Simulate a perfect stock assessment that tells us *depletion* (biomass / unfished biomass)
+
+3. Applies a harvest control rule that sets a catch quota based on the results of our assessment
+
+4. Run another time step with the supplied quota. 
+
+5. Repeat process
+
+```{r setup}
+library(marlin)
+
+library(tidyverse)
+
+resolution <- 10 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
+
+burn_years <- 20
+
+sim_years <- 20
+
+seasons <- 4
+
+time_step <- 1 / seasons
+
+fauna <- 
+  list(
+    "striped marlin" = create_critter(
+      scientific_name = "Kajikia audax",
+      adult_diffusion = 10,
+      rec_form = 3,
+      seasons = seasons,
+      fished_depletion = 0.2,
+      resolution = resolution,
+      steepness = 0.6,
+      ssb0 = 1000
+    )
+  )
+
+
+fleets <- list(
+  "longline" = create_fleet(
+    list("striped marlin" = Metier$new(
+        critter = fauna$`striped marlin`,
+        price = 10,
+        sel_form = "logistic",
+        sel_start = 1,
+        sel_delta = .01,
+        catchability = 0,
+        p_explt = 2
+      )
+    ),
+    base_effort = resolution ^ 2,
+    resolution = resolution,
+    responsiveness = .5,
+    cost_per_unit_effort = 1,
+    fleet_model = "open access")
+,
+"handline" = create_fleet(
+  list("striped marlin" = Metier$new(
+    critter = fauna$`striped marlin`,
+    price = 10,
+    sel_form = "logistic",
+    sel_start = 1,
+    sel_delta = .01,
+    catchability = 0,
+    p_explt = 1
+  )
+  ),
+  base_effort = resolution ^ 2,
+  resolution = resolution,
+  fleet_model = "constant effort"
+))
+
+fleets <- tune_fleets(fauna, fleets, tune_type = "depletion") 
+
+
+hcr_cutoff <- 0.2
+
+hcr_target <- 0.5
+
+max_u <- 0.2
+
+depletion <- seq(0,1, by= 0.1)
+
+hcr_slope <- max_u / (hcr_target - hcr_cutoff)
+
+hcr_intercept <- -hcr_slope * hcr_cutoff
+
+hcr <- pmin(max_u,pmax(.01,hcr_slope * depletion + hcr_intercept))
+
+plot(depletion, hcr)
+
+```
+
+
+```{r}
+mse_sim <- simmar(fauna = fauna,
+                  fleets = fleets,
+                  years = burn_years)
+
+initial_conditions <- mse_sim[[length(mse_sim)]]
+
+starting_step = as.numeric(last(names(mse_sim)))
+
+for (y in 2:sim_years){
+  
+  depletion <- purrr::map(mse_sim[[length(mse_sim)]], ~ sum(.x$ssb_p_a) / .x$ssb0)
+  
+  u <- map(depletion, ~  pmin(max_u,pmax(0.01,hcr_slope * .x + hcr_intercept)))
+  
+  quotas <- purrr::map2(mse_sim[[length(mse_sim)]], u, ~ sum(.x$ssb_p_a) * .y)
+  
+  next_year <- simmar(
+  fauna = fauna,
+  fleets = fleets,
+  years = 1,
+  initial_conditions = initial_conditions,
+  manager = list(quotas = quotas),
+  starting_step = starting_step,
+  keep_starting_step = FALSE
+)
+
+  initial_conditions <- next_year[[length(next_year)]]
+  
+  starting_step <- as.numeric(last(names(next_year)))
+
+  mse_sim <- append(mse_sim, next_year)
+  
+}
+
+processed_mse_sim <- process_marlin(mse_sim)
+
+plot_marlin(processed_mse_sim, plot_var = "c", max_scale = FALSE)
+
+plot_marlin(processed_mse_sim, plot_var = "ssb", max_scale = FALSE)
+
+
+```

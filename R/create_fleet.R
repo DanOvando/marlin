@@ -20,13 +20,13 @@ create_fleet <-
            base_effort = 0,
            mpa_response = "stay",
            fleet_model = "constant effort",
-           profit_sensitivity = NA,
+           responsiveness = 0.5,
            cost_per_unit_effort = NA,
            spatial_allocation = "rpue",
            effort_cost_exponent = 1.3,
            ports = NULL,
            cost_per_distance = 1,
-           cr_ratio = 0.9,
+           cr_ratio = 1,
            resolution) {
     # idea: each fleet has a list of fauna inside of it specifying the price, selectivity, q for that species
     
@@ -62,7 +62,7 @@ create_fleet <-
                  mpa_response = mpa_response,
                  cr_ratio = cr_ratio,
                  cost_per_unit_effort = cost_per_unit_effort,
-                 profit_sensitivity = profit_sensitivity,
+                 responsiveness = responsiveness,
                  spatial_allocation = spatial_allocation,
                  fleet_model = fleet_model,
                  effort_cost_exponent = effort_cost_exponent,

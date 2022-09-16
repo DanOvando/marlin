@@ -41,7 +41,12 @@
 <li class="active nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
+    <a class="dropdown-item" href="../articles/MSE.html">MSE</a>
+    <a class="dropdown-item" href="../articles/dynamic-habitat.html">dynamic-habitat</a>
+    <a class="dropdown-item" href="../articles/fleet-management.html">fleet-management</a>
+    <a class="dropdown-item" href="../articles/optimize_mpa.html">optimize_mpa</a>
     <a class="dropdown-item" href="../articles/port_distance.html">port_distance</a>
+    <a class="dropdown-item" href="../articles/seasonal-dynamics.html">seasonal-dynamics</a>
   </div>
 </li>
 <li class="nav-item">
@@ -106,7 +111,7 @@ specified by x and y coordinates.</p>
 <span><span class="va">years</span> <span class="op">&lt;-</span> <span class="fl">20</span></span>
 <span></span>
 <span><span class="va">ports</span> <span class="op">&lt;-</span>  <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>x <span class="op">=</span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>,<span class="fl">10</span><span class="op">)</span>, y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">8</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p>Now we’ll create a popultion of bigeye tuna.</p>
+<p>Now we’ll create a population of bigeye tuna.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">fauna</span> <span class="op">&lt;-</span> </span>
@@ -141,7 +146,7 @@ locations.</p>
 <span>    resolution  <span class="op">=</span> <span class="va">resolution</span>,</span>
 <span>    spatial_allocation <span class="op">=</span> <span class="st">"profit"</span>,</span>
 <span>    cost_per_unit_effort <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>    cost_per_distance <span class="op">=</span> <span class="fl">20</span></span>
+<span>    cost_per_distance <span class="op">=</span> <span class="fl">2</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -165,7 +170,7 @@ the ports.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">ports</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">x</span>, y <span class="op">=</span> <span class="va">y</span><span class="op">)</span>, color <span class="op">=</span> <span class="st">"red"</span>, size <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span></code></pre></div>
 <p><img src="port_distance_files/figure-html/unnamed-chunk-5-1.png" width="700"></p>
 <p>Note that this behavior is still quite basic. Distance is calculated
-as the euclidian distance between patches, and at this time does not
+as the euclidean distance between patches, and at this time does not
 support say having to travel around islands or the like.
 <code>marlin</code> also assumes that travel costs are just a linear
 function of distance.</p>

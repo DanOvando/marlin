@@ -1,0 +1,191 @@
+---
+title: "optimize_mpa"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{optimize_mpa}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+
+One of the hardest questions of marine protected area (MPA) design is the simple "how big should it be and where should it go"? `marlin` can't tell you how big it should be, but it *can* help you evaluate the impacts to different objectives of different MPA networks, and if you supply it with an objective function weighting scheme, the best network to maximize your objective function. 
+
+This is achieved with the `optimize_mpa` function, that at its core requires an `alpha` parameter that specifies the relative weighting of conservation to economic interests, where 1 means that the only objective is conservation, zero means the only objective is economic. 
+
+`optimize_mpa` then finds the MPA network of a specified size that maximizes your objective function. 
+
+```{r setup}
+library(marlin)
+
+library(tidyverse)
+
+resolution <- 10
+
+years <- 20
+
+seasons <- 4
+
+steps <- years * seasons
+
+time_step <- 1 / seasons
+# for now make up some habitat
+
+
+skipjack_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  dplyr::mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 20, 200)) %>% 
+  pivot_wider(names_from = y, values_from = habitat) %>% 
+  select(-x) %>% 
+  as.matrix()
+
+
+bigeye_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 300, 100)) %>% 
+  pivot_wider(names_from = y, values_from = habitat) %>% 
+  select(-x) %>% 
+  as.matrix()
+
+
+bigeye_habitat2 <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  mutate(habitat =  dnorm((x ^ .2 + y ^ .2), 100, 100)) %>% 
+  pivot_wider(names_from = y, values_from = habitat) %>% 
+  select(-x) %>% 
+  as.matrix()
+
+fauna <- 
+  list(
+    "skipjack" = create_critter(
+      scientific_name = "Katsuwonus pelamis",
+      base_habitat = list(skipjack_habitat, skipjack_habitat), # pass habitat as lists
+      season_blocks = list(c(1, 2), c(3, 4)), # seasons each habitat apply to
+      recruit_habitat = skipjack_habitat,
+      adult_diffusion = 2, # standard deviation of the number of patches moved by adults
+      rec_form = 1, # recruitment form, where 1 implies local recruitment
+      seasons = seasons,
+      init_explt = 0.4, 
+      explt_type = "f"
+      ),
+    "bigeye" = create_critter(
+      scientific_name = "Thunnus obesus",
+      base_habitat = list(bigeye_habitat, bigeye_habitat2), # pass habitat as lists
+      season_blocks = list(c(1, 2), c(3, 4)), # seasons each habitat apply to
+      recruit_habitat = bigeye_habitat,
+      adult_diffusion = 1,
+      rec_form = 1,
+      seasons = seasons,
+      init_explt = 0.7, 
+      explt_type = "f"
+    )
+  )
+
+fleets <- list(
+  "longline" = create_fleet(
+    list(
+       "skipjack" = Metier$new(
+        critter = fauna$skipjack,
+        price = 100,
+        # price per unit weight
+        sel_form = "logistic",
+        # selectivity form, one of logistic or dome
+        sel_start = .3,
+        # percentage of length at maturity that selectivity starts
+        sel_delta = .1,
+        # additional percentage of sel_start where selectivity asymptotes
+        catchability = .01,
+        # overwritten by tune_fleet but can be set manually here
+        p_explt = 1
+      ),
+       "bigeye" = Metier$new(
+        critter = fauna$bigeye,
+        price = 10,
+        sel_form = "logistic",
+        sel_start = .1,
+        sel_delta = .01,
+        catchability = 0,
+        p_explt = 1
+      )
+    ),
+    base_effort = resolution ^ 2,
+        resolution = resolution
+
+  ),
+  "purseseine" = create_fleet(list(
+    skipjack = Metier$new(
+      critter = fauna$skipjack,
+      price = 100,
+      sel_form = "logistic",
+      sel_start = 0.25,
+      sel_delta = .1,
+      catchability = .01,
+      p_explt = 0.9
+    ),
+    bigeye = Metier$new(
+      critter = fauna$bigeye,
+      price = 100,
+      sel_form = "logistic",
+      sel_start = .25,
+      sel_delta = .5,
+      catchability = .01,
+      p_explt = 1
+    )
+  ),
+  base_effort = resolution ^ 2,    resolution = resolution
+)
+)
+
+a <- Sys.time()
+
+fleets <- tune_fleets(fauna, fleets) 
+
+Sys.time() - a
+
+
+# run simulations
+
+# run the simulation using marlin::simmar
+a <- Sys.time()
+
+sim <- simmar(fauna = fauna,
+                  fleets = fleets,
+                  years = years)
+
+Sys.time() - a
+# a <- Sys.time()
+
+processed_marlin <- process_marlin(sim = sim, time_step = time_step, keep_age = TRUE)
+# Sys.time() - a
+
+plot_marlin(processed_marlin)
+
+plot_marlin(processed_marlin, plot_var = "c")
+
+plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", fauna = fauna)
+
+plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space")
+
+```
+
+
+```{r}
+
+mpa_network <- optimize_mpa(fauna = fauna, fleets = fleets, resolution = resolution,
+                            starting_conditions = sim[[length(sim)]], alpha = 0.75)
+
+
+mpa_network$mpa_network %>% 
+  filter(p_protected %% 5 == 0) %>% 
+  ggplot(aes(x,y, fill = mpa)) + 
+  geom_tile() + 
+  facet_wrap(~p_protected)
+
+```
+
+
+
+

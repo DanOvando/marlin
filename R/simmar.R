@@ -5,7 +5,7 @@
 #'
 #' @param fauna
 #' @param fleets
-#' @param mpas
+#' @param manager
 #' @param steps
 #' @param tune_unfished
 #'
@@ -14,11 +14,17 @@
 #'
 simmar <- function(fauna = list(),
                    fleets = list(),
-                   mpas = list(),
+                   manager = list(),
                    habitat = list(),
                    years = 100,
                    tune_unfished = 0,
-                   initial_conditions = NA) {
+                   initial_conditions = NA,
+                   starting_step = 0, 
+                   keep_starting_step = TRUE) {
+  
+  
+  init_cond_provided <- !all(is.na(initial_conditions)) # marker in case initial conditions were provided
+  
   fauni <- names(fauna)
   
   fleet_names <- names(fleets)
@@ -37,7 +43,7 @@ simmar <- function(fauna = list(),
   steps <-
     (years) / time_step  + 1 # tack on extra year for accounting
   
-  step_names <- seq(0, years + 1, by = time_step)
+  step_names <- seq(0 + starting_step, years + 1 + starting_step, by = time_step)
   
   patches <- unique(purrr::map_dbl(fauna, "patches"))
   if (all(is.na(initial_conditions))) {
@@ -52,7 +58,25 @@ simmar <- function(fauna = list(),
     )
   }
   
+  #  determine open fishing seasons
   
+  season_foo <- function(fauni, name, manager){
+    
+    open_seasons <- 1:fauni$seasons
+    
+    if (length(manager$closed_seasons[name]) > 0){
+      
+      open_seasons <- open_seasons[!(open_seasons %in% manager$closed_seasons[[name]])]
+      
+    }
+    
+    return(open_seasons)
+    
+  }
+
+  fishing_seasons <- purrr::imap(fauna, season_foo, manager = manager) # figure out which seasons are open for each critter 
+  
+
   if (length(habitat) > 0) {
     
     if (!any(names(habitat) %in% fauni)){
@@ -95,6 +119,16 @@ simmar <- function(fauna = list(),
                                             e_p_s = matrix(((.x$base_effort / patches)
                                             ), nrow = patches, ncol = steps))) # create blank for effort by fleet, space, and time
   
+  if (init_cond_provided){
+    # fill in first step of effort from initial conditions
+    for (i in names(fleets)){
+      
+      fleets[[i]]$e_p_s[,1] <- getElement(initial_conditions[[1]]$e_p_fl,i)
+      
+    }
+    
+  }
+  
   r_p_f <-
     matrix(0, patches, length(fauni)) # fishable revenue by patch and fauna
   
@@ -124,7 +158,7 @@ simmar <- function(fauna = list(),
       dimnames = list(NULL, fleet_names)
     )
   
-  
+  log_rec_devs <- vector("list", length(fauna)) 
   
   fishable <- rep(1, patches)
   
@@ -137,10 +171,14 @@ simmar <- function(fauna = list(),
     
     year <-  floor(step_names[s])
     
-    if (length(mpas) > 0) {
+    current_season <-
+      (season + fauna[[1]]$time_step) * fauna[[1]]$seasons  # annoying step to get seasons back to which season is it, not decimal season
+    
+    
+    if (length(manager$mpas) > 0) {
       # assign MPAs if needed
-      if (year == mpas$mpa_year) {
-        fishable <- mpas$locations$mpa == 0
+      if (year == manager$mpas$mpa_year) {
+        fishable <- manager$mpas$locations$mpa == 0
       }
       
     } # close MPA if statement
@@ -152,14 +190,24 @@ simmar <- function(fauna = list(),
       concentrator <-
         rep(1, patches) # reset fishing effort concentrator by fleet
       
-      if (length(mpas) > 0) {
-        if (year >= mpas$mpa_year & fleets[[l]]$mpa_response == "leave") {
+      if (length(manager$mpas) > 0) {
+        if (year >= manager$mpas$mpa_year & fleets[[l]]$mpa_response == "leave") {
           concentrator <- as.numeric(fishable)
         }
       }
       
+      # xx add ability to incorporate past revenues here. Idea. have a marker that lets you know if initial conditions were passed in. If s<= 2 or there were no initial conditions, pull this. If s<= 2 but there were initial conditions, pull the initial conditions for those steps
       
-      if (s <= 2) {
+      if (s == 1 & init_cond_provided){
+        
+        r_p_f <-
+          (sapply(initial_conditions, function(x)
+            rowSums(x$r_p_a_fl[, , l], na.rm = TRUE)))
+        
+        last_r_p <-
+          rowSums(r_p_f, na.rm = TRUE) # pull out total revenue for fleet l
+        
+      } else if (s <= 2) {
         for (f in seq_along(fauni)) {
           last_b_p_a <- storage[[s - 1]][[f]]$b_p_a
           
@@ -167,9 +215,6 @@ simmar <- function(fauna = list(),
           
           # calculate fishable biomass in each patch for each species for that fleet
           
-          # browser()
-          # last_revenue <-  sum((sapply(storage[[s-2]], function(x) sum(x$r_p_a_fl[,,l], na.rm = TRUE))), na.rm = TRUE) # pull out total revenue for fleet l
-          #
           # account for spatial catchability
           tmp = 1 - exp(-(
             matrix(
@@ -186,7 +231,7 @@ simmar <- function(fauna = list(),
               )
           ))
           
-          last_b_p <- rowSums(last_b_p_a * tmp) * fishable
+          last_b_p <- rowSums(last_b_p_a * tmp * (current_season %in% fishing_seasons[[f]])) * fishable
           
           r_p_f[, f] <-
             last_b_p * fleets[[l]]$metiers[[fauni[f]]]$price
@@ -210,31 +255,36 @@ simmar <- function(fauna = list(),
       
       total_effort <- sum(fleets[[l]]$e_p_s[, s - 1] * concentrator)
       
-      last_revenue <-
-        sum(last_r_p, na.rm = TRUE) # pull out total revenue for fleet l
-      
-      last_profits <-
-        last_revenue - fleets[[l]]$cost_per_unit_effort * sum((fleets[[l]]$e_p_s[, s - 1] + 1) ^
-                                                                fleets[[l]]$effort_cost_exponent) - sum(fleets[[l]]$cost_per_patch * fleets[[l]]$e_p_s[,s-1]) # calculate profits in the last time step
+      if (sum(last_r_p, na.rm = TRUE) > 0){ # the only way for revenues in the last step to be literally zero is 100% mpas or all target species seasons closed or last effort = zero
+        last_revenue <-
+          sum(last_r_p, na.rm = TRUE) # pull out total revenue for fleet l
+        
+        last_cost <-  fleets[[l]]$cost_per_unit_effort * sum((fleets[[l]]$e_p_s[, s - 1]) ^
+                                                               fleets[[l]]$effort_cost_exponent) + sum(fleets[[l]]$cost_per_patch * fleets[[l]]$e_p_s[,s-1])
+        
+        last_profits <-
+          last_revenue - last_cost # calculate profits in the last time step.
+        
+        last_r_to_c <- last_revenue / last_cost
+      }
       
       if (fleets[[l]]$fleet_model == "open access") {
         if (is.na(fleets[[l]]$cost_per_unit_effort) |
-            is.na(fleets[[l]]$profit_sensitivity)) {
+            is.na(fleets[[l]]$responsiveness)) {
           stop(
-            "open access fleet model requires both cost_per_unit_effort and profit_sensitivity parameters"
+            "open access fleet model requires both cost_per_unit_effort and responsiveness parameters"
           )
         }
         
-        if (s > 3) {
-          # no past revenue available in first two time steps for accounting, and then need to allow fleet to move correctly.
+
+          if (exists("last_revenue")){
           
-          
-          total_effort <-
-            total_effort * exp(fleets[[l]]$profit_sensitivity * last_profits) # adjust effort per open access
-          
-        }
+          total_effort <- total_effort * exp(fleets[[l]]$responsiveness * log(pmax(last_revenue, 1e-6) / pmax(1e-6,last_cost))) # adjust effort per an open access dynamics model
+          } # in edge case where the fishery is closed for the first few seasons of the simulation stick with last value
         
-      }
+
+        
+      } # close open access
       
       e_p <- fleets[[l]]$e_p_s[, s - 1]
       
@@ -374,7 +424,7 @@ simmar <- function(fauna = list(),
           #1 / nrow(r_p_f)
         } else {
           alloc = (
-            last_r_p - fleets[[l]]$cost_per_unit_effort * (e_p + 1) ^ fleets[[l]]$effort_cost_exponent -  fleets[[l]]$cost_per_patch * e_p
+            last_r_p - fleets[[l]]$cost_per_unit_effort * (e_p) ^ fleets[[l]]$effort_cost_exponent -  fleets[[l]]$cost_per_patch * e_p
           )
           
           alloc[!is.finite(alloc)] <-  0
@@ -537,8 +587,7 @@ simmar <- function(fauna = list(),
           dimnames = list(1:patches, fauna[[f]]$ages, names(fleets))
         ) # f by patch, age, and fleet
       
-      current_season <-
-        (season + fauna[[f]]$time_step) * fauna[[f]]$seasons  # annoying step to get seasons back to which season is it, not decimal season
+
       
       
       movement <- fauna[[f]]$base_movement
@@ -559,6 +608,7 @@ simmar <- function(fauna = list(),
         
         current_habitat <- as.numeric(current_habitat$value)
         
+        
         current_habitat <-
           exp(outer(current_habitat, current_habitat, "-")) # calculate difference in habitat between each patch
         
@@ -576,15 +626,36 @@ simmar <- function(fauna = list(),
           )
         }
         
+      } # close habitat update
+      
+
+      
+      
+      if (!(current_season %in% fishing_seasons[[names(fauna)[f]]])) {
+        
+        f_p_a <- f_p_a * 0 # turn off fishing if the season is closed
+        
       }
+      
+      new_rec_devs <-  rnorm(patches, 0, fauna[[f]]$sigma_r)
+      # update recruitment deviates allowing for autocorrelation within each critter  
+      
+      if (s > 2){
+        log_rec_devs[[f]] <- fauna[[f]]$rec_ac *  log_rec_devs[[f]] + sqrt(1 - fauna[[f]]$rec_ac^2) * new_rec_devs
+      } else {
+        log_rec_devs[[f]] <- new_rec_devs
+      }
+      
+      rec_devs <- exp(log_rec_devs[[f]] - fauna[[f]]$sigma_r^2/2)
+      
       pop <-
         fauna[[f]]$swim(
           season = current_season,
           adult_movement = movement,
           f_p_a = f_p_a,
-          last_n_p_a = last_n_p_a
+          last_n_p_a = last_n_p_a,
+          rec_devs = rec_devs
         )
-      
       # process catch data
       c_p_a_fl <-
         f_p_a_fl * array(
@@ -593,9 +664,68 @@ simmar <- function(fauna = list(),
           dimnames = list(1:patches, fauna[[f]]$ages, names(fleets))
         )
       
+      # if there are any quotas to evaluate
+      fmult <- 1
+      
+      if (length(manager$quotas[names(fauna)[f]]) >0) {
+        
+        if (manager$quotas[[names(fauna)[f]]] < sum(c_p_a_fl, na.rm = TRUE)){
+          
+          quota <- manager$quotas[[names(fauna)[f]]]
+          
+          quota_finder <- function(fmult, quota, fauna, current_season, movement,f_p_a,last_n_p_a,f_p_a_fl){
+            
+            tmp_pop <-
+              fauna[[f]]$swim(
+                season = current_season,
+                adult_movement = movement,
+                f_p_a = fmult * f_p_a,
+                last_n_p_a = last_n_p_a,
+                rec_devs = rec_devs
+              )
+            
+            tmp_catch <-
+              f_p_a_fl * array(
+                tmp_pop$c_p_a,
+                dim = c(patches, ages, length(fleets)),
+                dimnames = list(1:patches, fauna[[f]]$ages, names(fleets))
+              )
+            
+            log_ss <- (sum(tmp_catch, na.rm = TRUE) - quota)^2
+            
+            
+          }
+          
+          fmulter <- nlminb(0.9, quota_finder, quota = quota, fauna = fauna, current_season = current_season, movement = movement,f_p_a = f_p_a,last_n_p_a = last_n_p_a,f_p_a_fl = f_p_a_fl, lower = 0, upper = 1)
+        
+          fmult <- fmulter$par
+          
+          f_p_a <- f_p_a * fmult
+          
+          pop <-
+            fauna[[f]]$swim(
+              season = current_season,
+              adult_movement = movement,
+              f_p_a = f_p_a,
+              last_n_p_a = last_n_p_a,
+              rec_devs = rec_devs
+            )
+          # process catch data
+          c_p_a_fl <-
+            f_p_a_fl * array(
+              pop$c_p_a,
+              dim = c(patches, ages, length(fleets)),
+              dimnames = list(1:patches, fauna[[f]]$ages, names(fleets))
+            )
+          
+          } # if the quota is less than the catch, enforce the quota
+        
+        
+      } # close quota evaluation
+      
       r_p_a_fl <- c_p_a_fl * p_p_a_fl
       
-      tmp_e_p_fl <-  purrr::map_dfc(fleets, ~ .x$e_p_s[, s])
+      tmp_e_p_fl <-  purrr::map_dfc(fleets, ~ .x$e_p_s[, s] * fmult)
       
       for (fl in 1:length(fleets)) {
         c_p_fl[, fl] <- rowSums(c_p_a_fl[, , fl], na.rm = TRUE)
@@ -603,8 +733,7 @@ simmar <- function(fauna = list(),
         r_p_fl[, fl] <-  rowSums(r_p_a_fl[, , fl], na.rm = TRUE)
         
         prof_p_fl[, fl] <-
-          r_p_fl[, fl] - fleets[[fl]]$cost_per_unit_effort * (as.matrix(tmp_e_p_fl[, fl] +
-                                                                          1) ^ fleets[[fl]]$effort_cost_exponent) / length(fauna) - as.matrix(tmp_e_p_fl[,fl] * fleets[[fl]]$cost_per_patch) / length(fauna)
+          r_p_fl[, fl] - fleets[[fl]]$cost_per_unit_effort * (as.matrix(tmp_e_p_fl[, fl]) ^ fleets[[fl]]$effort_cost_exponent) / length(fauna) - as.matrix(tmp_e_p_fl[,fl] * fleets[[fl]]$cost_per_patch) / length(fauna)
         
       }
       
@@ -629,6 +758,10 @@ simmar <- function(fauna = list(),
       storage[[s - 1]][[f]]$e_p_fl <-
         tmp_e_p_fl # store effort by patch by fleet (note that this is the same across species)
       
+      
+      storage[[s - 1]][[f]]$f_p_a_fl <-
+        f_p_a_fl # store effort by patch by fleet (note that this is the same across species)
+      
       if (any(tmp_e_p_fl < 0)) {
 
         stop("something hase gone very wrong, effort is negative")
@@ -643,9 +776,9 @@ simmar <- function(fauna = list(),
   } #close steps
   
   storage <-
-    storage[1:(steps - 1)] # since catch is retrospective, chop off last time step to ensure that every step has a catch history
+    storage[ifelse(keep_starting_step,1,2):(steps - 1)] # since catch is retrospective, chop off last time step to ensure that every step has a catch history
   storage <-
-    rlang::set_names(storage, nm = step_names[1:(steps - 1)])
+    rlang::set_names(storage, nm = step_names[ifelse(keep_starting_step,1,2):(steps - 1)])
   
   storage <- purrr::map(storage, ~ rlang::set_names(.x, fauni))
   
