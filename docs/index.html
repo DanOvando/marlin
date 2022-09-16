@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="index.html">marlin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0.9000</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -41,8 +41,12 @@
 <li class="nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="articles/migrations.html">migrations</a>
+    <a class="dropdown-item" href="articles/MSE.html">MSE</a>
+    <a class="dropdown-item" href="articles/dynamic-habitat.html">dynamic-habitat</a>
+    <a class="dropdown-item" href="articles/fleet-management.html">fleet-management</a>
+    <a class="dropdown-item" href="articles/optimize_mpa.html">optimize_mpa</a>
     <a class="dropdown-item" href="articles/port_distance.html">port_distance</a>
+    <a class="dropdown-item" href="articles/seasonal-dynamics.html">seasonal-dynamics</a>
   </div>
 </li>
 <li class="nav-item">
@@ -115,14 +119,6 @@
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://danovando.github.io/marlin/">marlin</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org" class="external-link">tidyverse</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.1 ──</span></span>
-<span><span class="co">#&gt; ✔ ggplot2 3.3.6     ✔ purrr   0.3.4</span></span>
-<span><span class="co">#&gt; ✔ tibble  3.1.8     ✔ dplyr   1.0.9</span></span>
-<span><span class="co">#&gt; ✔ tidyr   1.2.0     ✔ stringr 1.4.0</span></span>
-<span><span class="co">#&gt; ✔ readr   2.1.2     ✔ forcats 0.5.1</span></span>
-<span><span class="co">#&gt; ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──</span></span>
-<span><span class="co">#&gt; ✖ dplyr::filter() masks stats::filter()</span></span>
-<span><span class="co">#&gt; ✖ dplyr::lag()    masks stats::lag()</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>dplyr.summarise.inform <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme_get.html" class="external-link">theme_set</a></span><span class="op">(</span><span class="fu">marlin</span><span class="fu">::</span><span class="fu"><a href="reference/theme_marlin.html">theme_marlin</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">42</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
@@ -150,8 +146,6 @@
 <span>    <span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="co">#&gt; ══  1 queries  ═══════════════</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Retrieving data for taxon 'bigeye tuna'</span></span>
 <span><span class="co">#&gt; ✔  Found:  bigeye+tuna[Common Name]</span></span>
 <span><span class="co">#&gt; ══  Results  ═════════════════</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -187,7 +181,7 @@
 <span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span>, tune_type <span class="op">=</span> <span class="st">"depletion"</span><span class="op">)</span> </span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 4.834965 secs</span></span>
+<span><span class="co">#&gt; Time difference of 4.915057 secs</span></span>
 <span></span>
 <span></span>
 <span><span class="va">fauna</span><span class="op">$</span><span class="va">bigeye</span><span class="op">$</span><span class="fu">plot</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
@@ -200,7 +194,7 @@
 <span>                  years <span class="op">=</span> <span class="va">years</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.04848099 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 0.05547094 secs</span></span></code></pre></div>
 <p>we can then use <code>process_marlin</code> and <code>plot_marlin</code> to examine the simulation</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">processed_marlin</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_marlin.html">process_marlin</a></span><span class="op">(</span>sim <span class="op">=</span> <span class="va">sim</span>, time_step <span class="op">=</span> <span class="va">time_step</span><span class="op">)</span></span>
@@ -213,17 +207,11 @@
 <p><img src="reference/figures/README-unnamed-chunk-3-2.png" width="100%"></p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="fu"><a href="reference/plot_marlin.html">plot_marlin</a></span><span class="op">(</span><span class="va">processed_marlin</span>, plot_var <span class="op">=</span> <span class="st">"n"</span>, plot_type <span class="op">=</span> <span class="st">"length"</span>, fauna <span class="op">=</span> <span class="va">fauna</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", :</span></span>
-<span><span class="co">#&gt; trying to plot too many steps at once, cutting down to 10</span></span>
-<span><span class="co">#&gt; dropping recruits from plot since drop_recruits = TRUE</span></span></code></pre></div>
+<span><span class="fu"><a href="reference/plot_marlin.html">plot_marlin</a></span><span class="op">(</span><span class="va">processed_marlin</span>, plot_var <span class="op">=</span> <span class="st">"n"</span>, plot_type <span class="op">=</span> <span class="st">"length"</span>, fauna <span class="op">=</span> <span class="va">fauna</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-3-3.png" width="100%"></p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="fu"><a href="reference/plot_marlin.html">plot_marlin</a></span><span class="op">(</span><span class="va">processed_marlin</span>, plot_var <span class="op">=</span> <span class="st">"ssb"</span>, plot_type <span class="op">=</span> <span class="st">"space"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space"):</span></span>
-<span><span class="co">#&gt; Can only plot one time step for spatial plots, defaulting to last of the</span></span>
-<span><span class="co">#&gt; supplied steps</span></span></code></pre></div>
+<span><span class="fu"><a href="reference/plot_marlin.html">plot_marlin</a></span><span class="op">(</span><span class="va">processed_marlin</span>, plot_var <span class="op">=</span> <span class="st">"ssb"</span>, plot_type <span class="op">=</span> <span class="st">"space"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-3-4.png" width="100%"></p>
 </div>
 <div class="section level2">
@@ -270,8 +258,6 @@
 <span>    <span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="co">#&gt; ══  1 queries  ═══════════════</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Retrieving data for taxon 'bigeye tuna'</span></span>
 <span><span class="co">#&gt; ✔  Found:  bigeye+tuna[Common Name]</span></span>
 <span><span class="co">#&gt; ══  Results  ═════════════════</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -310,7 +296,7 @@
 <span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span><span class="op">)</span> </span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.8127091 secs</span></span>
+<span><span class="co">#&gt; Time difference of 1.711875 secs</span></span>
 <span></span>
 <span></span>
 <span><span class="va">fauna</span><span class="op">$</span><span class="va">bigeye</span><span class="op">$</span><span class="fu">plot</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
@@ -324,7 +310,7 @@
 <span>                  years <span class="op">=</span> <span class="va">years</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.23753 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.2271891 secs</span></span>
 <span>  </span>
 <span></span>
 <span><span class="va">processed_marlin</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_marlin.html">process_marlin</a></span><span class="op">(</span>sim <span class="op">=</span> <span class="va">sim2</span>, time_step <span class="op">=</span> <span class="va">time_step</span><span class="op">)</span></span>
@@ -337,17 +323,11 @@
 <p><img src="reference/figures/README-unnamed-chunk-4-3.png" width="100%"></p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="fu"><a href="reference/plot_marlin.html">plot_marlin</a></span><span class="op">(</span><span class="va">processed_marlin</span>, plot_var <span class="op">=</span> <span class="st">"n"</span>, plot_type <span class="op">=</span> <span class="st">"length"</span>, fauna <span class="op">=</span> <span class="va">fauna</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", :</span></span>
-<span><span class="co">#&gt; trying to plot too many steps at once, cutting down to 10</span></span>
-<span><span class="co">#&gt; dropping recruits from plot since drop_recruits = TRUE</span></span></code></pre></div>
+<span><span class="fu"><a href="reference/plot_marlin.html">plot_marlin</a></span><span class="op">(</span><span class="va">processed_marlin</span>, plot_var <span class="op">=</span> <span class="st">"n"</span>, plot_type <span class="op">=</span> <span class="st">"length"</span>, fauna <span class="op">=</span> <span class="va">fauna</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-4-4.png" width="100%"></p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="fu"><a href="reference/plot_marlin.html">plot_marlin</a></span><span class="op">(</span><span class="va">processed_marlin</span>, plot_var <span class="op">=</span> <span class="st">"ssb"</span>, plot_type <span class="op">=</span> <span class="st">"space"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space"):</span></span>
-<span><span class="co">#&gt; Can only plot one time step for spatial plots, defaulting to last of the</span></span>
-<span><span class="co">#&gt; supplied steps</span></span></code></pre></div>
+<span><span class="fu"><a href="reference/plot_marlin.html">plot_marlin</a></span><span class="op">(</span><span class="va">processed_marlin</span>, plot_var <span class="op">=</span> <span class="st">"ssb"</span>, plot_type <span class="op">=</span> <span class="st">"space"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-4-5.png" width="100%"></p>
 </div>
 <div class="section level2">
@@ -413,8 +393,6 @@
 <span>    <span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="co">#&gt; ══  1 queries  ═══════════════</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Retrieving data for taxon 'bigeye tuna'</span></span>
 <span><span class="co">#&gt; ✔  Found:  bigeye+tuna[Common Name]</span></span>
 <span><span class="co">#&gt; ══  Results  ═════════════════</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -422,7 +400,7 @@
 <span><span class="co">#&gt; • Found: 1 </span></span>
 <span><span class="co">#&gt; • Not Found: 0</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 1.085328 secs</span></span>
+<span><span class="co">#&gt; Time difference of 1.096199 secs</span></span>
 <span></span>
 <span><span class="co"># create a fleets object, which is a list of lists (of lists). Each fleet has one element, </span></span>
 <span><span class="co"># with lists for each species inside there. Price specifies the price per unit weight of that </span></span>
@@ -490,7 +468,7 @@
 <span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span><span class="op">)</span> </span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 1.482614 secs</span></span>
+<span><span class="co">#&gt; Time difference of 3.631283 secs</span></span>
 <span></span>
 <span></span>
 <span><span class="co"># run simulations</span></span>
@@ -503,7 +481,7 @@
 <span>                  years <span class="op">=</span> <span class="va">years</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.6204722 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.6010461 secs</span></span>
 <span><span class="co"># a &lt;- Sys.time()</span></span>
 <span></span>
 <span><span class="va">processed_marlin</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_marlin.html">process_marlin</a></span><span class="op">(</span>sim <span class="op">=</span> <span class="va">sim3</span>, time_step <span class="op">=</span> <span class="va">time_step</span>, keep_age <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
@@ -517,17 +495,11 @@
 <p><img src="reference/figures/README-example-2.png" width="100%"></p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="fu"><a href="reference/plot_marlin.html">plot_marlin</a></span><span class="op">(</span><span class="va">processed_marlin</span>, plot_var <span class="op">=</span> <span class="st">"n"</span>, plot_type <span class="op">=</span> <span class="st">"length"</span>, fauna <span class="op">=</span> <span class="va">fauna</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", :</span></span>
-<span><span class="co">#&gt; trying to plot too many steps at once, cutting down to 10</span></span>
-<span><span class="co">#&gt; dropping recruits from plot since drop_recruits = TRUE</span></span></code></pre></div>
+<span><span class="fu"><a href="reference/plot_marlin.html">plot_marlin</a></span><span class="op">(</span><span class="va">processed_marlin</span>, plot_var <span class="op">=</span> <span class="st">"n"</span>, plot_type <span class="op">=</span> <span class="st">"length"</span>, fauna <span class="op">=</span> <span class="va">fauna</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-example-3.png" width="100%"></p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="fu"><a href="reference/plot_marlin.html">plot_marlin</a></span><span class="op">(</span><span class="va">processed_marlin</span>, plot_var <span class="op">=</span> <span class="st">"ssb"</span>, plot_type <span class="op">=</span> <span class="st">"space"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space"):</span></span>
-<span><span class="co">#&gt; Can only plot one time step for spatial plots, defaulting to last of the</span></span>
-<span><span class="co">#&gt; supplied steps</span></span></code></pre></div>
+<span><span class="fu"><a href="reference/plot_marlin.html">plot_marlin</a></span><span class="op">(</span><span class="va">processed_marlin</span>, plot_var <span class="op">=</span> <span class="st">"ssb"</span>, plot_type <span class="op">=</span> <span class="st">"space"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-example-4.png" width="100%"></p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
@@ -644,7 +616,7 @@
 <span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span>, tune_type <span class="op">=</span> <span class="va">tune_type</span><span class="op">)</span> <span class="co"># tunes the catchability by fleet to achieve target depletion</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 18.36397 secs</span></span>
+<span><span class="co">#&gt; Time difference of 18.91638 secs</span></span>
 <span></span>
 <span><span class="co"># run simulations</span></span>
 <span></span>
@@ -655,7 +627,7 @@
 <span>                  years <span class="op">=</span> <span class="va">years</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.3818851 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.4016111 secs</span></span>
 <span>  </span>
 <span><span class="va">proc_nearshore</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">nearshore</span>, time_step <span class="op">=</span>  <span class="va">fauna</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">time_step</span><span class="op">)</span></span></code></pre></div>
 <p>create an MPA</p>
@@ -680,12 +652,12 @@
 <span>  fauna <span class="op">=</span> <span class="va">fauna</span>,</span>
 <span>  fleets <span class="op">=</span> <span class="va">fleets</span>,</span>
 <span>  years <span class="op">=</span> <span class="va">years</span>,</span>
-<span>  mpas <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>locations <span class="op">=</span> <span class="va">mpa_locations</span>,</span>
-<span>              mpa_year <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">floor</a></span><span class="op">(</span><span class="va">years</span> <span class="op">*</span> <span class="fl">.5</span><span class="op">)</span><span class="op">)</span></span>
+<span>  manager <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>mpas <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>locations <span class="op">=</span> <span class="va">mpa_locations</span>,</span>
+<span>              mpa_year <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">floor</a></span><span class="op">(</span><span class="va">years</span> <span class="op">*</span> <span class="fl">.5</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.524776 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.3672621 secs</span></span>
 <span></span>
 <span><span class="va">proc_nearshore_mpa</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">nearshore_mpa</span>, time_step <span class="op">=</span>  <span class="va">fauna</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">time_step</span><span class="op">)</span></span></code></pre></div>
 <p>Now though, consider a different scenario. Here the tunas still slightly prefer their same nearshore habitat, but now the shortfin mako population primarily lives farther offshore. We will first simulate that population without the MPA, and then assess the effects of the exact same MPA on this new scenario.</p>
@@ -746,7 +718,7 @@
 <span>                  years <span class="op">=</span> <span class="va">years</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.357691 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.3501601 secs</span></span>
 <span>  </span>
 <span><span class="va">proc_offshore</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">offshore</span>, time_step <span class="op">=</span>  <span class="va">fauna</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">time_step</span><span class="op">)</span></span>
 <span></span>
@@ -756,12 +728,12 @@
 <span>  fauna <span class="op">=</span> <span class="va">fauna</span>,</span>
 <span>  fleets <span class="op">=</span> <span class="va">fleets</span>,</span>
 <span>  years <span class="op">=</span> <span class="va">years</span>,</span>
-<span>  mpas <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>locations <span class="op">=</span> <span class="va">mpa_locations</span>,</span>
-<span>              mpa_year <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">floor</a></span><span class="op">(</span><span class="va">years</span> <span class="op">*</span> <span class="fl">.5</span><span class="op">)</span><span class="op">)</span></span>
+<span>  manager <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>mpas <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>locations <span class="op">=</span> <span class="va">mpa_locations</span>,</span>
+<span>              mpa_year <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">floor</a></span><span class="op">(</span><span class="va">years</span> <span class="op">*</span> <span class="fl">.5</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.5485048 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.349232 secs</span></span>
 <span></span>
 <span></span>
 <span><span class="va">proc_offshore_mpa</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">offshore_mpa_sim</span>, time_step <span class="op">=</span>  <span class="va">fauna</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">time_step</span><span class="op">)</span></span></code></pre></div>
@@ -790,9 +762,7 @@
 <span>        axis.title.x <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>        axis.title.y <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>        axis.ticks <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>        strip.text <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">9</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Scale for 'fill' is already present. Adding another scale for 'fill', which</span></span>
-<span><span class="co">#&gt; will replace the existing scale.</span></span></code></pre></div>
+<span>        strip.text <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">9</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-10-1.png" width="100%"></p>
 </div>
 <div class="section level2">
@@ -880,7 +850,7 @@
 <span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span>, tune_type <span class="op">=</span> <span class="va">tune_type</span><span class="op">)</span> <span class="co"># tunes the catchability by fleet to achieve target depletion</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.3784909 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.7250898 secs</span></span>
 <span></span>
 <span><span class="co"># run simulations</span></span>
 <span></span>
@@ -895,10 +865,7 @@
 <span>  `De-Facto MPA` <span class="op">=</span> <span class="va">proc_negative_prices</span>,</span>
 <span>  plot_var <span class="op">=</span> <span class="st">"ssb"</span>,</span>
 <span>  plot_type <span class="op">=</span> <span class="st">"space"</span>,</span>
-<span>  steps_to_plot <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">25</span>,<span class="fl">49</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in plot_marlin(`De-Facto MPA` = proc_negative_prices, plot_var =</span></span>
-<span><span class="co">#&gt; "ssb", : Can only plot one time step for spatial plots, defaulting to last of</span></span>
-<span><span class="co">#&gt; the supplied steps</span></span></code></pre></div>
+<span>  steps_to_plot <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">25</span>,<span class="fl">49</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-12-1.png" width="100%"></p>
 </div>
 </div>
