@@ -30,7 +30,15 @@ knitr::opts_chunk$set(
   
 ## What is `marlin` for?
 
-`marlin` is best suited for asking *what if* rather that *what will* questions. In other words, `marlin` is better suited to asking "how might the design or impacts of my proposed MPA network change if fishing effort is displaced rather than removed?" rather than "*what will* the impacts of my proposed MPA network be on biodiversity down to the 6th decimal place". This is because `marlin` is a *structural* rather than *statistical* simulation model, meaning it cannot by fit to explain processes in observed data. Rather, users must manually adjust the parameters of the model to reflect the general dynamics of the system they are interested in. This means that "how much of an impact does hyperallometry have on MPA outcomes" is a much simpler question than "what will be the catch and biodiversity impacts of the MPA I am designing for 13 different data-limited species in a rapidly changing small bay". Both are doable, and marlin can provide general insights in both cases, but the more specific and *what will* style question you ask, the harder it will be to ensure the model is appropriately set up. 
+`marlin` is best suited for asking *what if* rather that *what will* questions. 
+
+In other words, `marlin` is better suited to asking "how might the impacts of my proposed MPA network change if fishing effort is displaced rather than removed?" rather than "*what will* the impacts of my proposed MPA network be on biodiversity down to the 6th decimal place". 
+
+This is because `marlin` is a *structural* rather than *statistical* simulation model, meaning the parameters in the model cannot be directly fit to explain patterns in observed data. Rather, users must manually adjust the parameters of the model to reflect the general dynamics of the system they are interested in. 
+
+This means that "how much of an impact does hyperallometry have on MPA outcomes" is a much simpler question than "what will be the catch and biodiversity impacts of the MPA I am designing for 13 different data-limited species in a rapidly changing small bay". 
+
+Both are doable, and `marlin` can provide general insights in both cases, but the more specific and *what will* style of question you ask, the harder it will be to ensure the model is appropriately set up. 
 
 Some use cases we envision for marlin are
 
@@ -77,7 +85,7 @@ Once you've tried those, restart your computer and try running re-installing `ma
 
 In particular, while we provide some wrappers for organizing common outputs and plots, `marlin` produces far more outputs, and is designed for more use cases, than we can preemptively plan for. 
 
-Given that `marlin` tracks populations and fleet dynamics across ages, time steps, space, species, and fleet units, the outputs are rather unruly. Skills in wrangling list objects will serve you will, along with tidy-data manipulation. 
+Given that `marlin` tracks populations and fleet dynamics across ages, time steps, space, species, and fleet units, the outputs are rather unruly. Skills in wrangling list objects will serve you will, along with tidy-data manipulation. [`purrr`](https://purrr.tidyverse.org/) is really really good at this. 
 
 You do not need the `tidyverse` to run `marlin`, but you will see that we make extensive use of it, in particular `dplyr`, `tidyr`, `ggplot2` and `purrr` in the examples below, to extract useful results from `marlin`. 
 

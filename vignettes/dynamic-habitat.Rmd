@@ -106,9 +106,9 @@ fauna <-
       seasons = seasons,
       init_explt =  1,
       explt_type = "f",
-      spawning_seasons = c(1,2),
-      sigma_r = .4,
-      rec_ac = .2
+      spawning_seasons = c(2,3),
+      sigma_r = 0.4,
+      rec_ac = 0
     )
   )
 
@@ -141,7 +141,9 @@ spawning_ground_sim <- simmar(fauna = fauna,
                years = years)
 
 
+
 processed_spawning_grounds <- process_marlin(sim = spawning_ground_sim, time_step = time_step)
+
 
 
 spawning_agg <- processed_spawning_grounds$fauna %>% 
@@ -157,23 +159,6 @@ spawning_agg <- processed_spawning_grounds$fauna %>%
   scale_x_continuous(name = "longitude") + 
   scale_y_continuous(name = "latitude")
 
-
-processed_spawning_grounds$fauna %>% 
-  group_by(critter, step, age) %>% 
-  summarise(numbers = sum(n)) %>% 
-  ungroup() %>% 
-  filter(age == min(age)) %>% 
-  ggplot(aes(step, numbers)) + 
-  geom_point()
-
-processed_spawning_grounds$fauna %>% 
-  group_by(critter, step, age) %>% 
-  summarise(numbers = sum(n)) %>% 
-  ungroup() %>% 
-  filter(step > 10) %>% 
-  ggplot(aes(x = age, y = step, height = numbers, group = step)) + 
-  geom_density_ridges(stat = 'identity') + 
-  facet_wrap(~critter)
 
 animate(spawning_agg, nframes = 100, fps=2)
 

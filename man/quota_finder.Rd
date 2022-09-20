@@ -13,7 +13,11 @@ quota_finder(
   f_p_a,
   last_n_p_a,
   f_p_a_fl,
-  f
+  f,
+  rec_devs,
+  patches,
+  ages,
+  fleets
 )
 }
 \arguments{

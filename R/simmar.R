@@ -7,7 +7,6 @@
 #' @param fleets
 #' @param manager
 #' @param steps
-#' @param tune_unfished
 #'
 #' @return
 #' @export
@@ -17,7 +16,6 @@ simmar <- function(fauna = list(),
                    manager = list(),
                    habitat = list(),
                    years = 100,
-                   tune_unfished = 0,
                    initial_conditions = NA,
                    starting_step = 0, 
                    keep_starting_step = TRUE) {
@@ -771,7 +769,7 @@ simmar <- function(fauna = list(),
   } #close steps
   
   storage <-
-    storage[ifelse(keep_starting_step,1,2):(steps - 1)] # since catch is retrospective, chop off last time step to ensure that every step has a catch history
+    storage[ifelse(keep_starting_step,1,2):(steps - 1)] # since catch is retrospective, chop off last time step to ensure that every step has a catch history, and drop starting step is specified
   storage <-
     rlang::set_names(storage, nm = step_names[ifelse(keep_starting_step,1,2):(steps - 1)])
   

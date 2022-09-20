@@ -23,21 +23,27 @@ network design
 ## What is `marlin` for?
 
 `marlin` is best suited for asking *what if* rather that *what will*
-questions. In other words, `marlin` is better suited to asking “how
-might the design or impacts of my proposed MPA network change if fishing
-effort is displaced rather than removed?” rather than “*what will* the
-impacts of my proposed MPA network be on biodiversity down to the 6th
-decimal place”. This is because `marlin` is a *structural* rather than
-*statistical* simulation model, meaning it cannot by fit to explain
-processes in observed data. Rather, users must manually adjust the
-parameters of the model to reflect the general dynamics of the system
-they are interested in. This means that “how much of an impact does
-hyperallometry have on MPA outcomes” is a much simpler question than
-“what will be the catch and biodiversity impacts of the MPA I am
-designing for 13 different data-limited species in a rapidly changing
-small bay”. Both are doable, and marlin can provide general insights in
-both cases, but the more specific and *what will* style question you
-ask, the harder it will be to ensure the model is appropriately set up.
+questions.
+
+In other words, `marlin` is better suited to asking “how might the
+impacts of my proposed MPA network change if fishing effort is displaced
+rather than removed?” rather than “*what will* the impacts of my
+proposed MPA network be on biodiversity down to the 6th decimal place”.
+
+This is because `marlin` is a *structural* rather than *statistical*
+simulation model, meaning the parameters in the model cannot be directly
+fit to explain patterns in observed data. Rather, users must manually
+adjust the parameters of the model to reflect the general dynamics of
+the system they are interested in.
+
+This means that “how much of an impact does hyperallometry have on MPA
+outcomes” is a much simpler question than “what will be the catch and
+biodiversity impacts of the MPA I am designing for 13 different
+data-limited species in a rapidly changing small bay”.
+
+Both are doable, and `marlin` can provide general insights in both
+cases, but the more specific and *what will* style of question you ask,
+the harder it will be to ensure the model is appropriately set up.
 
 Some use cases we envision for marlin are
 
@@ -103,7 +109,8 @@ for more use cases, than we can preemptively plan for.
 Given that `marlin` tracks populations and fleet dynamics across ages,
 time steps, space, species, and fleet units, the outputs are rather
 unruly. Skills in wrangling list objects will serve you will, along with
-tidy-data manipulation.
+tidy-data manipulation. [`purrr`](https://purrr.tidyverse.org/) is
+really really good at this.
 
 You do not need the `tidyverse` to run `marlin`, but you will see that
 we make extensive use of it, in particular `dplyr`, `tidyr`, `ggplot2`
@@ -245,7 +252,7 @@ example_sim <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - start_time
-#> Time difference of 0.04468107 secs
+#> Time difference of 0.03629994 secs
 ```
 
 we can then use `process_marlin` and `plot_marlin` to examine the
@@ -364,7 +371,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets) 
 
 Sys.time() - a
-#> Time difference of 1.604803 secs
+#> Time difference of 1.541478 secs
 
 
 fauna$bigeye$plot()
@@ -381,7 +388,7 @@ sim2 <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.206686 secs
+#> Time difference of 0.1902981 secs
   
 
 processed_marlin <- process_marlin(sim = sim2, time_step = time_step)
@@ -484,7 +491,7 @@ fauna <-
 #> • Found: 1 
 #> • Not Found: 0
 Sys.time() - a
-#> Time difference of 1.225866 secs
+#> Time difference of 1.124891 secs
 
 # create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
 # with lists for each species inside there. Price specifies the price per unit weight of that 
@@ -552,7 +559,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets) 
 
 Sys.time() - a
-#> Time difference of 3.028836 secs
+#> Time difference of 2.806899 secs
 
 
 # run simulations
@@ -565,7 +572,7 @@ sim3 <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.484375 secs
+#> Time difference of 0.453964 secs
 # a <- Sys.time()
 
 processed_marlin <- process_marlin(sim = sim3, time_step = time_step, keep_age = TRUE)
@@ -719,7 +726,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
-#> Time difference of 19.79416 secs
+#> Time difference of 29.74734 secs
 
 # run simulations
 
@@ -730,7 +737,7 @@ nearshore <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.4209449 secs
+#> Time difference of 0.4105129 secs
   
 proc_nearshore <- process_marlin(nearshore, time_step =  fauna[[1]]$time_step)
 ```
@@ -769,7 +776,7 @@ nearshore_mpa <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.3557971 secs
+#> Time difference of 0.349936 secs
 
 proc_nearshore_mpa <- process_marlin(nearshore_mpa, time_step =  fauna[[1]]$time_step)
 ```
@@ -840,7 +847,7 @@ offshore <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.3829269 secs
+#> Time difference of 0.3363781 secs
   
 proc_offshore <- process_marlin(offshore, time_step =  fauna[[1]]$time_step)
 
@@ -855,7 +862,7 @@ offshore_mpa_sim <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.3644609 secs
+#> Time difference of 0.3295069 secs
 
 
 proc_offshore_mpa <- process_marlin(offshore_mpa_sim, time_step =  fauna[[1]]$time_step)
@@ -981,7 +988,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
-#> Time difference of 0.784071 secs
+#> Time difference of 0.6988399 secs
 
 # run simulations
 
