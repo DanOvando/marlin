@@ -10,14 +10,13 @@ simmar(
   manager = list(),
   habitat = list(),
   years = 100,
-  tune_unfished = 0,
   initial_conditions = NA,
   starting_step = 0,
   keep_starting_step = TRUE
 )
 }
 \arguments{
-\item{tune_unfished}{}
+\item{steps}{}
 }
 \description{
 when passed fauna and fleet objects, simmar will advance

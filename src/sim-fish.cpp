@@ -89,18 +89,27 @@ List sim_fish(
     
   } // close seasonal movement finder loop
   
-  if (Rcpp::traits::is_na<REALSXP>(ssb0) == 1){ // basically, if is.na(ssb0), tune unfished conditions
+  if (Rcpp::traits::is_na<REALSXP>(ssb0) == 1){ // basically, if is.na(ssb0), tune unfished conditions in a recursive fashion
 
-    NumericVector burn_seq = cpp_seq(burn_steps,time_step);
+    NumericVector burn_seq = cpp_seq(burn_steps + 365,time_step); // create buffer for spawning season, assuming that the most insane model is daily steps
     
-    for (int b = 0; b < burn_steps; b++){
-
-      season = burn_seq(b) - floor(burn_seq(b)); // determine what season you're in
-      
-       
+    int stopper = 0;
+    
+    int b = 0;
+    
+    double season = 0;
+    
+    // keep burn loop going until it ends in a spawning season
+    while (stopper == 0) {
+    
       // these HAVE to be in the same order
       // as function call: get lots of warnings
       // if you try and name them
+      season = burn_seq(b) - floor(burn_seq(b)); // determine the next season 
+      
+      if (((b >= burn_steps) & (season == 0))){
+        stopper = 1;
+      }
       
       tmppop = sim_fish(
         length_at_age,
@@ -125,17 +134,25 @@ List sim_fish(
         rec_form,
         spawning_seasons,
         rec_devs);
-
+      
+      b++; // increment b
+      
       tmp_n_p_a = Rcpp::wrap(tmppop["n_p_a"]);
+      
+      if (Rcpp::any(season == spawning_seasons).is_true()){
+      
+      NumericMatrix tmp_ssb_p_a = tmppop["ssb_p_a"];
+      
+      // collect unfished spawning stock biomass 
+      ssb0 = sum(tmp_ssb_p_a); 
+      
+      ssb0_p = rowSums(tmp_ssb_p_a);
+      
+      } // keep track of the SSB0 in the last spawning season to occur
 
     }
 
-    NumericMatrix tmp_ssb_p_a = tmppop["ssb_p_a"];
-
-    // collect unfished spawning stock biomass 
-    ssb0 = sum(tmp_ssb_p_a); 
-    
-    ssb0_p = rowSums(tmp_ssb_p_a);
+ 
 
   }
 
@@ -189,7 +206,13 @@ List sim_fish(
   
     if (tune_unfished == 1){ // turn off stock recruitment relationship
 
+      if (Rcpp::any(season == spawning_seasons).is_true()){
+        
       recruits = r0s;
+      
+      } else {
+        recruits = zero_recruits;
+      }
       
     } else { // if stock recruitment relationship is in effect
 
@@ -249,6 +272,7 @@ List sim_fish(
   //////////////////// process results ////////////////////////
 
   return Rcpp::List::create(
+    Rcpp::Named("season") = season,
     Rcpp::Named("n_p_a") = n_p_a,
     Rcpp::Named("b_p_a") = b_p_a,
     Rcpp::Named("ssb_p_a") = ssb_p_a,
