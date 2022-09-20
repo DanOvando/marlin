@@ -35,6 +35,8 @@ library(marlin)
 
 library(tidyverse)
 
+theme_set(theme_marlin(base_size = 14))
+
 resolution <- 10 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
 
 burn_years <- 20
@@ -50,7 +52,6 @@ fauna <-
     "striped marlin" = create_critter(
       scientific_name = "Kajikia audax",
       adult_diffusion = 10,
-      rec_form = 3,
       seasons = seasons,
       fished_depletion = 0.2,
       resolution = resolution,
@@ -111,7 +112,13 @@ hcr_intercept <- -hcr_slope * hcr_cutoff
 
 hcr <- pmin(max_u,pmax(.01,hcr_slope * depletion + hcr_intercept))
 
-plot(depletion, hcr)
+hcr_frame <- data.frame(depletion = depletion, hcr = hcr)
+
+hcr_frame %>% 
+  ggplot(aes(depletion, hcr)) + 
+  geom_line() + 
+  scale_x_continuous(name = "B/B0") + 
+  scale_y_continuous(name = "Fishing Mortality Rate")
 
 ```
 

@@ -35,9 +35,9 @@ n <- matrix(ncol = 1, nrow = n_g,rep(0,n_g))
 
 n[1,1] <-  100
 
-for (y in 1:10){
+for (y in 1:2){
   
- n <-  mfraction_gg * n
+ n <-  mfraction_gg %*% n
   
 }
 

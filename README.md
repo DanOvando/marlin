@@ -167,7 +167,7 @@ fauna <-
     "bigeye" = create_critter(
       common_name = "bigeye tuna",
       adult_diffusion = 10,
-      rec_form = 3,
+      density_dependence = "post_dispersal",
       seasons = seasons,
       fished_depletion = .25,
       resolution = resolution,
@@ -245,7 +245,7 @@ example_sim <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - start_time
-#> Time difference of 0.04281306 secs
+#> Time difference of 0.04468107 secs
 ```
 
 we can then use `process_marlin` and `plot_marlin` to examine the
@@ -319,7 +319,7 @@ fauna <-
       base_habitat = list(bigeye_habitat,bigeye_habitat2),
       season_blocks = list(c(1,2),c(3,4)),
       adult_diffusion = list(c(2,2), c(.1,.1)), # standard deviation of the number of patches moved by adults
-      rec_form = 2,
+      density_dependence = "pre_dispersal",
       seasons = seasons,
       init_explt =  1,
      explt_type = "f"
@@ -364,7 +364,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets) 
 
 Sys.time() - a
-#> Time difference of 2.002918 secs
+#> Time difference of 1.604803 secs
 
 
 fauna$bigeye$plot()
@@ -381,7 +381,7 @@ sim2 <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.237659 secs
+#> Time difference of 0.206686 secs
   
 
 processed_marlin <- process_marlin(sim = sim2, time_step = time_step)
@@ -458,7 +458,7 @@ fauna <-
       recruit_habitat = skipjack_habitat,
       adult_diffusion = 2, # standard deviation of the number of patches moved by adults
       fished_depletion = .6, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
-      rec_form = 1, # recruitment form, where 1 implies local recruitment
+      density_dependence = "global_habitat", # recruitment form, where 1 implies local recruitment
       seasons = seasons,
       init_explt = 0.2, 
       explt_type = "f"
@@ -470,7 +470,7 @@ fauna <-
       recruit_habitat = bigeye_habitat,
       adult_diffusion = 1,
       fished_depletion = .1,
-      rec_form = 1,
+      density_dependence = "local_habitat",
       seasons = seasons,
       init_explt = 0.3, 
       explt_type = "f"
@@ -484,7 +484,7 @@ fauna <-
 #> • Found: 1 
 #> • Not Found: 0
 Sys.time() - a
-#> Time difference of 1.134254 secs
+#> Time difference of 1.225866 secs
 
 # create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
 # with lists for each species inside there. Price specifies the price per unit weight of that 
@@ -552,7 +552,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets) 
 
 Sys.time() - a
-#> Time difference of 3.399425 secs
+#> Time difference of 3.028836 secs
 
 
 # run simulations
@@ -565,7 +565,7 @@ sim3 <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.6005359 secs
+#> Time difference of 0.484375 secs
 # a <- Sys.time()
 
 processed_marlin <- process_marlin(sim = sim3, time_step = time_step, keep_age = TRUE)
@@ -658,7 +658,7 @@ fauna <-
       recruit_habitat = yft_habitat,
       adult_diffusion = 4, # standard deviation of the number of patches moved by adults
       fished_depletion = .4, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
-      rec_form = 1, # recruitment form, where 1 implies local recruitment
+      density_dependence = "local_habitat", # recruitment form, where 1 implies local recruitment
       seasons = seasons,
       init_explt = 0.12, 
       explt_type = "f"
@@ -669,7 +669,7 @@ fauna <-
       recruit_habitat = mako_habitat,
       adult_diffusion = 3,
       fished_depletion = .3,
-      rec_form = 1,
+      density_dependence = "local_habitat", # recruitment form, where 1 implies local recruitment
       burn_years = 200,
       seasons = seasons,
       init_explt = .12, 
@@ -719,7 +719,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
-#> Time difference of 21.19382 secs
+#> Time difference of 19.79416 secs
 
 # run simulations
 
@@ -730,7 +730,7 @@ nearshore <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.4395318 secs
+#> Time difference of 0.4209449 secs
   
 proc_nearshore <- process_marlin(nearshore, time_step =  fauna[[1]]$time_step)
 ```
@@ -769,7 +769,7 @@ nearshore_mpa <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.3704839 secs
+#> Time difference of 0.3557971 secs
 
 proc_nearshore_mpa <- process_marlin(nearshore_mpa, time_step =  fauna[[1]]$time_step)
 ```
@@ -800,7 +800,7 @@ fauna <-
       recruit_habitat = yft_habitat,
       adult_diffusion = 4, # standard deviation of the number of patches moved by adults
       fished_depletion = .4, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
-      rec_form = 1, # recruitment form, where 1 implies local recruitment
+      density_dependence = "local_habitat", # recruitment form, where 1 implies local recruitment
       seasons = seasons,
       init_explt = 0.12, 
       explt_type = "f"
@@ -811,7 +811,7 @@ fauna <-
       recruit_habitat = mako_habitat,
       adult_diffusion = 3,
       fished_depletion = .3,
-      rec_form = 1,
+      density_dependence = "local_habitat", # recruitment form, where 1 implies local recruitment
       burn_years = 200,
       seasons = seasons,
       init_explt = .12, 
@@ -840,7 +840,7 @@ offshore <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.3850229 secs
+#> Time difference of 0.3829269 secs
   
 proc_offshore <- process_marlin(offshore, time_step =  fauna[[1]]$time_step)
 
@@ -855,7 +855,7 @@ offshore_mpa_sim <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.390085 secs
+#> Time difference of 0.3644609 secs
 
 
 proc_offshore_mpa <- process_marlin(offshore_mpa_sim, time_step =  fauna[[1]]$time_step)
@@ -931,7 +931,7 @@ fauna <-
       recruit_habitat = yft_habitat,
       adult_diffusion = 4, 
       fished_depletion = .4, 
-      rec_form = 1, 
+      density_dependence = "local_habitat", # recruitment form, where 1 implies local recruitment
       seasons = seasons,
       init_explt = 0.12, 
       explt_type = "f"
@@ -942,7 +942,7 @@ fauna <-
       recruit_habitat = mako_habitat,
       adult_diffusion = 3,
       fished_depletion = .3,
-      rec_form = 1,
+      density_dependence = "local_habitat", # recruitment form, where 1 implies local recruitment
       burn_years = 200,
       seasons = seasons,
       init_explt = 0.1, 
@@ -981,7 +981,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
-#> Time difference of 0.798255 secs
+#> Time difference of 0.784071 secs
 
 # run simulations
 

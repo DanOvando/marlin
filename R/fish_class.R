@@ -88,7 +88,7 @@ Fish <- R6::R6Class(
                           steepness = 0.8,
                           r0 = 10000,
                           ssb0 = NA,
-                          density_dependence_form = 1,
+                          density_dependence = "post_dispersal",
                           adult_diffusion = 4,
                           recruit_diffusion = 10,
                           query_fishlife = T,
@@ -105,7 +105,7 @@ Fish <- R6::R6Class(
                           season_blocks = list(),
                           recruit_habitat = NA,
                           fished_depletion = 1,
-                          rec_form = 1,
+                          rec_form = 3,
                           burn_years = 50,
                           seasonal_hab = NA,
                           seasons = 1,
@@ -614,12 +614,12 @@ Fish <- R6::R6Class(
       
       self$m <- m
       
-      self$density_dependence_form <-
-        density_dependence_form
-      
       self$time_step <- time_step
       
       self$seasons <- seasons
+      
+      
+      rec_form <- switch(EXPR = density_dependence,"global_habitat" = 0 , "local_habitat" = 1, "pre_dispersal" = 2,"post_dispersal" = 3)
       
       self$rec_form <- rec_form
       

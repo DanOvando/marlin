@@ -56,7 +56,7 @@ fauna <-
     "bigeye" = create_critter(
       scientific_name = "Thunnus obesus",
       adult_diffusion = 10,
-      rec_form = 3,
+      density_dependence = "post_dispersal", 
       seasons = seasons,
       fished_depletion = 0.2,
       resolution = resolution,
@@ -131,7 +131,8 @@ fleets <- list(
   ),
   base_effort = resolution ^ 2,
   resolution = resolution,
-  fleet_model = "constant effort"
+  fleet_model = "constant effort",
+  cost_per_unit_effort = 2
 ))
 
 fleets <- tune_fleets(fauna, fleets, tune_type = "depletion") 

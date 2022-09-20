@@ -66,7 +66,6 @@ fauna <-
       season_blocks = list(c(1, 2), c(3, 4)), # seasons each habitat apply to
       recruit_habitat = skipjack_habitat,
       adult_diffusion = 2, # standard deviation of the number of patches moved by adults
-      rec_form = 1, # recruitment form, where 1 implies local recruitment
       seasons = seasons,
       init_explt = 0.4, 
       explt_type = "f"
@@ -77,7 +76,6 @@ fauna <-
       season_blocks = list(c(1, 2), c(3, 4)), # seasons each habitat apply to
       recruit_habitat = bigeye_habitat,
       adult_diffusion = 1,
-      rec_form = 1,
       seasons = seasons,
       init_explt = 0.7, 
       explt_type = "f"

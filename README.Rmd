@@ -128,7 +128,7 @@ fauna <-
     "bigeye" = create_critter(
       common_name = "bigeye tuna",
       adult_diffusion = 10,
-      rec_form = 3,
+      density_dependence = "post_dispersal",
       seasons = seasons,
       fished_depletion = .25,
       resolution = resolution,
@@ -246,7 +246,7 @@ fauna <-
       base_habitat = list(bigeye_habitat,bigeye_habitat2),
       season_blocks = list(c(1,2),c(3,4)),
       adult_diffusion = list(c(2,2), c(.1,.1)), # standard deviation of the number of patches moved by adults
-      rec_form = 2,
+      density_dependence = "pre_dispersal",
       seasons = seasons,
       init_explt =  1,
      explt_type = "f"
@@ -355,7 +355,7 @@ fauna <-
       recruit_habitat = skipjack_habitat,
       adult_diffusion = 2, # standard deviation of the number of patches moved by adults
       fished_depletion = .6, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
-      rec_form = 1, # recruitment form, where 1 implies local recruitment
+      density_dependence = "global_habitat", # recruitment form, where 1 implies local recruitment
       seasons = seasons,
       init_explt = 0.2, 
       explt_type = "f"
@@ -367,7 +367,7 @@ fauna <-
       recruit_habitat = bigeye_habitat,
       adult_diffusion = 1,
       fished_depletion = .1,
-      rec_form = 1,
+      density_dependence = "local_habitat",
       seasons = seasons,
       init_explt = 0.3, 
       explt_type = "f"
@@ -525,7 +525,7 @@ fauna <-
       recruit_habitat = yft_habitat,
       adult_diffusion = 4, # standard deviation of the number of patches moved by adults
       fished_depletion = .4, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
-      rec_form = 1, # recruitment form, where 1 implies local recruitment
+      density_dependence = "local_habitat", # recruitment form, where 1 implies local recruitment
       seasons = seasons,
       init_explt = 0.12, 
       explt_type = "f"
@@ -536,7 +536,7 @@ fauna <-
       recruit_habitat = mako_habitat,
       adult_diffusion = 3,
       fished_depletion = .3,
-      rec_form = 1,
+      density_dependence = "local_habitat", # recruitment form, where 1 implies local recruitment
       burn_years = 200,
       seasons = seasons,
       init_explt = .12, 
@@ -656,7 +656,7 @@ fauna <-
       recruit_habitat = yft_habitat,
       adult_diffusion = 4, # standard deviation of the number of patches moved by adults
       fished_depletion = .4, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
-      rec_form = 1, # recruitment form, where 1 implies local recruitment
+      density_dependence = "local_habitat", # recruitment form, where 1 implies local recruitment
       seasons = seasons,
       init_explt = 0.12, 
       explt_type = "f"
@@ -667,7 +667,7 @@ fauna <-
       recruit_habitat = mako_habitat,
       adult_diffusion = 3,
       fished_depletion = .3,
-      rec_form = 1,
+      density_dependence = "local_habitat", # recruitment form, where 1 implies local recruitment
       burn_years = 200,
       seasons = seasons,
       init_explt = .12, 
@@ -780,7 +780,7 @@ fauna <-
       recruit_habitat = yft_habitat,
       adult_diffusion = 4, 
       fished_depletion = .4, 
-      rec_form = 1, 
+      density_dependence = "local_habitat", # recruitment form, where 1 implies local recruitment
       seasons = seasons,
       init_explt = 0.12, 
       explt_type = "f"
@@ -791,7 +791,7 @@ fauna <-
       recruit_habitat = mako_habitat,
       adult_diffusion = 3,
       fished_depletion = .3,
-      rec_form = 1,
+      density_dependence = "local_habitat", # recruitment form, where 1 implies local recruitment
       burn_years = 200,
       seasons = seasons,
       init_explt = 0.1, 

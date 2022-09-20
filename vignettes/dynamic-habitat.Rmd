@@ -102,7 +102,7 @@ fauna <-
       adult_diffusion = list(5, 5), # standard deviation of the number of patches moved by adults
       recruit_diffusion = 10,
       recruit_habitat = recruit_habitat,
-      rec_form = 0,
+      density_dependence = "post_dispersal", 
       seasons = seasons,
       init_explt =  1,
       explt_type = "f",

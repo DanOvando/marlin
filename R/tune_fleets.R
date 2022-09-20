@@ -158,7 +158,7 @@ tune_fleets <- function(fauna,
     
     if (tune_costs){
     
-    init_sim <- simmar(fauna = fauna,
+      init_sim <- simmar(fauna = fauna,
                       fleets = fleets,
                       years = years)
 
@@ -166,16 +166,15 @@ tune_fleets <- function(fauna,
 
     revenue <-
       purrr::map_dfr(eq,
-                     ~ data.frame( revenue = (colSums(.x$r_p_fl))),
+                     ~ tibble::rownames_to_column(data.frame( revenue = (colSums(.x$r_p_fl, na.rm = TRUE))), "fleet"),
                      .id = "critter") %>%
-      tibble::rownames_to_column("fleet") %>%
       dplyr::group_by(fleet) %>%
       dplyr::summarise(revenue = sum(revenue))
 
     effort <-    purrr::map_dfr(eq[1],
                                 ~ data.frame(.x$e_p_fl) %>% dplyr::mutate(patch = 1:nrow(.)),
                                 .id = "critter") %>%
-      tidyr::pivot_longer(-c(critter, patch), names_to = "fleet", values_to = "effort") # effort is the same per fleet for all critters so only selecting first entry
+      tidyr::pivot_longer(-c(critter, patch), names_to = "fleet", values_to = "effort") # effort is the same for all critters per fleet so only selecting first entry
 
 
     cost_per_patch <-

@@ -673,30 +673,25 @@ simmar <- function(fauna = list(),
           
           quota <- manager$quotas[[names(fauna)[f]]]
           
-          quota_finder <- function(fmult, quota, fauna, current_season, movement,f_p_a,last_n_p_a,f_p_a_fl){
-            
-            tmp_pop <-
-              fauna[[f]]$swim(
-                season = current_season,
-                adult_movement = movement,
-                f_p_a = fmult * f_p_a,
-                last_n_p_a = last_n_p_a,
-                rec_devs = rec_devs
-              )
-            
-            tmp_catch <-
-              f_p_a_fl * array(
-                tmp_pop$c_p_a,
-                dim = c(patches, ages, length(fleets)),
-                dimnames = list(1:patches, fauna[[f]]$ages, names(fleets))
-              )
-            
-            log_ss <- (sum(tmp_catch, na.rm = TRUE) - quota)^2
-            
-            
-          }
-          
-          fmulter <- nlminb(0.9, quota_finder, quota = quota, fauna = fauna, current_season = current_season, movement = movement,f_p_a = f_p_a,last_n_p_a = last_n_p_a,f_p_a_fl = f_p_a_fl, lower = 0, upper = 1)
+          fmulter <-
+            nlminb(
+              0.9,
+              marlin::quota_finder,
+              quota = quota,
+              fauna = fauna,
+              current_season = current_season,
+              movement = movement,
+              f_p_a = f_p_a,
+              last_n_p_a = last_n_p_a,
+              f_p_a_fl = f_p_a_fl,
+              f = f,
+              patches = patches,
+              ages = ages,
+              fleets = fleets,
+              rec_devs = rec_devs,
+              lower = 0,
+              upper = 1
+            )
         
           fmult <- fmulter$par
           

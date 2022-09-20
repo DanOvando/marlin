@@ -62,8 +62,7 @@ fleets <- list(
       sel_start = 1,
       sel_delta = .01,
       catchability = 1e-3,
-      p_explt = 1,
-      spatial_catchability = NA
+      p_explt = 1
     )
     ),
     ports = ports,
@@ -71,7 +70,7 @@ fleets <- list(
     resolution  = resolution,
     spatial_allocation = "profit",
     cost_per_unit_effort = 1,
-    cost_per_distance = 2
+    cost_per_distance = 1.5
   )
 )
 
