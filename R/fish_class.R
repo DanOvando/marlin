@@ -135,7 +135,7 @@ Fish <- R6::R6Class(
       if (length(base_habitat) == 0) {
         base_habitat <-
           purrr::map(1:seq_along(seasons), function(x, res)
-            matrix(1, nrow = res, ncol = res), res = resolution)
+            matrix(0, nrow = res, ncol = res), res = resolution)
         
       }
       
@@ -395,11 +395,26 @@ Fish <- R6::R6Class(
           ) * ((ages - age_50_mature) / (age_95_mature - age_50_mature)
           )))))
         
+        
+        # find first length at which 50%/95% of animals are fully mature
+
+        length_bins <-
+          as.numeric(colnames(length_at_age_key))
+        
+          length_50_mature <- length_mature <- length_bins[which.min((cumsum(as.matrix(length_at_age_key)[which.min((ages - (age_95_mature))^2),]) - 0.5)^2)[1]]
+        
+          length_95_mature <- length_bins[which.min((cumsum(as.matrix(length_at_age_key)[which.min((ages - (age_95_mature))^2),]) - 0.95)^2)[1]]
+          
       } else if (is.na(age_mature) |
                  mat_mode == "length") {
         if (is.na(length_mature)) {
           length_mature <-  linf * lmat_to_linf_ratio
         }
+        
+        length_50_mature <- length_mature
+        
+        length_95_mature <-
+          length_50_mature + delta_mature
         
         length_bins <-
           as.numeric(colnames(length_at_age_key))
