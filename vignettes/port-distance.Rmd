@@ -70,12 +70,12 @@ fleets <- list(
     resolution  = resolution,
     spatial_allocation = "profit",
     cost_per_unit_effort = 1,
-    cost_per_distance = 1.5
+    cost_per_distance = 1.5,
   )
 )
 
 
-fleets <- tune_fleets(fauna, fleets) 
+fleets <- tune_fleets(fauna, fleets, tune_costs = TRUE) 
 
 ```
 

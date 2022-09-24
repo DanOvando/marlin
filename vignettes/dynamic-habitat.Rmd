@@ -51,7 +51,7 @@ land <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
 
 
 h1 <-  expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(habitat =  dnorm(x, resolution / 2, .025 * resolution) *  dnorm(y, resolution / 2, .025 * resolution)) %>% 
+  mutate(habitat =  dnorm(x, resolution / 2, .02 * resolution) *  dnorm(y, resolution / 2, .02 * resolution)) %>% 
   mutate(habitat = habitat * (x >= 4)) %>% 
     left_join(land, by =c("x","y")) %>% 
     mutate(habitat = ifelse(is.na(land), habitat, NA)) %>% 
