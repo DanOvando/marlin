@@ -17,7 +17,7 @@ prep_movement <-
     
     
     # set up spatial grid
-    adjacent <-
+      adjacent <-
       tidyr::expand_grid(x = 1:resolution, y = 1:resolution) %>%
       dist() %>%
       as.matrix()

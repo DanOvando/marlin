@@ -3,12 +3,16 @@
 #' when passed fauna and fleet objects, simmar will advance
 #' the population for a number of steps
 #'
-#' @param fauna
-#' @param fleets
-#' @param manager
-#' @param steps
+#' @param fauna a list of fauna objects
+#' @param fleets a list of fleet objects
+#' @param habitat a list of habitat over time
+#' @param years the number of years to run the simulation
+#' @param initial_conditions initial conditions for the simulation, in the form simmar()[[final year]]
+#' @param starting_step # the step to start the simulation from, used to keep track of steps across multiple runs of simmar
+#' @param keep_starting_step should the starting step by kept (TRUE) or dropped (FALSE)
+#' @param manager a list of management actions
 #'
-#' @return
+#' @return a list containing the results of the simulation
 #' @export
 #'
 simmar <- function(fauna = list(),
@@ -257,8 +261,8 @@ simmar <- function(fauna = list(),
         last_revenue <-
           sum(last_r_p, na.rm = TRUE) # pull out total revenue for fleet l
         
-        last_cost <-  fleets[[l]]$cost_per_unit_effort * sum((fleets[[l]]$e_p_s[, s - 1]) ^
-                                                               fleets[[l]]$effort_cost_exponent) + sum(fleets[[l]]$cost_per_patch * fleets[[l]]$e_p_s[,s-1])
+        last_cost <-  fleets[[l]]$cost_per_unit_effort * (sum((fleets[[l]]$e_p_s[, s - 1]) ^
+                                                               fleets[[l]]$effort_cost_exponent) + sum(fleets[[l]]$cost_per_patch * fleets[[l]]$e_p_s[,s-1]))
         
         last_profits <-
           last_revenue - last_cost # calculate profits in the last time step.
@@ -276,8 +280,7 @@ simmar <- function(fauna = list(),
         
 
           if (exists("last_revenue")){
-          
-          total_effort <- total_effort * exp(fleets[[l]]$responsiveness * log(pmax(last_revenue, 1e-6) / pmax(1e-6,last_cost))) # adjust effort per an open access dynamics model
+          total_effort <- total_effort * pmin(1.5,exp(fleets[[l]]$responsiveness * log(pmax(last_revenue, 1e-6) / pmax(1e-6,last_cost)))) # adjust effort per an open access dynamics model
           } # in edge case where the fishery is closed for the first few seasons of the simulation stick with last value
         
 
@@ -377,8 +380,8 @@ simmar <- function(fauna = list(),
           
         } else {
           alloc = ((
-            last_r_p - fleets[[l]]$cost_per_unit_effort * (e_p + 1) ^ fleets[[l]]$effort_cost_exponent
-          - fleets[[l]]$cost_per_patch * e_p ) / (e_p + 1)
+            last_r_p - fleets[[l]]$cost_per_unit_effort * ((e_p + 1) ^ fleets[[l]]$effort_cost_exponent
+          + fleets[[l]]$cost_per_patch * e_p ) / (e_p + 1))
           ) * fishable
           
           alloc[!is.finite(alloc)] <-  0
@@ -422,7 +425,7 @@ simmar <- function(fauna = list(),
           #1 / nrow(r_p_f)
         } else {
           alloc = (
-            last_r_p - fleets[[l]]$cost_per_unit_effort * (e_p) ^ fleets[[l]]$effort_cost_exponent -  fleets[[l]]$cost_per_patch * e_p
+            last_r_p - fleets[[l]]$cost_per_unit_effort * ((e_p) ^ fleets[[l]]$effort_cost_exponent +  fleets[[l]]$cost_per_patch * e_p)
           )
           
           alloc[!is.finite(alloc)] <-  0
@@ -726,7 +729,7 @@ simmar <- function(fauna = list(),
         r_p_fl[, fl] <-  rowSums(r_p_a_fl[, , fl], na.rm = TRUE)
         
         prof_p_fl[, fl] <-
-          r_p_fl[, fl] - fleets[[fl]]$cost_per_unit_effort * (as.matrix(tmp_e_p_fl[, fl]) ^ fleets[[fl]]$effort_cost_exponent) / length(fauna) - as.matrix(tmp_e_p_fl[,fl] * fleets[[fl]]$cost_per_patch) / length(fauna)
+          r_p_fl[, fl] - fleets[[fl]]$cost_per_unit_effort * ((as.matrix(tmp_e_p_fl[, fl]) ^ fleets[[fl]]$effort_cost_exponent) / length(fauna) + as.matrix(tmp_e_p_fl[,fl] * fleets[[fl]]$cost_per_patch) / length(fauna))
         
       }
       

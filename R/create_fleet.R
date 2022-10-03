@@ -23,7 +23,7 @@ create_fleet <-
            responsiveness = 0.5,
            cost_per_unit_effort = NA,
            spatial_allocation = "rpue",
-           effort_cost_exponent = 1.3,
+           effort_cost_exponent = 2,
            ports = NULL,
            cost_per_distance = 1,
            cr_ratio = 1,
@@ -49,8 +49,7 @@ create_fleet <-
         dist(diag = TRUE) %>%
         as.matrix()
       
-      
-      port_distances <- apply(port_distance[ports$patch,],2,min) # calculate the distance from each patch to the port patches, then find the minimum distance
+      port_distances <- apply(matrix(port_distance[ports$patch,], nrow = length(ports$patch), ncol = ),2,min) # calculate the distance from each patch to the port patches, then find the minimum distance
       
       cost_per_patch <- port_distances * cost_per_distance # calculate total travel cost per patch
       

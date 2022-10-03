@@ -187,6 +187,8 @@ tune_fleets <- function(fauna,
 
     base_cr_ratio <- purrr::map_dfr(fleets, ~data.frame(base_cr_ratio = .x$cr_ratio), .id = "fleet")
     
+    fleet_cost_expos <- purrr::map_df(fleets, ~ data.frame(beta = .x$effort_cost_exponent),.id = "fleet")
+    
     effort_and_costs <- effort %>%
       dplyr::left_join(cost_per_patch, by = c("fleet", "patch")) %>%
       dplyr::group_by(fleet) %>%
@@ -194,8 +196,9 @@ tune_fleets <- function(fauna,
                        travel_cost = sum(effort * cost)) %>%
       dplyr::left_join(revenue, by = "fleet") %>%
       dplyr::left_join(base_cr_ratio, by = "fleet") %>%
-      dplyr::mutate(cost_per_unit_effort = (base_cr_ratio * revenue - travel_cost) / effort) %>%
-      dplyr::mutate(profits =  revenue - (cost_per_unit_effort * effort + travel_cost))
+      dplyr::left_join(fleet_cost_expos, by = "fleet") %>% 
+      dplyr::mutate(cost_per_unit_effort = (base_cr_ratio * revenue ) / (effort^beta + travel_cost)) %>%
+      dplyr::mutate(profits =  revenue - (cost_per_unit_effort * (effort^beta + travel_cost)))
     
     for (f in names(fleets)){
       fleets[[f]]$cost_per_unit_effort <- effort_and_costs$cost_per_unit_effort[effort_and_costs$fleet == f]

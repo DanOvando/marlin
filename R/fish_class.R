@@ -179,8 +179,11 @@ Fish <- R6::R6Class(
       
       if (tune_diffusion){
         # tune adult diffusion parameter
+        # 
+    
+        
         adult_diffusion <-
-          purrr::map(adult_diffusion, ~ if (.x > 0) {
+          purrr::map(adult_diffusion, ~ if (any(.x > 0)) {
             ranger:::predict.ranger(
               marlin::diffusion_frontier_model,
               data = data.frame(diffusion_frontier = .x, resolution = resolution)

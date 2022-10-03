@@ -58,7 +58,7 @@ fauna <-
       adult_diffusion = 10,
       density_dependence = "post_dispersal", 
       seasons = seasons,
-      fished_depletion = 0.2,
+      fished_depletion = 0.8,
       resolution = resolution,
       steepness = 0.6,
       ssb0 = 1000
@@ -136,7 +136,6 @@ fleets <- list(
 ))
 
 fleets <- tune_fleets(fauna, fleets, tune_type = "depletion") 
-
 ```
 
 
