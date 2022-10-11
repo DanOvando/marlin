@@ -206,7 +206,7 @@ We can also layer quotas onto the fleet model. Here, we will impose a total quot
 sim_quota <- simmar(fauna = fauna,
                   fleets = fleets,
                   years = years,
-                  manager = list(quotas = list(bigeye = 50)))
+                  manager = list(quotas = list(bigeye = 15)))
 
 proc_sim_quota <- process_marlin(sim_quota)
 

@@ -15,7 +15,8 @@ tune_fleets <- function(fauna,
                         fleets,
                         years = 50,
                         tune_type = "explt",
-                        tune_costs = TRUE) {
+                        tune_costs = TRUE, 
+                        fine_tune_costs = TRUE) {
   
   # might be best to define costs based on unfished rather than EQ to get around weird tuning behavior with tuning assuming revenue distribution but fleet model assuming IFD  
   
@@ -41,8 +42,6 @@ tune_fleets <- function(fauna,
     for ( f in fleet_names){
       
       fleets[[f]]$metiers[[s]]$p_explt <- as.numeric(p_explts[f])
-      
-      # fleets[[f]]$cost_per_unit_effort <- NA # reset cost per unit effort if tuning
       
     } # close fleet loop
     
@@ -76,10 +75,7 @@ tune_fleets <- function(fauna,
       
       explt_by_fleet <- (fauna[[s]]$init_explt)  * p_explt
       
-      # catchability <-  log(1 - explt_by_fleet) / -e_fl
-      
       catchability <-  explt_by_fleet / e_fl
-      
       for (f in fleeti) {
         fleets[[f]]$metiers[[s]]$catchability <- catchability[f]
         
@@ -192,13 +188,15 @@ tune_fleets <- function(fauna,
     effort_and_costs <- effort %>%
       dplyr::left_join(cost_per_patch, by = c("fleet", "patch")) %>%
       dplyr::group_by(fleet) %>%
-      dplyr::summarise(effort = sum(effort),
-                       travel_cost = sum(effort * cost)) %>%
+      dplyr::summarise(travel_cost = sum(effort * cost),
+                       effort = sum(effort)) %>%
       dplyr::left_join(revenue, by = "fleet") %>%
       dplyr::left_join(base_cr_ratio, by = "fleet") %>%
-      dplyr::left_join(fleet_cost_expos, by = "fleet") %>% 
-      dplyr::mutate(cost_per_unit_effort = (base_cr_ratio * revenue ) / (effort^beta + travel_cost)) %>%
-      dplyr::mutate(profits =  revenue - (cost_per_unit_effort * (effort^beta + travel_cost)))
+      dplyr::left_join(fleet_cost_expos, by = "fleet") %>%
+      dplyr::mutate(cost_per_unit_effort = (base_cr_ratio * revenue) / (effort ^
+                                                                          beta + travel_cost)) %>%
+      dplyr::mutate(profits =  revenue - (cost_per_unit_effort * (effort ^
+                                                                    beta + travel_cost)))
     
     for (f in names(fleets)){
       fleets[[f]]$cost_per_unit_effort <- effort_and_costs$cost_per_unit_effort[effort_and_costs$fleet == f]

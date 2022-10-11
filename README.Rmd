@@ -265,7 +265,7 @@ fauna <-
 # create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
 # with lists for each species inside there. Price specifies the price per unit weight of that 
 # species for that fleet
-# sel_form can be one of logistic or dome
+# sel_form can be one of logistic or dome, with sel_start wpecifying the percent of length at maturity at which selectivity start, and sel_delta is the units of length greater than sel_50 to sel_95
 
 
 fleets <- list(

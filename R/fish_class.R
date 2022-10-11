@@ -113,7 +113,8 @@ Fish <- R6::R6Class(
                           init_explt = .1,
                           get_common_name = FALSE,
                           spawning_seasons = NA,
-                          tune_diffusion = TRUE) {
+                          tune_diffusion = TRUE,
+                          taxis_to_diff_ratio = 0) {
       seasons <- as.integer(seasons)
       
       if (seasons < 1) {
@@ -499,6 +500,9 @@ Fish <- R6::R6Class(
       self$ssb_at_age <-
         maturity_at_age * weight_at_age
       
+      self$taxis_to_diff_ratio <- taxis_to_diff_ratio
+      
+
       # create habitat and movement matrices
       
 
@@ -518,8 +522,7 @@ Fish <- R6::R6Class(
           
           message("Negative habitat values were provided; rescaling to positive values preserving relative differences. Make sure you did not provide habitat values on a log scale.")
         } # close habitat rescaling
-        
-        tmp_habitat[[i]] <- (outer(tmp_habitat[[i]], tmp_habitat[[i]], "-")) # calculate difference in habitat quality
+        tmp_habitat[[i]] <- (1 + adult_diffusion[[i]] * self$taxis_to_diff_ratio) * (outer(tmp_habitat[[i]], tmp_habitat[[i]], "-")) # calculate difference in habitat quality
         
         tmp_habitat[[i]][tmp_habitat[[i]] < 0 & !is.na(tmp_habitat[[i]])] <-  0 # only preferentially move towards BETTER habitat quality. Note that diffusion still allows movement against habitat gradients. Preserve NAs for land
       }
@@ -529,8 +532,6 @@ Fish <- R6::R6Class(
                     prep_movement,
                     resolution = resolution)
       
-      test <- tmp_habitat[[1]]
-      test[!is.na(test)] <- 1
       
       foo <- function(x,y){
         
@@ -558,7 +559,7 @@ Fish <- R6::R6Class(
       
       self$movement_seasons <- season_blocks
       
-      rec_diff_foundation <- purrr::map2(tmp_habitat, recruit_diffusion,foo ) # prepare adult diffusion matrix account for potential land
+      rec_diff_foundation <- purrr::map2(tmp_habitat, recruit_diffusion,foo ) # prepare diffusion matrix account for potential land
       
       self$recruit_movement <-
         prep_movement(multiplier = rec_diff_foundation[[1]],

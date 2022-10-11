@@ -43,7 +43,7 @@ fauna <-
   list(
     "bigeye" = create_critter(
       scientific_name = "thunnus obesus",
-      init_explt =  .4,
+      init_explt =  .2,
       explt_type = "f",
       resolution = resolution
     )
@@ -73,7 +73,7 @@ fleets <- list(
     resolution  = resolution,
     spatial_allocation = "ppue",
     cost_per_unit_effort = 1,
-    cost_per_distance = 100,
+    cost_per_distance = 10,
     fleet_model = "open access"
   )
 )
