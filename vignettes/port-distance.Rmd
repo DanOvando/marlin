@@ -24,6 +24,9 @@ First, let's set up port locations. Every fleet can have ports in as many cells 
 
 library(marlin)
 
+library(ggplot2)
+
+
 resolution <- 10 
 
 years <- 20
@@ -40,7 +43,7 @@ fauna <-
   list(
     "bigeye" = create_critter(
       scientific_name = "thunnus obesus",
-      init_explt =  1,
+      init_explt =  .2,
       explt_type = "f",
       resolution = resolution
     )
@@ -68,28 +71,36 @@ fleets <- list(
     ports = ports,
     base_effort = resolution ^ 2,
     resolution  = resolution,
-    spatial_allocation = "profit",
+    spatial_allocation = "ppue",
     cost_per_unit_effort = 1,
-    cost_per_distance = 1.5
+    cost_per_distance = 10,
+    fleet_model = "open access"
   )
 )
 
 
-fleets <- tune_fleets(fauna, fleets) 
+fleets <- tune_fleets(fauna, fleets, tune_costs = TRUE) 
+
+fleets$longline$cost_per_unit_effort
 
 ```
 
 From there, run simulation and see how the fleet concentrates around the ports. 
 
 ```{r}
-library(ggplot2)
-sim <- simmar(fauna = fauna,
+port_sim <- simmar(fauna = fauna,
                fleets = fleets,
                years = years)
 
+process_sim <- process_marlin(port_sim)
+
+plot_marlin(
+  process_sim,
+  plot_var = "ssb",
+  plot_type = "space")
 
 patch_effort <- tidyr::expand_grid(x = 1:resolution, y = 1:resolution) %>% 
-  dplyr::mutate(effort = sim[[length(sim)]]$bigeye$e_p_fl$longline )
+  dplyr::mutate(effort = port_sim[[length(port_sim)]]$bigeye$e_p_fl$longline )
 
 patch_effort %>% 
   ggplot() + 

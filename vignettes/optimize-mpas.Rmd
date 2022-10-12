@@ -172,12 +172,24 @@ plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space")
 
 ```{r}
 
-mpa_network <- optimize_mpa(fauna = fauna, fleets = fleets, resolution = resolution,
-                            starting_conditions = sim[[length(sim)]], alpha = 0.75)
+mpa_network <-
+  optimize_mpa(
+    fauna = fauna,
+    fleets = fleets,
+    resolution = resolution,
+    starting_conditions = sim[[length(sim)]],
+    alpha = 0.75,
+    max_prop_mpa = 0.1, 
+    work_backwards = TRUE
+  )
 
 
 mpa_network$mpa_network %>% 
-  filter(p_protected %% 5 == 0) %>% 
+  group_by(p_protected) %>% 
+  summarise(mean(mpa))
+
+mpa_network$mpa_network %>% 
+  # filter(p_protected  == 100) %>%
   ggplot(aes(x,y, fill = mpa)) + 
   geom_tile() + 
   facet_wrap(~p_protected)

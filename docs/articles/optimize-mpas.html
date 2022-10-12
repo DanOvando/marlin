@@ -151,7 +151,6 @@ size that maximizes your objective function.</p>
 <span>      season_blocks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">4</span><span class="op">)</span><span class="op">)</span>, <span class="co"># seasons each habitat apply to</span></span>
 <span>      recruit_habitat <span class="op">=</span> <span class="va">skipjack_habitat</span>,</span>
 <span>      adult_diffusion <span class="op">=</span> <span class="fl">2</span>, <span class="co"># standard deviation of the number of patches moved by adults</span></span>
-<span>      rec_form <span class="op">=</span> <span class="fl">1</span>, <span class="co"># recruitment form, where 1 implies local recruitment</span></span>
 <span>      seasons <span class="op">=</span> <span class="va">seasons</span>,</span>
 <span>      init_explt <span class="op">=</span> <span class="fl">0.4</span>, </span>
 <span>      explt_type <span class="op">=</span> <span class="st">"f"</span></span>
@@ -162,7 +161,6 @@ size that maximizes your objective function.</p>
 <span>      season_blocks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">4</span><span class="op">)</span><span class="op">)</span>, <span class="co"># seasons each habitat apply to</span></span>
 <span>      recruit_habitat <span class="op">=</span> <span class="va">bigeye_habitat</span>,</span>
 <span>      adult_diffusion <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>      rec_form <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>      seasons <span class="op">=</span> <span class="va">seasons</span>,</span>
 <span>      init_explt <span class="op">=</span> <span class="fl">0.7</span>, </span>
 <span>      explt_type <span class="op">=</span> <span class="st">"f"</span></span>
@@ -229,7 +227,7 @@ size that maximizes your objective function.</p>
 <span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span><span class="op">)</span> </span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 3.252793 secs</span></span>
+<span><span class="co">#&gt; Time difference of 3.539064 secs</span></span>
 <span></span>
 <span></span>
 <span><span class="co"># run simulations</span></span>
@@ -242,7 +240,7 @@ size that maximizes your objective function.</p>
 <span>                  years <span class="op">=</span> <span class="va">years</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.634747 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.6855149 secs</span></span>
 <span><span class="co"># a &lt;- Sys.time()</span></span>
 <span></span>
 <span><span class="va">processed_marlin</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/process_marlin.html">process_marlin</a></span><span class="op">(</span>sim <span class="op">=</span> <span class="va">sim</span>, time_step <span class="op">=</span> <span class="va">time_step</span>, keep_age <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
@@ -270,116 +268,47 @@ size that maximizes your objective function.</p>
 <p><img src="optimize-mpas_files/figure-html/setup-4.png" width="700"></p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="va">mpa_network</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/optimize_mpa.html">optimize_mpa</a></span><span class="op">(</span>fauna <span class="op">=</span> <span class="va">fauna</span>, fleets <span class="op">=</span> <span class="va">fleets</span>, resolution <span class="op">=</span> <span class="va">resolution</span>,</span>
-<span>                            starting_conditions <span class="op">=</span> <span class="va">sim</span><span class="op">[[</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">sim</span><span class="op">)</span><span class="op">]</span><span class="op">]</span>, alpha <span class="op">=</span> <span class="fl">0.75</span><span class="op">)</span></span>
-<span><span class="co">#&gt; 1% done</span></span>
-<span><span class="co">#&gt; 2% done</span></span>
-<span><span class="co">#&gt; 3% done</span></span>
-<span><span class="co">#&gt; 4% done</span></span>
-<span><span class="co">#&gt; 5% done</span></span>
-<span><span class="co">#&gt; 6% done</span></span>
-<span><span class="co">#&gt; 7% done</span></span>
-<span><span class="co">#&gt; 8% done</span></span>
-<span><span class="co">#&gt; 9% done</span></span>
-<span><span class="co">#&gt; 10% done</span></span>
-<span><span class="co">#&gt; 11% done</span></span>
-<span><span class="co">#&gt; 12% done</span></span>
-<span><span class="co">#&gt; 13% done</span></span>
-<span><span class="co">#&gt; 14% done</span></span>
-<span><span class="co">#&gt; 15% done</span></span>
-<span><span class="co">#&gt; 16% done</span></span>
-<span><span class="co">#&gt; 17% done</span></span>
-<span><span class="co">#&gt; 18% done</span></span>
-<span><span class="co">#&gt; 19% done</span></span>
-<span><span class="co">#&gt; 20% done</span></span>
-<span><span class="co">#&gt; 21% done</span></span>
-<span><span class="co">#&gt; 22% done</span></span>
-<span><span class="co">#&gt; 23% done</span></span>
-<span><span class="co">#&gt; 24% done</span></span>
-<span><span class="co">#&gt; 25% done</span></span>
-<span><span class="co">#&gt; 26% done</span></span>
-<span><span class="co">#&gt; 27% done</span></span>
-<span><span class="co">#&gt; 28% done</span></span>
-<span><span class="co">#&gt; 29% done</span></span>
-<span><span class="co">#&gt; 30% done</span></span>
-<span><span class="co">#&gt; 31% done</span></span>
-<span><span class="co">#&gt; 32% done</span></span>
-<span><span class="co">#&gt; 33% done</span></span>
-<span><span class="co">#&gt; 34% done</span></span>
-<span><span class="co">#&gt; 35% done</span></span>
-<span><span class="co">#&gt; 36% done</span></span>
-<span><span class="co">#&gt; 37% done</span></span>
-<span><span class="co">#&gt; 38% done</span></span>
-<span><span class="co">#&gt; 39% done</span></span>
-<span><span class="co">#&gt; 40% done</span></span>
-<span><span class="co">#&gt; 41% done</span></span>
-<span><span class="co">#&gt; 42% done</span></span>
-<span><span class="co">#&gt; 43% done</span></span>
-<span><span class="co">#&gt; 44% done</span></span>
-<span><span class="co">#&gt; 45% done</span></span>
-<span><span class="co">#&gt; 46% done</span></span>
-<span><span class="co">#&gt; 47% done</span></span>
-<span><span class="co">#&gt; 48% done</span></span>
-<span><span class="co">#&gt; 49% done</span></span>
-<span><span class="co">#&gt; 50% done</span></span>
-<span><span class="co">#&gt; 51% done</span></span>
-<span><span class="co">#&gt; 52% done</span></span>
-<span><span class="co">#&gt; 53% done</span></span>
-<span><span class="co">#&gt; 54% done</span></span>
-<span><span class="co">#&gt; 55% done</span></span>
-<span><span class="co">#&gt; 56% done</span></span>
-<span><span class="co">#&gt; 57% done</span></span>
-<span><span class="co">#&gt; 58% done</span></span>
-<span><span class="co">#&gt; 59% done</span></span>
-<span><span class="co">#&gt; 60% done</span></span>
-<span><span class="co">#&gt; 61% done</span></span>
-<span><span class="co">#&gt; 62% done</span></span>
-<span><span class="co">#&gt; 63% done</span></span>
-<span><span class="co">#&gt; 64% done</span></span>
-<span><span class="co">#&gt; 65% done</span></span>
-<span><span class="co">#&gt; 66% done</span></span>
-<span><span class="co">#&gt; 67% done</span></span>
-<span><span class="co">#&gt; 68% done</span></span>
-<span><span class="co">#&gt; 69% done</span></span>
-<span><span class="co">#&gt; 70% done</span></span>
-<span><span class="co">#&gt; 71% done</span></span>
-<span><span class="co">#&gt; 72% done</span></span>
-<span><span class="co">#&gt; 73% done</span></span>
-<span><span class="co">#&gt; 74% done</span></span>
-<span><span class="co">#&gt; 75% done</span></span>
-<span><span class="co">#&gt; 76% done</span></span>
-<span><span class="co">#&gt; 77% done</span></span>
-<span><span class="co">#&gt; 78% done</span></span>
-<span><span class="co">#&gt; 79% done</span></span>
-<span><span class="co">#&gt; 80% done</span></span>
-<span><span class="co">#&gt; 81% done</span></span>
-<span><span class="co">#&gt; 82% done</span></span>
-<span><span class="co">#&gt; 83% done</span></span>
-<span><span class="co">#&gt; 84% done</span></span>
-<span><span class="co">#&gt; 85% done</span></span>
-<span><span class="co">#&gt; 86% done</span></span>
-<span><span class="co">#&gt; 87% done</span></span>
-<span><span class="co">#&gt; 88% done</span></span>
-<span><span class="co">#&gt; 89% done</span></span>
-<span><span class="co">#&gt; 90% done</span></span>
-<span><span class="co">#&gt; 91% done</span></span>
-<span><span class="co">#&gt; 92% done</span></span>
-<span><span class="co">#&gt; 93% done</span></span>
-<span><span class="co">#&gt; 94% done</span></span>
-<span><span class="co">#&gt; 95% done</span></span>
-<span><span class="co">#&gt; 96% done</span></span>
-<span><span class="co">#&gt; 97% done</span></span>
-<span><span class="co">#&gt; 98% done</span></span>
-<span><span class="co">#&gt; 99% done</span></span>
-<span><span class="co">#&gt; 100% done</span></span>
-<span><span class="co">#&gt; New names:</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> `critter` -&gt; `critter...3`</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> `critter` -&gt; `critter...5`</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> `critter` -&gt; `critter...7`</span></span>
+<span><span class="va">mpa_network</span> <span class="op">&lt;-</span></span>
+<span>  <span class="fu"><a href="../reference/optimize_mpa.html">optimize_mpa</a></span><span class="op">(</span></span>
+<span>    fauna <span class="op">=</span> <span class="va">fauna</span>,</span>
+<span>    fleets <span class="op">=</span> <span class="va">fleets</span>,</span>
+<span>    resolution <span class="op">=</span> <span class="va">resolution</span>,</span>
+<span>    starting_conditions <span class="op">=</span> <span class="va">sim</span><span class="op">[[</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">sim</span><span class="op">)</span><span class="op">]</span><span class="op">]</span>,</span>
+<span>    alpha <span class="op">=</span> <span class="fl">0.75</span>,</span>
+<span>    max_prop_mpa <span class="op">=</span> <span class="fl">0.1</span>, </span>
+<span>    work_backwards <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="co">#&gt; 10% done designing MPA network</span></span>
+<span><span class="co">#&gt; 20% done designing MPA network</span></span>
+<span><span class="co">#&gt; 30% done designing MPA network</span></span>
+<span><span class="co">#&gt; 40% done designing MPA network</span></span>
+<span><span class="co">#&gt; 50% done designing MPA network</span></span>
+<span><span class="co">#&gt; 60% done designing MPA network</span></span>
+<span><span class="co">#&gt; 70% done designing MPA network</span></span>
+<span><span class="co">#&gt; 80% done designing MPA network</span></span>
+<span><span class="co">#&gt; 90% done designing MPA network</span></span>
+<span><span class="co">#&gt; 100% done designing MPA network</span></span>
 <span></span>
 <span></span>
 <span><span class="va">mpa_network</span><span class="op">$</span><span class="va">mpa_network</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">p_protected</span> <span class="op"><a href="https://rdrr.io/r/base/Arithmetic.html" class="external-link">%%</a></span> <span class="fl">5</span> <span class="op">==</span> <span class="fl">0</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">p_protected</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">mpa</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 10 × 2</span></span></span>
+<span><span class="co">#&gt;    p_protected `mean(mpa)`</span></span>
+<span><span class="co">#&gt;          <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span>           1        0.01</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span>           2        0.02</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span>           3        0.03</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span>           4        0.04</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span>           5        0.05</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span>           6        0.06</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span>           7        0.07</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span>           8        0.08</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>           9        0.09</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>          10        0.1</span></span>
+<span></span>
+<span><span class="va">mpa_network</span><span class="op">$</span><span class="va">mpa_network</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
+<span>  <span class="co"># filter(p_protected  == 100) %&gt;%</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">x</span>,<span class="va">y</span>, fill <span class="op">=</span> <span class="va">mpa</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_tile</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">p_protected</span><span class="op">)</span></span></code></pre></div>

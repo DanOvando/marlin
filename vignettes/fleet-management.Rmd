@@ -58,7 +58,7 @@ fauna <-
       adult_diffusion = 10,
       density_dependence = "post_dispersal", 
       seasons = seasons,
-      fished_depletion = 0.2,
+      fished_depletion = 0.8,
       resolution = resolution,
       steepness = 0.6,
       ssb0 = 1000
@@ -85,7 +85,7 @@ where *p* is the price and *Catch* is the catch for species *s* caught by fleet 
 Costs are defined as
 
 
-$$C_{t,f} = \sum_{p=1}^P \gamma_f  E_{t,p,f}^{\beta_f} + \eta_{f,p} E_{t,p}$$
+$$C_{t,f} = \sum_{p=1}^P \gamma_f (E_{t,p,f}^{\beta_f} + \eta_{f,p} E_{t,p})$$
 
 where $$\gamma_f$$ is the base cost per unit effort for fleet *f*, $\beta$ allows for thec cost of effort to scale non-linearly, and $\eta$ is the cost of fishing in each patch *p*, allowing for the model to account for travel costs for different patches. 
 
@@ -136,7 +136,6 @@ fleets <- list(
 ))
 
 fleets <- tune_fleets(fauna, fleets, tune_type = "depletion") 
-
 ```
 
 
@@ -207,7 +206,7 @@ We can also layer quotas onto the fleet model. Here, we will impose a total quot
 sim_quota <- simmar(fauna = fauna,
                   fleets = fleets,
                   years = years,
-                  manager = list(quotas = list(bigeye = 50)))
+                  manager = list(quotas = list(bigeye = 15)))
 
 proc_sim_quota <- process_marlin(sim_quota)
 

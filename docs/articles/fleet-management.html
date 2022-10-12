@@ -125,9 +125,9 @@ this case a simple example of one bigeye tuna population.</p>
 <span>    <span class="st">"bigeye"</span> <span class="op">=</span> <span class="fu"><a href="../reference/create_critter.html">create_critter</a></span><span class="op">(</span></span>
 <span>      scientific_name <span class="op">=</span> <span class="st">"Thunnus obesus"</span>,</span>
 <span>      adult_diffusion <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>      rec_form <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>      density_dependence <span class="op">=</span> <span class="st">"post_dispersal"</span>, </span>
 <span>      seasons <span class="op">=</span> <span class="va">seasons</span>,</span>
-<span>      fished_depletion <span class="op">=</span> <span class="fl">0.2</span>,</span>
+<span>      fished_depletion <span class="op">=</span> <span class="fl">0.8</span>,</span>
 <span>      resolution <span class="op">=</span> <span class="va">resolution</span>,</span>
 <span>      steepness <span class="op">=</span> <span class="fl">0.6</span>,</span>
 <span>      ssb0 <span class="op">=</span> <span class="fl">1000</span></span>
@@ -155,8 +155,8 @@ effort.</p>
 and <em>Catch</em> is the catch for species <em>s</em> caught by fleet
 <em>f</em></p>
 <p>Costs are defined as</p>
-<p><span class="math display">\[C_{t,f} = \sum_{p=1}^P
-\gamma_f  E_{t,p,f}^{\beta_f} + \eta_{f,p} E_{t,p}\]</span></p>
+<p><span class="math display">\[C_{t,f} = \sum_{p=1}^P \gamma_f
+(E_{t,p,f}^{\beta_f} + \eta_{f,p} E_{t,p})\]</span></p>
 <p>where <span class="math display">\[\gamma_f\]</span> is the base cost
 per unit effort for fleet <em>f</em>, <span class="math inline">\(\beta\)</span> allows for thec cost of effort to
 scale non-linearly, and <span class="math inline">\(\eta\)</span> is the
@@ -209,7 +209,8 @@ finds the cost parameters that results in the desired equilibrium
 <span>  <span class="op">)</span>,</span>
 <span>  base_effort <span class="op">=</span> <span class="va">resolution</span> <span class="op">^</span> <span class="fl">2</span>,</span>
 <span>  resolution <span class="op">=</span> <span class="va">resolution</span>,</span>
-<span>  fleet_model <span class="op">=</span> <span class="st">"constant effort"</span></span>
+<span>  fleet_model <span class="op">=</span> <span class="st">"constant effort"</span>,</span>
+<span>  cost_per_unit_effort <span class="op">=</span> <span class="fl">2</span></span>
 <span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span>, tune_type <span class="op">=</span> <span class="st">"depletion"</span><span class="op">)</span> </span></code></pre></div>
@@ -288,7 +289,7 @@ allowable amount.</p>
 <code class="sourceCode R"><span><span class="va">sim_quota</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simmar.html">simmar</a></span><span class="op">(</span>fauna <span class="op">=</span> <span class="va">fauna</span>,</span>
 <span>                  fleets <span class="op">=</span> <span class="va">fleets</span>,</span>
 <span>                  years <span class="op">=</span> <span class="va">years</span>,</span>
-<span>                  manager <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>quotas <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>bigeye <span class="op">=</span> <span class="fl">50</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span>                  manager <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>quotas <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>bigeye <span class="op">=</span> <span class="fl">15</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">proc_sim_quota</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">sim_quota</span><span class="op">)</span></span>
 <span></span>

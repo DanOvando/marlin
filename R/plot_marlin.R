@@ -41,18 +41,10 @@ plot_marlin <- function(...,
   fit_names[fit_names == ''] <-
     letters[!letters %in% fit_names][seq_along(fit_names[fit_names == ''])] # add in names if only some are named for some reason
   
-  # fit_names <- "a"
-  
   fits <- list(...)  %>%
     purrr::set_names(fit_names)
   
-  
-  # fit_names <- "a"
-  #
-  # fits <- list(proc_nearshore)  %>%
-  #   purrr::set_names(fit_names)
-  #
-  
+
   if (plots == "fauna") {
     fits <- purrr::map(fits, "fauna")
     
@@ -77,7 +69,7 @@ plot_marlin <- function(...,
       # dplyr::summarise(ssb = sum(.data[[plot_var]])) %>%
       dplyr::group_by(critter, fit) %>% {
         if (max_scale == TRUE) {
-          dplyr::mutate(., across({
+          dplyr::mutate(., dplyr::across({
             {
               plot_var
             }
@@ -98,13 +90,11 @@ plot_marlin <- function(...,
           ggplot2::scale_y_continuous(
             limits = c(0, NA),
             labels = scales::percent,
-            # name = "% of Unfished Biomass",
             expand = ggplot2::expansion(mult = c(0, .1))
           )
         }
         else {
           ggplot2::scale_y_continuous(limits = c(0, NA),
-                                      # name = "% of Unfished Biomass",
                                       expand = ggplot2::expansion(mult = c(0, .1)))
           
         }
@@ -151,10 +141,6 @@ plot_marlin <- function(...,
           data.frame(length = as.numeric(colnames(lkey)),
                      thing = as.numeric(thing_at_l))
         
-        # out %>%
-        #   ggplot(aes(length, thing)) +
-        #   geom_density(stat = "identity")
-        #
       }
       
       tallies <- tallies %>%
@@ -216,20 +202,19 @@ plot_marlin <- function(...,
     }
     
     
-    
     out <- fit_frame %>%
-      filter(step == max(steps_to_plot))
+      dplyr::filter(step == max(steps_to_plot))
     
     
     if (max_scale) {
       out <- out %>%
-        group_by(x, y, critter, fit) %>%
+        dplyr::group_by(x, y, critter, fit) %>%
         dplyr::summarise(across({
           {
             plot_var
           }
         }, ~ sum(., na.rm = TRUE))) %>%
-        group_by(critter) %>%
+        dplyr::group_by(critter) %>%
         dplyr::mutate(across({
           {
             plot_var
@@ -239,7 +224,7 @@ plot_marlin <- function(...,
     }
     
     out <- out %>%
-      ggplot(aes(x, y, fill = round(.data[[plot_var]],2))) +
+      ggplot2::ggplot(aes(x, y, fill = round(.data[[plot_var]],2))) +
       ggplot2::geom_tile() +
       ggplot2::scale_fill_viridis_c(
         name = plot_var,

@@ -3,12 +3,16 @@
 #' when passed fauna and fleet objects, simmar will advance
 #' the population for a number of steps
 #'
-#' @param fauna
-#' @param fleets
-#' @param manager
-#' @param steps
+#' @param fauna a list of fauna objects
+#' @param fleets a list of fleet objects
+#' @param habitat a list of habitat over time
+#' @param years the number of years to run the simulation
+#' @param initial_conditions initial conditions for the simulation, in the form simmar()[[final year]]
+#' @param starting_step # the step to start the simulation from, used to keep track of steps across multiple runs of simmar
+#' @param keep_starting_step should the starting step by kept (TRUE) or dropped (FALSE)
+#' @param manager a list of management actions
 #'
-#' @return
+#' @return a list containing the results of the simulation
 #' @export
 #'
 simmar <- function(fauna = list(),
@@ -92,7 +96,8 @@ simmar <- function(fauna = list(),
         new_habitat <- vector(mode = "list", length = steps - 1)
         
         for (i in 1:(steps - 1)) {
-          year <-  floor(step_names[i])
+          
+          year <-  floor(step_names[i] - starting_step) # put year in index form not named form
           
           new_habitat[[i]] <- habitat[[f]][[year + 1]] # adding 1 since steps are zero indexed for reasons 
           
@@ -196,7 +201,7 @@ simmar <- function(fauna = list(),
       
       # xx add ability to incorporate past revenues here. Idea. have a marker that lets you know if initial conditions were passed in. If s<= 2 or there were no initial conditions, pull this. If s<= 2 but there were initial conditions, pull the initial conditions for those steps
       
-      if (s == 1 & init_cond_provided){
+      if (s == 2 & init_cond_provided){
         
         r_p_f <-
           (sapply(initial_conditions, function(x)
@@ -204,7 +209,6 @@ simmar <- function(fauna = list(),
         
         last_r_p <-
           rowSums(r_p_f, na.rm = TRUE) # pull out total revenue for fleet l
-        
       } else if (s <= 2) {
         for (f in seq_along(fauni)) {
           last_b_p_a <- storage[[s - 1]][[f]]$b_p_a
@@ -257,9 +261,9 @@ simmar <- function(fauna = list(),
         last_revenue <-
           sum(last_r_p, na.rm = TRUE) # pull out total revenue for fleet l
         
-        last_cost <-  fleets[[l]]$cost_per_unit_effort * sum((fleets[[l]]$e_p_s[, s - 1]) ^
-                                                               fleets[[l]]$effort_cost_exponent) + sum(fleets[[l]]$cost_per_patch * fleets[[l]]$e_p_s[,s-1])
-        
+        last_cost <-  fleets[[l]]$cost_per_unit_effort * (sum((fleets[[l]]$e_p_s[, s - 1]) ^
+                                                               fleets[[l]]$effort_cost_exponent) + sum(fleets[[l]]$cost_per_patch * fleets[[l]]$e_p_s[,s-1]))
+
         last_profits <-
           last_revenue - last_cost # calculate profits in the last time step.
         
@@ -276,8 +280,7 @@ simmar <- function(fauna = list(),
         
 
           if (exists("last_revenue")){
-          
-          total_effort <- total_effort * exp(fleets[[l]]$responsiveness * log(pmax(last_revenue, 1e-6) / pmax(1e-6,last_cost))) # adjust effort per an open access dynamics model
+          total_effort <- total_effort * pmin(1.5,exp(fleets[[l]]$responsiveness * log(pmax(last_revenue, 1e-6) / pmax(1e-6,last_cost)))) # adjust effort per an open access dynamics model
           } # in edge case where the fishery is closed for the first few seasons of the simulation stick with last value
         
 
@@ -377,8 +380,8 @@ simmar <- function(fauna = list(),
           
         } else {
           alloc = ((
-            last_r_p - fleets[[l]]$cost_per_unit_effort * (e_p + 1) ^ fleets[[l]]$effort_cost_exponent
-          - fleets[[l]]$cost_per_patch * e_p ) / (e_p + 1)
+            last_r_p - fleets[[l]]$cost_per_unit_effort * ((e_p + 1) ^ fleets[[l]]$effort_cost_exponent
+          + fleets[[l]]$cost_per_patch * e_p ) / (e_p + 1))
           ) * fishable
           
           alloc[!is.finite(alloc)] <-  0
@@ -422,7 +425,7 @@ simmar <- function(fauna = list(),
           #1 / nrow(r_p_f)
         } else {
           alloc = (
-            last_r_p - fleets[[l]]$cost_per_unit_effort * (e_p) ^ fleets[[l]]$effort_cost_exponent -  fleets[[l]]$cost_per_patch * e_p
+            last_r_p - fleets[[l]]$cost_per_unit_effort * ((e_p) ^ fleets[[l]]$effort_cost_exponent +  fleets[[l]]$cost_per_patch * e_p)
           )
           
           alloc[!is.finite(alloc)] <-  0
@@ -594,7 +597,7 @@ simmar <- function(fauna = list(),
       # if there is updated habitat for the critter in question in current time step, update habitat
       if ((length(habitat) > 0) &
           (names(fauna)[[f]] %in% names(habitat))) {
-
+        
         season_block <- which(sapply(fauna[[f]]$movement_seasons, function(x,y) any(y %in% x), x = season)) # figure out which season block you are in
         
         # update habitat in this time step
@@ -606,16 +609,17 @@ simmar <- function(fauna = list(),
         
         current_habitat <- as.numeric(current_habitat$value)
         
-        
         current_habitat <-
-          exp(outer(current_habitat, current_habitat, "-")) # calculate difference in habitat between each patch
+          (1 + max(fauna[[f]]$seasonal_diffusion[[season_block]], na.rm = TRUE) * fauna[[f]]$taxis_to_diff_ratio) * (outer(current_habitat, current_habitat, "-")) # calculate difference in habitat between each patch
+
+        current_habitat[current_habitat < 0 & !is.na(current_habitat)] <-  0 # only preferentially move towards BETTER habitat quality. Note that diffusion still allows movement against habitat gradients. Preserve NAs for land
         
-        current_habitat <- prep_movement(multiplier = current_habitat, resolution = resolution)
+        current_habitat <- prep_movement(multiplier = current_habitat, resolution = sqrt(ncol(current_habitat)))
         
         
         # update movement matrix with current habitat
         movement[[season_block]] <-
-          as.matrix(Matrix::expm((fauna[[f]]$seasonal_diffusion[[season_block]] + current_habitat) / seasons
+          as.matrix(Matrix::expm((fauna[[f]]$seasonal_diffusion[[season_block]] + current_habitat) / fauna[[1]]$seasons
           ))
       
         if (any(!is.finite(movement[[season_block]]))) {
@@ -726,7 +730,7 @@ simmar <- function(fauna = list(),
         r_p_fl[, fl] <-  rowSums(r_p_a_fl[, , fl], na.rm = TRUE)
         
         prof_p_fl[, fl] <-
-          r_p_fl[, fl] - fleets[[fl]]$cost_per_unit_effort * (as.matrix(tmp_e_p_fl[, fl]) ^ fleets[[fl]]$effort_cost_exponent) / length(fauna) - as.matrix(tmp_e_p_fl[,fl] * fleets[[fl]]$cost_per_patch) / length(fauna)
+          r_p_fl[, fl] - fleets[[fl]]$cost_per_unit_effort * ((as.matrix(tmp_e_p_fl[, fl]) / length(fauna) ^ fleets[[fl]]$effort_cost_exponent)  + as.matrix(tmp_e_p_fl[,fl] / length(fauna) * fleets[[fl]]$cost_per_patch))
         
       }
       

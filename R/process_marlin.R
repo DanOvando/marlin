@@ -18,12 +18,21 @@
 #'
 process_marlin <- function(sim,
                            steps_to_keep = NA,
-                           time_step = 1,
+                           time_step = NA,
                            keep_age = TRUE) {
   if (all(is.na(steps_to_keep))) {
     
     steps_to_keep <-  names(sim)
     
+  }
+  if (is.na(time_step)){
+    if (length(sim) > 1){
+      time_step <- as.numeric(names(sim))
+      time_step <- time_step[2] - time_step[1]
+    } else {
+      time_step <-  1
+      warning("unclear what time step length is; assuming it is 1. Consider setting manually with time_step parameter")
+    }
   }
   
   sim <-
@@ -43,19 +52,7 @@ process_marlin <- function(sim,
       pop <- y[c("n_p_a", "b_p_a", "ssb_p_a", "c_p_a")]
       
       # create coordinates for each location
-      
-      
-     # a = cbind(
-     #    patch = 1:nrow(pop),
-     #    as.data.frame(pop),
-     #    tidyr::expand_grid(x = 1:sqrt(nrow(pop)), y = 1:sqrt(nrow(pop)))) %>% 
-     #   mutate(tmp = rowSums(. %>% select(contains("V"))))
-     #   
-     #   mutate(tmp = rowSums(. %>% select(contains("V"))))
-     #   dplyr::rowwise(.) %>%
-     #   dplyr::mutate(tmp = sum(dplyr::c_across(tidyselect::contains("V")))) 
-     #   
-      
+  
       bindfoo <- function(x, grid){
         
         x <- as.data.frame(x)

@@ -239,7 +239,7 @@ List sim_fish(
 
         recruits = Rcpp::wrap(tmp_rec); // convert from eigen to Rcpp
 
-        // Rcpp::Rcout << "hello" << std::endl;
+        // Rcpp::Rcout << ssb_p << std::endl;
 
       } else if (rec_form == 3){ // disperse larvae then recruit locally per beverton-holt
         
