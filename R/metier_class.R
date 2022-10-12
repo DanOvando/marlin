@@ -15,7 +15,7 @@ Metier <- R6::R6Class("metier",
                                         sel_unit = "p_of_mat",
                                         sel_start = 1, 
                                         sel_delta = .1,
-                                        catchability = 0.01,
+                                        catchability = 0.2,
                                         spatial_catchability = NA,
                                         p_explt = 1) {
                     

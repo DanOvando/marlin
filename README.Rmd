@@ -36,7 +36,7 @@ In other words, `marlin` is better suited to asking "how might the impacts of my
 
 This is because `marlin` is a *structural* rather than *statistical* simulation model, meaning the parameters in the model cannot be directly fit to explain patterns in observed data. Rather, users must manually adjust the parameters of the model to reflect the general dynamics of the system they are interested in. 
 
-This means that "how much of an impact does hyperallometry have on MPA outcomes" is a much simpler question than "what will be the catch and biodiversity impacts of the MPA I am designing for 13 different data-limited species in a rapidly changing small bay". 
+This means that "how much of an impact does hyperallometry have on MPA outcomes" is a much simpler question than "what will be the catch and biodiversity impacts of the MPA I am designing for 17 different data-limited species in a rapidly changing small bay". 
 
 Both are doable, and `marlin` can provide general insights in both cases, but the more specific and *what will* style of question you ask, the harder it will be to ensure the model is appropriately set up. 
 
@@ -265,7 +265,7 @@ fauna <-
 # create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
 # with lists for each species inside there. Price specifies the price per unit weight of that 
 # species for that fleet
-# sel_form can be one of logistic or dome
+# sel_form can be one of logistic or dome, with sel_start wpecifying the percent of length at maturity at which selectivity start, and sel_delta is the units of length greater than sel_50 to sel_95
 
 
 fleets <- list(
@@ -854,8 +854,7 @@ proc_negative_prices <- process_marlin(negative_prices, time_step =  fauna[[1]]$
 plot_marlin(
   `De-Facto MPA` = proc_negative_prices,
   plot_var = "ssb",
-  plot_type = "space",
-  steps_to_plot = c(0,25,49))
+  plot_type = "space")
 ```
 
 

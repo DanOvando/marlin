@@ -49,7 +49,6 @@ create_critter <- function(common_name = NA,
     base_habitat <-  list(base_habitat)
   }
 
-  init_explt <- init_explt / seasons # convert to seasonal exploitation rate
   if (critter_type == "fish"){
     critter <-
       marlin::Fish$new(

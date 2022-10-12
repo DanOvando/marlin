@@ -75,7 +75,8 @@ fill in fish object
   explt_type = "f",
   init_explt = 0.1,
   get_common_name = FALSE,
-  spawning_seasons = NA
+  spawning_seasons = NA,
+  tune_diffusion = TRUE
 )}\if{html}{\out{</div>}}
 }
 

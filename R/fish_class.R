@@ -112,7 +112,9 @@ Fish <- R6::R6Class(
                           explt_type = "f",
                           init_explt = .1,
                           get_common_name = FALSE,
-                          spawning_seasons = NA) {
+                          spawning_seasons = NA,
+                          tune_diffusion = TRUE,
+                          taxis_to_diff_ratio = 0) {
       seasons <- as.integer(seasons)
       
       if (seasons < 1) {
@@ -127,7 +129,6 @@ Fish <- R6::R6Class(
       
       if (length(base_habitat) > 1) {
         resolution <- nrow(base_habitat[[1]])
-        
       }
       
       patches <- resolution ^ 2
@@ -135,7 +136,7 @@ Fish <- R6::R6Class(
       if (length(base_habitat) == 0) {
         base_habitat <-
           purrr::map(1:seq_along(seasons), function(x, res)
-            matrix(1, nrow = res, ncol = res), res = resolution)
+            matrix(0, nrow = res, ncol = res), res = resolution)
         
       }
       
@@ -176,6 +177,35 @@ Fish <- R6::R6Class(
           as.list(rep(adult_diffusion, length(season_blocks)))
         
       }
+      
+      if (tune_diffusion){
+        # tune adult diffusion parameter
+        # 
+    
+        
+        adult_diffusion <-
+          purrr::map(adult_diffusion, ~ if (any(.x > 0)) {
+            ranger:::predict.ranger(
+              marlin::diffusion_frontier_model,
+              data = data.frame(diffusion_frontier = .x, resolution = resolution)
+            )$predictions
+          } else {
+            .x
+          })
+        
+        
+        recruit_diffusion <-
+          purrr::map(recruit_diffusion, ~ if (.x > 0) {
+            ranger:::predict.ranger(
+              marlin::diffusion_frontier_model,
+              data = data.frame(diffusion_frontier = .x, resolution = resolution)
+            )$predictions
+          } else {
+            .x
+          })
+        
+        
+      } # close tune diffusion
       
       
       
@@ -395,11 +425,26 @@ Fish <- R6::R6Class(
           ) * ((ages - age_50_mature) / (age_95_mature - age_50_mature)
           )))))
         
+        
+        # find first length at which 50%/95% of animals are fully mature
+
+        length_bins <-
+          as.numeric(colnames(length_at_age_key))
+        
+          length_50_mature <- length_mature <- length_bins[which.min((cumsum(as.matrix(length_at_age_key)[which.min((ages - (age_95_mature))^2),]) - 0.5)^2)[1]]
+        
+          length_95_mature <- length_bins[which.min((cumsum(as.matrix(length_at_age_key)[which.min((ages - (age_95_mature))^2),]) - 0.95)^2)[1]]
+          
       } else if (is.na(age_mature) |
                  mat_mode == "length") {
         if (is.na(length_mature)) {
           length_mature <-  linf * lmat_to_linf_ratio
         }
+        
+        length_50_mature <- length_mature
+        
+        length_95_mature <-
+          length_50_mature + delta_mature
         
         length_bins <-
           as.numeric(colnames(length_at_age_key))
@@ -455,6 +500,9 @@ Fish <- R6::R6Class(
       self$ssb_at_age <-
         maturity_at_age * weight_at_age
       
+      self$taxis_to_diff_ratio <- taxis_to_diff_ratio
+      
+
       # create habitat and movement matrices
       
 
@@ -467,8 +515,16 @@ Fish <- R6::R6Class(
         
         tmp_habitat[[i]] <- as.numeric(tmp_habitat[[i]]$value)
         
-        tmp_habitat[[i]] <-
-          exp(outer(tmp_habitat[[i]], tmp_habitat[[i]], "-"))
+        # if any habitat is less than zero, rescale to be positive
+        if (any(tmp_habitat[[i]][!is.na(tmp_habitat[[i]])] < 0)){
+          
+          tmp_habitat[[i]] <- tmp_habitat[[i]] - min(tmp_habitat[[i]], na.rm = TRUE)
+          
+          message("Negative habitat values were provided; rescaling to positive values preserving relative differences. Make sure you did not provide habitat values on a log scale.")
+        } # close habitat rescaling
+        tmp_habitat[[i]] <- (1 + adult_diffusion[[i]] * self$taxis_to_diff_ratio) * (outer(tmp_habitat[[i]], tmp_habitat[[i]], "-")) # calculate difference in habitat quality
+        
+        tmp_habitat[[i]][tmp_habitat[[i]] < 0 & !is.na(tmp_habitat[[i]])] <-  0 # only preferentially move towards BETTER habitat quality. Note that diffusion still allows movement against habitat gradients. Preserve NAs for land
       }
       
       self$base_habitat <-
@@ -476,8 +532,6 @@ Fish <- R6::R6Class(
                     prep_movement,
                     resolution = resolution)
       
-      test <- tmp_habitat[[1]]
-      test[!is.na(test)] <- 1
       
       foo <- function(x,y){
         
@@ -503,11 +557,9 @@ Fish <- R6::R6Class(
                     self$base_habitat,
                     ~ as.matrix(Matrix::expm((.x + .y) / seasons)))
       
-      # tmp_movement <- lapply(self$seasonal_diffusion, function(x, seasons) as.matrix(Matrix::expm(x * 1 / seasons)), seasons = seasons)
-      
       self$movement_seasons <- season_blocks
       
-      rec_diff_foundation <- purrr::map2(tmp_habitat, recruit_diffusion,foo ) # prepare adult diffusion matrix account for potential land
+      rec_diff_foundation <- purrr::map2(tmp_habitat, recruit_diffusion,foo ) # prepare diffusion matrix account for potential land
       
       self$recruit_movement <-
         prep_movement(multiplier = rec_diff_foundation[[1]],
