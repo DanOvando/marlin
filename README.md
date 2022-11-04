@@ -93,6 +93,24 @@ If you get an error that says something like
 Once you’ve tried those, restart your computer and try running
 re-installing `marlin`.
 
+There are also some issues with compilation on Apple M1 chips. If you
+get an installation error related to
+`ld: library not found for -lgfortran`, try these steps to resolve it
+
+1.  Install xcode via terminal: xcode-select –install. If xcode is
+    already installed,
+    [uninstall](https://mac.install.guide/commandlinetools/6.html) it
+    first.
+
+2.  Install
+    [gfortran](https://github.com/fxcoudert/gfortran-for-macOS/releases/tag/12.1-monterey)
+    12.1 for Monterey (macOS 12) using the version for Apple Silicon
+    computers (computers with Apple M1 chips),
+    `gfortran-ARM-12.1-Monterey.dmg`.
+
+3.  Restart your computer and try to install `marlin` again. It should
+    work this time.
+
 ## A Caveat
 
 `marlin` is designed to be fast and relatively user friendly, at least
@@ -252,7 +270,7 @@ example_sim <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - start_time
-#> Time difference of 0.0497129 secs
+#> Time difference of 0.05717111 secs
 ```
 
 we can then use `process_marlin` and `plot_marlin` to examine the
@@ -371,7 +389,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets) 
 
 Sys.time() - a
-#> Time difference of 1.718089 secs
+#> Time difference of 2.052871 secs
 
 
 fauna$bigeye$plot()
@@ -388,7 +406,7 @@ sim2 <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.215112 secs
+#> Time difference of 0.2992222 secs
   
 
 processed_marlin <- process_marlin(sim = sim2, time_step = time_step)
@@ -491,7 +509,7 @@ fauna <-
 #> • Found: 1 
 #> • Not Found: 0
 Sys.time() - a
-#> Time difference of 1.431333 secs
+#> Time difference of 2.760779 secs
 
 # create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
 # with lists for each species inside there. Price specifies the price per unit weight of that 
@@ -559,7 +577,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets) 
 
 Sys.time() - a
-#> Time difference of 3.064395 secs
+#> Time difference of 4.017619 secs
 
 
 # run simulations
@@ -572,7 +590,7 @@ sim3 <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.678319 secs
+#> Time difference of 0.8646071 secs
 # a <- Sys.time()
 
 processed_marlin <- process_marlin(sim = sim3, time_step = time_step, keep_age = TRUE)
@@ -726,7 +744,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
-#> Time difference of 15.29392 secs
+#> Time difference of 19.43908 secs
 
 # run simulations
 
@@ -737,7 +755,7 @@ nearshore <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.348479 secs
+#> Time difference of 0.474175 secs
   
 proc_nearshore <- process_marlin(nearshore, time_step =  fauna[[1]]$time_step)
 ```
@@ -776,7 +794,7 @@ nearshore_mpa <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.452677 secs
+#> Time difference of 0.6376328 secs
 
 proc_nearshore_mpa <- process_marlin(nearshore_mpa, time_step =  fauna[[1]]$time_step)
 ```
@@ -847,7 +865,7 @@ offshore <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.4575388 secs
+#> Time difference of 0.5212901 secs
   
 proc_offshore <- process_marlin(offshore, time_step =  fauna[[1]]$time_step)
 
@@ -862,7 +880,7 @@ offshore_mpa_sim <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.422791 secs
+#> Time difference of 0.4668701 secs
 
 
 proc_offshore_mpa <- process_marlin(offshore_mpa_sim, time_step =  fauna[[1]]$time_step)
@@ -988,7 +1006,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
-#> Time difference of 0.9453082 secs
+#> Time difference of 1.410342 secs
 
 # run simulations
 

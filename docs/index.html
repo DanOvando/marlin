@@ -117,6 +117,12 @@
 </ul>
 <p>If you get an error that says something like <code>clang: error: unsupported option '-fopenmp'</code>, follow the instructions <a href="https://thecoatlessprofessor.com/programming/cpp/r-compiler-tools-for-rcpp-on-macos-before-r-4.0.0/" class="external-link">here</a></p>
 <p>Once you’ve tried those, restart your computer and try running re-installing <code>marlin</code>.</p>
+<p>There are also some issues with compilation on Apple M1 chips. If you get an installation error related to <code>ld: library not found for -lgfortran</code>, try these steps to resolve it</p>
+<ol style="list-style-type: decimal">
+<li><p>Install xcode via terminal: xcode-select –install. If xcode is already installed, <a href="https://mac.install.guide/commandlinetools/6.html" class="external-link">uninstall</a> it first.</p></li>
+<li><p>Install <a href="https://github.com/fxcoudert/gfortran-for-macOS/releases/tag/12.1-monterey" class="external-link">gfortran</a> 12.1 for Monterey (macOS 12) using the version for Apple Silicon computers (computers with Apple M1 chips), <code>gfortran-ARM-12.1-Monterey.dmg</code>.</p></li>
+<li><p>Restart your computer and try to install <code>marlin</code> again. It should work this time.</p></li>
+</ol>
 </div>
 </div>
 <div class="section level2">
@@ -217,7 +223,7 @@
 <span>                  years <span class="op">=</span> <span class="va">years</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">start_time</span></span>
-<span><span class="co">#&gt; Time difference of 0.0497129 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 0.05717111 secs</span></span></code></pre></div>
 <p>we can then use <code>process_marlin</code> and <code>plot_marlin</code> to examine the simulation</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">processed_marlin</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_marlin.html">process_marlin</a></span><span class="op">(</span>sim <span class="op">=</span> <span class="va">example_sim</span>, time_step <span class="op">=</span> <span class="va">time_step</span><span class="op">)</span></span>
@@ -319,7 +325,7 @@
 <span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span><span class="op">)</span> </span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 1.718089 secs</span></span>
+<span><span class="co">#&gt; Time difference of 2.052871 secs</span></span>
 <span></span>
 <span></span>
 <span><span class="va">fauna</span><span class="op">$</span><span class="va">bigeye</span><span class="op">$</span><span class="fu">plot</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
@@ -333,7 +339,7 @@
 <span>                  years <span class="op">=</span> <span class="va">years</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.215112 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.2992222 secs</span></span>
 <span>  </span>
 <span></span>
 <span><span class="va">processed_marlin</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_marlin.html">process_marlin</a></span><span class="op">(</span>sim <span class="op">=</span> <span class="va">sim2</span>, time_step <span class="op">=</span> <span class="va">time_step</span><span class="op">)</span></span>
@@ -424,7 +430,7 @@
 <span><span class="co">#&gt; • Found: 1 </span></span>
 <span><span class="co">#&gt; • Not Found: 0</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 1.431333 secs</span></span>
+<span><span class="co">#&gt; Time difference of 2.760779 secs</span></span>
 <span></span>
 <span><span class="co"># create a fleets object, which is a list of lists (of lists). Each fleet has one element, </span></span>
 <span><span class="co"># with lists for each species inside there. Price specifies the price per unit weight of that </span></span>
@@ -492,7 +498,7 @@
 <span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span><span class="op">)</span> </span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 3.064395 secs</span></span>
+<span><span class="co">#&gt; Time difference of 4.017619 secs</span></span>
 <span></span>
 <span></span>
 <span><span class="co"># run simulations</span></span>
@@ -505,7 +511,7 @@
 <span>                  years <span class="op">=</span> <span class="va">years</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.678319 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.8646071 secs</span></span>
 <span><span class="co"># a &lt;- Sys.time()</span></span>
 <span></span>
 <span><span class="va">processed_marlin</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_marlin.html">process_marlin</a></span><span class="op">(</span>sim <span class="op">=</span> <span class="va">sim3</span>, time_step <span class="op">=</span> <span class="va">time_step</span>, keep_age <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
@@ -639,7 +645,7 @@
 <span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span>, tune_type <span class="op">=</span> <span class="va">tune_type</span><span class="op">)</span> <span class="co"># tunes the catchability by fleet to achieve target depletion</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 15.29392 secs</span></span>
+<span><span class="co">#&gt; Time difference of 19.43908 secs</span></span>
 <span></span>
 <span><span class="co"># run simulations</span></span>
 <span></span>
@@ -650,7 +656,7 @@
 <span>                  years <span class="op">=</span> <span class="va">years</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.348479 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.474175 secs</span></span>
 <span>  </span>
 <span><span class="va">proc_nearshore</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">nearshore</span>, time_step <span class="op">=</span>  <span class="va">fauna</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">time_step</span><span class="op">)</span></span></code></pre></div>
 <p>We will now design and implement an MPA network by specifying a data frame with columns x,y, and mpa denoting the coordinates of MPA patches.</p>
@@ -680,7 +686,7 @@
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.452677 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.6376328 secs</span></span>
 <span></span>
 <span><span class="va">proc_nearshore_mpa</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">nearshore_mpa</span>, time_step <span class="op">=</span>  <span class="va">fauna</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">time_step</span><span class="op">)</span></span></code></pre></div>
 <p>Now though, consider a different scenario. Here the tunas still slightly prefer their same nearshore habitat, but now the shortfin mako population primarily lives farther offshore. We will first simulate that population without the MPA, and then assess the effects of the exact same MPA on this new scenario.</p>
@@ -741,7 +747,7 @@
 <span>                  years <span class="op">=</span> <span class="va">years</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.4575388 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.5212901 secs</span></span>
 <span>  </span>
 <span><span class="va">proc_offshore</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">offshore</span>, time_step <span class="op">=</span>  <span class="va">fauna</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">time_step</span><span class="op">)</span></span>
 <span></span>
@@ -756,7 +762,7 @@
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.422791 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.4668701 secs</span></span>
 <span></span>
 <span></span>
 <span><span class="va">proc_offshore_mpa</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">offshore_mpa_sim</span>, time_step <span class="op">=</span>  <span class="va">fauna</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">time_step</span><span class="op">)</span></span></code></pre></div>
@@ -873,7 +879,7 @@
 <span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span>, tune_type <span class="op">=</span> <span class="va">tune_type</span><span class="op">)</span> <span class="co"># tunes the catchability by fleet to achieve target depletion</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.9453082 secs</span></span>
+<span><span class="co">#&gt; Time difference of 1.410342 secs</span></span>
 <span></span>
 <span><span class="co"># run simulations</span></span>
 <span></span>

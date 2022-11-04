@@ -78,6 +78,16 @@ If you get an error that says something like `clang: error: unsupported option '
 
 Once you've tried those, restart your computer and try running re-installing `marlin`.
 
+There are also some issues with compilation on Apple M1 chips. If you get an installation error related to `ld: library not found for -lgfortran`, try these steps to resolve it
+
+
+1. Install xcode via terminal: xcode-select –install. If xcode is already installed, [uninstall](https://mac.install.guide/commandlinetools/6.html) it first.
+
+2. Install [gfortran](https://github.com/fxcoudert/gfortran-for-macOS/releases/tag/12.1-monterey) 12.1 for Monterey (macOS 12) using the version for Apple Silicon computers (computers with Apple M1 chips), `gfortran-ARM-12.1-Monterey.dmg`.
+
+3. Restart your computer and try to install `marlin` again. It should work this time.
+
+
 
 ## A Caveat
 
