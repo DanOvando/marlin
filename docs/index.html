@@ -81,7 +81,11 @@
 <div class="section level2">
 <h2 id="what-is-marlin-for">What is <code>marlin</code> for?<a class="anchor" aria-label="anchor" href="#what-is-marlin-for"></a>
 </h2>
-<p><code>marlin</code> is best suited for asking <em>what if</em> rather that <em>what will</em> questions. In other words, <code>marlin</code> is better suited to asking “how might the design or impacts of my proposed MPA network change if fishing effort is displaced rather than removed?” rather than “<em>what will</em> the impacts of my proposed MPA network be on biodiversity down to the 6th decimal place”. This is because <code>marlin</code> is a <em>structural</em> rather than <em>statistical</em> simulation model, meaning it cannot by fit to explain processes in observed data. Rather, users must manually adjust the parameters of the model to reflect the general dynamics of the system they are interested in. This means that “how much of an impact does hyperallometry have on MPA outcomes” is a much simpler question than “what will be the catch and biodiversity impacts of the MPA I am designing for 13 different data-limited species in a rapidly changing small bay”. Both are doable, and marlin can provide general insights in both cases, but the more specific and <em>what will</em> style question you ask, the harder it will be to ensure the model is appropriately set up.</p>
+<p><code>marlin</code> is best suited for asking <em>what if</em> rather that <em>what will</em> questions.</p>
+<p>In other words, <code>marlin</code> is better suited to asking “how might the impacts of my proposed MPA network change if fishing effort is displaced rather than removed?” rather than “<em>what will</em> the impacts of my proposed MPA network be on biodiversity down to the 6th decimal place”.</p>
+<p>This is because <code>marlin</code> is a <em>structural</em> rather than <em>statistical</em> simulation model, meaning the parameters in the model cannot be directly fit to explain patterns in observed data. Rather, users must manually adjust the parameters of the model to reflect the general dynamics of the system they are interested in.</p>
+<p>This means that “how much of an impact does hyperallometry have on MPA outcomes” is a much simpler question than “what will be the catch and biodiversity impacts of the MPA I am designing for 17 different data-limited species in a rapidly changing small bay”.</p>
+<p>Both are doable, and <code>marlin</code> can provide general insights in both cases, but the more specific and <em>what will</em> style of question you ask, the harder it will be to ensure the model is appropriately set up.</p>
 <p>Some use cases we envision for marlin are</p>
 <ul>
 <li><p>Assessing sensitivity of MPA network designs to key ecological and economic unknowns</p></li>
@@ -120,7 +124,7 @@
 </h2>
 <p><code>marlin</code> is designed to be fast and relatively user friendly, at least for the complexity of the modeling it enables users to do. However, it is not a tool for fully automated MPA design; users will still need to be able to understand the core functionality of the model, and mileage with the model will depend greatly on the creativity and R skills of the user.</p>
 <p>In particular, while we provide some wrappers for organizing common outputs and plots, <code>marlin</code> produces far more outputs, and is designed for more use cases, than we can preemptively plan for.</p>
-<p>Given that <code>marlin</code> tracks populations and fleet dynamics across ages, time steps, space, species, and fleet units, the outputs are rather unruly. Skills in wrangling list objects will serve you will, along with tidy-data manipulation.</p>
+<p>Given that <code>marlin</code> tracks populations and fleet dynamics across ages, time steps, space, species, and fleet units, the outputs are rather unruly. Skills in wrangling list objects will serve you will, along with tidy-data manipulation. <a href="https://purrr.tidyverse.org/" class="external-link"><code>purrr</code></a> is really really good at this.</p>
 <p>You do not need the <code>tidyverse</code> to run <code>marlin</code>, but you will see that we make extensive use of it, in particular <code>dplyr</code>, <code>tidyr</code>, <code>ggplot2</code> and <code>purrr</code> in the examples below, to extract useful results from <code>marlin</code>.</p>
 </div>
 <div class="section level2">
@@ -161,7 +165,7 @@
 <span>    <span class="st">"bigeye"</span> <span class="op">=</span> <span class="fu"><a href="reference/create_critter.html">create_critter</a></span><span class="op">(</span></span>
 <span>      common_name <span class="op">=</span> <span class="st">"bigeye tuna"</span>,</span>
 <span>      adult_diffusion <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>      rec_form <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>      density_dependence <span class="op">=</span> <span class="st">"post_dispersal"</span>,</span>
 <span>      seasons <span class="op">=</span> <span class="va">seasons</span>,</span>
 <span>      fished_depletion <span class="op">=</span> <span class="fl">.25</span>,</span>
 <span>      resolution <span class="op">=</span> <span class="va">resolution</span>,</span>
@@ -213,7 +217,7 @@
 <span>                  years <span class="op">=</span> <span class="va">years</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">start_time</span></span>
-<span><span class="co">#&gt; Time difference of 0.04281306 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 0.0497129 secs</span></span></code></pre></div>
 <p>we can then use <code>process_marlin</code> and <code>plot_marlin</code> to examine the simulation</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">processed_marlin</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_marlin.html">process_marlin</a></span><span class="op">(</span>sim <span class="op">=</span> <span class="va">example_sim</span>, time_step <span class="op">=</span> <span class="va">time_step</span><span class="op">)</span></span>
@@ -270,7 +274,7 @@
 <span>      base_habitat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">bigeye_habitat</span>,<span class="va">bigeye_habitat2</span><span class="op">)</span>,</span>
 <span>      season_blocks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">4</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>      adult_diffusion <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>,<span class="fl">2</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">.1</span>,<span class="fl">.1</span><span class="op">)</span><span class="op">)</span>, <span class="co"># standard deviation of the number of patches moved by adults</span></span>
-<span>      rec_form <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>      density_dependence <span class="op">=</span> <span class="st">"pre_dispersal"</span>,</span>
 <span>      seasons <span class="op">=</span> <span class="va">seasons</span>,</span>
 <span>      init_explt <span class="op">=</span>  <span class="fl">1</span>,</span>
 <span>     explt_type <span class="op">=</span> <span class="st">"f"</span></span>
@@ -288,7 +292,7 @@
 <span><span class="co"># create a fleets object, which is a list of lists (of lists). Each fleet has one element, </span></span>
 <span><span class="co"># with lists for each species inside there. Price specifies the price per unit weight of that </span></span>
 <span><span class="co"># species for that fleet</span></span>
-<span><span class="co"># sel_form can be one of logistic or dome</span></span>
+<span><span class="co"># sel_form can be one of logistic or dome, with sel_start wpecifying the percent of length at maturity at which selectivity start, and sel_delta is the units of length greater than sel_50 to sel_95</span></span>
 <span></span>
 <span></span>
 <span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
@@ -315,7 +319,7 @@
 <span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span><span class="op">)</span> </span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 2.002918 secs</span></span>
+<span><span class="co">#&gt; Time difference of 1.718089 secs</span></span>
 <span></span>
 <span></span>
 <span><span class="va">fauna</span><span class="op">$</span><span class="va">bigeye</span><span class="op">$</span><span class="fu">plot</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
@@ -329,7 +333,7 @@
 <span>                  years <span class="op">=</span> <span class="va">years</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.237659 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.215112 secs</span></span>
 <span>  </span>
 <span></span>
 <span><span class="va">processed_marlin</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_marlin.html">process_marlin</a></span><span class="op">(</span>sim <span class="op">=</span> <span class="va">sim2</span>, time_step <span class="op">=</span> <span class="va">time_step</span><span class="op">)</span></span>
@@ -394,7 +398,7 @@
 <span>      recruit_habitat <span class="op">=</span> <span class="va">skipjack_habitat</span>,</span>
 <span>      adult_diffusion <span class="op">=</span> <span class="fl">2</span>, <span class="co"># standard deviation of the number of patches moved by adults</span></span>
 <span>      fished_depletion <span class="op">=</span> <span class="fl">.6</span>, <span class="co"># desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),</span></span>
-<span>      rec_form <span class="op">=</span> <span class="fl">1</span>, <span class="co"># recruitment form, where 1 implies local recruitment</span></span>
+<span>      density_dependence <span class="op">=</span> <span class="st">"global_habitat"</span>, <span class="co"># recruitment form, where 1 implies local recruitment</span></span>
 <span>      seasons <span class="op">=</span> <span class="va">seasons</span>,</span>
 <span>      init_explt <span class="op">=</span> <span class="fl">0.2</span>, </span>
 <span>      explt_type <span class="op">=</span> <span class="st">"f"</span></span>
@@ -406,7 +410,7 @@
 <span>      recruit_habitat <span class="op">=</span> <span class="va">bigeye_habitat</span>,</span>
 <span>      adult_diffusion <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>      fished_depletion <span class="op">=</span> <span class="fl">.1</span>,</span>
-<span>      rec_form <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>      density_dependence <span class="op">=</span> <span class="st">"local_habitat"</span>,</span>
 <span>      seasons <span class="op">=</span> <span class="va">seasons</span>,</span>
 <span>      init_explt <span class="op">=</span> <span class="fl">0.3</span>, </span>
 <span>      explt_type <span class="op">=</span> <span class="st">"f"</span></span>
@@ -420,7 +424,7 @@
 <span><span class="co">#&gt; • Found: 1 </span></span>
 <span><span class="co">#&gt; • Not Found: 0</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 1.134254 secs</span></span>
+<span><span class="co">#&gt; Time difference of 1.431333 secs</span></span>
 <span></span>
 <span><span class="co"># create a fleets object, which is a list of lists (of lists). Each fleet has one element, </span></span>
 <span><span class="co"># with lists for each species inside there. Price specifies the price per unit weight of that </span></span>
@@ -488,7 +492,7 @@
 <span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span><span class="op">)</span> </span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 3.399425 secs</span></span>
+<span><span class="co">#&gt; Time difference of 3.064395 secs</span></span>
 <span></span>
 <span></span>
 <span><span class="co"># run simulations</span></span>
@@ -501,7 +505,7 @@
 <span>                  years <span class="op">=</span> <span class="va">years</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.6005359 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.678319 secs</span></span>
 <span><span class="co"># a &lt;- Sys.time()</span></span>
 <span></span>
 <span><span class="va">processed_marlin</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_marlin.html">process_marlin</a></span><span class="op">(</span>sim <span class="op">=</span> <span class="va">sim3</span>, time_step <span class="op">=</span> <span class="va">time_step</span>, keep_age <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
@@ -577,7 +581,7 @@
 <span>      recruit_habitat <span class="op">=</span> <span class="va">yft_habitat</span>,</span>
 <span>      adult_diffusion <span class="op">=</span> <span class="fl">4</span>, <span class="co"># standard deviation of the number of patches moved by adults</span></span>
 <span>      fished_depletion <span class="op">=</span> <span class="fl">.4</span>, <span class="co"># desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),</span></span>
-<span>      rec_form <span class="op">=</span> <span class="fl">1</span>, <span class="co"># recruitment form, where 1 implies local recruitment</span></span>
+<span>      density_dependence <span class="op">=</span> <span class="st">"local_habitat"</span>, <span class="co"># recruitment form, where 1 implies local recruitment</span></span>
 <span>      seasons <span class="op">=</span> <span class="va">seasons</span>,</span>
 <span>      init_explt <span class="op">=</span> <span class="fl">0.12</span>, </span>
 <span>      explt_type <span class="op">=</span> <span class="st">"f"</span></span>
@@ -588,7 +592,7 @@
 <span>      recruit_habitat <span class="op">=</span> <span class="va">mako_habitat</span>,</span>
 <span>      adult_diffusion <span class="op">=</span> <span class="fl">3</span>,</span>
 <span>      fished_depletion <span class="op">=</span> <span class="fl">.3</span>,</span>
-<span>      rec_form <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>      density_dependence <span class="op">=</span> <span class="st">"local_habitat"</span>, <span class="co"># recruitment form, where 1 implies local recruitment</span></span>
 <span>      burn_years <span class="op">=</span> <span class="fl">200</span>,</span>
 <span>      seasons <span class="op">=</span> <span class="va">seasons</span>,</span>
 <span>      init_explt <span class="op">=</span> <span class="fl">.12</span>, </span>
@@ -635,7 +639,7 @@
 <span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span>, tune_type <span class="op">=</span> <span class="va">tune_type</span><span class="op">)</span> <span class="co"># tunes the catchability by fleet to achieve target depletion</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 21.19382 secs</span></span>
+<span><span class="co">#&gt; Time difference of 15.29392 secs</span></span>
 <span></span>
 <span><span class="co"># run simulations</span></span>
 <span></span>
@@ -646,7 +650,7 @@
 <span>                  years <span class="op">=</span> <span class="va">years</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.4395318 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.348479 secs</span></span>
 <span>  </span>
 <span><span class="va">proc_nearshore</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">nearshore</span>, time_step <span class="op">=</span>  <span class="va">fauna</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">time_step</span><span class="op">)</span></span></code></pre></div>
 <p>We will now design and implement an MPA network by specifying a data frame with columns x,y, and mpa denoting the coordinates of MPA patches.</p>
@@ -660,8 +664,8 @@
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">x</span>,<span class="va">y</span>, fill <span class="op">=</span> <span class="va">mpa</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_tile</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_brewer.html" class="external-link">scale_fill_brewer</a></span><span class="op">(</span>palette <span class="op">=</span> <span class="st">"Accent"</span>, direction  <span class="op">=</span> <span class="op">-</span><span class="fl">1</span>, name <span class="op">=</span> <span class="st">"MPA"</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"Lat"</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_continuous</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"Lon"</span><span class="op">)</span></span></code></pre></div>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"Lon"</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_continuous</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"Lat"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-10-1.png" width="100%"></p>
 <p>We will now simulate the impacts of those MPAs by passing them to the manager slot.</p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
@@ -676,7 +680,7 @@
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.3704839 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.452677 secs</span></span>
 <span></span>
 <span><span class="va">proc_nearshore_mpa</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">nearshore_mpa</span>, time_step <span class="op">=</span>  <span class="va">fauna</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">time_step</span><span class="op">)</span></span></code></pre></div>
 <p>Now though, consider a different scenario. Here the tunas still slightly prefer their same nearshore habitat, but now the shortfin mako population primarily lives farther offshore. We will first simulate that population without the MPA, and then assess the effects of the exact same MPA on this new scenario.</p>
@@ -700,7 +704,7 @@
 <span>      recruit_habitat <span class="op">=</span> <span class="va">yft_habitat</span>,</span>
 <span>      adult_diffusion <span class="op">=</span> <span class="fl">4</span>, <span class="co"># standard deviation of the number of patches moved by adults</span></span>
 <span>      fished_depletion <span class="op">=</span> <span class="fl">.4</span>, <span class="co"># desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),</span></span>
-<span>      rec_form <span class="op">=</span> <span class="fl">1</span>, <span class="co"># recruitment form, where 1 implies local recruitment</span></span>
+<span>      density_dependence <span class="op">=</span> <span class="st">"local_habitat"</span>, <span class="co"># recruitment form, where 1 implies local recruitment</span></span>
 <span>      seasons <span class="op">=</span> <span class="va">seasons</span>,</span>
 <span>      init_explt <span class="op">=</span> <span class="fl">0.12</span>, </span>
 <span>      explt_type <span class="op">=</span> <span class="st">"f"</span></span>
@@ -711,7 +715,7 @@
 <span>      recruit_habitat <span class="op">=</span> <span class="va">mako_habitat</span>,</span>
 <span>      adult_diffusion <span class="op">=</span> <span class="fl">3</span>,</span>
 <span>      fished_depletion <span class="op">=</span> <span class="fl">.3</span>,</span>
-<span>      rec_form <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>      density_dependence <span class="op">=</span> <span class="st">"local_habitat"</span>, <span class="co"># recruitment form, where 1 implies local recruitment</span></span>
 <span>      burn_years <span class="op">=</span> <span class="fl">200</span>,</span>
 <span>      seasons <span class="op">=</span> <span class="va">seasons</span>,</span>
 <span>      init_explt <span class="op">=</span> <span class="fl">.12</span>, </span>
@@ -737,7 +741,7 @@
 <span>                  years <span class="op">=</span> <span class="va">years</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.3850229 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.4575388 secs</span></span>
 <span>  </span>
 <span><span class="va">proc_offshore</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">offshore</span>, time_step <span class="op">=</span>  <span class="va">fauna</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">time_step</span><span class="op">)</span></span>
 <span></span>
@@ -752,7 +756,7 @@
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.390085 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.422791 secs</span></span>
 <span></span>
 <span></span>
 <span><span class="va">proc_offshore_mpa</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">offshore_mpa_sim</span>, time_step <span class="op">=</span>  <span class="va">fauna</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">time_step</span><span class="op">)</span></span></code></pre></div>
@@ -819,7 +823,7 @@
 <span>      recruit_habitat <span class="op">=</span> <span class="va">yft_habitat</span>,</span>
 <span>      adult_diffusion <span class="op">=</span> <span class="fl">4</span>, </span>
 <span>      fished_depletion <span class="op">=</span> <span class="fl">.4</span>, </span>
-<span>      rec_form <span class="op">=</span> <span class="fl">1</span>, </span>
+<span>      density_dependence <span class="op">=</span> <span class="st">"local_habitat"</span>, <span class="co"># recruitment form, where 1 implies local recruitment</span></span>
 <span>      seasons <span class="op">=</span> <span class="va">seasons</span>,</span>
 <span>      init_explt <span class="op">=</span> <span class="fl">0.12</span>, </span>
 <span>      explt_type <span class="op">=</span> <span class="st">"f"</span></span>
@@ -830,7 +834,7 @@
 <span>      recruit_habitat <span class="op">=</span> <span class="va">mako_habitat</span>,</span>
 <span>      adult_diffusion <span class="op">=</span> <span class="fl">3</span>,</span>
 <span>      fished_depletion <span class="op">=</span> <span class="fl">.3</span>,</span>
-<span>      rec_form <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>      density_dependence <span class="op">=</span> <span class="st">"local_habitat"</span>, <span class="co"># recruitment form, where 1 implies local recruitment</span></span>
 <span>      burn_years <span class="op">=</span> <span class="fl">200</span>,</span>
 <span>      seasons <span class="op">=</span> <span class="va">seasons</span>,</span>
 <span>      init_explt <span class="op">=</span> <span class="fl">0.1</span>, </span>
@@ -869,7 +873,7 @@
 <span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span>, tune_type <span class="op">=</span> <span class="va">tune_type</span><span class="op">)</span> <span class="co"># tunes the catchability by fleet to achieve target depletion</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.798255 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.9453082 secs</span></span>
 <span></span>
 <span><span class="co"># run simulations</span></span>
 <span></span>
@@ -883,8 +887,7 @@
 <code class="sourceCode R"><span><span class="fu"><a href="reference/plot_marlin.html">plot_marlin</a></span><span class="op">(</span></span>
 <span>  `De-Facto MPA` <span class="op">=</span> <span class="va">proc_negative_prices</span>,</span>
 <span>  plot_var <span class="op">=</span> <span class="st">"ssb"</span>,</span>
-<span>  plot_type <span class="op">=</span> <span class="st">"space"</span>,</span>
-<span>  steps_to_plot <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">25</span>,<span class="fl">49</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span>  plot_type <span class="op">=</span> <span class="st">"space"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-16-1.png" width="100%"></p>
 </div>
 <div class="section level2">

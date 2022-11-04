@@ -143,7 +143,6 @@ optimize_mpa <-
     for (i in 1:max_patches_protected) {
       # determine marginal objective function value of each sampled cell
       #
-      
       marginal_values <-
         furrr::future_map_dfr(
           candidate_patches,
@@ -157,7 +156,7 @@ optimize_mpa <-
           .options = furrr::furrr_options(seed = 42),
           .progress = FALSE
         )
-      
+
       marginal_values$patch <- candidate_patches # assign patches
       
       marginal_values$obj_value <-

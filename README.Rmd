@@ -617,8 +617,8 @@ mpa_locations %>%
   ggplot(aes(x,y, fill = mpa)) + 
   geom_tile() + 
   scale_fill_brewer(palette = "Accent", direction  = -1, name = "MPA") + 
-  scale_x_continuous(name = "Lat") + 
-  scale_y_continuous(name = "Lon")
+  scale_x_continuous(name = "Lon") + 
+  scale_y_continuous(name = "Lat")
 ```
 
 We will now simulate the impacts of those MPAs by passing them to the manager slot. 
