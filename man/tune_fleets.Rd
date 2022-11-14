@@ -7,7 +7,14 @@ note that this is not exact: post-tuning values will not perfectly match inputs 
 for example some tuning steps depend on prior tuning step, making it difficult to tune everything
 at once.}
 \usage{
-tune_fleets(fauna, fleets, years = 50, tune_type = "explt", tune_costs = TRUE)
+tune_fleets(
+  fauna,
+  fleets,
+  years = 50,
+  tune_type = "explt",
+  tune_costs = TRUE,
+  fine_tune_costs = TRUE
+)
 }
 \arguments{
 \item{fauna}{a fauna object}

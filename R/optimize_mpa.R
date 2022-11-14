@@ -40,6 +40,7 @@ optimize_mpa <-
     
     if (max_prop_mpa < 1) {
       work_backwards <- FALSE
+      message("Setting work_backwards to FALSE since max_prop_mpa < 1")
     }
     
     # if work_backwards, start at 100% coverage and remove MPAs. Otherwise, start at 0% and grow. Working backwards produces more stable results

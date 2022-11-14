@@ -28,7 +28,7 @@ creates fleet object with spaces for selectivity, mpa response, etc.
   sel_unit = "p_of_mat",
   sel_start = 1,
   sel_delta = 0.1,
-  catchability = 0.01,
+  catchability = 0.2,
   spatial_catchability = NA,
   p_explt = 1
 )}\if{html}{\out{</div>}}

@@ -498,7 +498,7 @@ plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space")
 
 ## Evaluating MPAs
 
-Now let's compare the effect of an MPA on two species: a shark population and a yellowfin tuna population. In one simulation, the sharks and the tuna will share the same habitat. In the second, the tunas life onshore, but the sharks live further offshore. In both, we will design an MPA based on the distribution of tunas. 
+Now let's compare the effect of an MPA on two species: a shark population and a yellowfin tuna population. In one simulation, the sharks and the tuna will share the same nearshore habitat to the "east" of the simulated area. In the second, the tunas life onshore in the eastern habitat, but the sharks live further offshore. In both, we will design an MPA based on the distribution of tunas. 
 
 
 

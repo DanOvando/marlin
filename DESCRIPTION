@@ -35,8 +35,8 @@ Imports:
     R6,
     reshape2,
     rfishbase (>= 3.1.9.99),
-    Matrix,
-    ranger
+    ranger,
+    expm
 VignetteBuilder: knitr
 URL: https://danovando.github.io/marlin/,
     https://github.com/danovando/marlin

@@ -16,7 +16,24 @@ simmar(
 )
 }
 \arguments{
-\item{steps}{}
+\item{fauna}{a list of fauna objects}
+
+\item{fleets}{a list of fleet objects}
+
+\item{manager}{a list of management actions}
+
+\item{habitat}{a list of habitat over time}
+
+\item{years}{the number of years to run the simulation}
+
+\item{initial_conditions}{initial conditions for the simulation, in the form simmar()[\link{final year}]}
+
+\item{starting_step}{the step to start the simulation from, used to keep track of steps across multiple runs of simmar}
+
+\item{keep_starting_step}{should the starting step by kept (TRUE) or dropped (FALSE)}
+}
+\value{
+a list containing the results of the simulation
 }
 \description{
 when passed fauna and fleet objects, simmar will advance

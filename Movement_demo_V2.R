@@ -1,4 +1,4 @@
-
+library(tidyverse)
 library(Matrix)
 n_g = 100
 
@@ -7,8 +7,10 @@ lat_g = seq(55, 65, length=n_g)
 Temp_g = seq(15, 5, length=n_g)
 
 # Parameters
-diffusion = .1
+diffusion = 2
 preference_g =  (-2*diffusion * (Temp_g - 10)^2)
+
+preference_g <-  preference_g - min(preference_g)
 
 # plot
 matplot( cbind(lat_g,Temp_g,preference_g), type="l", lty="solid", lwd=2 )
@@ -25,7 +27,11 @@ a = Matrix::expm(diffusion_gg) %>% as.matrix()
 plot(a[n_g/2,])
 
 # Taxis
-taxis_gg = A_gg * outer(preference_g, preference_g, "-")
+taxis_gg = A_gg * pmax(0,outer(preference_g, preference_g, "-"))
+
+# taxis_gg = A_gg * outer(preference_g, preference_g, "-")
+
+
 diag(taxis_gg) = -1 * colSums(taxis_gg)
 # Total
 mrate_gg = diffusion_gg + taxis_gg
@@ -41,7 +47,7 @@ n <- matrix(ncol = 1, nrow = n_g,rep(0,n_g))
 
 n[1,1] <-  100
 
-for (y in 1:500){
+for (y in 1:100){
   
  n <-  mfraction_gg %*% n
   

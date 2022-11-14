@@ -179,7 +179,6 @@ mpa_network <-
     resolution = resolution,
     starting_conditions = sim[[length(sim)]],
     alpha = 0.75,
-    max_prop_mpa = 0.1, 
     prop_sampled = 0.05,
     max_prop_mpa = 0.3,
     work_backwards = TRUE

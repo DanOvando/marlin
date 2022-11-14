@@ -39,7 +39,7 @@ get_diffusion_frontier <- function(adult_diffusion, resolution = 10, years = 1, 
   base_movement <-
     purrr::map2(critter$seasonal_diffusion,
                 critter$base_habitat,
-                ~ as.matrix(Matrix::expm((.x + .y) / seasons)))
+                ~ as.matrix(expm::expm((.x + .y) / seasons)))
   
   
   dist_org <- data.frame(distance = distance[patch,], p_move = base_movement[[1]][patch,] ) %>% 

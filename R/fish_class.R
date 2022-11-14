@@ -36,7 +36,7 @@ Fish <- R6::R6Class(
     #' @param steepness
     #' @param r0
     #' @param ssb0
-    #' @param density_dependence_form
+    #' @param density_dependence
     #' @param adult_diffusion
     #' @param recruit_diffusion
     #' @param query_fishlife
@@ -52,7 +52,6 @@ Fish <- R6::R6Class(
     #' @param season_blocks
     #' @param recruit_habitat
     #' @param fished_depletion
-    #' @param rec_form
     #' @param burn_years
     #' @param seasonal_hab
     #' @param seasons
@@ -61,6 +60,10 @@ Fish <- R6::R6Class(
     #' @param fec_form
     #' @param fec_expo exponent for fecundity at weight relationship, 1 = isometric > 1 hyperallometric
     #' @param get_common_name
+    #' @param base_habitat 
+    #' @param spawning_seasons 
+    #' @param tune_diffusion TRUE to tune adult_diffusion such that 95% of adults move less than adult_diffusion distance
+    #' @param taxis_to_diff_ratio 
     #' @param explt_type
     initialize = function(common_name = NA,
                           scientific_name = NA,
@@ -88,7 +91,7 @@ Fish <- R6::R6Class(
                           steepness = 0.8,
                           r0 = 10000,
                           ssb0 = NA,
-                          density_dependence = "post_dispersal",
+                          density_dependence = "global_habitat",
                           adult_diffusion = 4,
                           recruit_diffusion = 10,
                           query_fishlife = T,
@@ -105,7 +108,6 @@ Fish <- R6::R6Class(
                           season_blocks = list(),
                           recruit_habitat = NA,
                           fished_depletion = 1,
-                          rec_form = 3,
                           burn_years = 50,
                           seasonal_hab = NA,
                           seasons = 1,
@@ -179,10 +181,8 @@ Fish <- R6::R6Class(
       }
       
       if (tune_diffusion){
-        # tune adult diffusion parameter
-        # 
-    
-        
+        # tune adult diffusion parameter to a target distance moved
+  
         adult_diffusion <-
           purrr::map(adult_diffusion, ~ if (any(.x > 0)) {
             ranger:::predict.ranger(
@@ -555,7 +555,7 @@ Fish <- R6::R6Class(
       self$base_movement <-
         purrr::map2(self$seasonal_diffusion,
                     self$base_habitat,
-                    ~ as.matrix(Matrix::expm((.x + .y) / seasons)))
+                    ~ as.matrix(expm::expm((.x + .y) / seasons)))
       
       self$movement_seasons <- season_blocks
       
@@ -566,7 +566,7 @@ Fish <- R6::R6Class(
                       resolution = resolution)
       
       self$recruit_movement <-
-        as.matrix(Matrix::expm(self$recruit_movement * 1 / seasons))
+        as.matrix(expm::expm(self$recruit_movement * 1 / seasons))
       
       
       # set up unfished recruitment by patch
@@ -672,6 +672,8 @@ Fish <- R6::R6Class(
       
       
       rec_form <- switch(EXPR = density_dependence,"global_habitat" = 0 , "local_habitat" = 1, "pre_dispersal" = 2,"post_dispersal" = 3)
+      
+      rec_form <- density_dependence
       
       self$rec_form <- rec_form
       

@@ -270,7 +270,7 @@ example_sim <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - start_time
-#> Time difference of 0.05717111 secs
+#> Time difference of 0.0495069 secs
 ```
 
 we can then use `process_marlin` and `plot_marlin` to examine the
@@ -389,7 +389,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets) 
 
 Sys.time() - a
-#> Time difference of 2.052871 secs
+#> Time difference of 1.723557 secs
 
 
 fauna$bigeye$plot()
@@ -406,7 +406,7 @@ sim2 <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.2992222 secs
+#> Time difference of 0.2093439 secs
   
 
 processed_marlin <- process_marlin(sim = sim2, time_step = time_step)
@@ -509,7 +509,7 @@ fauna <-
 #> • Found: 1 
 #> • Not Found: 0
 Sys.time() - a
-#> Time difference of 2.760779 secs
+#> Time difference of 1.345585 secs
 
 # create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
 # with lists for each species inside there. Price specifies the price per unit weight of that 
@@ -577,7 +577,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets) 
 
 Sys.time() - a
-#> Time difference of 4.017619 secs
+#> Time difference of 3.212729 secs
 
 
 # run simulations
@@ -590,7 +590,7 @@ sim3 <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.8646071 secs
+#> Time difference of 0.6865492 secs
 # a <- Sys.time()
 
 processed_marlin <- process_marlin(sim = sim3, time_step = time_step, keep_age = TRUE)
@@ -638,9 +638,10 @@ plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space")
 
 Now let’s compare the effect of an MPA on two species: a shark
 population and a yellowfin tuna population. In one simulation, the
-sharks and the tuna will share the same habitat. In the second, the
-tunas life onshore, but the sharks live further offshore. In both, we
-will design an MPA based on the distribution of tunas.
+sharks and the tuna will share the same nearshore habitat to the “east”
+of the simulated area. In the second, the tunas life onshore in the
+eastern habitat, but the sharks live further offshore. In both, we will
+design an MPA based on the distribution of tunas.
 
 ``` r
 library(marlin)
@@ -744,7 +745,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
-#> Time difference of 19.43908 secs
+#> Time difference of 15.43131 secs
 
 # run simulations
 
@@ -755,7 +756,7 @@ nearshore <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.474175 secs
+#> Time difference of 0.3999619 secs
   
 proc_nearshore <- process_marlin(nearshore, time_step =  fauna[[1]]$time_step)
 ```
@@ -794,7 +795,7 @@ nearshore_mpa <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.6376328 secs
+#> Time difference of 0.3844359 secs
 
 proc_nearshore_mpa <- process_marlin(nearshore_mpa, time_step =  fauna[[1]]$time_step)
 ```
@@ -865,7 +866,7 @@ offshore <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.5212901 secs
+#> Time difference of 0.414351 secs
   
 proc_offshore <- process_marlin(offshore, time_step =  fauna[[1]]$time_step)
 
@@ -880,7 +881,7 @@ offshore_mpa_sim <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.4668701 secs
+#> Time difference of 0.4125261 secs
 
 
 proc_offshore_mpa <- process_marlin(offshore_mpa_sim, time_step =  fauna[[1]]$time_step)
@@ -1006,7 +1007,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
-#> Time difference of 1.410342 secs
+#> Time difference of 0.8168449 secs
 
 # run simulations
 

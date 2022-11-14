@@ -619,7 +619,7 @@ simmar <- function(fauna = list(),
         
         # update movement matrix with current habitat
         movement[[season_block]] <-
-          as.matrix(Matrix::expm((fauna[[f]]$seasonal_diffusion[[season_block]] + current_habitat) / fauna[[1]]$seasons
+          as.matrix(expm::expm((fauna[[f]]$seasonal_diffusion[[season_block]] + current_habitat) / fauna[[1]]$seasons
           ))
       
         if (any(!is.finite(movement[[season_block]]))) {
