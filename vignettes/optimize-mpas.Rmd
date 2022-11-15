@@ -180,8 +180,9 @@ mpa_network <-
     starting_conditions = sim[[length(sim)]],
     alpha = 0.75,
     prop_sampled = 0.05,
-    max_prop_mpa = 0.3,
-    work_backwards = TRUE
+    max_prop_mpa = 1,
+    work_backwards = TRUE,
+    patches_at_a_time = 4
   )
 
 

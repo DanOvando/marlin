@@ -231,6 +231,46 @@ proc_sim_quota$fleets %>%
 
 ```
 
+## Effort Caps
+
+Another management option is to set a maximum amount of effort per fleet. This could reflect regulation, or reality. For example, if the user wishes to think of effort in terms of "days fished per year" by a fixed number of vessels, clearly there are limits. 
+
+Users set this by ` manager = list(effort_cap = list(FLEET_NAME = EFFORT_CAP))`, where `FLEET_NAME` is filled in with the name of the fleet to apply a given total `EFFORT_CAP` to. 
+
+Note that effort caps only really apply when `fleet_model == "open access`; when `fleet_model == "constant effort"` effort it already capped. Under open access though, the effort cap ensures that while open access dynamics might **reduce** the total amount of effort, effort will never expand beyond the supplied cap for that fleet. 
+
+```{r}
+
+sim_effort <- simmar(fauna = fauna,
+                  fleets = fleets,
+                  years = years,
+                  manager = list(effort_cap = list(longline = 1.5 *fleets$longline$base_effort)))
+
+proc_sim_effort <- process_marlin(sim_effort)
+
+plot_marlin(proc_sim_effort, plot_var = "c", max_scale = FALSE)
+
+proc_sim_effort$fleets %>% 
+  group_by(step, fleet) %>% 
+  summarise(catch = sum(catch)) %>% 
+  ggplot(aes(step * time_step, catch, color = fleet)) + 
+  geom_line()+
+    scale_x_continuous(name = "Year")
+
+
+proc_sim_effort$fleets %>% 
+  pivot_longer(contains("_effort"), names_to = "fleet2", values_to = "effort") %>% 
+  group_by(step, fleet2) %>%
+  summarise(effort = sum(effort)) %>% 
+  ggplot(aes(step * time_step, effort, color = fleet2)) + 
+  geom_line() + 
+    scale_x_continuous(name = "Year")
+
+
+```
+
+
+
 ## Seasons
 
 We can also impose closed fishing seasons that apply to one or more targeted species
@@ -251,8 +291,9 @@ proc_sim$fleets %>%
   group_by(step, fleet2) %>%
   summarise(effort = sum(effort)) %>% 
   ggplot(aes(step * time_step, effort, color = fleet2)) + 
-  geom_point() + 
-  scale_x_continuous(name = "Year")
+  geom_line() + 
+  scale_x_continuous(name = "Year") + 
+  scale_y_continuous(limits = c(0, NA))
 
 
 ```
