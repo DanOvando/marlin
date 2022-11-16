@@ -6,23 +6,21 @@
 \usage{
 create_fleet(
   metiers,
-  base_effort = 0,
   mpa_response = "stay",
   fleet_model = "constant effort",
   responsiveness = 0.5,
-  cost_per_unit_effort = NA,
+  cost_per_unit_effort = 1,
   spatial_allocation = "rpue",
-  effort_cost_exponent = 1.3,
+  effort_cost_exponent = 1,
   ports = NULL,
   cost_per_distance = 1,
   cr_ratio = 1,
-  resolution
+  resolution,
+  base_effort = NA
 )
 }
 \arguments{
 \item{metiers}{a list of metiers}
-
-\item{base_effort}{base effort for the fleet}
 
 \item{mpa_response}{one of "stay" or "leave" indicating response of vessels that used to fish in MPA to MPA}
 
@@ -31,6 +29,8 @@ create_fleet(
 \item{spatial_allocation}{spatial effort allocation strategy (ideal_free or revenue)}
 
 \item{cr_ratio}{cost to revenue ratio at initial conditions (1 implies OA equilibrium, total profits = 0)}
+
+\item{base_effort}{base effort for the fleet}
 
 \item{profit_sensitivity}{the profit sensitivity of the open access model}
 

@@ -13,7 +13,6 @@ create_critter(
   season_blocks = list(),
   recruit_habitat = NA,
   seasons = 1,
-  rec_form = 1,
   fec_form = "weight",
   adult_diffusion = 2,
   recruit_diffusion = 10,
@@ -25,6 +24,7 @@ create_critter(
   fec_expo = 1,
   resolution = 20,
   spawning_seasons = NA,
+  density_dependence = "global_habitat",
   ...
 )
 }
@@ -40,8 +40,6 @@ create_critter(
 \item{season_blocks}{}
 
 \item{seasons}{}
-
-\item{rec_form}{}
 
 \item{fished_depletion}{}
 

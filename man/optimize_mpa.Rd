@@ -14,7 +14,9 @@ optimize_mpa(
   prop_sampled = 0.2,
   max_delta = 2,
   workers = 6,
-  objective = "max_ssb"
+  bio_objective = "max_ssb",
+  econ_objective = "yield",
+  work_backwards = TRUE
 )
 }
 \arguments{

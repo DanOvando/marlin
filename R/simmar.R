@@ -280,10 +280,17 @@ simmar <- function(fauna = list(),
         
 
           if (exists("last_revenue")){
-          total_effort <- total_effort * pmin(1.5,exp(fleets[[l]]$responsiveness * log(pmax(last_revenue, 1e-6) / pmax(1e-6,last_cost)))) # adjust effort per an open access dynamics model
-          } # in edge case where the fishery is closed for the first few seasons of the simulation stick with last value
-        
 
+            effort_cap <- Inf
+            
+            if (length(manager$effort_cap[[l]]) > 0){
+              
+              effort_cap <- manager$effort_cap[[l]]
+              
+            }
+            
+          total_effort <- pmin(effort_cap,total_effort * pmin(1.5,exp(fleets[[l]]$responsiveness * log(pmax(last_revenue, 1e-6) / pmax(1e-6,last_cost))))) # adjust effort per an open access dynamics model
+          } # in edge case where the fishery is closed for the first few seasons of the simulation stick with last value
         
       } # close open access
       
@@ -619,7 +626,7 @@ simmar <- function(fauna = list(),
         
         # update movement matrix with current habitat
         movement[[season_block]] <-
-          as.matrix(Matrix::expm((fauna[[f]]$seasonal_diffusion[[season_block]] + current_habitat) / fauna[[1]]$seasons
+          as.matrix(expm::expm((fauna[[f]]$seasonal_diffusion[[season_block]] + current_habitat) / fauna[[1]]$seasons
           ))
       
         if (any(!is.finite(movement[[season_block]]))) {

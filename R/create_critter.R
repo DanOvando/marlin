@@ -14,7 +14,6 @@
 #' @param season_blocks 
 #' @param rec_habitat 
 #' @param seasons 
-#' @param rec_form 
 #' @param adult_movement 
 #' @param adult_movement_sigma 
 #' @param fished_depletion 
@@ -30,7 +29,6 @@ create_critter <- function(common_name = NA,
                            season_blocks = list(),
                            recruit_habitat = NA,
                            seasons = 1,
-                           rec_form = 1,
                            fec_form = "weight",
                            adult_diffusion = 2,
                            recruit_diffusion = 10,
@@ -42,6 +40,7 @@ create_critter <- function(common_name = NA,
                            fec_expo = 1,
                            resolution = 20,
                            spawning_seasons = NA,
+                           density_dependence = "global_habitat",
                            ...) {
 
   
@@ -58,7 +57,7 @@ create_critter <- function(common_name = NA,
         season_blocks = season_blocks,
         recruit_habitat = recruit_habitat,
         seasons = seasons,
-        rec_form = rec_form,
+        density_dependence = density_dependence,
         fec_form = fec_form,
         fec_expo = fec_expo,
         weight_a = weight_a,

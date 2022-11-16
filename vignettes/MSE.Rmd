@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 
 To that end, and important feature of `marlin` is that the outputs of a `marlin` simulation can be passed as the input to a `marlin` simulation. This means you can run the model for one time step, *insert whatever whacky stuff you want to do*, then run a new step. 
 
-As an example, we'll do a very cartonish version of a "management strategy evaluation", where we 
+As an example, we'll do a very cartoonish version of a "management strategy evaluation", where we 
 
 1. Simulate a fishery for a time step
 

@@ -40,7 +40,7 @@ List sim_fish(
     NumericVector ssb0_p, // unfished spawning stock biomass in each patch
     const NumericVector m_at_age,
     bool tune_unfished, //0 = use a spawner recruit relationship, 1 = don't
-    const int rec_form,
+    const String rec_form,
     const NumericVector spawning_seasons,
     const NumericVector rec_devs) // recruitment form, one of ....
   { 
@@ -221,15 +221,15 @@ List sim_fish(
       if (Rcpp::any(season == spawning_seasons).is_true()){
       
 
-      if (rec_form == 0){  // global beverton-holt density dependence, distribute recruits according to recruitment habitat
+      if (rec_form == "global_habitat"){  // global beverton-holt density dependence, distribute recruits according to recruitment habitat
 
       recruits = (((0.8 * sum(r0s) * steepness * ssb) / (0.2 * ssb0 * (1 - steepness) + (steepness - 0.2) * ssb))) * (r0s / sum(r0s));
         
-      } else if (rec_form == 1){ // local beverton-holt density dependence, r0 set by local habitat
+      } else if (rec_form == "local_habitat"){ // local beverton-holt density dependence, r0 set by local habitat
         
         recruits = ((0.8 * r0s * steepness * ssb_p) / (0.2 * (ssb0_p + 1e-6) * (1 - steepness) + (steepness - 0.2) * (ssb_p + 1e-6)));
         
-      } else if (rec_form == 2) { // local beverton-holt then disperse recruits
+      } else if (rec_form == "pre_dispersal") { // local beverton-holt then disperse recruits
         
         recruits = ((0.8 * r0s * steepness * ssb_p) / (0.2 * (ssb0_p + 1e-6) * (1 - steepness) + (steepness - 0.2) * (ssb_p + 1e-6)));
         
@@ -239,9 +239,9 @@ List sim_fish(
 
         recruits = Rcpp::wrap(tmp_rec); // convert from eigen to Rcpp
 
-        // Rcpp::Rcout << ssb_p << std::endl;
+        // Rcpp::Rcout << "hello" << std::endl;
 
-      } else if (rec_form == 3){ // disperse larvae then recruit locally per beverton-holt
+      } else if (rec_form == "post_dispersal"){ // disperse larvae then recruit locally per beverton-holt
         
         tmp_rec = as<VectorXd>(clone(ssb_p));
         
@@ -252,6 +252,14 @@ List sim_fish(
         huh = Rcpp::wrap(tmp_rec); // convert from eigen to Rcpp
         
         recruits = ((0.8 * r0s * steepness * huh) / (0.2 * (ssb0_p + 1e-6) * (1 - steepness) + (steepness - 0.2) * (huh + 1e-6)));
+        
+      } else if (rec_form == "global_ssb"){
+        // a slightly off one. Global density dependence but then redisperse based on spawning biomass. Basically, a proxy for local density dependence with limited dispersal 
+        // without dealing with dynamic r0_p and ssb0_p
+        // Rcpp::Rcout << "hello" << std::endl;
+        
+        recruits = (((0.8 * sum(r0s) * steepness * ssb) / (0.2 * ssb0 * (1 - steepness) + (steepness - 0.2) * ssb))) * (ssb_p / sum(ssb_p));
+        
         
       }
       

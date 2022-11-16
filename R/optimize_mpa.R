@@ -25,7 +25,8 @@ optimize_mpa <-
            workers = 6,
            bio_objective = "max_ssb",
            econ_objective = "yield",
-           work_backwards = TRUE) {
+           work_backwards = TRUE,
+           patches_at_a_time = 1) {
     future::plan(future::multisession, workers = workers)
     
     on.exit(future::plan(future::sequential))
@@ -40,6 +41,7 @@ optimize_mpa <-
     
     if (max_prop_mpa < 1) {
       work_backwards <- FALSE
+      message("Setting work_backwards to FALSE since max_prop_mpa < 1")
     }
     
     # if work_backwards, start at 100% coverage and remove MPAs. Otherwise, start at 0% and grow. Working backwards produces more stable results
@@ -54,12 +56,14 @@ optimize_mpa <-
     
     candidate_patches <- 1:patches
     
+    is <- seq(1, max_patches_protected, by = patches_at_a_time)
+    
     patch_value <- dplyr::tibble(patch = 1:patches, obj_value = 0.5)
     
-    results <- vector(mode = "list", length = max_patches_protected)
+    results <- vector(mode = "list", length = length(is))
     
     mpa_network <-
-      vector(mode = "list", length = max_patches_protected)
+      vector(mode = "list", length = length(is))
     
     # set up open access
     
@@ -140,7 +144,8 @@ optimize_mpa <-
         
       } # close objective function
     
-    for (i in 1:max_patches_protected) {
+    
+    for (i in seq_along(is)) {
       # determine marginal objective function value of each sampled cell
       #
       marginal_values <-
@@ -165,20 +170,22 @@ optimize_mpa <-
       marginal_values <- marginal_values %>%
         dplyr::arrange(patch) # make sure marginal values are ordered by patches
       
-      top_patch <-
-        marginal_values$patch[marginal_values$obj_value == max(marginal_values$obj_value)][1] # find the next best patch to add
-      # update marginal benefit surface
+
+        top_patches <- marginal_values %>% 
+          dplyr::arrange(dplyr::desc(obj_value))
+        
+        top_patches <- top_patches$patch[1:patches_at_a_time]
       
-      patch_value$obj_value[patch_value$patch %in% marginal_values$patch] <-
+        patch_value$obj_value[patch_value$patch %in% marginal_values$patch] <-
         marginal_values$obj_value
       
       # update MPA locations
       
       if (work_backwards) {
-        mpas$mpa[mpas$patch == top_patch] <- FALSE
+        mpas$mpa[mpas$patch %in% top_patches] <- FALSE
         
       } else {
-        mpas$mpa[mpas$patch == top_patch] <- TRUE
+        mpas$mpa[mpas$patch %in% top_patches] <- TRUE
         
       }
       
@@ -268,7 +275,7 @@ optimize_mpa <-
       }
       message(
         glue::glue(
-          "{scales::percent(i / max_patches_protected)} done designing MPA network"
+          "{scales::percent(is[i] / max_patches_protected)} done designing MPA network"
         )
       )
     } # close MPA size loop
@@ -334,9 +341,9 @@ optimize_mpa <-
     
     
     if (work_backwards){
-      patch_order <-  max_patches_protected:1
+      patch_order <- rev(is)
     } else {
-      patch_order <- 1:max_patches_protected
+      patch_order <- is
     }
     
     # process results

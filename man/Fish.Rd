@@ -51,7 +51,7 @@ fill in fish object
   steepness = 0.8,
   r0 = 10000,
   ssb0 = NA,
-  density_dependence = "post_dispersal",
+  density_dependence = "global_habitat",
   adult_diffusion = 4,
   recruit_diffusion = 10,
   query_fishlife = T,
@@ -68,7 +68,6 @@ fill in fish object
   season_blocks = list(),
   recruit_habitat = NA,
   fished_depletion = 1,
-  rec_form = 3,
   burn_years = 50,
   seasonal_hab = NA,
   seasons = 1,
@@ -76,7 +75,8 @@ fill in fish object
   init_explt = 0.1,
   get_common_name = FALSE,
   spawning_seasons = NA,
-  tune_diffusion = TRUE
+  tune_diffusion = TRUE,
+  taxis_to_diff_ratio = 0
 )}\if{html}{\out{</div>}}
 }
 
@@ -87,9 +87,17 @@ fill in fish object
 
 \item{\code{fec_expo}}{exponent for fecundity at weight relationship, 1 = isometric > 1 hyperallometric}
 
+\item{\code{base_habitat}}{}
+
 \item{\code{explt_type}}{Swim
 
 Swim advances the population one time step}
+
+\item{\code{spawning_seasons}}{}
+
+\item{\code{tune_diffusion}}{TRUE to tune adult_diffusion such that 95\% of adults move less than adult_diffusion distance}
+
+\item{\code{taxis_to_diff_ratio}}{}
 }
 \if{html}{\out{</div>}}
 }
