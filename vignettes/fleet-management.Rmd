@@ -26,6 +26,8 @@ Things you can adjust include
 
 - Catch quotas per species
 
+- Effort caps per fleet
+
 - Size limits and selectivity forms per metier and critter
 
 - no-take Marine Protected Areas

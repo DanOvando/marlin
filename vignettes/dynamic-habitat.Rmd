@@ -37,7 +37,7 @@ library(ggridges)
 
 years <- 20
 
-resolution <-  20
+resolution <-  10
 
 seasons <- 4
 

@@ -47,13 +47,13 @@ the harder it will be to ensure the model is appropriately set up.
 
 Some use cases we envision for marlin are
 
--   Assessing sensitivity of MPA network designs to key ecological and
-    economic unknowns
+- Assessing sensitivity of MPA network designs to key ecological and
+  economic unknowns
 
--   Design of dynamic ocean management strategies under climate change
+- Design of dynamic ocean management strategies under climate change
 
--   Management strategy evaluation of spatially-explicit fisheries
-    management
+- Management strategy evaluation of spatially-explicit fisheries
+  management
 
 ## Installation
 
@@ -78,13 +78,13 @@ updating R itself.
 
 From there…
 
--   On Windows, make sure you have the appropriate version of Rtools
-    installed ([here](https://cran.r-project.org/bin/windows/Rtools/)),
-    most likely Rtools4X if you have R version 4.X
-    -   Make sure that you select the box that says something about
-        adding Rtools to the PATH variable
--   On macOS, there might be some issues with the your compiler,
-    particularly if your version of R is less than 4.0.0.
+- On Windows, make sure you have the appropriate version of Rtools
+  installed ([here](https://cran.r-project.org/bin/windows/Rtools/)),
+  most likely Rtools4X if you have R version 4.X
+  - Make sure that you select the box that says something about adding
+    Rtools to the PATH variable
+- On macOS, there might be some issues with the your compiler,
+  particularly if your version of R is less than 4.0.0.
 
 If you get an error that says something like
 `clang: error: unsupported option '-fopenmp'`, follow the instructions
@@ -142,15 +142,15 @@ the various options in `marlin`.
 
 Some of the core options for `marlin`
 
--   `resolution`: the number of patches to a side of the 2D population
-    grid. So, setting a resolution of 10 means you will be simulating a
-    10x10 system, i.e. 100 patches
+- `resolution`: the number of patches to a side of the 2D population
+  grid. So, setting a resolution of 10 means you will be simulating a
+  10x10 system, i.e. 100 patches
 
--   `years`: the number of years to run the simulation
+- `years`: the number of years to run the simulation
 
--   `seasons`: the number of seasons per year. 2 would mean that each
-    year is divided into two time steps, 4 would mean a quarterly model,
-    12 a monthly model, etc.
+- `seasons`: the number of seasons per year. 2 would mean that each year
+  is divided into two time steps, 4 would mean a quarterly model, 12 a
+  monthly model, etc.
 
 ``` r
 library(marlin)
@@ -171,12 +171,12 @@ steps <- years * seasons
 
 From there, `marlin` works be specifying three list objects
 
--   `fauna`: a list object of the life histories of the different
-    species being simulated
+- `fauna`: a list object of the life histories of the different species
+  being simulated
 
--   `fleets`: a list object of the fleet dynamics to be simulated
+- `fleets`: a list object of the fleet dynamics to be simulated
 
--   `manager`: a list of the management strategies being employed
+- `manager`: a list of the management strategies being employed
 
 The `fauna` object is a list with individual slots for every “critter”
 you want to simulate, created by the `create_critter` function. If you
@@ -270,7 +270,7 @@ example_sim <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - start_time
-#> Time difference of 0.0495069 secs
+#> Time difference of 0.05749989 secs
 ```
 
 we can then use `process_marlin` and `plot_marlin` to examine the
@@ -304,138 +304,6 @@ plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space", steps_to_pl
 ```
 
 <img src="man/figures/README-unnamed-chunk-7-4.png" width="100%" />
-
-## Simple Example: seasonal habitat and movement and spatial q
-
-Now let’s add in different adult habitats by season, different movement
-rates by season, specified recruitment habitat, and a spatial dimension
-to catchability, and quarterly time steps
-
-``` r
-
-seasons <- 4
-
-time_step <-  1 / seasons
-
-bigeye_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 300, 100)) %>% 
-  pivot_wider(names_from = y, values_from = habitat) %>% 
-  select(-x) %>% 
-  as.matrix()
-
-
-bigeye_habitat2 <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(habitat =  dnorm((x ^ .2 + y ^ .2), 100, 100)) %>% 
-  pivot_wider(names_from = y, values_from = habitat) %>% 
-  select(-x) %>% 
-  as.matrix()
-
-bigeye_q <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  dplyr::mutate(habitat = rlnorm(resolution^2)) %>% 
-  pivot_wider(names_from = y, values_from = habitat) %>% 
-  select(-x) %>% 
-  as.matrix()
-
-
-fauna <- 
-  list(
-    "bigeye" = create_critter(
-      common_name = "bigeye tuna",
-      base_habitat = list(bigeye_habitat,bigeye_habitat2),
-      season_blocks = list(c(1,2),c(3,4)),
-      adult_diffusion = list(c(2,2), c(.1,.1)), # standard deviation of the number of patches moved by adults
-      density_dependence = "pre_dispersal",
-      seasons = seasons,
-      init_explt =  1,
-     explt_type = "f"
-    )
-  )
-#> ══  1 queries  ═══════════════
-#> ✔  Found:  bigeye+tuna[Common Name]
-#> ══  Results  ═════════════════
-#> 
-#> • Total: 1 
-#> • Found: 1 
-#> • Not Found: 0
-
-
-# create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
-# with lists for each species inside there. Price specifies the price per unit weight of that 
-# species for that fleet
-# sel_form can be one of logistic or dome, with sel_start wpecifying the percent of length at maturity at which selectivity start, and sel_delta is the units of length greater than sel_50 to sel_95
-
-
-fleets <- list(
-  "longline" = create_fleet(
-    list("bigeye" = Metier$new(
-        critter = fauna$bigeye,
-        price = 10,
-        sel_form = "logistic",
-        sel_start = 1,
-        sel_delta = .01,
-        catchability = 1e-3,
-        p_explt = 1,
-        spatial_catchability = NA
-      )
-    ),
-    base_effort = resolution ^ 2,
-        resolution = resolution
-
-  )
-)
-
-a <- Sys.time()
-
-fleets <- tune_fleets(fauna, fleets) 
-
-Sys.time() - a
-#> Time difference of 1.723557 secs
-
-
-fauna$bigeye$plot()
-```
-
-<img src="man/figures/README-unnamed-chunk-8-1.png" width="100%" />
-
-``` r
-
-a <- Sys.time()
-
-sim2 <- simmar(fauna = fauna,
-                  fleets = fleets,
-                  years = years)
-
-Sys.time() - a
-#> Time difference of 0.2093439 secs
-  
-
-processed_marlin <- process_marlin(sim = sim2, time_step = time_step)
-
-plot_marlin(processed_marlin)
-```
-
-<img src="man/figures/README-unnamed-chunk-8-2.png" width="100%" />
-
-``` r
-
-plot_marlin(processed_marlin, plot_var = "c")
-```
-
-<img src="man/figures/README-unnamed-chunk-8-3.png" width="100%" />
-
-``` r
-
-plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", fauna = fauna)
-```
-
-<img src="man/figures/README-unnamed-chunk-8-4.png" width="100%" />
-
-``` r
-
-plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space")
-```
-
-<img src="man/figures/README-unnamed-chunk-8-5.png" width="100%" />
 
 ## Two Species and two fleets with bells and whistles
 
@@ -509,7 +377,7 @@ fauna <-
 #> • Found: 1 
 #> • Not Found: 0
 Sys.time() - a
-#> Time difference of 1.345585 secs
+#> Time difference of 2.354219 secs
 
 # create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
 # with lists for each species inside there. Price specifies the price per unit weight of that 
@@ -577,7 +445,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets) 
 
 Sys.time() - a
-#> Time difference of 3.212729 secs
+#> Time difference of 4.553827 secs
 
 
 # run simulations
@@ -590,7 +458,7 @@ sim3 <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.6865492 secs
+#> Time difference of 0.847018 secs
 # a <- Sys.time()
 
 processed_marlin <- process_marlin(sim = sim3, time_step = time_step, keep_age = TRUE)
@@ -708,7 +576,7 @@ fauna <-
 fauna$`Shortfin Mako`$plot()
 ```
 
-<img src="man/figures/README-unnamed-chunk-9-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-8-1.png" width="100%" />
 
 ``` r
 # create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
@@ -745,7 +613,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
-#> Time difference of 15.43131 secs
+#> Time difference of 21.4557 secs
 
 # run simulations
 
@@ -756,7 +624,7 @@ nearshore <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.3999619 secs
+#> Time difference of 0.5111258 secs
   
 proc_nearshore <- process_marlin(nearshore, time_step =  fauna[[1]]$time_step)
 ```
@@ -778,7 +646,7 @@ mpa_locations %>%
   scale_y_continuous(name = "Lat")
 ```
 
-<img src="man/figures/README-unnamed-chunk-10-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-9-1.png" width="100%" />
 
 We will now simulate the impacts of those MPAs by passing them to the
 manager slot.
@@ -795,7 +663,7 @@ nearshore_mpa <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.3844359 secs
+#> Time difference of 0.5806742 secs
 
 proc_nearshore_mpa <- process_marlin(nearshore_mpa, time_step =  fauna[[1]]$time_step)
 ```
@@ -850,7 +718,7 @@ fauna <-
 fauna$`Shortfin Mako`$plot()
 ```
 
-<img src="man/figures/README-unnamed-chunk-12-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-11-1.png" width="100%" />
 
 ``` r
 
@@ -866,7 +734,7 @@ offshore <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.414351 secs
+#> Time difference of 0.4320209 secs
   
 proc_offshore <- process_marlin(offshore, time_step =  fauna[[1]]$time_step)
 
@@ -881,7 +749,7 @@ offshore_mpa_sim <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.4125261 secs
+#> Time difference of 0.4115379 secs
 
 
 proc_offshore_mpa <- process_marlin(offshore_mpa_sim, time_step =  fauna[[1]]$time_step)
@@ -898,7 +766,7 @@ plot_marlin(
 )
 ```
 
-<img src="man/figures/README-unnamed-chunk-13-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-12-1.png" width="100%" />
 
 ``` r
 plot_marlin(
@@ -918,7 +786,7 @@ plot_marlin(
         strip.text = element_text(size = 9))
 ```
 
-<img src="man/figures/README-unnamed-chunk-14-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-13-1.png" width="100%" />
 
 ## Defacto MPAs through bycatch penalties
 
@@ -1007,7 +875,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
-#> Time difference of 0.8168449 secs
+#> Time difference of 1.024095 secs
 
 # run simulations
 
@@ -1026,7 +894,7 @@ plot_marlin(
   plot_type = "space")
 ```
 
-<img src="man/figures/README-unnamed-chunk-16-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-15-1.png" width="100%" />
 
 ## Repo Naviation
 
