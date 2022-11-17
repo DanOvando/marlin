@@ -14,7 +14,7 @@ FishLife"><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/ma
     
     <a class="navbar-brand me-2" href="../index.html">marlin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0.9000</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -28,7 +28,11 @@ FishLife"><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/ma
 <li class="nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="../articles/port_distance.html">port_distance</a>
+    <a class="dropdown-item" href="../articles/MSE.html">MSE</a>
+    <a class="dropdown-item" href="../articles/dynamic-habitat.html">dynamic-habitat</a>
+    <a class="dropdown-item" href="../articles/fleet-management.html">fleet-management</a>
+    <a class="dropdown-item" href="../articles/optimize-mpas.html">optimize-mpas</a>
+    <a class="dropdown-item" href="../articles/port-distance.html">port-distance</a>
   </div>
 </li>
 <li class="nav-item">
@@ -51,7 +55,7 @@ FishLife"><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/ma
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="" class="logo" alt=""><h1>Create Critter</h1>
-      <small class="dont-index">Source: <a href="https://github.com/danovando/marlin/blob/HEAD/R/create-critter.R" class="external-link"><code>R/create-critter.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/danovando/marlin/blob/HEAD/R/create_critter.R" class="external-link"><code>R/create_critter.R</code></a></small>
       <div class="d-none name"><code>create_critter.Rd</code></div>
     </div>
 
@@ -68,16 +72,13 @@ FishLife</p>
 <span>  scientific_name <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  get_common_name <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  critter_type <span class="op">=</span> <span class="st">"fish"</span>,</span>
-<span>  seasonal_habitat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  base_habitat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  season_blocks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  recruit_habitat <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  seasons <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  rec_form <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  fec_form <span class="op">=</span> <span class="st">"weight"</span>,</span>
-<span>  adult_movement <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  adult_movement_sigma <span class="op">=</span> <span class="fl">2</span>,</span>
-<span>  recruit_movement <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  recruit_movement_sigma <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  adult_diffusion <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>  recruit_diffusion <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  fished_depletion <span class="op">=</span> <span class="fl">0.4</span>,</span>
 <span>  init_explt <span class="op">=</span> <span class="fl">0.1</span>,</span>
 <span>  explt_type <span class="op">=</span> <span class="st">"f"</span>,</span>
@@ -85,6 +86,8 @@ FishLife</p>
 <span>  weight_a <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  fec_expo <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  resolution <span class="op">=</span> <span class="fl">20</span>,</span>
+<span>  spawning_seasons <span class="op">=</span> <span class="cn">NA</span>,</span>
+<span>  density_dependence <span class="op">=</span> <span class="st">"global_habitat"</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -103,7 +106,7 @@ FishLife</p>
 <dd></dd>
 
 
-<dt>seasonal_habitat</dt>
+<dt>base_habitat</dt>
 <dd></dd>
 
 
@@ -112,18 +115,6 @@ FishLife</p>
 
 
 <dt>seasons</dt>
-<dd></dd>
-
-
-<dt>rec_form</dt>
-<dd></dd>
-
-
-<dt>adult_movement</dt>
-<dd></dd>
-
-
-<dt>adult_movement_sigma</dt>
 <dd></dd>
 
 
@@ -144,6 +135,14 @@ FishLife</p>
 
 
 <dt>rec_habitat</dt>
+<dd></dd>
+
+
+<dt>adult_movement</dt>
+<dd></dd>
+
+
+<dt>adult_movement_sigma</dt>
 <dd></dd>
 
 </dl></div>

@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">marlin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0.9000</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -24,7 +24,11 @@
 <li class="nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="../articles/port_distance.html">port_distance</a>
+    <a class="dropdown-item" href="../articles/MSE.html">MSE</a>
+    <a class="dropdown-item" href="../articles/dynamic-habitat.html">dynamic-habitat</a>
+    <a class="dropdown-item" href="../articles/fleet-management.html">fleet-management</a>
+    <a class="dropdown-item" href="../articles/optimize-mpas.html">optimize-mpas</a>
+    <a class="dropdown-item" href="../articles/port-distance.html">port-distance</a>
   </div>
 </li>
 <li class="nav-item">
@@ -47,7 +51,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="" class="logo" alt=""><h1>R6 Class Representing a fishing fleet</h1>
-      <small class="dont-index">Source: <a href="https://github.com/danovando/marlin/blob/HEAD/R/metier-class.R" class="external-link"><code>R/metier-class.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/danovando/marlin/blob/HEAD/R/metier_class.R" class="external-link"><code>R/metier_class.R</code></a></small>
       <div class="d-none name"><code>Metier.Rd</code></div>
     </div>
 
@@ -66,9 +70,9 @@
 <div class="section">
 <h3 id="public-methods">Public methods<a class="anchor" aria-label="anchor" href="#public-methods"></a></h3>
 
-<ul><li><p><a href="#method-new"><code>Metier$new()</code></a></p></li>
-<li><p><a href="#method-clone"><code>Metier$clone()</code></a></p></li>
-</ul></div><p></p><hr><a id="method-new"></a><div class="section">
+<ul><li><p><a href="#method-metier-new"><code>Metier$new()</code></a></p></li>
+<li><p><a href="#method-metier-clone"><code>Metier$clone()</code></a></p></li>
+</ul></div><p></p><hr><a id="method-metier-new"></a><div class="section">
 <h3 id="method-new-">Method <code>new()</code><a class="anchor" aria-label="anchor" href="#method-new-"></a></h3>
 
 <div class="section">
@@ -80,14 +84,14 @@
 <span>  sel_unit <span class="op">=</span> <span class="st">"p_of_mat"</span>,</span>
 <span>  sel_start <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  sel_delta <span class="op">=</span> <span class="fl">0.1</span>,</span>
-<span>  catchability <span class="op">=</span> <span class="fl">0.01</span>,</span>
+<span>  catchability <span class="op">=</span> <span class="fl">0.2</span>,</span>
 <span>  spatial_catchability <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  p_explt <span class="op">=</span> <span class="fl">1</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 
-</div><p></p><hr><a id="method-clone"></a><div class="section">
+</div><p></p><hr><a id="method-metier-clone"></a><div class="section">
 <h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
 <h4 id="usage-1">Usage<a class="anchor" aria-label="anchor" href="#usage-1"></a></h4>

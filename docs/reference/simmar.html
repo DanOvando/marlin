@@ -12,7 +12,7 @@ the population for a number of steps"><!-- mathjax --><script src="https://cdnjs
     
     <a class="navbar-brand me-2" href="../index.html">marlin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0.9000</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -26,7 +26,11 @@ the population for a number of steps"><!-- mathjax --><script src="https://cdnjs
 <li class="nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="../articles/port_distance.html">port_distance</a>
+    <a class="dropdown-item" href="../articles/MSE.html">MSE</a>
+    <a class="dropdown-item" href="../articles/dynamic-habitat.html">dynamic-habitat</a>
+    <a class="dropdown-item" href="../articles/fleet-management.html">fleet-management</a>
+    <a class="dropdown-item" href="../articles/optimize-mpas.html">optimize-mpas</a>
+    <a class="dropdown-item" href="../articles/port-distance.html">port-distance</a>
   </div>
 </li>
 <li class="nav-item">
@@ -63,24 +67,54 @@ the population for a number of steps</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">simmar</span><span class="op">(</span></span>
 <span>  fauna <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  fleets <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  mpas <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  manager <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  habitat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  years <span class="op">=</span> <span class="fl">100</span>,</span>
-<span>  tune_unfished <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  initial_conditions <span class="op">=</span> <span class="cn">NA</span></span>
+<span>  initial_conditions <span class="op">=</span> <span class="cn">NA</span>,</span>
+<span>  starting_step <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  keep_starting_step <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
-    <dl><dt>tune_unfished</dt>
-<dd></dd>
+    <dl><dt>fauna</dt>
+<dd><p>a list of fauna objects</p></dd>
+
+
+<dt>fleets</dt>
+<dd><p>a list of fleet objects</p></dd>
+
+
+<dt>manager</dt>
+<dd><p>a list of management actions</p></dd>
+
+
+<dt>habitat</dt>
+<dd><p>a list of habitat over time</p></dd>
+
+
+<dt>years</dt>
+<dd><p>the number of years to run the simulation</p></dd>
+
+
+<dt>initial_conditions</dt>
+<dd><p>initial conditions for the simulation, in the form simmar()[final year]</p></dd>
+
+
+<dt>starting_step</dt>
+<dd><p>the step to start the simulation from, used to keep track of steps across multiple runs of simmar</p></dd>
+
+
+<dt>keep_starting_step</dt>
+<dd><p>should the starting step by kept (TRUE) or dropped (FALSE)</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     
 
-
+<p>a list containing the results of the simulation</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

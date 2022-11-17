@@ -10,7 +10,28 @@
     <loc>https://danovando.github.io/marlin/LICENSE.html</loc>
   </url>
   <url>
+    <loc>https://danovando.github.io/marlin/articles/MSE.html</loc>
+  </url>
+  <url>
+    <loc>https://danovando.github.io/marlin/articles/dynamic-habitat.html</loc>
+  </url>
+  <url>
+    <loc>https://danovando.github.io/marlin/articles/fleet-management.html</loc>
+  </url>
+  <url>
     <loc>https://danovando.github.io/marlin/articles/index.html</loc>
+  </url>
+  <url>
+    <loc>https://danovando.github.io/marlin/articles/migrations.html</loc>
+  </url>
+  <url>
+    <loc>https://danovando.github.io/marlin/articles/optimize-mpas.html</loc>
+  </url>
+  <url>
+    <loc>https://danovando.github.io/marlin/articles/optimize_mpa.html</loc>
+  </url>
+  <url>
+    <loc>https://danovando.github.io/marlin/articles/port-distance.html</loc>
   </url>
   <url>
     <loc>https://danovando.github.io/marlin/articles/port_distance.html</loc>
@@ -37,6 +58,9 @@
     <loc>https://danovando.github.io/marlin/reference/assign_ref_points.html</loc>
   </url>
   <url>
+    <loc>https://danovando.github.io/marlin/reference/assign_ssbmsy.html</loc>
+  </url>
+  <url>
     <loc>https://danovando.github.io/marlin/reference/bird.html</loc>
   </url>
   <url>
@@ -50,6 +74,9 @@
   </url>
   <url>
     <loc>https://danovando.github.io/marlin/reference/find_msy.html</loc>
+  </url>
+  <url>
+    <loc>https://danovando.github.io/marlin/reference/fine_tune_costs.html</loc>
   </url>
   <url>
     <loc>https://danovando.github.io/marlin/reference/fleet_tuner.html</loc>
@@ -67,6 +94,9 @@
     <loc>https://danovando.github.io/marlin/reference/marlin_pal.html</loc>
   </url>
   <url>
+    <loc>https://danovando.github.io/marlin/reference/optimize_mpa.html</loc>
+  </url>
+  <url>
     <loc>https://danovando.github.io/marlin/reference/pipe.html</loc>
   </url>
   <url>
@@ -76,7 +106,13 @@
     <loc>https://danovando.github.io/marlin/reference/plot_marlin.html</loc>
   </url>
   <url>
+    <loc>https://danovando.github.io/marlin/reference/prep_movement.html</loc>
+  </url>
+  <url>
     <loc>https://danovando.github.io/marlin/reference/process_marlin.html</loc>
+  </url>
+  <url>
+    <loc>https://danovando.github.io/marlin/reference/quota_finder.html</loc>
   </url>
   <url>
     <loc>https://danovando.github.io/marlin/reference/search_species.html</loc>

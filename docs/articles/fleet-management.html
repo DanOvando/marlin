@@ -95,6 +95,7 @@ decreases in response to profits.</p></li>
 <li><p>Closed fishing seasons per critter, for example enforcing a
 closed season for species X but not species Y</p></li>
 <li><p>Catch quotas per species</p></li>
+<li><p>Effort caps per fleet</p></li>
 <li><p>Size limits and selectivity forms per metier and critter</p></li>
 <li><p>no-take Marine Protected Areas</p></li>
 </ul>
@@ -317,11 +318,60 @@ allowable amount.</p>
 <p><img src="fleet-management_files/figure-html/unnamed-chunk-5-3.png" width="700"></p>
 </div>
 <div class="section level2">
+<h2 id="effort-caps">Effort Caps<a class="anchor" aria-label="anchor" href="#effort-caps"></a>
+</h2>
+<p>Another management option is to set a maximum amount of effort per
+fleet. This could reflect regulation, or reality. For example, if the
+user wishes to think of effort in terms of “days fished per year” by a
+fixed number of vessels, clearly there are limits.</p>
+<p>Users set this by
+<code>manager = list(effort_cap = list(FLEET_NAME = EFFORT_CAP))</code>,
+where <code>FLEET_NAME</code> is filled in with the name of the fleet to
+apply a given total <code>EFFORT_CAP</code> to.</p>
+<p>Note that effort caps only really apply when
+<code>fleet_model == "open access</code>; when
+<code>fleet_model == "constant effort"</code> effort it already capped.
+Under open access though, the effort cap ensures that while open access
+dynamics might <strong>reduce</strong> the total amount of effort,
+effort will never expand beyond the supplied cap for that fleet.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="va">sim_effort</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simmar.html">simmar</a></span><span class="op">(</span>fauna <span class="op">=</span> <span class="va">fauna</span>,</span>
+<span>                  fleets <span class="op">=</span> <span class="va">fleets</span>,</span>
+<span>                  years <span class="op">=</span> <span class="va">years</span>,</span>
+<span>                  manager <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>effort_cap <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>longline <span class="op">=</span> <span class="fl">1.5</span> <span class="op">*</span><span class="va">fleets</span><span class="op">$</span><span class="va">longline</span><span class="op">$</span><span class="va">base_effort</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">proc_sim_effort</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">sim_effort</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/plot_marlin.html">plot_marlin</a></span><span class="op">(</span><span class="va">proc_sim_effort</span>, plot_var <span class="op">=</span> <span class="st">"c"</span>, max_scale <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<p><img src="fleet-management_files/figure-html/unnamed-chunk-6-1.png" width="700"></p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="va">proc_sim_effort</span><span class="op">$</span><span class="va">fleets</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">step</span>, <span class="va">fleet</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span>catch <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">catch</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">step</span> <span class="op">*</span> <span class="va">time_step</span>, <span class="va">catch</span>, color <span class="op">=</span> <span class="va">fleet</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="op">)</span><span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"Year"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="fleet-management_files/figure-html/unnamed-chunk-6-2.png" width="700"></p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span></span>
+<span><span class="va">proc_sim_effort</span><span class="op">$</span><span class="va">fleets</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_longer.html" class="external-link">pivot_longer</a></span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html" class="external-link">contains</a></span><span class="op">(</span><span class="st">"_effort"</span><span class="op">)</span>, names_to <span class="op">=</span> <span class="st">"fleet2"</span>, values_to <span class="op">=</span> <span class="st">"effort"</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">step</span>, <span class="va">fleet2</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span>effort <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">effort</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">step</span> <span class="op">*</span> <span class="va">time_step</span>, <span class="va">effort</span>, color <span class="op">=</span> <span class="va">fleet2</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"Year"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="fleet-management_files/figure-html/unnamed-chunk-6-3.png" width="700"></p>
+</div>
+<div class="section level2">
 <h2 id="seasons">Seasons<a class="anchor" aria-label="anchor" href="#seasons"></a>
 </h2>
 <p>We can also impose closed fishing seasons that apply to one or more
 targeted species</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simmar.html">simmar</a></span><span class="op">(</span>fauna <span class="op">=</span> <span class="va">fauna</span>,</span>
 <span>                  fleets <span class="op">=</span> <span class="va">fleets</span>,</span>
@@ -331,17 +381,18 @@ targeted species</p>
 <span><span class="va">proc_sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">sim</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/plot_marlin.html">plot_marlin</a></span><span class="op">(</span><span class="va">proc_sim</span>, plot_var <span class="op">=</span> <span class="st">"c"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="fleet-management_files/figure-html/unnamed-chunk-6-1.png" width="700"></p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<p><img src="fleet-management_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">proc_sim</span><span class="op">$</span><span class="va">fleets</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_longer.html" class="external-link">pivot_longer</a></span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html" class="external-link">contains</a></span><span class="op">(</span><span class="st">"_effort"</span><span class="op">)</span>, names_to <span class="op">=</span> <span class="st">"fleet2"</span>, values_to <span class="op">=</span> <span class="st">"effort"</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">step</span>, <span class="va">fleet2</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span>effort <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">effort</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">step</span> <span class="op">*</span> <span class="va">time_step</span>, <span class="va">effort</span>, color <span class="op">=</span> <span class="va">fleet2</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"Year"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="fleet-management_files/figure-html/unnamed-chunk-6-2.png" width="700"></p>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"Year"</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_continuous</a></span><span class="op">(</span>limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="cn">NA</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p><img src="fleet-management_files/figure-html/unnamed-chunk-7-2.png" width="700"></p>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside>

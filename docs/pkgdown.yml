@@ -1,9 +1,13 @@
-pandoc: '2.18'
+pandoc: 2.19.2
 pkgdown: 2.0.6
 pkgdown_sha: ~
 articles:
-  port_distance: port_distance.html
-last_built: 2022-08-19T01:59Z
+  MSE: MSE.html
+  dynamic-habitat: dynamic-habitat.html
+  fleet-management: fleet-management.html
+  optimize-mpas: optimize-mpas.html
+  port-distance: port-distance.html
+last_built: 2022-11-16T01:42Z
 urls:
   reference: https://danovando.github.io/marlin/reference
   article: https://danovando.github.io/marlin/articles

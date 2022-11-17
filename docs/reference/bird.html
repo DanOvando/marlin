@@ -12,7 +12,7 @@ Title"><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathj
     
     <a class="navbar-brand me-2" href="../index.html">marlin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0.9000</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -26,7 +26,11 @@ Title"><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathj
 <li class="nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="../articles/port_distance.html">port_distance</a>
+    <a class="dropdown-item" href="../articles/MSE.html">MSE</a>
+    <a class="dropdown-item" href="../articles/dynamic-habitat.html">dynamic-habitat</a>
+    <a class="dropdown-item" href="../articles/fleet-management.html">fleet-management</a>
+    <a class="dropdown-item" href="../articles/optimize-mpas.html">optimize-mpas</a>
+    <a class="dropdown-item" href="../articles/port-distance.html">port-distance</a>
   </div>
 </li>
 <li class="nav-item">
@@ -49,7 +53,7 @@ Title"><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathj
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="" class="logo" alt=""><h1>Title</h1>
-      <small class="dont-index">Source: <a href="https://github.com/danovando/marlin/blob/HEAD/R/bird-class.R" class="external-link"><code>R/bird-class.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/danovando/marlin/blob/HEAD/R/bird_class.R" class="external-link"><code>R/bird_class.R</code></a></small>
       <div class="d-none name"><code>bird.Rd</code></div>
     </div>
 
@@ -65,11 +69,11 @@ Title"><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathj
 <div class="section">
 <h3 id="public-methods">Public methods<a class="anchor" aria-label="anchor" href="#public-methods"></a></h3>
 
-<ul><li><p><a href="#method-new"><code>bird$new()</code></a></p></li>
-<li><p><a href="#method-set_hair"><code>bird$set_hair()</code></a></p></li>
-<li><p><a href="#method-greet"><code>bird$greet()</code></a></p></li>
-<li><p><a href="#method-clone"><code>bird$clone()</code></a></p></li>
-</ul></div><p></p><hr><a id="method-new"></a><div class="section">
+<ul><li><p><a href="#method-Bird-new"><code>bird$new()</code></a></p></li>
+<li><p><a href="#method-Bird-set_hair"><code>bird$set_hair()</code></a></p></li>
+<li><p><a href="#method-Bird-greet"><code>bird$greet()</code></a></p></li>
+<li><p><a href="#method-Bird-clone"><code>bird$clone()</code></a></p></li>
+</ul></div><p></p><hr><a id="method-Bird-new"></a><div class="section">
 <h3 id="method-new-">Method <code>new()</code><a class="anchor" aria-label="anchor" href="#method-new-"></a></h3>
 
 <div class="section">
@@ -78,7 +82,7 @@ Title"><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathj
 </div>
 
 
-</div><p></p><hr><a id="method-set_hair"></a><div class="section">
+</div><p></p><hr><a id="method-Bird-set_hair"></a><div class="section">
 <h3 id="method-set-hair-">Method <code>set_hair()</code><a class="anchor" aria-label="anchor" href="#method-set-hair-"></a></h3>
 
 <div class="section">
@@ -94,14 +98,8 @@ Title"><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathj
 
 </dl><p></p></div>
 </div>
-<div class="section">
-<h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
 
-
-
-</div>
-
-</div><p></p><hr><a id="method-greet"></a><div class="section">
+</div><p></p><hr><a id="method-Bird-greet"></a><div class="section">
 <h3 id="method-greet-">Method <code>greet()</code><a class="anchor" aria-label="anchor" href="#method-greet-"></a></h3>
 
 <div class="section">
@@ -110,7 +108,7 @@ Title"><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathj
 </div>
 
 
-</div><p></p><hr><a id="method-clone"></a><div class="section">
+</div><p></p><hr><a id="method-Bird-clone"></a><div class="section">
 <h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
 <h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>

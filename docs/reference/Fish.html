@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">marlin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0.9000</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -24,7 +24,11 @@
 <li class="nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="../articles/port_distance.html">port_distance</a>
+    <a class="dropdown-item" href="../articles/MSE.html">MSE</a>
+    <a class="dropdown-item" href="../articles/dynamic-habitat.html">dynamic-habitat</a>
+    <a class="dropdown-item" href="../articles/fleet-management.html">fleet-management</a>
+    <a class="dropdown-item" href="../articles/optimize-mpas.html">optimize-mpas</a>
+    <a class="dropdown-item" href="../articles/port-distance.html">port-distance</a>
   </div>
 </li>
 <li class="nav-item">
@@ -47,7 +51,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="" class="logo" alt=""><h1>R6 Class Representing a Fish</h1>
-      <small class="dont-index">Source: <a href="https://github.com/danovando/marlin/blob/HEAD/R/fish-class.R" class="external-link"><code>R/fish-class.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/danovando/marlin/blob/HEAD/R/fish_class.R" class="external-link"><code>R/fish_class.R</code></a></small>
       <div class="d-none name"><code>Fish.Rd</code></div>
     </div>
 
@@ -66,11 +70,11 @@
 <div class="section">
 <h3 id="public-methods">Public methods<a class="anchor" aria-label="anchor" href="#public-methods"></a></h3>
 
-<ul><li><p><a href="#method-new"><code>Fish$new()</code></a></p></li>
-<li><p><a href="#method-plot"><code>Fish$plot()</code></a></p></li>
-<li><p><a href="#method-swim"><code>Fish$swim()</code></a></p></li>
-<li><p><a href="#method-clone"><code>Fish$clone()</code></a></p></li>
-</ul></div><p></p><hr><a id="method-new"></a><div class="section">
+<ul><li><p><a href="#method-Fish-new"><code>Fish$new()</code></a></p></li>
+<li><p><a href="#method-Fish-plot"><code>Fish$plot()</code></a></p></li>
+<li><p><a href="#method-Fish-swim"><code>Fish$swim()</code></a></p></li>
+<li><p><a href="#method-Fish-clone"><code>Fish$clone()</code></a></p></li>
+</ul></div><p></p><hr><a id="method-Fish-new"></a><div class="section">
 <h3 id="method-new-">Method <code>new()</code><a class="anchor" aria-label="anchor" href="#method-new-"></a></h3>
 <p>fill in fish object</p><div class="section">
 <h4 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a></h4>
@@ -101,11 +105,9 @@
 <span>  steepness <span class="op">=</span> <span class="fl">0.8</span>,</span>
 <span>  r0 <span class="op">=</span> <span class="fl">10000</span>,</span>
 <span>  ssb0 <span class="op">=</span> <span class="cn">NA</span>,</span>
-<span>  density_dependence_form <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  adult_movement <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  adult_movement_sigma <span class="op">=</span> <span class="fl">4</span>,</span>
-<span>  recruit_movement <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  recruit_movement_sigma <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  density_dependence <span class="op">=</span> <span class="st">"global_habitat"</span>,</span>
+<span>  adult_diffusion <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>  recruit_diffusion <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  query_fishlife <span class="op">=</span> <span class="cn">T</span>,</span>
 <span>  sigma_r <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  rec_ac <span class="op">=</span> <span class="fl">0</span>,</span>
@@ -116,17 +118,19 @@
 <span>  density_movement_modifier <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  linf_buffer <span class="op">=</span> <span class="fl">1.2</span>,</span>
 <span>  resolution <span class="op">=</span> <span class="cn">NA</span>,</span>
-<span>  seasonal_habitat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  base_habitat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  season_blocks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  recruit_habitat <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  fished_depletion <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  rec_form <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  burn_years <span class="op">=</span> <span class="fl">50</span>,</span>
 <span>  seasonal_hab <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  seasons <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  explt_type <span class="op">=</span> <span class="st">"f"</span>,</span>
 <span>  init_explt <span class="op">=</span> <span class="fl">0.1</span>,</span>
-<span>  get_common_name <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  get_common_name <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  spawning_seasons <span class="op">=</span> <span class="cn">NA</span>,</span>
+<span>  tune_diffusion <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  taxis_to_diff_ratio <span class="op">=</span> <span class="fl">0</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -136,19 +140,11 @@
 <dd><p>common name</p></dd>
 
 
-<dt><code>pups</code></dt>
-<dd></dd>
-
-
-<dt><code>fec_form</code></dt>
-<dd></dd>
-
-
 <dt><code>fec_expo</code></dt>
 <dd><p>exponent for fecundity at weight relationship, 1 = isometric &gt; 1 hyperallometric</p></dd>
 
 
-<dt><code>recruit_movement_sigma</code></dt>
+<dt><code>base_habitat</code></dt>
 <dd></dd>
 
 
@@ -157,14 +153,22 @@
 <p>Swim advances the population one time step</p></dd>
 
 
-<dt><code>get_common_name</code></dt>
+<dt><code>spawning_seasons</code></dt>
+<dd></dd>
+
+
+<dt><code>tune_diffusion</code></dt>
+<dd><p>TRUE to tune adult_diffusion such that 95% of adults move less than adult_diffusion distance</p></dd>
+
+
+<dt><code>taxis_to_diff_ratio</code></dt>
 <dd></dd>
 
 
 </dl><p></p></div>
 </div>
 
-</div><p></p><hr><a id="method-plot"></a><div class="section">
+</div><p></p><hr><a id="method-Fish-plot"></a><div class="section">
 <h3 id="method-plot-">Method <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code><a class="anchor" aria-label="anchor" href="#method-plot-"></a></h3>
 
 <div class="section">
@@ -173,7 +177,7 @@
 </div>
 
 
-</div><p></p><hr><a id="method-swim"></a><div class="section">
+</div><p></p><hr><a id="method-Fish-swim"></a><div class="section">
 <h3 id="method-swim-">Method <code>swim()</code><a class="anchor" aria-label="anchor" href="#method-swim-"></a></h3>
 
 <div class="section">
@@ -183,7 +187,9 @@
 <span>  season <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  f_p_a <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  last_n_p_a <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  tune_unfished <span class="op">=</span> <span class="fl">0</span></span>
+<span>  adult_movement <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  tune_unfished <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  rec_devs <span class="op">=</span> <span class="cn">NA</span></span>
 <span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -216,7 +222,7 @@
 <p>the population in the next time step</p>
 </div>
 
-</div><p></p><hr><a id="method-clone"></a><div class="section">
+</div><p></p><hr><a id="method-Fish-clone"></a><div class="section">
 <h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
 <h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>

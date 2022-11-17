@@ -229,7 +229,7 @@ plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space", steps_to_pl
 
 ## Two Species and two fleets with bells and whistles
 
-Now, let's make this a two species and two fleet example with some seasonal dynamics
+Now, let's make this a two species and two fleet example with some seasonal dynamics, where the species have different habitats in different seasons. 
 
 ```{r example}
 
