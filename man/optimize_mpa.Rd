@@ -16,7 +16,8 @@ optimize_mpa(
   workers = 6,
   bio_objective = "max_ssb",
   econ_objective = "yield",
-  work_backwards = TRUE
+  work_backwards = TRUE,
+  patches_at_a_time = 1
 )
 }
 \arguments{
