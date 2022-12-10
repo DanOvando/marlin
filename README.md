@@ -20,6 +20,8 @@ spawning aggregations or climate induced range shifts - the impacts of
 port distance in fleet dynamics - optimized marine protected area
 network design
 
+The model is described in Ovando *et al.* (2023…) hopefully.
+
 ## What is `marlin` for?
 
 `marlin` is best suited for asking *what if* rather that *what will*
@@ -270,7 +272,7 @@ example_sim <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - start_time
-#> Time difference of 0.04868102 secs
+#> Time difference of 0.05809307 secs
 ```
 
 we can then use `process_marlin` and `plot_marlin` to examine the
@@ -378,7 +380,7 @@ fauna <-
 #> • Found: 1 
 #> • Not Found: 0
 Sys.time() - a
-#> Time difference of 2.127395 secs
+#> Time difference of 2.255025 secs
 
 # create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
 # with lists for each species inside there. Price specifies the price per unit weight of that 
@@ -446,7 +448,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets) 
 
 Sys.time() - a
-#> Time difference of 4.407598 secs
+#> Time difference of 4.145798 secs
 
 
 # run simulations
@@ -459,7 +461,7 @@ sim3 <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.826818 secs
+#> Time difference of 0.7952728 secs
 # a <- Sys.time()
 
 processed_marlin <- process_marlin(sim = sim3, time_step = time_step, keep_age = TRUE)
@@ -614,7 +616,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
-#> Time difference of 20.33613 secs
+#> Time difference of 20.16753 secs
 
 # run simulations
 
@@ -625,7 +627,7 @@ nearshore <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.4506519 secs
+#> Time difference of 0.4379661 secs
   
 proc_nearshore <- process_marlin(nearshore, time_step =  fauna[[1]]$time_step)
 ```
@@ -664,7 +666,7 @@ nearshore_mpa <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.430023 secs
+#> Time difference of 0.477437 secs
 
 proc_nearshore_mpa <- process_marlin(nearshore_mpa, time_step =  fauna[[1]]$time_step)
 ```
@@ -735,7 +737,7 @@ offshore <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.4632308 secs
+#> Time difference of 0.4034989 secs
   
 proc_offshore <- process_marlin(offshore, time_step =  fauna[[1]]$time_step)
 
@@ -750,7 +752,7 @@ offshore_mpa_sim <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.39431 secs
+#> Time difference of 0.4063299 secs
 
 
 proc_offshore_mpa <- process_marlin(offshore_mpa_sim, time_step =  fauna[[1]]$time_step)
@@ -876,7 +878,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
-#> Time difference of 1.082682 secs
+#> Time difference of 1.08894 secs
 
 # run simulations
 

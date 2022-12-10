@@ -108,7 +108,8 @@ fauna <-
       explt_type = "f",
       spawning_seasons = c(2,3),
       sigma_r = 0,
-      rec_ac = 0
+      rec_ac = 0,
+      taxis_to_diff_ratio = 2
     )
   )
 
