@@ -26,7 +26,8 @@ knitr::opts_chunk$set(
   -  seasonal spawning aggregations or climate induced range shifts
   -  the impacts of port distance in fleet dynamics
   -  optimized marine protected area network design
-  
+
+The model is described in Ovando *et al.* (2023...) hopefully.   
   
 ## What is `marlin` for?
 

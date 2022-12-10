@@ -27,7 +27,10 @@ a = Matrix::expm(diffusion_gg) %>% as.matrix()
 plot(a[n_g/2,])
 
 # Taxis
-taxis_gg = A_gg * pmax(0,outer(preference_g, preference_g, "-"))
+# taxis_gg = A_gg * pmax(0,outer(preference_g, preference_g, "-"))
+
+taxis_gg = A_gg * exp(outer(preference_g, preference_g, "-"))
+
 
 # taxis_gg = A_gg * outer(preference_g, preference_g, "-")
 
@@ -47,7 +50,7 @@ n <- matrix(ncol = 1, nrow = n_g,rep(0,n_g))
 
 n[1,1] <-  100
 
-for (y in 1:100){
+for (y in 1:1000){
   
  n <-  mfraction_gg %*% n
   
