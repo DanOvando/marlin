@@ -33,6 +33,9 @@ simmar <- function(fauna = list(),
   
   time_step <- unique(purrr::map_dbl(fauna, "time_step"))
   
+  cell_area <- unique(purrr::map_dbl(fauna, "cell_area"))
+  
+  
   if (length(time_step) > 1) {
     stop(
       paste(
@@ -617,7 +620,7 @@ simmar <- function(fauna = list(),
         current_habitat <- as.numeric(current_habitat$value)
         
         current_habitat <-
-          (1 + max(fauna[[f]]$seasonal_diffusion[[season_block]], na.rm = TRUE) * fauna[[f]]$taxis_to_diff_ratio) * exp(outer(current_habitat, current_habitat, "-")) # calculate difference in habitat between each patch
+          (time_step / cell_area ) * (1 + max(fauna[[f]]$seasonal_diffusion[[season_block]], na.rm = TRUE) * fauna[[f]]$taxis_to_diff_ratio) * exp(outer(current_habitat, current_habitat, "-")) # calculate difference in habitat between each patch
 
         current_habitat[current_habitat < 0 & !is.na(current_habitat)] <-  0 # only preferentially move towards BETTER habitat quality. Note that diffusion still allows movement against habitat gradients. Preserve NAs for land
         

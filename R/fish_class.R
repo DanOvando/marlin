@@ -62,7 +62,6 @@ Fish <- R6::R6Class(
     #' @param get_common_name
     #' @param base_habitat 
     #' @param spawning_seasons 
-    #' @param tune_diffusion TRUE to tune adult_diffusion such that 95% of adults move less than adult_diffusion distance
     #' @param taxis_to_diff_ratio 
     #' @param explt_type
     initialize = function(common_name = NA,
@@ -104,6 +103,7 @@ Fish <- R6::R6Class(
                           density_movement_modifier = 1,
                           linf_buffer = 1.2,
                           resolution = NA,
+                          cell_area = 1,
                           base_habitat = list(),
                           season_blocks = list(),
                           recruit_habitat = NA,
@@ -115,7 +115,6 @@ Fish <- R6::R6Class(
                           init_explt = .1,
                           get_common_name = FALSE,
                           spawning_seasons = NA,
-                          tune_diffusion = TRUE,
                           taxis_to_diff_ratio = 0) {
       seasons <- as.integer(seasons)
       
@@ -179,35 +178,6 @@ Fish <- R6::R6Class(
           as.list(rep(adult_diffusion, length(season_blocks)))
         
       }
-      
-      if (tune_diffusion){
-        # tune adult diffusion parameter to a target distance moved
-  
-        adult_diffusion <-
-          purrr::map(adult_diffusion, ~ if (any(.x > 0)) {
-            ranger:::predict.ranger(
-              marlin::diffusion_frontier_model,
-              data = data.frame(diffusion_frontier = .x, resolution = resolution)
-            )$predictions
-          } else {
-            .x
-          })
-        
-        
-        recruit_diffusion <-
-          purrr::map(recruit_diffusion, ~ if (.x > 0) {
-            ranger:::predict.ranger(
-              marlin::diffusion_frontier_model,
-              data = data.frame(diffusion_frontier = .x, resolution = resolution)
-            )$predictions
-          } else {
-            .x
-          })
-        
-        
-      } # close tune diffusion
-      
-      
       
       time_step = 1 / seasons
       
@@ -522,9 +492,9 @@ Fish <- R6::R6Class(
           
           message("Negative habitat values were provided; rescaling to positive values preserving relative differences. Make sure you did not provide habitat values on a log scale.")
         } # close habitat rescaling
-        tmp_habitat[[i]] <- (1 + adult_diffusion[[i]] * self$taxis_to_diff_ratio) * exp(outer(tmp_habitat[[i]], tmp_habitat[[i]], "-")) # calculate difference in habitat quality
+        tmp_habitat[[i]] <- (time_step / cell_area) * (1 + adult_diffusion[[i]] * self$taxis_to_diff_ratio) * exp(outer(tmp_habitat[[i]], tmp_habitat[[i]], "-")) # calculate difference in habitat quality
         
-        tmp_habitat[[i]][tmp_habitat[[i]] < 0 & !is.na(tmp_habitat[[i]])] <-  0 # only preferentially move towards BETTER habitat quality. Note that diffusion still allows movement against habitat gradients. Preserve NAs for land
+        tmp_habitat[[i]][tmp_habitat[[i]] < 0 & !is.na(tmp_habitat[[i]])] <-  0 # only preferentially move towards BETTER habitat quality. Note that taxis still allows movement against habitat gradients. Preserve NAs for land
       }
       
       self$base_habitat <-
@@ -533,15 +503,15 @@ Fish <- R6::R6Class(
                     resolution = resolution)
       
       
-      foo <- function(x,y){
+      diffusion_prep <- function(x,y, time_step, cell_area){
         
         x[!is.na(x)] <- 1
         
-        z <- x * y 
+        z <- x * y * (time_step / cell_area^2) # squared for diffusion
         
       }
       
-      diff_foundation <- purrr::map2(tmp_habitat, adult_diffusion,foo ) # prepare adult diffusion matrix account for potential land
+      diff_foundation <- purrr::map2(tmp_habitat, adult_diffusion,diffusion_prep, time_step = time_step, cell_area = cell_area) # prepare adult diffusion matrix account for potential land
       
       self$seasonal_diffusion <-
         purrr::pmap(list(multiplier = diff_foundation),
@@ -559,7 +529,7 @@ Fish <- R6::R6Class(
       
       self$movement_seasons <- season_blocks
       
-      rec_diff_foundation <- purrr::map2(tmp_habitat, recruit_diffusion,foo ) # prepare diffusion matrix account for potential land
+      rec_diff_foundation <- purrr::map2(tmp_habitat, recruit_diffusion,diffusion_prep, time_step = time_step,cell_area = cell_area) # prepare diffusion matrix account for potential land
       
       self$recruit_movement <-
         prep_movement(multiplier = rec_diff_foundation[[1]],
@@ -667,6 +637,8 @@ Fish <- R6::R6Class(
       self$m <- m
       
       self$time_step <- time_step
+      
+      self$cell_area <- cell_area
       
       self$seasons <- seasons
       
