@@ -39,6 +39,7 @@ create_critter <- function(common_name = NA,
                            weight_a = NA,
                            fec_expo = 1,
                            resolution = 20,
+                           cell_area = 1,
                            spawning_seasons = NA,
                            density_dependence = "global_habitat",
                            ...) {

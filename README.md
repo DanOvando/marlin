@@ -272,7 +272,7 @@ example_sim <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - start_time
-#> Time difference of 0.05809307 secs
+#> Time difference of 0.09370613 secs
 ```
 
 we can then use `process_marlin` and `plot_marlin` to examine the
@@ -380,7 +380,7 @@ fauna <-
 #> • Found: 1 
 #> • Not Found: 0
 Sys.time() - a
-#> Time difference of 2.255025 secs
+#> Time difference of 3.063696 secs
 
 # create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
 # with lists for each species inside there. Price specifies the price per unit weight of that 
@@ -448,7 +448,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets) 
 
 Sys.time() - a
-#> Time difference of 4.145798 secs
+#> Time difference of 6.617718 secs
 
 
 # run simulations
@@ -461,7 +461,7 @@ sim3 <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.7952728 secs
+#> Time difference of 1.00261 secs
 # a <- Sys.time()
 
 processed_marlin <- process_marlin(sim = sim3, time_step = time_step, keep_age = TRUE)
@@ -553,7 +553,7 @@ fauna <-
       scientific_name = "Thunnus albacares",
       base_habitat = yft_habitat, # pass habitat as lists
       recruit_habitat = yft_habitat,
-      adult_diffusion = 4, # standard deviation of the number of patches moved by adults
+      adult_diffusion = 4, # cells per year
       fished_depletion = .4, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
       density_dependence = "local_habitat", # recruitment form, where 1 implies local recruitment
       seasons = seasons,
@@ -616,7 +616,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
-#> Time difference of 20.16753 secs
+#> Time difference of 54.39417 secs
 
 # run simulations
 
@@ -627,7 +627,7 @@ nearshore <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.4379661 secs
+#> Time difference of 0.7500291 secs
   
 proc_nearshore <- process_marlin(nearshore, time_step =  fauna[[1]]$time_step)
 ```
@@ -666,7 +666,7 @@ nearshore_mpa <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.477437 secs
+#> Time difference of 0.6790221 secs
 
 proc_nearshore_mpa <- process_marlin(nearshore_mpa, time_step =  fauna[[1]]$time_step)
 ```
@@ -695,7 +695,7 @@ fauna <-
       scientific_name = "Thunnus albacares",
       base_habitat = yft_habitat, # pass habitat as lists
       recruit_habitat = yft_habitat,
-      adult_diffusion = 4, # standard deviation of the number of patches moved by adults
+      adult_diffusion = 4, # cells per year
       fished_depletion = .4, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
       density_dependence = "local_habitat", # recruitment form, where 1 implies local recruitment
       seasons = seasons,
@@ -737,7 +737,7 @@ offshore <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.4034989 secs
+#> Time difference of 0.6405261 secs
   
 proc_offshore <- process_marlin(offshore, time_step =  fauna[[1]]$time_step)
 
@@ -752,7 +752,7 @@ offshore_mpa_sim <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.4063299 secs
+#> Time difference of 0.6346619 secs
 
 
 proc_offshore_mpa <- process_marlin(offshore_mpa_sim, time_step =  fauna[[1]]$time_step)
@@ -878,7 +878,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
-#> Time difference of 1.08894 secs
+#> Time difference of 1.315229 secs
 
 # run simulations
 

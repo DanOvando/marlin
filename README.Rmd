@@ -441,7 +441,7 @@ fauna <-
       scientific_name = "Thunnus albacares",
       base_habitat = yft_habitat, # pass habitat as lists
       recruit_habitat = yft_habitat,
-      adult_diffusion = 4, # standard deviation of the number of patches moved by adults
+      adult_diffusion = 4, # cells per year
       fished_depletion = .4, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
       density_dependence = "local_habitat", # recruitment form, where 1 implies local recruitment
       seasons = seasons,
@@ -572,7 +572,7 @@ fauna <-
       scientific_name = "Thunnus albacares",
       base_habitat = yft_habitat, # pass habitat as lists
       recruit_habitat = yft_habitat,
-      adult_diffusion = 4, # standard deviation of the number of patches moved by adults
+      adult_diffusion = 4, # cells per year
       fished_depletion = .4, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
       density_dependence = "local_habitat", # recruitment form, where 1 implies local recruitment
       seasons = seasons,
