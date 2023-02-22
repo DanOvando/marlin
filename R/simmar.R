@@ -617,7 +617,7 @@ simmar <- function(fauna = list(),
         current_habitat <-
           tidyr::pivot_longer(as.data.frame(current_habitat), tidyr::everything()) # need to use pivot_longer to match patch order from expand_grid
         
-        current_habitat <- as.numeric(current_habitat$value)
+        current_habitat <- log(as.numeric(current_habitat$value))
         
         current_habitat <-
           (time_step / cell_area ) * (1 + max(fauna[[f]]$seasonal_diffusion[[season_block]], na.rm = TRUE) * fauna[[f]]$taxis_to_diff_ratio) * exp(outer(current_habitat, current_habitat, "-")) # calculate difference in habitat between each patch

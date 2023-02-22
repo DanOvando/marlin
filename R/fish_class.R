@@ -492,9 +492,11 @@ Fish <- R6::R6Class(
           
           message("Negative habitat values were provided; rescaling to positive values preserving relative differences. Make sure you did not provide habitat values on a log scale.")
         } # close habitat rescaling
+        
+        tmp_habitat[[i]] <- log(tmp_habitat[[i]])
+        
         tmp_habitat[[i]] <- (time_step / cell_area) * (1 + adult_diffusion[[i]] * self$taxis_to_diff_ratio) * exp(outer(tmp_habitat[[i]], tmp_habitat[[i]], "-")) # calculate difference in habitat quality
         
-        tmp_habitat[[i]][tmp_habitat[[i]] < 0 & !is.na(tmp_habitat[[i]])] <-  0 # only preferentially move towards BETTER habitat quality. Note that taxis still allows movement against habitat gradients. Preserve NAs for land
       }
       
       self$base_habitat <-
