@@ -132,9 +132,9 @@ Let's put some prime habitat over in the far left of the grid
 
 ```{r}
 
-habitat <- rep(100, patches)
+habitat <- rep(0, patches)
 
-habitat[grid$x == 1 & grid$y == resolution / 2] <- 200
+habitat[grid$x == 1 & grid$y == resolution / 2] <- 2
 
 grid$habitat <- habitat
 
@@ -144,7 +144,7 @@ habitat_difference = outer(habitat, habitat, "-")
 
 
 #, now create taxis matrix
-taxis_matrix <-  adjacent *  (D * (delta_t / delta_d^2)) *  exp(habitat_difference * delta_t / delta_d)  # adjacency times taxis matrix 
+taxis_matrix <-  adjacent * (habitat_difference) * (delta_t / delta_d)  # adjacency times taxis matrix 
 
 
 # fill in diagonal
@@ -157,13 +157,22 @@ taxis_matrix <- as.matrix(taxis_matrix)
 
 n <- rep(10, patches)
 
-n[grid$x == resolution / 2 & grid$y == resolution / 2] <- 100
+# n[grid$x == resolution / 2 & grid$y == resolution / 2] <- 100
 
 # Now, diffuse for one year (i.e. delta_t = 1) 
 
-n_next <- n %*% expm(100 * taxis_matrix)
+grid$n <- n
 
-grid$n <- as.numeric(n_next)
+for (i in 1:100){
+  
+  n_next <- grid$n %*% expm(1 * ( taxis_matrix))
+
+  grid$n <- as.numeric(n_next)
+
+  
+}
+
+
 
 
 grid |> 
