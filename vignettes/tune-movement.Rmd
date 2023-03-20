@@ -132,9 +132,9 @@ Let's put some prime habitat over in the far left of the grid
 
 ```{r}
 
-habitat <- rep(0, patches)
+habitat <- rep(100, patches)
 
-habitat[grid$x == 1 & grid$y == resolution / 2] <- .2
+habitat[grid$x == 1 & grid$y == resolution / 2] <- 200
 
 grid$habitat <- habitat
 
