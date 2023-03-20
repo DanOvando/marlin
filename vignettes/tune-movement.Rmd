@@ -1,0 +1,177 @@
+---
+title: "tune-movement"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{tune-movement}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(marlin)
+
+library(ggplot2)
+
+library(expm)
+```
+
+
+The idea here. 
+
+Movement enters marlin in two ways; through the dispersal parameter D and the ratio of habitat gradients. 
+
+The problem is the units here. 
+
+D has units time step / grid size. 
+
+But, taxis is in some arbitrary habitat. So, depending on how you decide to set the units on the habitat, you can end up with net movement that is way higher than the dispersal parameter itself, which make it somewhat hard to parameterize. 
+
+Let's do a simple example based on the movement model of Thorson's. 
+
+
+Following equation 10.15 from Spatio-temporal models for ecologists
+
+habitat has to be in units of distance per unit time. So, for example habitat is units of "attraction" of KM / year. That then gets multiplied by the delta terms in the equations of the simulation, for example month / m, which gets things in the right scale-free units. Putting it in units distance / time makes it unitless when it is exponentiated. 
+
+The goal is an instantaneous movement matrix that has units 1 / time step You will then multiply this by the number of time steps and then matrix multiply to get to numbers in the end. 
+
+Let's start by looking just at the diffusion part of the equation. 
+
+Let's set
+
+  * a 10x10 simulation grid
+  * width of a square cell side $\Delta_d$ of 1km
+  * a time step $\Delta_t$ of one quarter (1/4 years)
+  * a diffusion parameter *D* of 2 km^2^/year
+  
+We're then going to fill in our instantaneous diffusion matrix as
+
+$$ 
+d_{p1,p2,t,s,a} = \begin{cases}
+      = \frac{\Delta_{t}}{\Delta_{d}^2}D & \text{if p2 and p1 are adjacent}\\
+     = -\sum_{p' \neq p1} d_{p1,p2,t,s,a} & \text{if p1 = p2}\\
+     = 0 & \text{otherwise.}
+\end{cases}
+$$ {#eq-diffusion}
+
+and then calculate the realized movement matrix, made up of just diffusion in this case, as the matrix exponential of the diffusion matrix times the time step of the simulation. 
+
+$$
+\boldsymbol{M}_{t,s,a} = e^{\Delta_{t}(\boldsymbol{D}_{t,s,a})} 
+$$ {#eq-movement}
+
+
+```{r}
+
+resolution <- 20 # cells per side
+
+patches <- resolution^2
+
+delta_d <- 1 # length of a cell side
+
+delta_t = 1 # length of one time step in the simulation in units of years 
+
+time_steps <- 4 # number of time steps to run the population forward in in units of delta_t 
+
+D <- 2 # km^2  / year
+
+grid <- tidyr::expand_grid(x = 1:resolution, y = 1:resolution)
+
+adjacent <- grid |> 
+  dist() |> 
+  as.matrix()
+
+
+# Mark adjacent cells
+adjacent[adjacent != 1] <- 0
+
+
+diffusion_matrix <- adjacent * D * (delta_t / delta_d^2) # adjacenty times diffusion rate times simulation units
+
+# fill in diagonal
+diag(diffusion_matrix) <-  -1 * colSums(diffusion_matrix)
+
+# ensure matrix class
+diffusion_matrix <- as.matrix(diffusion_matrix)
+
+
+# put some animals in around the center
+
+n <- rep(0, patches)
+
+n[grid$x == resolution / 2 & grid$y == resolution / 2] <- 100
+
+# Now, diffuse for one year (i.e. delta_t = 1) 
+
+n_next <- n %*% expm(time_steps * diffusion_matrix)
+
+grid$n <- as.numeric(n_next)
+
+grid |> 
+  ggplot() + 
+  geom_tile(aes(x,y,fill = n)) + 
+  geom_hline(yintercept = resolution / 2 + c(D / 2, - D/2), color = "red") +
+  geom_vline(xintercept = resolution / 2 + c(D / 2, - D/2), color = "red")
+
+
+```
+
+Now, let's add taxis in. 
+
+The taxis matrix is a function of a habitat function, which must return habitat values in the same units as the distance, in this case km / year. 
+
+
+Let's put some prime habitat over in the far left of the grid
+
+```{r}
+
+habitat <- rep(0, patches)
+
+habitat[grid$x == 1 & grid$y == resolution / 2] <- .2
+
+grid$habitat <- habitat
+
+# calculate difference in habitat
+
+habitat_difference = outer(habitat, habitat, "-")
+
+
+#, now create taxis matrix
+taxis_matrix <-  adjacent *  (D * (delta_t / delta_d^2)) *  exp(habitat_difference * delta_t / delta_d)  # adjacency times taxis matrix 
+
+
+# fill in diagonal
+diag(taxis_matrix) <-  -1 * colSums(taxis_matrix)
+
+# ensure matrix class
+taxis_matrix <- as.matrix(taxis_matrix)
+
+# now, we're going to multiply the exponent of this by 
+
+n <- rep(10, patches)
+
+n[grid$x == resolution / 2 & grid$y == resolution / 2] <- 100
+
+# Now, diffuse for one year (i.e. delta_t = 1) 
+
+n_next <- n %*% expm(100 * taxis_matrix)
+
+grid$n <- as.numeric(n_next)
+
+
+grid |> 
+  ggplot() + 
+  geom_tile(aes(x,y,fill = n)) + 
+  geom_hline(yintercept = resolution / 2 + c(D / 2, - D/2), color = "red") +
+  geom_vline(xintercept = resolution / 2 + c(D / 2, - D/2), color = "red")
+
+
+```
+

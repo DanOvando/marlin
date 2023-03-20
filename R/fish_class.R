@@ -507,7 +507,7 @@ Fish <- R6::R6Class(
       
       diffusion_prep <- function(x,y, time_step, cell_area){
         
-        x[!is.na(x)] <- 1
+        x[!is.na(x)] <- 1 # this is here to allow for barriers; set diffusion to zero if there's a physical barrier
         
         z <- x * y * (time_step / cell_area^2) # squared for diffusion
         
@@ -527,7 +527,7 @@ Fish <- R6::R6Class(
       self$base_movement <-
         purrr::map2(self$seasonal_diffusion,
                     self$base_habitat,
-                    ~ as.matrix(expm::expm((.x + .y) / seasons)))
+                    ~ as.matrix(expm::expm((.x + .y) * time_step)))
       
       self$movement_seasons <- season_blocks
       
@@ -538,7 +538,7 @@ Fish <- R6::R6Class(
                       resolution = resolution)
       
       self$recruit_movement <-
-        as.matrix(expm::expm(self$recruit_movement * 1 / seasons))
+        as.matrix(expm::expm(self$recruit_movement * time_step))
       
       
       # set up unfished recruitment by patch
