@@ -183,7 +183,7 @@ As a solution to the Metzlre requirement, we can reparameterize the model slight
 ```{r}
 
 
-movement_matrix <- adjacent * ((D * delta_t / delta_d^2) * exp((delta_t * habitat_difference) / delta_d))
+movement_matrix <- adjacent * ((D * delta_t / delta_d^2) * pmin(2,exp((delta_t * habitat_difference) / delta_d)))
 
 diag(movement_matrix) <-  -1 * colSums(movement_matrix)
 
@@ -208,4 +208,10 @@ Given sufficiently high quality data, the parameters of this equation can be est
 As an alternative...
 
 - The simplest approach is just to put a cap in where the post-taxis diffusion parameter can't be more than X. That's way easier than a tuning thing... let's start with that?
+
+
+OK so what you need to do... 
+
+store raw habitat and raw diffusion
+
 

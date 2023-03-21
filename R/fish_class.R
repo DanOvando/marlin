@@ -493,41 +493,52 @@ Fish <- R6::R6Class(
           message("Negative habitat values were provided; rescaling to positive values preserving relative differences. Make sure you did not provide habitat values on a log scale.")
         } # close habitat rescaling
         
-        tmp_habitat[[i]] <- log(tmp_habitat[[i]])
         
-        tmp_habitat[[i]] <- (time_step / cell_area) * (1 + adult_diffusion[[i]] * self$taxis_to_diff_ratio) * exp(outer(tmp_habitat[[i]], tmp_habitat[[i]], "-")) # calculate difference in habitat quality
+        tmp_habitat[[i]] <- pmin(2,exp((time_step * outer(tmp_habitat[[i]], tmp_habitat[[i]], "-")) / sqrt(cell_area)))
+        
+        # tmp_habitat[[i]] <- log(tmp_habitat[[i]])
+        
+        # tmp_habitat[[i]] <- (time_step / cell_area) * (1 + adult_diffusion[[i]] * self$taxis_to_diff_ratio) * exp(outer(tmp_habitat[[i]], tmp_habitat[[i]], "-")) # calculate difference in habitat quality
         
       }
       
-      self$base_habitat <-
-        purrr::pmap(list(multiplier = tmp_habitat),
-                    prep_movement,
-                    resolution = resolution)
-      
+      self$base_habitat <- tmp_habitat
+        # purrr::pmap(list(multiplier = tmp_habitat),
+        #             prep_movement,
+        #             resolution = resolution)
+        # 
       
       diffusion_prep <- function(x,y, time_step, cell_area){
         
         x[!is.na(x)] <- 1 # this is here to allow for barriers; set diffusion to zero if there's a physical barrier
         
-        z <- x * y * (time_step / cell_area^2) # squared for diffusion
+        z <- x * y * (time_step / cell_area) 
         
       }
       
       diff_foundation <- purrr::map2(tmp_habitat, adult_diffusion,diffusion_prep, time_step = time_step, cell_area = cell_area) # prepare adult diffusion matrix account for potential land
+      
+      
+      tmp <- map2(diff_foundation, tmp_habitat, ~ .x * .y)
+      
+      tmp2 <-  purrr::pmap(list(multiplier = tmp),
+                               prep_movement,
+                               resolution = resolution)
+      
       
       self$seasonal_diffusion <-
         purrr::pmap(list(multiplier = diff_foundation),
                     prep_movement,
                     resolution = resolution)
       
+     ## broken through here
       
       
       # ideally, you would set things up with mean environmental conditions, but for now, set up a placeholder for movement ignoring taxis for unfished conditions...
       
       self$base_movement <-
-        purrr::map2(self$seasonal_diffusion,
-                    self$base_habitat,
-                    ~ as.matrix(expm::expm((.x + .y) * time_step)))
+        purrr::map(tmp2,
+                    ~ as.matrix(expm::expm((.x))))
       
       self$movement_seasons <- season_blocks
       
