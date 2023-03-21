@@ -540,6 +540,8 @@ Fish <- R6::R6Class(
         purrr::map(tmp2,
                     ~ as.matrix(expm::expm((.x))))
       
+      browser()
+      
       self$movement_seasons <- season_blocks
       
       rec_diff_foundation <- purrr::map2(tmp_habitat, recruit_diffusion,diffusion_prep, time_step = time_step,cell_area = cell_area) # prepare diffusion matrix account for potential land
