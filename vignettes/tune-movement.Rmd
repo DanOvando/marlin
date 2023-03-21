@@ -70,17 +70,17 @@ $$ {#eq-movement}
 
 ```{r}
 
-resolution <- 20 # cells per side
+resolution <- 10 # cells per side
 
 patches <- resolution^2
 
 delta_d <- 1 # length of a cell side
 
-delta_t = 1 # length of one time step in the simulation in units of years 
+delta_t = 0.25 # length of one time step in the simulation in units of years 
 
 time_steps <- 4 # number of time steps to run the population forward in in units of delta_t 
 
-D <- 2 # km^2  / year
+D <- 1000 # km^2  / year
 
 grid <- tidyr::expand_grid(x = 1:resolution, y = 1:resolution)
 
@@ -110,15 +110,15 @@ n[grid$x == resolution / 2 & grid$y == resolution / 2] <- 100
 
 # Now, diffuse for one year (i.e. delta_t = 1) 
 
-n_next <- n %*% expm(time_steps * diffusion_matrix)
+n_next <- n %*% as.matrix(expm(time_steps * diffusion_matrix))
 
 grid$n <- as.numeric(n_next)
 
 grid |> 
   ggplot() + 
   geom_tile(aes(x,y,fill = n)) + 
-  geom_hline(yintercept = resolution / 2 + c(D / 2, - D/2), color = "red") +
-  geom_vline(xintercept = resolution / 2 + c(D / 2, - D/2), color = "red")
+  geom_hline(yintercept = pmax(1,pmin(resolution,resolution / 2 + sqrt(D) * c(1,-1 ))), color = "red") +
+  geom_vline(xintercept = pmax(1,pmin(resolution,resolution / 2 + sqrt(D)  * c(1, -1))), color = "red")
 
 
 ```
@@ -127,14 +127,19 @@ Now, let's add taxis in.
 
 The taxis matrix is a function of a habitat function, which must return habitat values in the same units as the distance, in this case km / year. 
 
+Taxis is often modeled in terms of **difference** in habitat preferences. However, this produces a complication. In order for the CTMC model to work the component movemenet matrices must be "Metzler matrices", defined as a matrix where all the off-diagonal elements are non-negative
 
-Let's put some prime habitat over in the far left of the grid
+
+
 
 ```{r}
 
 habitat <- rep(0, patches)
 
-habitat[grid$x == 1 & grid$y == resolution / 2] <- 2
+habitat[grid$x == 1 & grid$y == resolution / 2] <- D
+
+habitat[grid$x == 4 & grid$y == resolution / 2] <- 2 * D
+
 
 grid$habitat <- habitat
 
@@ -144,7 +149,7 @@ habitat_difference = outer(habitat, habitat, "-")
 
 
 #, now create taxis matrix
-taxis_matrix <-  adjacent * (habitat_difference) * (delta_t / delta_d)  # adjacency times taxis matrix 
+taxis_matrix <- adjacent * (5 + (habitat_difference) * (delta_t / delta_d))  # adjacency times taxis matrix 
 
 
 # fill in diagonal
@@ -155,32 +160,52 @@ taxis_matrix <- as.matrix(taxis_matrix)
 
 # now, we're going to multiply the exponent of this by 
 
-n <- rep(10, patches)
-
-# n[grid$x == resolution / 2 & grid$y == resolution / 2] <- 100
+n <- matrix(rep(10, patches), ncol = 1)
 
 # Now, diffuse for one year (i.e. delta_t = 1) 
 
-grid$n <- n
+grid$n <-  as.numeric(as.matrix(expm(taxis_matrix)) %*% n)
 
-for (i in 1:100){
-  
-  n_next <- grid$n %*% expm(1 * ( taxis_matrix))
-
-  grid$n <- as.numeric(n_next)
-
-  
-}
+grid |> 
+  ggplot() + 
+  geom_tile(aes(x,y,fill = n))
 
 
+```
 
+xx quesetion for Jim, is there any reason to do this version instead of just ratios?
+
+exp(log(100) - log(.1)) = 100 / .1
+
+As a solution to the Metzlre requirement, we can reparameterize the model slightly to 
+
+
+```{r}
+
+
+movement_matrix <- adjacent * ((D * delta_t / delta_d^2) * exp((delta_t * habitat_difference) / delta_d))
+
+diag(movement_matrix) <-  -1 * colSums(movement_matrix)
+
+taxis_matrix <- as.matrix(taxis_matrix)
+
+n <- matrix(rep(10, patches), ncol = 1)
+
+grid$n <-  as.numeric(as.matrix(expm(1 * movement_matrix)) %*% n)
 
 grid |> 
   ggplot() + 
   geom_tile(aes(x,y,fill = n)) + 
-  geom_hline(yintercept = resolution / 2 + c(D / 2, - D/2), color = "red") +
-  geom_vline(xintercept = resolution / 2 + c(D / 2, - D/2), color = "red")
+  scale_fill_viridis_c()
 
 
 ```
+
+This parametreization helps ensure that the resulting movement matrices are mathematically correct. 
+
+Given sufficiently high quality data, the parameters of this equation can be estimated. For simulation analysis though this formulation poses a bit of a problem. The diffusion rate *D* has a clear biological intuition and is relatively easy to set. Setting the difference in the habitat preferences behind the taxis matrix is not as simple though, as useres must now consider the interaction of the degree of habitat difference and the diffusion rate. If the range of habitat values are large, one could easily produce habitat multipliers that rapidly approach infinity (e.g. exp(100 - 1)). 
+
+As an alternative...
+
+- The simplest approach is just to put a cap in where the post-taxis diffusion parameter can't be more than X. That's way easier than a tuning thing... let's start with that?
 
