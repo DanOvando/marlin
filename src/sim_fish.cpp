@@ -26,9 +26,9 @@ List sim_fish(
     const NumericVector fec_at_age,
     const NumericVector maturity_at_age,
     const NumericMatrix f_p_a, // fishing mortality by patch and age
-    const List seasonal_movement,
+    const List movement_matrix,
     const List movement_seasons,
-    Eigen::MatrixXd recruit_movement,
+    Eigen::MatrixXd recruit_movement_matrix,
     Rcpp::NumericMatrix last_n_p_a, // last numbers by patch and age
     const int patches,
     const int burn_steps, // number of burn steps if burn is in effect
@@ -82,7 +82,7 @@ List sim_fish(
     
     if (b == 1){
       
-      movement = seasonal_movement[s];
+      movement = movement_matrix[s];
       
       s = movement_seasons.length() + 1; // stop loop once you've found what season you're in
     } 
@@ -117,9 +117,9 @@ List sim_fish(
         fec_at_age,
         maturity_at_age,
         f_p_a,
-        seasonal_movement,
+        movement_matrix,
         movement_seasons,
-        recruit_movement,
+        recruit_movement_matrix,
         tmp_n_p_a,
         patches,
         0,
@@ -235,7 +235,7 @@ List sim_fish(
         
         tmp_rec = as<VectorXd>(clone(recruits));
         
-        tmp_rec = recruit_movement * tmp_rec;
+        tmp_rec = recruit_movement_matrix * tmp_rec;
 
         recruits = Rcpp::wrap(tmp_rec); // convert from eigen to Rcpp
 
@@ -245,7 +245,7 @@ List sim_fish(
         
         tmp_rec = as<VectorXd>(clone(ssb_p));
         
-        tmp_rec = recruit_movement * tmp_rec;
+        tmp_rec = recruit_movement_matrix * tmp_rec;
         
         NumericVector huh(patches); // no idea why I have to do this
         

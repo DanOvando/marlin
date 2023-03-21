@@ -60,7 +60,7 @@ Fish <- R6::R6Class(
     #' @param fec_form
     #' @param fec_expo exponent for fecundity at weight relationship, 1 = isometric > 1 hyperallometric
     #' @param get_common_name
-    #' @param base_habitat 
+    #' @param habitat 
     #' @param spawning_seasons 
     #' @param taxis_to_diff_ratio 
     #' @param explt_type
@@ -104,7 +104,7 @@ Fish <- R6::R6Class(
                           linf_buffer = 1.2,
                           resolution = NA,
                           cell_area = 1,
-                          base_habitat = list(),
+                          habitat = list(),
                           season_blocks = list(),
                           recruit_habitat = NA,
                           fished_depletion = 1,
@@ -128,14 +128,14 @@ Fish <- R6::R6Class(
       
       spawning_seasons <- (spawning_seasons / seasons) - 1 / seasons
       
-      if (length(base_habitat) > 1) {
-        resolution <- nrow(base_habitat[[1]])
+      if (length(habitat) > 1) {
+        resolution <- nrow(habitat[[1]])
       }
       
       patches <- resolution ^ 2
       
-      if (length(base_habitat) == 0) {
-        base_habitat <-
+      if (length(habitat) == 0) {
+        habitat <-
           purrr::map(1:seq_along(seasons), function(x, res)
             matrix(0, nrow = res, ncol = res), res = resolution)
         
@@ -143,31 +143,31 @@ Fish <- R6::R6Class(
       
       if (length(season_blocks) == 0) {
         seasons_per_habitat <-
-          seasons / length(base_habitat) # determine how many seasons to assign to each habitat block
+          seasons / length(habitat) # determine how many seasons to assign to each habitat block
         
         tmp <-
           data.frame(
-            block =  rep(seq_along(base_habitat), each = seasons_per_habitat),
+            block =  rep(seq_along(habitat), each = seasons_per_habitat),
             season =  1:seasons
           )
         
         season_blocks <-
-          vector(mode = "list", length = length(base_habitat))
+          vector(mode = "list", length = length(habitat))
         
-        for (i in seq_along(base_habitat)) {
+        for (i in seq_along(habitat)) {
           season_blocks[[i]] <- tmp$season[tmp$block == i]
           
         }
         
       }
       
-      if (length(base_habitat) != length(season_blocks)) {
-        stop("length of base_habitat and movement must equal length of season_blocks")
+      if (length(habitat) != length(season_blocks)) {
+        stop("length of habitat and movement must equal length of season_blocks")
       }
       
       
       if (length(adult_diffusion) > 1 &
-          length(adult_diffusion) != length(base_habitat)) {
+          length(adult_diffusion) != length(habitat)) {
         stop("As of now adult movement and seasonal habitat lists but be same length")
       }
       
@@ -195,10 +195,10 @@ Fish <- R6::R6Class(
           
         }
       
-      all_habitat_seaons <-
+      all_habitat_seasons <-
         purrr::map_dfr(season_blocks, ~ data.frame(season = .x))
       
-      if (!all(1:seasons %in% all_habitat_seaons$season)) {
+      if (!all(1:seasons %in% all_habitat_seasons$season)) {
         stop("all seasons must be represented in season_blocks")
       }
       
@@ -208,8 +208,8 @@ Fish <- R6::R6Class(
                    time_step = time_step,
                    seasons = seasons)
       
-      if (!is.null(dim(base_habitat[[1]]))) {
-        resolution <- nrow(base_habitat[[1]])
+      if (!is.null(dim(habitat[[1]]))) {
+        resolution <- nrow(habitat[[1]])
         
       }
       
@@ -477,24 +477,24 @@ Fish <- R6::R6Class(
       
 
       
-      tmp_habitat <- base_habitat
+      taxis_matrix <- habitat
       # reshape to vector, for some reason doesn't work inside function
-      for (i in seq_along(tmp_habitat)) {
-        tmp_habitat[[i]] <-
-          tidyr::pivot_longer(as.data.frame(tmp_habitat[[i]]), tidyr::everything()) # need to use pivot_longer to match patch order from expand_grid
+      for (i in seq_along(taxis_matrix)) {
+        taxis_matrix[[i]] <-
+          tidyr::pivot_longer(as.data.frame(taxis_matrix[[i]]), tidyr::everything()) # need to use pivot_longer to match patch order from expand_grid
         
-        tmp_habitat[[i]] <- as.numeric(tmp_habitat[[i]]$value)
+        taxis_matrix[[i]] <- as.numeric(taxis_matrix[[i]]$value)
         
         # if any habitat is less than zero, rescale to be positive
-        if (any(tmp_habitat[[i]][!is.na(tmp_habitat[[i]])] < 0)){
-          
-          tmp_habitat[[i]] <- tmp_habitat[[i]] - min(tmp_habitat[[i]], na.rm = TRUE)
-          
-          message("Negative habitat values were provided; rescaling to positive values preserving relative differences. Make sure you did not provide habitat values on a log scale.")
-        } # close habitat rescaling
+        # if (any(tmp_habitat[[i]][!is.na(tmp_habitat[[i]])] < 0)){
+        #   
+        #   tmp_habitat[[i]] <- tmp_habitat[[i]] - min(tmp_habitat[[i]], na.rm = TRUE)
+        #   
+        #   message("Negative habitat values were provided; rescaling to positive values preserving relative differences. Make sure you did not provide habitat values on a log scale.")
+        # } # close habitat rescaling
         
         
-        tmp_habitat[[i]] <- pmin(2,exp((time_step * outer(tmp_habitat[[i]], tmp_habitat[[i]], "-")) / sqrt(cell_area)))
+        taxis_matrix[[i]] <- pmin(2,exp((time_step * outer(taxis_matrix[[i]], taxis_matrix[[i]], "-")) / sqrt(cell_area))) # convert habitat gradient into diffusion multiplier
         
         # tmp_habitat[[i]] <- log(tmp_habitat[[i]])
         
@@ -502,7 +502,7 @@ Fish <- R6::R6Class(
         
       }
       
-      self$base_habitat <- tmp_habitat
+      self$taxis_matrix <- taxis_matrix
         # purrr::pmap(list(multiplier = tmp_habitat),
         #             prep_movement,
         #             resolution = resolution)
@@ -516,42 +516,34 @@ Fish <- R6::R6Class(
         
       }
       
-      diff_foundation <- purrr::map2(tmp_habitat, adult_diffusion,diffusion_prep, time_step = time_step, cell_area = cell_area) # prepare adult diffusion matrix account for potential land
+      diff_foundation <- purrr::map2(taxis_matrix, adult_diffusion,diffusion_prep, time_step = time_step, cell_area = cell_area) # prepare adult diffusion matrix account for potential land
       
       
-      tmp <- map2(diff_foundation, tmp_habitat, ~ .x * .y)
+      diffusion_and_taxis <- map2(diff_foundation, taxis_matrix, ~ .x * .y)
       
-      tmp2 <-  purrr::pmap(list(multiplier = tmp),
+      inst_movement_matrix <-  purrr::pmap(list(multiplier = diffusion_and_taxis),
                                prep_movement,
                                resolution = resolution)
-      
-      
-      self$seasonal_diffusion <-
-        purrr::pmap(list(multiplier = diff_foundation),
-                    prep_movement,
-                    resolution = resolution)
-      
+  
      ## broken through here
       
       
       # ideally, you would set things up with mean environmental conditions, but for now, set up a placeholder for movement ignoring taxis for unfished conditions...
       
-      self$base_movement <-
-        purrr::map(tmp2,
+      self$movement_matrix <-
+        purrr::map(inst_movement_matrix,
                     ~ as.matrix(expm::expm((.x))))
-      
-      browser()
       
       self$movement_seasons <- season_blocks
       
-      rec_diff_foundation <- purrr::map2(tmp_habitat, recruit_diffusion,diffusion_prep, time_step = time_step,cell_area = cell_area) # prepare diffusion matrix account for potential land
+      rec_diff_foundation <- purrr::map2(taxis_matrix, recruit_diffusion,diffusion_prep, time_step = time_step,cell_area = cell_area) # prepare diffusion matrix account for potential land
       
-      self$recruit_movement <-
+      inst_recruit_move_matrix <-
         prep_movement(multiplier = rec_diff_foundation[[1]],
                       resolution = resolution)
       
-      self$recruit_movement <-
-        as.matrix(expm::expm(self$recruit_movement * time_step))
+      self$recruit_movement_matrix <-
+        as.matrix(expm::expm(inst_recruit_move_matrix))
       
       
       # set up unfished recruitment by patch
@@ -707,9 +699,9 @@ Fish <- R6::R6Class(
         ssb0 = NA,
         ssb0_p = rep(-999, patches),
         f_p_a = f_p_a,
-        seasonal_movement =  self$base_movement,
+        movement_matrix =  self$movement_matrix,
         movement_seasons = self$movement_seasons,
-        recruit_movement = self$recruit_movement,
+        recruit_movement_matrix = self$recruit_movement_matrix,
         last_n_p_a = init_pop,
         tune_unfished = 1,
         rec_form = rec_form,
@@ -807,9 +799,9 @@ Fish <- R6::R6Class(
       r0s = self$r0s,
       ssb0 = self$ssb0,
       ssb0_p = self$ssb0_p,
-      seasonal_movement = adult_movement,
+      movement_matrix = adult_movement,
       movement_seasons = self$movement_seasons,
-      recruit_movement = self$recruit_movement,
+      recruit_movement_matrix = self$recruit_movement_matrix,
       f_p_a = f_p_a,
       last_n_p_a = last_n_p_a,
       tune_unfished = tune_unfished,

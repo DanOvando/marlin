@@ -19,7 +19,6 @@ library(marlin)
 
 library(ggplot2)
 
-library(expm)
 ```
 
 
@@ -80,7 +79,7 @@ delta_t = 0.25 # length of one time step in the simulation in units of years
 
 time_steps <- 4 # number of time steps to run the population forward in in units of delta_t 
 
-D <- 1000 # km^2  / year
+D <- 2 # km^2  / year
 
 grid <- tidyr::expand_grid(x = 1:resolution, y = 1:resolution)
 
@@ -110,7 +109,7 @@ n[grid$x == resolution / 2 & grid$y == resolution / 2] <- 100
 
 # Now, diffuse for one year (i.e. delta_t = 1) 
 
-n_next <- n %*% as.matrix(expm(time_steps * diffusion_matrix))
+n_next <- n %*% as.matrix(expm::expm(time_steps * diffusion_matrix))
 
 grid$n <- as.numeric(n_next)
 
@@ -164,7 +163,7 @@ n <- matrix(rep(10, patches), ncol = 1)
 
 # Now, diffuse for one year (i.e. delta_t = 1) 
 
-grid$n <-  as.numeric(as.matrix(expm(taxis_matrix)) %*% n)
+grid$n <-  as.numeric(as.matrix(expm::expm(taxis_matrix)) %*% n)
 
 grid |> 
   ggplot() + 
@@ -191,7 +190,7 @@ taxis_matrix <- as.matrix(taxis_matrix)
 
 n <- matrix(rep(10, patches), ncol = 1)
 
-grid$n <-  as.numeric(as.matrix(expm(1 * movement_matrix)) %*% n)
+grid$n <-  as.numeric(as.matrix(expm::expm(1 * movement_matrix)) %*% n)
 
 grid |> 
   ggplot() + 
@@ -213,5 +212,192 @@ As an alternative...
 OK so what you need to do... 
 
 store raw habitat and raw diffusion
+
+
+```{r}
+library(marlin)
+library(tidyverse)
+options(dplyr.summarise.inform = FALSE)
+theme_set(marlin::theme_marlin(base_size = 42))
+
+resolution <- 10 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
+
+years <- 20
+
+seasons <- 1
+
+time_step <- 1 / seasons
+
+steps <- years * seasons
+
+seasons <- 4
+
+steps <- years * seasons
+
+time_step <- 1 / seasons
+
+skipjack_diffusion <- 2
+
+bigeye_diffusion <- 5
+
+# for now make up some habitat
+
+
+
+
+skipjack_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  dplyr::mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 20, 200),
+  habitat = habitat / max(habitat) * skipjack_diffusion) |> 
+  pivot_wider(names_from = y, values_from = habitat) %>% 
+  select(-x) %>% 
+  as.matrix()
+
+
+bigeye_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 300, 100),
+         habitat = habitat / max(habitat) * bigeye_diffusion) %>% 
+  pivot_wider(names_from = y, values_from = habitat) %>% 
+  select(-x) %>% 
+  as.matrix()
+
+
+bigeye_habitat2 <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  mutate(habitat =  dnorm((x ^ .2 + y ^ .2), 100, 100),
+         habitat = habitat / max(habitat) * bigeye_diffusion) %>% 
+  pivot_wider(names_from = y, values_from = habitat) %>% 
+  select(-x) %>% 
+  as.matrix()
+
+a <- Sys.time()
+
+fauna <- 
+  list(
+    "skipjack" = create_critter(
+      scientific_name = "Katsuwonus pelamis",
+      habitat = list(skipjack_habitat, skipjack_habitat), # pass habitat as lists
+      season_blocks = list(c(1, 2), c(3, 4)), # seasons each habitat apply to
+      recruit_habitat = skipjack_habitat,
+      adult_diffusion = 2, # standard deviation of the number of patches moved by adults
+      fished_depletion = .6, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
+      density_dependence = "global_habitat", # recruitment form, where 1 implies local recruitment
+      seasons = seasons,
+      init_explt = 0.2, 
+      explt_type = "f"
+      ),
+    "bigeye" = create_critter(
+      common_name = "bigeye tuna",
+      habitat = list(bigeye_habitat, bigeye_habitat2), # pass habitat as lists
+      season_blocks = list(c(1, 2), c(3, 4)), # seasons each habitat apply to
+      recruit_habitat = bigeye_habitat,
+      adult_diffusion = 1,
+      fished_depletion = .1,
+      density_dependence = "local_habitat",
+      seasons = seasons,
+      init_explt = 0.3, 
+      explt_type = "f"
+    )
+  )
+Sys.time() - a
+
+# create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
+# with lists for each species inside there. Price specifies the price per unit weight of that 
+# species for that fleet
+# sel_form can be one of logistic or dome
+
+
+fleets <- list(
+  "longline" = create_fleet(
+    list(
+       "skipjack" = Metier$new(
+        critter = fauna$skipjack,
+        price = 100,
+        # price per unit weight
+        sel_form = "logistic",
+        # selectivity form, one of logistic or dome
+        sel_start = .3,
+        # percentage of length at maturity that selectivity starts
+        sel_delta = .1,
+        # additional percentage of sel_start where selectivity asymptotes
+        catchability = .01,
+        # overwritten by tune_fleet but can be set manually here
+        p_explt = 1
+      ),
+       "bigeye" = Metier$new(
+        critter = fauna$bigeye,
+        price = 10,
+        sel_form = "logistic",
+        sel_start = .1,
+        sel_delta = .01,
+        catchability = 0,
+        p_explt = 1
+      )
+    ),
+    base_effort = resolution ^ 2,
+        resolution = resolution
+
+  ),
+  "purseseine" = create_fleet(list(
+    skipjack = Metier$new(
+      critter = fauna$skipjack,
+      price = 100,
+      sel_form = "logistic",
+      sel_start = 0.25,
+      sel_delta = .1,
+      catchability = .01,
+      p_explt = 0.9
+    ),
+    bigeye = Metier$new(
+      critter = fauna$bigeye,
+      price = 100,
+      sel_form = "logistic",
+      sel_start = .25,
+      sel_delta = .5,
+      catchability = .01,
+      p_explt = 1
+    )
+  ),
+  base_effort = resolution ^ 2,    resolution = resolution
+)
+)
+
+a <- Sys.time()
+
+fleets <- tune_fleets(fauna, fleets) 
+
+Sys.time() - a
+
+
+# run simulations
+
+# run the simulation using marlin::simmar
+a <- Sys.time()
+
+sim3 <- simmar(fauna = fauna,
+                  fleets = fleets,
+                  years = years)
+
+Sys.time() - a
+# a <- Sys.time()
+
+processed_marlin <- process_marlin(sim = sim3, time_step = time_step, keep_age = TRUE)
+# Sys.time() - a
+
+plot_marlin(processed_marlin)
+
+plot_marlin(processed_marlin, plot_var = "c")
+
+plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", fauna = fauna)
+
+plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space")
+
+  e_p_f <- map(sim3[[length(sim3)]],"e_p_fl") %>%
+    bind_rows(.id = "critter") %>%
+    pivot_longer(-critter, names_to = "fleet", values_to = "effort") %>%
+    group_by(critter, fleet) %>%
+    mutate(patch = seq_along(effort)) %>%
+    group_by(fleet, patch) %>%
+    summarise(effort = sum(effort))
+
+```
 
 

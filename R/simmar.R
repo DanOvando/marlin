@@ -601,7 +601,7 @@ simmar <- function(fauna = list(),
 
       
       
-      movement <- fauna[[f]]$base_movement
+      movement <- fauna[[f]]$movement_matrix
       
       
       # if there is updated habitat for the critter in question in current time step, update habitat
@@ -659,7 +659,6 @@ simmar <- function(fauna = list(),
       }
       
       rec_devs <- exp(log_rec_devs[[f]] - fauna[[f]]$sigma_r^2/2)
-      
       pop <-
         fauna[[f]]$swim(
           season = current_season,
