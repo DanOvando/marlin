@@ -10,7 +10,7 @@
 #' @param common_name 
 #' @param scientific_name 
 #' @param critter_type 
-#' @param base_habitat 
+#' @param habitat 
 #' @param season_blocks 
 #' @param rec_habitat 
 #' @param seasons 
@@ -25,7 +25,7 @@ create_critter <- function(common_name = NA,
                            scientific_name = NA,
                            get_common_name = FALSE,
                            critter_type = "fish",
-                           base_habitat = list(),
+                           habitat = list(),
                            season_blocks = list(),
                            recruit_habitat = NA,
                            seasons = 1,
@@ -45,8 +45,8 @@ create_critter <- function(common_name = NA,
                            ...) {
 
   
-  if (!is.list(base_habitat)){
-    base_habitat <-  list(base_habitat)
+  if (!is.list(habitat)){
+    habitat <-  list(habitat)
   }
 
   if (critter_type == "fish"){
@@ -54,7 +54,7 @@ create_critter <- function(common_name = NA,
       marlin::Fish$new(
         common_name = common_name,
         scientific_name = scientific_name,
-        base_habitat = base_habitat,
+        habitat = habitat,
         season_blocks = season_blocks,
         recruit_habitat = recruit_habitat,
         seasons = seasons,

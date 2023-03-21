@@ -62,7 +62,7 @@ fauna <-
   list(
     "skipjack" = create_critter(
       scientific_name = "Katsuwonus pelamis",
-      base_habitat = list(skipjack_habitat, skipjack_habitat), # pass habitat as lists
+      habitat = list(skipjack_habitat, skipjack_habitat), # pass habitat as lists
       season_blocks = list(c(1, 2), c(3, 4)), # seasons each habitat apply to
       recruit_habitat = skipjack_habitat,
       adult_diffusion = 2, # standard deviation of the number of patches moved by adults
@@ -72,7 +72,7 @@ fauna <-
       ),
     "bigeye" = create_critter(
       scientific_name = "Thunnus obesus",
-      base_habitat = list(bigeye_habitat, bigeye_habitat2), # pass habitat as lists
+      habitat = list(bigeye_habitat, bigeye_habitat2), # pass habitat as lists
       season_blocks = list(c(1, 2), c(3, 4)), # seasons each habitat apply to
       recruit_habitat = bigeye_habitat,
       adult_diffusion = 1,

@@ -601,7 +601,7 @@ simmar <- function(fauna = list(),
 
       
       
-      movement <- fauna[[f]]$base_movement
+      movement <- fauna[[f]]$movement_matrix
       
       
       # if there is updated habitat for the critter in question in current time step, update habitat
@@ -617,20 +617,17 @@ simmar <- function(fauna = list(),
         current_habitat <-
           tidyr::pivot_longer(as.data.frame(current_habitat), tidyr::everything()) # need to use pivot_longer to match patch order from expand_grid
         
-        current_habitat <- log(as.numeric(current_habitat$value))
-        
-        current_habitat <-
-          (time_step / cell_area ) * (1 + max(fauna[[f]]$seasonal_diffusion[[season_block]], na.rm = TRUE) * fauna[[f]]$taxis_to_diff_ratio) * exp(outer(current_habitat, current_habitat, "-")) # calculate difference in habitat between each patch
-
-        current_habitat[current_habitat < 0 & !is.na(current_habitat)] <-  0 # only preferentially move towards BETTER habitat quality. Note that diffusion still allows movement against habitat gradients. Preserve NAs for land
-        
-        current_habitat <- prep_movement(multiplier = current_habitat, resolution = sqrt(ncol(current_habitat)))
+        current_habitat <- pmin(exp((time_step * outer(current_habitat$value, current_habitat$value, "-")) / sqrt(cell_area)),2) # convert habitat gradient into diffusion multiplier
         
         
+        diffusion_and_taxis <- fauna[[f]]$diffusion_foundation[[season_block]] * current_habitat
+    
+        inst_movement_matrix <-  prep_movement(diffusion_and_taxis, resolution = resolution)
+        
+   
         # update movement matrix with current habitat
-        movement[[season_block]] <-
-          as.matrix(expm::expm((fauna[[f]]$seasonal_diffusion[[season_block]] + current_habitat) / fauna[[1]]$seasons
-          ))
+        movement[[season_block]] <- as.matrix(expm::expm(inst_movement_matrix))
+  
       
         if (any(!is.finite(movement[[season_block]]))) {
           stop(
@@ -659,7 +656,6 @@ simmar <- function(fauna = list(),
       }
       
       rec_devs <- exp(log_rec_devs[[f]] - fauna[[f]]$sigma_r^2/2)
-      
       pop <-
         fauna[[f]]$swim(
           season = current_season,

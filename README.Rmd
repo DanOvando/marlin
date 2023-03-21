@@ -239,25 +239,33 @@ seasons <- 4
 steps <- years * seasons
 
 time_step <- 1 / seasons
+
+skipjack_diffusion <- 2
+
+bigeye_diffusion <- 5
+
 # for now make up some habitat
 
 
 skipjack_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  dplyr::mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 20, 200)) %>% 
+  dplyr::mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 20, 200),
+  habitat = habitat / max(habitat) * skipjack_diffusion) |> 
   pivot_wider(names_from = y, values_from = habitat) %>% 
   select(-x) %>% 
   as.matrix()
 
 
 bigeye_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 300, 100)) %>% 
+  mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 300, 100),
+         habitat = habitat / max(habitat) * bigeye_diffusion) %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
   select(-x) %>% 
   as.matrix()
 
 
 bigeye_habitat2 <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(habitat =  dnorm((x ^ .2 + y ^ .2), 100, 100)) %>% 
+  mutate(habitat =  dnorm((x ^ .2 + y ^ .2), 100, 100),
+         habitat = habitat / max(habitat) * bigeye_diffusion) %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
   select(-x) %>% 
   as.matrix()
@@ -268,10 +276,10 @@ fauna <-
   list(
     "skipjack" = create_critter(
       scientific_name = "Katsuwonus pelamis",
-      base_habitat = list(skipjack_habitat, skipjack_habitat), # pass habitat as lists
+      habitat = list(skipjack_habitat, skipjack_habitat), # pass habitat as lists
       season_blocks = list(c(1, 2), c(3, 4)), # seasons each habitat apply to
       recruit_habitat = skipjack_habitat,
-      adult_diffusion = 2, # standard deviation of the number of patches moved by adults
+      adult_diffusion = skipjack_diffusion, # standard deviation of the number of patches moved by adults
       fished_depletion = .6, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
       density_dependence = "global_habitat", # recruitment form, where 1 implies local recruitment
       seasons = seasons,
@@ -280,10 +288,10 @@ fauna <-
       ),
     "bigeye" = create_critter(
       common_name = "bigeye tuna",
-      base_habitat = list(bigeye_habitat, bigeye_habitat2), # pass habitat as lists
+      habitat = list(bigeye_habitat, bigeye_habitat2), # pass habitat as lists
       season_blocks = list(c(1, 2), c(3, 4)), # seasons each habitat apply to
       recruit_habitat = bigeye_habitat,
-      adult_diffusion = 1,
+      adult_diffusion = bigeye_diffusion,
       fished_depletion = .1,
       density_dependence = "local_habitat",
       seasons = seasons,
@@ -391,7 +399,7 @@ plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space")
     mutate(patch = seq_along(effort)) %>%
     group_by(fleet, patch) %>%
     summarise(effort = sum(effort))
-  
+
 
 ```
 
@@ -418,17 +426,27 @@ tune_type <- "depletion"
 
 steps <- years * seasons
 
+yft_diffusion <- 6
+  
+yft_depletion <- 0.5
+
+mako_depletion <- 0.4
+
+mako_diffusion <- 5
+
 # for now make up some habitat
 
 yft_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(habitat =  .05 * x) %>% 
+  mutate(habitat =  .05 * x,
+         habitat = habitat / max(habitat) * yft_diffusion) %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
   select(-x) %>% 
   as.matrix()
  
 
 mako_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(habitat =  dnorm(x,resolution, 5)) %>% 
+  mutate(habitat =  dnorm(x,resolution, 8),
+         habitat = habitat / max(habitat) * mako_diffusion) %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
   select(-x) %>% 
   as.matrix()
@@ -439,26 +457,22 @@ fauna <-
   list(
     "Yellowfin Tuna" = create_critter(
       scientific_name = "Thunnus albacares",
-      base_habitat = yft_habitat, # pass habitat as lists
+      habitat = yft_habitat, # pass habitat as lists
       recruit_habitat = yft_habitat,
-      adult_diffusion = 4, # cells per year
-      fished_depletion = .4, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
+      adult_diffusion = yft_diffusion, # cells per year
+      fished_depletion = yft_depletion, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
       density_dependence = "local_habitat", # recruitment form, where 1 implies local recruitment
-      seasons = seasons,
-      init_explt = 0.12, 
-      explt_type = "f"
+      seasons = seasons
       ),
     "Shortfin Mako" = create_critter(
       scientific_name = "Isurus oxyrinchus",
-      base_habitat = list(mako_habitat), # pass habitat as lists
+      habitat = list(mako_habitat), # pass habitat as lists
       recruit_habitat = mako_habitat,
-      adult_diffusion = 3,
-      fished_depletion = .3,
+      adult_diffusion = mako_diffusion,
+      fished_depletion = mako_depletion,
       density_dependence = "local_habitat", # recruitment form, where 1 implies local recruitment
       burn_years = 200,
       seasons = seasons,
-      init_explt = .12, 
-      explt_type = "f",
       fec_form = "pups",
       pups = 2
     )
@@ -558,7 +572,8 @@ Now though, consider a different scenario. Here the tunas still slightly prefer 
 
 
 mako_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(habitat =  dnorm(x,.3 * resolution, 3)) %>% 
+  mutate(habitat =  dnorm(x,.3 * resolution, 8),
+         habitat = habitat / max(habitat) * mako_diffusion) %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
   select(-x) %>% 
   as.matrix()
@@ -570,26 +585,22 @@ fauna <-
   list(
     "Yellowfin Tuna" = create_critter(
       scientific_name = "Thunnus albacares",
-      base_habitat = yft_habitat, # pass habitat as lists
+      habitat = yft_habitat, # pass habitat as lists
       recruit_habitat = yft_habitat,
-      adult_diffusion = 4, # cells per year
-      fished_depletion = .4, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
+      adult_diffusion = yft_diffusion, # cells per year
+      fished_depletion = yft_depletion, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
       density_dependence = "local_habitat", # recruitment form, where 1 implies local recruitment
-      seasons = seasons,
-      init_explt = 0.12, 
-      explt_type = "f"
+      seasons = seasons
       ),
     "Shortfin Mako" = create_critter(
       scientific_name = "Isurus oxyrinchus",
-      base_habitat = list(mako_habitat), # pass habitat as lists
+      habitat = list(mako_habitat), # pass habitat as lists
       recruit_habitat = mako_habitat,
-      adult_diffusion = 3,
-      fished_depletion = .3,
+      adult_diffusion = mako_diffusion,
+      fished_depletion = mako_depletion,
       density_dependence = "local_habitat", # recruitment form, where 1 implies local recruitment
       burn_years = 200,
       seasons = seasons,
-      init_explt = .12, 
-      explt_type = "f",
       fec_form = "pups",
       pups = 2
     )
@@ -675,14 +686,16 @@ tune_type <- "explt"
 # make up some habitat
 
 yft_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(habitat =  .05 * x) %>% 
+  mutate(habitat =  .05 * x,
+         habitat = habitat / max(habitat) * yft_diffusion) %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
   select(-x) %>% 
   as.matrix()
 
 
 mako_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(habitat =  x > 12 & y >12) %>% 
+  mutate(habitat =  x > 12 & y >12,
+         habitat = habitat / max(habitat) * mako_diffusion) %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
   select(-x) %>% 
   as.matrix()
@@ -694,9 +707,9 @@ fauna <-
   list(
     "Yellowfin Tuna" = create_critter(
       scientific_name = "Thunnus albacares",
-      base_habitat = list(yft_habitat), 
+      habitat = list(yft_habitat), 
       recruit_habitat = yft_habitat,
-      adult_diffusion = 4, 
+      adult_diffusion = yft_diffusion, 
       fished_depletion = .4, 
       density_dependence = "local_habitat", # recruitment form, where 1 implies local recruitment
       seasons = seasons,
@@ -705,9 +718,9 @@ fauna <-
     ),
     "Shortfin Mako" = create_critter(
       scientific_name = "Isurus oxyrinchus",
-      base_habitat = list(mako_habitat), 
+      habitat = list(mako_habitat), 
       recruit_habitat = mako_habitat,
-      adult_diffusion = 3,
+      adult_diffusion = mako_diffusion,
       fished_depletion = .3,
       density_dependence = "local_habitat", # recruitment form, where 1 implies local recruitment
       burn_years = 200,

@@ -1,0 +1,403 @@
+---
+title: "tune-movement"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{tune-movement}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(marlin)
+
+library(ggplot2)
+
+```
+
+
+The idea here. 
+
+Movement enters marlin in two ways; through the dispersal parameter D and the ratio of habitat gradients. 
+
+The problem is the units here. 
+
+D has units time step / grid size. 
+
+But, taxis is in some arbitrary habitat. So, depending on how you decide to set the units on the habitat, you can end up with net movement that is way higher than the dispersal parameter itself, which make it somewhat hard to parameterize. 
+
+Let's do a simple example based on the movement model of Thorson's. 
+
+
+Following equation 10.15 from Spatio-temporal models for ecologists
+
+habitat has to be in units of distance per unit time. So, for example habitat is units of "attraction" of KM / year. That then gets multiplied by the delta terms in the equations of the simulation, for example month / m, which gets things in the right scale-free units. Putting it in units distance / time makes it unitless when it is exponentiated. 
+
+The goal is an instantaneous movement matrix that has units 1 / time step You will then multiply this by the number of time steps and then matrix multiply to get to numbers in the end. 
+
+Let's start by looking just at the diffusion part of the equation. 
+
+Let's set
+
+  * a 10x10 simulation grid
+  * width of a square cell side $\Delta_d$ of 1km
+  * a time step $\Delta_t$ of one quarter (1/4 years)
+  * a diffusion parameter *D* of 2 km^2^/year
+  
+We're then going to fill in our instantaneous diffusion matrix as
+
+$$ 
+d_{p1,p2,t,s,a} = \begin{cases}
+      = \frac{\Delta_{t}}{\Delta_{d}^2}D & \text{if p2 and p1 are adjacent}\\
+     = -\sum_{p' \neq p1} d_{p1,p2,t,s,a} & \text{if p1 = p2}\\
+     = 0 & \text{otherwise.}
+\end{cases}
+$$ {#eq-diffusion}
+
+and then calculate the realized movement matrix, made up of just diffusion in this case, as the matrix exponential of the diffusion matrix times the time step of the simulation. 
+
+$$
+\boldsymbol{M}_{t,s,a} = e^{\Delta_{t}(\boldsymbol{D}_{t,s,a})} 
+$$ {#eq-movement}
+
+
+```{r}
+
+resolution <- 10 # cells per side
+
+patches <- resolution^2
+
+delta_d <- 1 # length of a cell side
+
+delta_t = 0.25 # length of one time step in the simulation in units of years 
+
+time_steps <- 4 # number of time steps to run the population forward in in units of delta_t 
+
+D <- 2 # km^2  / year
+
+grid <- tidyr::expand_grid(x = 1:resolution, y = 1:resolution)
+
+adjacent <- grid |> 
+  dist() |> 
+  as.matrix()
+
+
+# Mark adjacent cells
+adjacent[adjacent != 1] <- 0
+
+
+diffusion_matrix <- adjacent * D * (delta_t / delta_d^2) # adjacenty times diffusion rate times simulation units
+
+# fill in diagonal
+diag(diffusion_matrix) <-  -1 * colSums(diffusion_matrix)
+
+# ensure matrix class
+diffusion_matrix <- as.matrix(diffusion_matrix)
+
+
+# put some animals in around the center
+
+n <- rep(0, patches)
+
+n[grid$x == resolution / 2 & grid$y == resolution / 2] <- 100
+
+# Now, diffuse for one year (i.e. delta_t = 1) 
+
+n_next <- n %*% as.matrix(expm::expm(time_steps * diffusion_matrix))
+
+grid$n <- as.numeric(n_next)
+
+grid |> 
+  ggplot() + 
+  geom_tile(aes(x,y,fill = n)) + 
+  geom_hline(yintercept = pmax(1,pmin(resolution,resolution / 2 + sqrt(D) * c(1,-1 ))), color = "red") +
+  geom_vline(xintercept = pmax(1,pmin(resolution,resolution / 2 + sqrt(D)  * c(1, -1))), color = "red")
+
+
+```
+
+Now, let's add taxis in. 
+
+The taxis matrix is a function of a habitat function, which must return habitat values in the same units as the distance, in this case km / year. 
+
+Taxis is often modeled in terms of **difference** in habitat preferences. However, this produces a complication. In order for the CTMC model to work the component movemenet matrices must be "Metzler matrices", defined as a matrix where all the off-diagonal elements are non-negative
+
+
+
+
+```{r}
+
+habitat <- rep(0, patches)
+
+habitat[grid$x == 1 & grid$y == resolution / 2] <- D
+
+habitat[grid$x == 4 & grid$y == resolution / 2] <- 2 * D
+
+
+grid$habitat <- habitat
+
+# calculate difference in habitat
+
+habitat_difference = outer(habitat, habitat, "-")
+
+
+#, now create taxis matrix
+taxis_matrix <- adjacent * (5 + (habitat_difference) * (delta_t / delta_d))  # adjacency times taxis matrix 
+
+
+# fill in diagonal
+diag(taxis_matrix) <-  -1 * colSums(taxis_matrix)
+
+# ensure matrix class
+taxis_matrix <- as.matrix(taxis_matrix)
+
+# now, we're going to multiply the exponent of this by 
+
+n <- matrix(rep(10, patches), ncol = 1)
+
+# Now, diffuse for one year (i.e. delta_t = 1) 
+
+grid$n <-  as.numeric(as.matrix(expm::expm(taxis_matrix)) %*% n)
+
+grid |> 
+  ggplot() + 
+  geom_tile(aes(x,y,fill = n))
+
+
+```
+
+xx quesetion for Jim, is there any reason to do this version instead of just ratios?
+
+exp(log(100) - log(.1)) = 100 / .1
+
+As a solution to the Metzlre requirement, we can reparameterize the model slightly to 
+
+
+```{r}
+
+
+movement_matrix <- adjacent * ((D * delta_t / delta_d^2) * pmin(2,exp((delta_t * habitat_difference) / delta_d)))
+
+diag(movement_matrix) <-  -1 * colSums(movement_matrix)
+
+taxis_matrix <- as.matrix(taxis_matrix)
+
+n <- matrix(rep(10, patches), ncol = 1)
+
+grid$n <-  as.numeric(as.matrix(expm::expm(1 * movement_matrix)) %*% n)
+
+grid |> 
+  ggplot() + 
+  geom_tile(aes(x,y,fill = n)) + 
+  scale_fill_viridis_c()
+
+
+```
+
+This parametreization helps ensure that the resulting movement matrices are mathematically correct. 
+
+Given sufficiently high quality data, the parameters of this equation can be estimated. For simulation analysis though this formulation poses a bit of a problem. The diffusion rate *D* has a clear biological intuition and is relatively easy to set. Setting the difference in the habitat preferences behind the taxis matrix is not as simple though, as useres must now consider the interaction of the degree of habitat difference and the diffusion rate. If the range of habitat values are large, one could easily produce habitat multipliers that rapidly approach infinity (e.g. exp(100 - 1)). 
+
+As an alternative...
+
+- The simplest approach is just to put a cap in where the post-taxis diffusion parameter can't be more than X. That's way easier than a tuning thing... let's start with that?
+
+
+OK so what you need to do... 
+
+store raw habitat and raw diffusion
+
+
+```{r}
+library(marlin)
+library(tidyverse)
+options(dplyr.summarise.inform = FALSE)
+theme_set(marlin::theme_marlin(base_size = 42))
+
+resolution <- 10 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
+
+years <- 20
+
+seasons <- 1
+
+time_step <- 1 / seasons
+
+steps <- years * seasons
+
+seasons <- 4
+
+steps <- years * seasons
+
+time_step <- 1 / seasons
+
+skipjack_diffusion <- 2
+
+bigeye_diffusion <- 5
+
+# for now make up some habitat
+
+
+
+
+skipjack_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  dplyr::mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 20, 200),
+  habitat = habitat / max(habitat) * skipjack_diffusion) |> 
+  pivot_wider(names_from = y, values_from = habitat) %>% 
+  select(-x) %>% 
+  as.matrix()
+
+
+bigeye_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 300, 100),
+         habitat = habitat / max(habitat) * bigeye_diffusion) %>% 
+  pivot_wider(names_from = y, values_from = habitat) %>% 
+  select(-x) %>% 
+  as.matrix()
+
+
+bigeye_habitat2 <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  mutate(habitat =  dnorm((x ^ .2 + y ^ .2), 100, 100),
+         habitat = habitat / max(habitat) * bigeye_diffusion) %>% 
+  pivot_wider(names_from = y, values_from = habitat) %>% 
+  select(-x) %>% 
+  as.matrix()
+
+a <- Sys.time()
+
+fauna <- 
+  list(
+    "skipjack" = create_critter(
+      scientific_name = "Katsuwonus pelamis",
+      habitat = list(skipjack_habitat, skipjack_habitat), # pass habitat as lists
+      season_blocks = list(c(1, 2), c(3, 4)), # seasons each habitat apply to
+      recruit_habitat = skipjack_habitat,
+      adult_diffusion = 2, # standard deviation of the number of patches moved by adults
+      fished_depletion = .6, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
+      density_dependence = "global_habitat", # recruitment form, where 1 implies local recruitment
+      seasons = seasons,
+      init_explt = 0.2, 
+      explt_type = "f"
+      ),
+    "bigeye" = create_critter(
+      common_name = "bigeye tuna",
+      habitat = list(bigeye_habitat, bigeye_habitat2), # pass habitat as lists
+      season_blocks = list(c(1, 2), c(3, 4)), # seasons each habitat apply to
+      recruit_habitat = bigeye_habitat,
+      adult_diffusion = 1,
+      fished_depletion = .1,
+      density_dependence = "local_habitat",
+      seasons = seasons,
+      init_explt = 0.3, 
+      explt_type = "f"
+    )
+  )
+Sys.time() - a
+
+# create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
+# with lists for each species inside there. Price specifies the price per unit weight of that 
+# species for that fleet
+# sel_form can be one of logistic or dome
+
+
+fleets <- list(
+  "longline" = create_fleet(
+    list(
+       "skipjack" = Metier$new(
+        critter = fauna$skipjack,
+        price = 100,
+        # price per unit weight
+        sel_form = "logistic",
+        # selectivity form, one of logistic or dome
+        sel_start = .3,
+        # percentage of length at maturity that selectivity starts
+        sel_delta = .1,
+        # additional percentage of sel_start where selectivity asymptotes
+        catchability = .01,
+        # overwritten by tune_fleet but can be set manually here
+        p_explt = 1
+      ),
+       "bigeye" = Metier$new(
+        critter = fauna$bigeye,
+        price = 10,
+        sel_form = "logistic",
+        sel_start = .1,
+        sel_delta = .01,
+        catchability = 0,
+        p_explt = 1
+      )
+    ),
+    base_effort = resolution ^ 2,
+        resolution = resolution
+
+  ),
+  "purseseine" = create_fleet(list(
+    skipjack = Metier$new(
+      critter = fauna$skipjack,
+      price = 100,
+      sel_form = "logistic",
+      sel_start = 0.25,
+      sel_delta = .1,
+      catchability = .01,
+      p_explt = 0.9
+    ),
+    bigeye = Metier$new(
+      critter = fauna$bigeye,
+      price = 100,
+      sel_form = "logistic",
+      sel_start = .25,
+      sel_delta = .5,
+      catchability = .01,
+      p_explt = 1
+    )
+  ),
+  base_effort = resolution ^ 2,    resolution = resolution
+)
+)
+
+a <- Sys.time()
+
+fleets <- tune_fleets(fauna, fleets) 
+
+Sys.time() - a
+
+
+# run simulations
+
+# run the simulation using marlin::simmar
+a <- Sys.time()
+
+sim3 <- simmar(fauna = fauna,
+                  fleets = fleets,
+                  years = years)
+
+Sys.time() - a
+# a <- Sys.time()
+
+processed_marlin <- process_marlin(sim = sim3, time_step = time_step, keep_age = TRUE)
+# Sys.time() - a
+
+plot_marlin(processed_marlin)
+
+plot_marlin(processed_marlin, plot_var = "c")
+
+plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", fauna = fauna)
+
+plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space")
+
+  e_p_f <- map(sim3[[length(sim3)]],"e_p_fl") %>%
+    bind_rows(.id = "critter") %>%
+    pivot_longer(-critter, names_to = "fleet", values_to = "effort") %>%
+    group_by(critter, fleet) %>%
+    mutate(patch = seq_along(effort)) %>%
+    group_by(fleet, patch) %>%
+    summarise(effort = sum(effort))
+
+```
+
+

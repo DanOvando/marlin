@@ -272,7 +272,7 @@ example_sim <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - start_time
-#> Time difference of 0.09370613 secs
+#> Time difference of 0.07037306 secs
 ```
 
 we can then use `process_marlin` and `plot_marlin` to examine the
@@ -320,25 +320,33 @@ seasons <- 4
 steps <- years * seasons
 
 time_step <- 1 / seasons
+
+skipjack_diffusion <- 2
+
+bigeye_diffusion <- 5
+
 # for now make up some habitat
 
 
 skipjack_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  dplyr::mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 20, 200)) %>% 
+  dplyr::mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 20, 200),
+  habitat = habitat / max(habitat) * skipjack_diffusion) |> 
   pivot_wider(names_from = y, values_from = habitat) %>% 
   select(-x) %>% 
   as.matrix()
 
 
 bigeye_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 300, 100)) %>% 
+  mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 300, 100),
+         habitat = habitat / max(habitat) * bigeye_diffusion) %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
   select(-x) %>% 
   as.matrix()
 
 
 bigeye_habitat2 <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(habitat =  dnorm((x ^ .2 + y ^ .2), 100, 100)) %>% 
+  mutate(habitat =  dnorm((x ^ .2 + y ^ .2), 100, 100),
+         habitat = habitat / max(habitat) * bigeye_diffusion) %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
   select(-x) %>% 
   as.matrix()
@@ -349,10 +357,10 @@ fauna <-
   list(
     "skipjack" = create_critter(
       scientific_name = "Katsuwonus pelamis",
-      base_habitat = list(skipjack_habitat, skipjack_habitat), # pass habitat as lists
+      habitat = list(skipjack_habitat, skipjack_habitat), # pass habitat as lists
       season_blocks = list(c(1, 2), c(3, 4)), # seasons each habitat apply to
       recruit_habitat = skipjack_habitat,
-      adult_diffusion = 2, # standard deviation of the number of patches moved by adults
+      adult_diffusion = skipjack_diffusion, # standard deviation of the number of patches moved by adults
       fished_depletion = .6, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
       density_dependence = "global_habitat", # recruitment form, where 1 implies local recruitment
       seasons = seasons,
@@ -361,10 +369,10 @@ fauna <-
       ),
     "bigeye" = create_critter(
       common_name = "bigeye tuna",
-      base_habitat = list(bigeye_habitat, bigeye_habitat2), # pass habitat as lists
+      habitat = list(bigeye_habitat, bigeye_habitat2), # pass habitat as lists
       season_blocks = list(c(1, 2), c(3, 4)), # seasons each habitat apply to
       recruit_habitat = bigeye_habitat,
-      adult_diffusion = 1,
+      adult_diffusion = bigeye_diffusion,
       fished_depletion = .1,
       density_dependence = "local_habitat",
       seasons = seasons,
@@ -380,7 +388,7 @@ fauna <-
 #> • Found: 1 
 #> • Not Found: 0
 Sys.time() - a
-#> Time difference of 3.063696 secs
+#> Time difference of 2.532274 secs
 
 # create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
 # with lists for each species inside there. Price specifies the price per unit weight of that 
@@ -448,7 +456,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets) 
 
 Sys.time() - a
-#> Time difference of 6.617718 secs
+#> Time difference of 5.430269 secs
 
 
 # run simulations
@@ -461,7 +469,7 @@ sim3 <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 1.00261 secs
+#> Time difference of 0.916173 secs
 # a <- Sys.time()
 
 processed_marlin <- process_marlin(sim = sim3, time_step = time_step, keep_age = TRUE)
@@ -502,7 +510,6 @@ plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space")
     mutate(patch = seq_along(effort)) %>%
     group_by(fleet, patch) %>%
     summarise(effort = sum(effort))
-  
 ```
 
 ## Evaluating MPAs
@@ -530,17 +537,27 @@ tune_type <- "depletion"
 
 steps <- years * seasons
 
+yft_diffusion <- 6
+  
+yft_depletion <- 0.5
+
+mako_depletion <- 0.4
+
+mako_diffusion <- 5
+
 # for now make up some habitat
 
 yft_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(habitat =  .05 * x) %>% 
+  mutate(habitat =  .05 * x,
+         habitat = habitat / max(habitat) * yft_diffusion) %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
   select(-x) %>% 
   as.matrix()
  
 
 mako_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(habitat =  dnorm(x,resolution, 5)) %>% 
+  mutate(habitat =  dnorm(x,resolution, 8),
+         habitat = habitat / max(habitat) * mako_diffusion) %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
   select(-x) %>% 
   as.matrix()
@@ -551,26 +568,22 @@ fauna <-
   list(
     "Yellowfin Tuna" = create_critter(
       scientific_name = "Thunnus albacares",
-      base_habitat = yft_habitat, # pass habitat as lists
+      habitat = yft_habitat, # pass habitat as lists
       recruit_habitat = yft_habitat,
-      adult_diffusion = 4, # cells per year
-      fished_depletion = .4, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
+      adult_diffusion = yft_diffusion, # cells per year
+      fished_depletion = yft_depletion, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
       density_dependence = "local_habitat", # recruitment form, where 1 implies local recruitment
-      seasons = seasons,
-      init_explt = 0.12, 
-      explt_type = "f"
+      seasons = seasons
       ),
     "Shortfin Mako" = create_critter(
       scientific_name = "Isurus oxyrinchus",
-      base_habitat = list(mako_habitat), # pass habitat as lists
+      habitat = list(mako_habitat), # pass habitat as lists
       recruit_habitat = mako_habitat,
-      adult_diffusion = 3,
-      fished_depletion = .3,
+      adult_diffusion = mako_diffusion,
+      fished_depletion = mako_depletion,
       density_dependence = "local_habitat", # recruitment form, where 1 implies local recruitment
       burn_years = 200,
       seasons = seasons,
-      init_explt = .12, 
-      explt_type = "f",
       fec_form = "pups",
       pups = 2
     )
@@ -616,7 +629,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
-#> Time difference of 54.39417 secs
+#> Time difference of 22.57811 secs
 
 # run simulations
 
@@ -627,7 +640,7 @@ nearshore <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.7500291 secs
+#> Time difference of 0.6693029 secs
   
 proc_nearshore <- process_marlin(nearshore, time_step =  fauna[[1]]$time_step)
 ```
@@ -666,7 +679,7 @@ nearshore_mpa <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.6790221 secs
+#> Time difference of 0.656332 secs
 
 proc_nearshore_mpa <- process_marlin(nearshore_mpa, time_step =  fauna[[1]]$time_step)
 ```
@@ -681,7 +694,8 @@ same MPA on this new scenario.
 
 
 mako_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(habitat =  dnorm(x,.3 * resolution, 3)) %>% 
+  mutate(habitat =  dnorm(x,.3 * resolution, 8),
+         habitat = habitat / max(habitat) * mako_diffusion) %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
   select(-x) %>% 
   as.matrix()
@@ -693,26 +707,22 @@ fauna <-
   list(
     "Yellowfin Tuna" = create_critter(
       scientific_name = "Thunnus albacares",
-      base_habitat = yft_habitat, # pass habitat as lists
+      habitat = yft_habitat, # pass habitat as lists
       recruit_habitat = yft_habitat,
-      adult_diffusion = 4, # cells per year
-      fished_depletion = .4, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
+      adult_diffusion = yft_diffusion, # cells per year
+      fished_depletion = yft_depletion, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
       density_dependence = "local_habitat", # recruitment form, where 1 implies local recruitment
-      seasons = seasons,
-      init_explt = 0.12, 
-      explt_type = "f"
+      seasons = seasons
       ),
     "Shortfin Mako" = create_critter(
       scientific_name = "Isurus oxyrinchus",
-      base_habitat = list(mako_habitat), # pass habitat as lists
+      habitat = list(mako_habitat), # pass habitat as lists
       recruit_habitat = mako_habitat,
-      adult_diffusion = 3,
-      fished_depletion = .3,
+      adult_diffusion = mako_diffusion,
+      fished_depletion = mako_depletion,
       density_dependence = "local_habitat", # recruitment form, where 1 implies local recruitment
       burn_years = 200,
       seasons = seasons,
-      init_explt = .12, 
-      explt_type = "f",
       fec_form = "pups",
       pups = 2
     )
@@ -737,7 +747,7 @@ offshore <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.6405261 secs
+#> Time difference of 0.679095 secs
   
 proc_offshore <- process_marlin(offshore, time_step =  fauna[[1]]$time_step)
 
@@ -752,7 +762,7 @@ offshore_mpa_sim <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.6346619 secs
+#> Time difference of 0.7354851 secs
 
 
 proc_offshore_mpa <- process_marlin(offshore_mpa_sim, time_step =  fauna[[1]]$time_step)
@@ -805,14 +815,16 @@ tune_type <- "explt"
 # make up some habitat
 
 yft_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(habitat =  .05 * x) %>% 
+  mutate(habitat =  .05 * x,
+         habitat = habitat / max(habitat) * yft_diffusion) %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
   select(-x) %>% 
   as.matrix()
 
 
 mako_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(habitat =  x > 12 & y >12) %>% 
+  mutate(habitat =  x > 12 & y >12,
+         habitat = habitat / max(habitat) * mako_diffusion) %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
   select(-x) %>% 
   as.matrix()
@@ -824,9 +836,9 @@ fauna <-
   list(
     "Yellowfin Tuna" = create_critter(
       scientific_name = "Thunnus albacares",
-      base_habitat = list(yft_habitat), 
+      habitat = list(yft_habitat), 
       recruit_habitat = yft_habitat,
-      adult_diffusion = 4, 
+      adult_diffusion = yft_diffusion, 
       fished_depletion = .4, 
       density_dependence = "local_habitat", # recruitment form, where 1 implies local recruitment
       seasons = seasons,
@@ -835,9 +847,9 @@ fauna <-
     ),
     "Shortfin Mako" = create_critter(
       scientific_name = "Isurus oxyrinchus",
-      base_habitat = list(mako_habitat), 
+      habitat = list(mako_habitat), 
       recruit_habitat = mako_habitat,
-      adult_diffusion = 3,
+      adult_diffusion = mako_diffusion,
       fished_depletion = .3,
       density_dependence = "local_habitat", # recruitment form, where 1 implies local recruitment
       burn_years = 200,
@@ -878,7 +890,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
-#> Time difference of 1.315229 secs
+#> Time difference of 1.409339 secs
 
 # run simulations
 

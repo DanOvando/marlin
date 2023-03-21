@@ -97,7 +97,7 @@ fauna <-
   list(
     "bigeye" = create_critter(
       scientific_name = "thunnus obesus",
-      base_habitat = list(bigeye_habitat,bigeye_habitat2),
+      habitat = list(bigeye_habitat,bigeye_habitat2),
       season_blocks = list(c(1,2),c(3,4)),
       adult_diffusion = list(5, 5), # standard deviation of the number of patches moved by adults
       recruit_diffusion = 10,
@@ -109,7 +109,6 @@ fauna <-
       spawning_seasons = c(2,3),
       sigma_r = 0,
       rec_ac = 0,
-      taxis_to_diff_ratio = 10,
       linf = 100,
       vbk = 0.2,
       age_mature = 4,
