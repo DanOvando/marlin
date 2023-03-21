@@ -62,7 +62,6 @@ Fish <- R6::R6Class(
     #' @param get_common_name
     #' @param habitat 
     #' @param spawning_seasons 
-    #' @param taxis_to_diff_ratio 
     #' @param explt_type
     initialize = function(common_name = NA,
                           scientific_name = NA,
@@ -114,8 +113,7 @@ Fish <- R6::R6Class(
                           explt_type = "f",
                           init_explt = .1,
                           get_common_name = FALSE,
-                          spawning_seasons = NA,
-                          taxis_to_diff_ratio = 0) {
+                          spawning_seasons = NA) {
       seasons <- as.integer(seasons)
       
       if (seasons < 1) {
@@ -470,12 +468,8 @@ Fish <- R6::R6Class(
       self$ssb_at_age <-
         maturity_at_age * weight_at_age
       
-      self$taxis_to_diff_ratio <- taxis_to_diff_ratio
-      
 
       # create habitat and movement matrices
-      
-
       
       taxis_matrix <- habitat
       # reshape to vector, for some reason doesn't work inside function
@@ -485,28 +479,12 @@ Fish <- R6::R6Class(
         
         taxis_matrix[[i]] <- as.numeric(taxis_matrix[[i]]$value)
         
-        # if any habitat is less than zero, rescale to be positive
-        # if (any(tmp_habitat[[i]][!is.na(tmp_habitat[[i]])] < 0)){
-        #   
-        #   tmp_habitat[[i]] <- tmp_habitat[[i]] - min(tmp_habitat[[i]], na.rm = TRUE)
-        #   
-        #   message("Negative habitat values were provided; rescaling to positive values preserving relative differences. Make sure you did not provide habitat values on a log scale.")
-        # } # close habitat rescaling
-        
-        
-        taxis_matrix[[i]] <- pmin(2,exp((time_step * outer(taxis_matrix[[i]], taxis_matrix[[i]], "-")) / sqrt(cell_area))) # convert habitat gradient into diffusion multiplier
-        
-        # tmp_habitat[[i]] <- log(tmp_habitat[[i]])
-        
-        # tmp_habitat[[i]] <- (time_step / cell_area) * (1 + adult_diffusion[[i]] * self$taxis_to_diff_ratio) * exp(outer(tmp_habitat[[i]], tmp_habitat[[i]], "-")) # calculate difference in habitat quality
+        taxis_matrix[[i]] <- pmin(exp((time_step * outer(taxis_matrix[[i]], taxis_matrix[[i]], "-")) / sqrt(cell_area)),2) # convert habitat gradient into diffusion multiplier
         
       }
       
       self$taxis_matrix <- taxis_matrix
-        # purrr::pmap(list(multiplier = tmp_habitat),
-        #             prep_movement,
-        #             resolution = resolution)
-        # 
+ 
       
       diffusion_prep <- function(x,y, time_step, cell_area){
         
@@ -516,10 +494,11 @@ Fish <- R6::R6Class(
         
       }
       
-      diff_foundation <- purrr::map2(taxis_matrix, adult_diffusion,diffusion_prep, time_step = time_step, cell_area = cell_area) # prepare adult diffusion matrix account for potential land
+      self$diffusion_foundation <- purrr::map2(taxis_matrix, adult_diffusion,diffusion_prep, time_step = time_step, cell_area = cell_area) # prepare adult diffusion matrix account for potential land
       
+      self$adult_diffusion <- adult_diffusion
       
-      diffusion_and_taxis <- map2(diff_foundation, taxis_matrix, ~ .x * .y)
+      diffusion_and_taxis <- purrr::map2(self$diffusion_foundation, taxis_matrix, ~ .x * .y)
       
       inst_movement_matrix <-  purrr::pmap(list(multiplier = diffusion_and_taxis),
                                prep_movement,
