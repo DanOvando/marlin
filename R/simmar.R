@@ -622,7 +622,7 @@ simmar <- function(fauna = list(),
         
         diffusion_and_taxis <- fauna[[f]]$diffusion_foundation[[season_block]] * current_habitat
     
-        inst_movement_matrix <-  prep_movement(diffusion_and_taxis, resolution = resolution)
+        inst_movement_matrix <-  prep_movement(diffusion_and_taxis, resolution = sqrt(patches))
         
    
         # update movement matrix with current habitat
