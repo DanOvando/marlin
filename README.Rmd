@@ -71,7 +71,7 @@ If your version of R is lower than 4.0, you might want to consider updating R it
 From there...
 
 - On Windows, make sure you have the appropriate version of Rtools installed ([here](https://cran.r-project.org/bin/windows/Rtools/)), most likely Rtools4X if you have R version 4.X
-  - Make sure that you select the box that says something about adding Rtools to the PATH variable
+  - Make sure that you select the box that says something about adding Rtools to the PATH variable if prompted
 
 - On macOS, there might be some issues with the your compiler, particularly if your version of R is less than 4.0.0.
 
@@ -87,7 +87,6 @@ There are also some issues with compilation on Apple M1 chips. If you get an ins
 2. Install [gfortran](https://github.com/fxcoudert/gfortran-for-macOS/releases/tag/12.1-monterey) 12.1 for Monterey (macOS 12) using the version for Apple Silicon computers (computers with Apple M1 chips), `gfortran-ARM-12.1-Monterey.dmg`.
 
 3. Restart your computer and try to install `marlin` again. It should work this time.
-
 
 
 ## A Caveat
@@ -152,7 +151,8 @@ fauna <-
       fished_depletion = .25,
       resolution = resolution,
       steepness = 0.6,
-      ssb0 = 1000
+      ssb0 = 1000,
+      lorenzen_m = FALSE
     )
   )
 
@@ -460,7 +460,7 @@ fauna <-
       habitat = yft_habitat, # pass habitat as lists
       recruit_habitat = yft_habitat,
       adult_diffusion = yft_diffusion, # cells per year
-      fished_depletion = yft_depletion, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
+      fished_depletion = 1, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
       density_dependence = "local_habitat", # recruitment form, where 1 implies local recruitment
       seasons = seasons
       ),
@@ -474,7 +474,8 @@ fauna <-
       burn_years = 200,
       seasons = seasons,
       fec_form = "pups",
-      pups = 2
+      pups = 2,
+      lorenzen_m = FALSE
     )
   )
 
@@ -525,6 +526,8 @@ nearshore <- simmar(fauna = fauna,
 Sys.time() - a
   
 proc_nearshore <- process_marlin(nearshore, time_step =  fauna[[1]]$time_step)
+
+plot_marlin(proc_nearshore)
 
 ```
 
@@ -602,7 +605,8 @@ fauna <-
       burn_years = 200,
       seasons = seasons,
       fec_form = "pups",
-      pups = 2
+      pups = 2, 
+      lorenzen_m = FALSE
     )
   )
 

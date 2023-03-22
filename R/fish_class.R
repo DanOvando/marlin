@@ -113,7 +113,9 @@ Fish <- R6::R6Class(
                           explt_type = "f",
                           init_explt = .1,
                           get_common_name = FALSE,
-                          spawning_seasons = NA) {
+                          spawning_seasons = NA,
+                          max_hab_mult = 2,
+                          lorenzen_m = FALSE) {
       seasons <- as.integer(seasons)
       
       if (seasons < 1) {
@@ -357,9 +359,16 @@ Fish <- R6::R6Class(
       
       lmat_to_linf_ratio <- length_mature / linf
       
-      m_at_age <-
-        rep(m, length(weight_at_age)) # place holder to allow for different m at age
-      
+      if (lorenzen_m){
+        
+        m_at_age <- m * (length_at_age / max(length_at_age)) ^ -1
+         
+      } else {
+        m_at_age <-
+          rep(m, length(weight_at_age)) # place holder to allow for different m at age
+        
+      }
+ 
       #
       
       length_at_age_key <-
@@ -469,6 +478,7 @@ Fish <- R6::R6Class(
         maturity_at_age * weight_at_age
       
 
+      self$max_hab_mult <- max_hab_mult
       # create habitat and movement matrices
       
       taxis_matrix <- habitat
@@ -479,7 +489,7 @@ Fish <- R6::R6Class(
         
         taxis_matrix[[i]] <- as.numeric(taxis_matrix[[i]]$value)
         
-        taxis_matrix[[i]] <- pmin(exp((time_step * outer(taxis_matrix[[i]], taxis_matrix[[i]], "-")) / sqrt(cell_area)),2) # convert habitat gradient into diffusion multiplier
+        taxis_matrix[[i]] <- pmin(exp((time_step * outer(taxis_matrix[[i]], taxis_matrix[[i]], "-")) / sqrt(cell_area)),max_hab_mult) # convert habitat gradient into diffusion multiplier
         
       }
       
