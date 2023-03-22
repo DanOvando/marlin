@@ -43,6 +43,7 @@ create_critter <- function(common_name = NA,
                            spawning_seasons = NA,
                            max_hab_mult = 2,
                            density_dependence = "global_habitat",
+                           m = NA,
                            ...) {
 
   
@@ -73,6 +74,7 @@ create_critter <- function(common_name = NA,
         resolution = resolution,
         spawning_seasons = spawning_seasons,
         max_hab_mult = max_hab_mult,
+        m = m,
         ...
       )
     
