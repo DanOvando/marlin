@@ -152,7 +152,8 @@ fauna <-
       resolution = resolution,
       steepness = 0.6,
       ssb0 = 1000,
-      lorenzen_m = FALSE
+      max_hab_mult = 42,
+      m = 0.4
     )
   )
 

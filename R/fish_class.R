@@ -102,7 +102,7 @@ Fish <- R6::R6Class(
                           density_movement_modifier = 1,
                           linf_buffer = 1.2,
                           resolution = NA,
-                          cell_area = 1,
+                          patch_area = 1,
                           habitat = list(),
                           season_blocks = list(),
                           recruit_habitat = NA,
@@ -361,7 +361,9 @@ Fish <- R6::R6Class(
       
       if (lorenzen_m){
         
-        m_at_age <- m * (length_at_age / max(length_at_age)) ^ -1
+        m_at_age <- (length_at_age / max(length_at_age)) ^ -1
+        
+        m_at_age <- (m_at_age / mean(m_at_age)) * m
          
       } else {
         m_at_age <-
@@ -489,22 +491,22 @@ Fish <- R6::R6Class(
         
         taxis_matrix[[i]] <- as.numeric(taxis_matrix[[i]]$value)
         
-        taxis_matrix[[i]] <- pmin(exp((time_step * outer(taxis_matrix[[i]], taxis_matrix[[i]], "-")) / sqrt(cell_area)),max_hab_mult) # convert habitat gradient into diffusion multiplier
+        taxis_matrix[[i]] <- pmin(exp((time_step * outer(taxis_matrix[[i]], taxis_matrix[[i]], "-")) / sqrt(patch_area)),max_hab_mult) # convert habitat gradient into diffusion multiplier
         
       }
       
       self$taxis_matrix <- taxis_matrix
  
       
-      diffusion_prep <- function(x,y, time_step, cell_area){
+      diffusion_prep <- function(x,y, time_step, patch_area){
         
         x[!is.na(x)] <- 1 # this is here to allow for barriers; set diffusion to zero if there's a physical barrier
         
-        z <- x * y * (time_step / cell_area) 
+        z <- x * y * (time_step / patch_area) 
         
       }
       
-      self$diffusion_foundation <- purrr::map2(taxis_matrix, adult_diffusion,diffusion_prep, time_step = time_step, cell_area = cell_area) # prepare adult diffusion matrix account for potential land
+      self$diffusion_foundation <- purrr::map2(taxis_matrix, adult_diffusion,diffusion_prep, time_step = time_step, patch_area = patch_area) # prepare adult diffusion matrix account for potential land
       
       self$adult_diffusion <- adult_diffusion
       
@@ -525,7 +527,7 @@ Fish <- R6::R6Class(
       
       self$movement_seasons <- season_blocks
       
-      rec_diff_foundation <- purrr::map2(taxis_matrix, recruit_diffusion,diffusion_prep, time_step = time_step,cell_area = cell_area) # prepare diffusion matrix account for potential land
+      rec_diff_foundation <- purrr::map2(taxis_matrix, recruit_diffusion,diffusion_prep, time_step = time_step,patch_area = patch_area) # prepare diffusion matrix account for potential land
       
       inst_recruit_move_matrix <-
         prep_movement(multiplier = rec_diff_foundation[[1]],
@@ -634,7 +636,7 @@ Fish <- R6::R6Class(
       
       self$time_step <- time_step
       
-      self$cell_area <- cell_area
+      self$patch_area <- patch_area
       
       self$seasons <- seasons
       

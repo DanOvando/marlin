@@ -33,7 +33,7 @@ simmar <- function(fauna = list(),
   
   time_step <- unique(purrr::map_dbl(fauna, "time_step"))
   
-  cell_area <- unique(purrr::map_dbl(fauna, "cell_area"))
+  patch_area <- unique(purrr::map_dbl(fauna, "patch_area"))
   
   
   if (length(time_step) > 1) {
@@ -617,7 +617,7 @@ simmar <- function(fauna = list(),
         current_habitat <-
           tidyr::pivot_longer(as.data.frame(current_habitat), tidyr::everything()) # need to use pivot_longer to match patch order from expand_grid
         
-        current_habitat <- pmin(exp((time_step * outer(current_habitat$value, current_habitat$value, "-")) / sqrt(cell_area)),fauna[[f]]$max_hab_mult) # convert habitat gradient into diffusion multiplier
+        current_habitat <- pmin(exp((time_step * outer(current_habitat$value, current_habitat$value, "-")) / sqrt(patch_area)),fauna[[f]]$max_hab_mult) # convert habitat gradient into diffusion multiplier
         
         
         diffusion_and_taxis <- fauna[[f]]$diffusion_foundation[[season_block]] * current_habitat
