@@ -151,8 +151,7 @@ fauna <-
       fished_depletion = .25,
       resolution = resolution,
       steepness = 0.6,
-      ssb0 = 1000,
-      max_hab_mult = 42,
+      ssb0 = 42,
       m = 0.4
     )
   )

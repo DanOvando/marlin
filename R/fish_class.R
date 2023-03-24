@@ -583,11 +583,11 @@ Fish <- R6::R6Class(
             
             for (i in 2:length(m_at_age)){
               
-              n_at_a[,i] <- n_at_a[,i-1] * exp(-m_at_age[i-1])
+              n_at_a[,i] <- n_at_a[,i-1] * exp(-m_at_age[i-1] * time_step)
               
             } # fill in numbers at age
             
-            n_at_a[,length(m_at_age)] <- n_at_a[,length(m_at_age)] / (1 - exp(-m_at_age[length(m_at_age)]))
+            n_at_a[,length(m_at_age)] <- n_at_a[,length(m_at_age)] / (1 - exp(-m_at_age[length(m_at_age)] * time_step))
             
             ssb0 <-
               sum(colSums(n_at_a) * fec_at_age * maturity_at_age)
@@ -622,11 +622,11 @@ Fish <- R6::R6Class(
       
       for (i in 2:length(m_at_age)){
         
-        init_pop[,i] <- init_pop[,i-1] * exp(-m_at_age[i-1])
+        init_pop[,i] <- init_pop[,i-1] * exp(-m_at_age[i-1] * time_step)
         
       } # fill in numbers at age
       
-      init_pop[,length(m_at_age)] <- init_pop[,length(m_at_age)] / (1 - exp(-m_at_age[length(m_at_age)]))
+      init_pop[,length(m_at_age)] <- init_pop[,length(m_at_age)] / (1 - exp(-m_at_age[length(m_at_age)] * time_step))
       
       self$r0s <- local_r0s
       
