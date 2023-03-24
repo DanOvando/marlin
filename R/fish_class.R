@@ -67,7 +67,7 @@ Fish <- R6::R6Class(
                           scientific_name = NA,
                           linf = NA,
                           vbk = NA,
-                          t0 = -0.1,
+                          t0 = -0.5,
                           cv_len = 0.1,
                           length_units = 'cm',
                           min_age = 0,
@@ -115,7 +115,7 @@ Fish <- R6::R6Class(
                           get_common_name = FALSE,
                           spawning_seasons = NA,
                           max_hab_mult = 2,
-                          lorenzen_m = FALSE) {
+                          lorenzen_m = TRUE) {
       seasons <- as.integer(seasons)
       
       if (seasons < 1) {
@@ -566,27 +566,31 @@ Fish <- R6::R6Class(
           function(r0,
                    ssb0_target,
                    rec_habitat,
-                   m,
+                   m_at_age,
                    max_age,
                    time_step,
                    patches,
                    length_at_age,
                    weight_at_age,
                    maturity_at_age) {
+            
             tmp_r0s <- r0 * rec_habitat
             
-            init_pop <-
-              tmp_r0s * matrix(
-                rep(exp(-m * seq(
-                  0, max_age, by = time_step
-                )), patches),
-                nrow = patches,
-                ncol = length(length_at_age),
-                byrow = TRUE
-              )
+            
+            n_at_a <- matrix(NA, nrow = patches, ncol = length(m_at_age))
+            
+            n_at_a[,1] <- tmp_r0s
+            
+            for (i in 2:length(m_at_age)){
+              
+              n_at_a[,i] <- n_at_a[,i-1] * exp(-m_at_age[i-1])
+              
+            } # fill in numbers at age
+            
+            n_at_a[,length(m_at_age)] <- n_at_a[,length(m_at_age)] / (1 - exp(-m_at_age[length(m_at_age)]))
             
             ssb0 <-
-              sum(colSums(init_pop) * fec_at_age * maturity_at_age)
+              sum(colSums(n_at_a) * fec_at_age * maturity_at_age)
             
             delta <- ((ssb0) - (ssb0_target)) ^ 2
             
@@ -597,7 +601,7 @@ Fish <- R6::R6Class(
           lower = 1e-3,
           ssb0_target = ssb0,
           rec_habitat = r0s$rec_habitat,
-          m = m,
+          m_at_age = m_at_age,
           max_age = max_age,
           time_step = time_step,
           patches = patches,
@@ -611,14 +615,18 @@ Fish <- R6::R6Class(
       }
       
       
-      # tune SSB0 and unfished equilibrium
-      init_pop <-
-        local_r0s * matrix(
-          rep(exp(-m * seq(0, max_age, by = time_step)), patches),
-          nrow = patches,
-          ncol = length(length_at_age),
-          byrow = TRUE
-        )
+      
+      init_pop <- matrix(NA, nrow = patches, ncol = length(m_at_age))
+      
+      init_pop[,1] <- local_r0s
+      
+      for (i in 2:length(m_at_age)){
+        
+        init_pop[,i] <- init_pop[,i-1] * exp(-m_at_age[i-1])
+        
+      } # fill in numbers at age
+      
+      init_pop[,length(m_at_age)] <- init_pop[,length(m_at_age)] / (1 - exp(-m_at_age[length(m_at_age)]))
       
       self$r0s <- local_r0s
       

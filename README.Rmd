@@ -461,8 +461,8 @@ fauna <-
       habitat = yft_habitat, # pass habitat as lists
       recruit_habitat = yft_habitat,
       adult_diffusion = yft_diffusion, # cells per year
-      fished_depletion = 1, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
-      density_dependence = "local_habitat", # recruitment form, where 1 implies local recruitment
+      fished_depletion = yft_depletion, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
+      density_dependence = "global_habitat", # recruitment form, where 1 implies local recruitment
       seasons = seasons
       ),
     "Shortfin Mako" = create_critter(
@@ -471,7 +471,7 @@ fauna <-
       recruit_habitat = mako_habitat,
       adult_diffusion = mako_diffusion,
       fished_depletion = mako_depletion,
-      density_dependence = "local_habitat", # recruitment form, where 1 implies local recruitment
+      density_dependence = "global_habitat", # recruitment form, where 1 implies local recruitment
       burn_years = 200,
       seasons = seasons,
       fec_form = "pups",
@@ -528,7 +528,7 @@ Sys.time() - a
   
 proc_nearshore <- process_marlin(nearshore, time_step =  fauna[[1]]$time_step)
 
-plot_marlin(proc_nearshore)
+plot_marlin(proc_nearshore, max_scale = FALSE)
 
 ```
 
@@ -566,6 +566,9 @@ Sys.time() - a
 
 proc_nearshore_mpa <- process_marlin(nearshore_mpa, time_step =  fauna[[1]]$time_step)
 
+plot_marlin(proc_nearshore_mpa, max_scale = FALSE)
+
+
 ```
 
 
@@ -593,7 +596,7 @@ fauna <-
       recruit_habitat = yft_habitat,
       adult_diffusion = yft_diffusion, # cells per year
       fished_depletion = yft_depletion, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
-      density_dependence = "local_habitat", # recruitment form, where 1 implies local recruitment
+      density_dependence = "global_habitat", # recruitment form, where 1 implies local recruitment
       seasons = seasons
       ),
     "Shortfin Mako" = create_critter(
@@ -602,11 +605,11 @@ fauna <-
       recruit_habitat = mako_habitat,
       adult_diffusion = mako_diffusion,
       fished_depletion = mako_depletion,
-      density_dependence = "local_habitat", # recruitment form, where 1 implies local recruitment
+      density_dependence = "global_habitat", # recruitment form, where 1 implies local recruitment
       burn_years = 200,
       seasons = seasons,
       fec_form = "pups",
-      pups = 2, 
+      pups = 2,
       lorenzen_m = FALSE
     )
   )
