@@ -147,7 +147,7 @@ fauna <-
       common_name = "bigeye tuna",
       adult_diffusion = 10,
       density_dependence = "post_dispersal",
-      seasons = seasons,
+      seasons = 4,
       fished_depletion = .25,
       resolution = resolution,
       steepness = 0.6,
@@ -245,7 +245,6 @@ skipjack_diffusion <- 2
 bigeye_diffusion <- 5
 
 # for now make up some habitat
-
 
 skipjack_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
   dplyr::mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 20, 200),

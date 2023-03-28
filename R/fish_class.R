@@ -128,18 +128,22 @@ Fish <- R6::R6Class(
       
       spawning_seasons <- (spawning_seasons / seasons) - 1 / seasons
       
-      if (length(habitat) > 1) {
+      if (length(habitat) > 1 && class(habitat) == "list") {
         resolution <- nrow(habitat[[1]])
+      } else if (any(class(habitat) == "matrix")){
+        resolution <- nrow(habitat)
       }
       
-      patches <- resolution ^ 2
-      
+      # if habitat is an empty list
       if (length(habitat) == 0) {
         habitat <-
           purrr::map(1:seq_along(seasons), function(x, res)
             matrix(0, nrow = res, ncol = res), res = resolution)
         
       }
+      
+      patches <- resolution ^ 2
+      
       
       if (length(season_blocks) == 0) {
         seasons_per_habitat <-
