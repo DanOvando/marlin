@@ -14,73 +14,139 @@ knitr::opts_chunk$set(
 )
 ```
 
+
 ```{r setup}
 library(marlin)
 
 library(ggplot2)
 
+
+theme_set(theme_marlin(base_size = 8))
+
 ```
 
 
-The idea here. 
+`marlin`'s movement dynamics are based on a continuous-time Markov chain
+(CTMC), as described in [Thorston et al (2021)](https://onlinelibrary.wiley.com/doi/abs/10.1111/faf.12592?casa_token=sMbD1uKODM8AAAAA:XpCKSWY9dYaQsxvtanHydjc520drhvuHd3UUjCvqTqL8fqB36iJTgUdCa5J-jkrTDj1vLzwoHQF8AXs). The advantate of the CTMC model is that it allows for movement to be broken down into three components of
+*advection* (drifting with currents), *taxis* (active movement towards
+preferred habitat), and *diffusion* (essentially remaining variation in
+movement not explained by advection or taxis). For now, `marlin` focuses
+just on the diffusion and taxis components of this model, assuming that
+advection is zero, though future extensions could easily incorporate
+advection vectors from oceanographic models. In this way, `marlin`
+allows users to run anything from a simple Gaussian dispersal kernel up
+to a system governed by species that passively diffuse out from a core
+habitat defined by a dynamic thermal range.
 
-Movement enters marlin in two ways; through the dispersal parameter D and the ratio of habitat gradients. 
+## Details
 
-The problem is the units here. 
+Under this model, movement from each patch to each other patch in the system in a given timestep
+*t* for life stage *a* of species *s* is defined by a movement matrix
+$\boldsymbol{M}_{t,s,a}$. $\boldsymbol{M}_{t,s,a}$ is calculated as the
+matrix exponent of a function of the diffusion $\boldsymbol{D}$ and
+taxis $\boldsymbol{\tau}$ matrices scaled by the width of the time step
+$\Delta_{t}$ and the length of the edge of each patch $\Delta_d$ that
+the model is running under. So for example, if we are running a model on
+a monthly timestep, and we define the units of time in years, then
+$\Delta_{t} = 1/12$. Similarly, if we are running a model where one
+patch equals 100km^2^, then $\Delta_d = 10km$. This parameterization
+allows users to set the effective area of the spatial domain through two
+avenues; the number of patches, which effectively scales the resolution
+of the model, and the area of each patch, which scales the spatial
+extent of the simulation.
 
-D has units time step / grid size. 
+$$
+\boldsymbol{M}_{t,s,a} = e^{\Delta_{t}(\boldsymbol{D}_{t,s,a} + \boldsymbol{\tau}_{t,s,a})} 
+$$ {#eq-movement}
 
-But, taxis is in some arbitrary habitat. So, depending on how you decide to set the units on the habitat, you can end up with net movement that is way higher than the dispersal parameter itself, which make it somewhat hard to parameterize. 
-
-Let's do a simple example based on the movement model of Thorson's. 
-
-
-Following equation 10.15 from Spatio-temporal models for ecologists
-
-habitat has to be in units of distance per unit time. So, for example habitat is units of "attraction" of KM / year. That then gets multiplied by the delta terms in the equations of the simulation, for example month / m, which gets things in the right scale-free units. Putting it in units distance / time makes it unitless when it is exponentiated. 
-
-The goal is an instantaneous movement matrix that has units 1 / time step You will then multiply this by the number of time steps and then matrix multiply to get to numbers in the end. 
-
-Let's start by looking just at the diffusion part of the equation. 
-
-Let's set
-
-  * a 10x10 simulation grid
-  * width of a square cell side $\Delta_d$ of 1km
-  * a time step $\Delta_t$ of one quarter (1/4 years)
-  * a diffusion parameter *D* of 2 km^2^/year
-  
-We're then going to fill in our instantaneous diffusion matrix as
+The individual components (*m*) of the movement matrix are filled based
+on an adjacency matrix, which defines whether two patches are both
+adjacent and water (as opposed to land or another physical barrier), a
+diffusion rate $D$ defined in units of area of a patch per unit of time,
+and a habitat preference function *h* in units of length of a side of a
+patch per unit time. For example, if we are defining the time units as
+years and the distance units as kilometers, for a tuna $D$ might be
+1,000 $\frac{KM^2}{Year}$. We then use parameters $\Delta_{t}$ and
+$\Delta_{d}$ parameters to translate the diffusion rate $D$ to match the
+time step and patch size used in a simulation. This "scale free"
+parameterization means that appropriate value of $D$ can be identified
+for a species and then set, regardless of the time step or patch size
+used in the simulation model itself. The taxis component of the movement
+process is a function of the difference in habitat quality *h*. The
+habitat preference function itself can take any form the user wishes.
+Exponentiating the difference in the habitat preference function between
+patches turns the taxis matrix into a multiplier of the diffusion rate
+*D*. As such, when creating habitat layers for simulation, users can
+tune the scale of the habitat gradient function to result in realistic
+multipliers of the diffusion rate. This parameterization ensure that the
+off-diagonal elements of the movement matrix $\boldsymbol{M}_{t,s,a}$
+are all non-negative, a requirement of the CTMC method.
 
 $$ 
-d_{p1,p2,t,s,a} = \begin{cases}
-      = \frac{\Delta_{t}}{\Delta_{d}^2}D & \text{if p2 and p1 are adjacent}\\
-     = -\sum_{p' \neq p1} d_{p1,p2,t,s,a} & \text{if p1 = p2}\\
+m_{p1,p2,t,s,a} = \begin{cases}
+      = \frac{\Delta_{t}}{\Delta_{d}^2}De^{\frac{\Delta_t(h(p2,t,s,a) - h(p1,t,s,a))}{\Delta_d}} & \text{if p2 and p1 are adjacent}\\
+     = -\sum_{p' \neq p1} m_{p1,p2,t,s,a} & \text{if p1 = p2}\\
      = 0 & \text{otherwise.}
 \end{cases}
 $$ {#eq-diffusion}
 
-and then calculate the realized movement matrix, made up of just diffusion in this case, as the matrix exponential of the diffusion matrix times the time step of the simulation. 
+For both the diffusion and taxis matrices, we allow for the inclusion of
+physical barriers to movement (i.e. land). Pairs of patches that are
+adjacent but in which one or both patches are a barrier to movement are
+set as non-adjacent. The CTMC model then produces movement dynamics that
+move around barriers rather than over them. This is different than
+setting habitat in a patch to zero; an animal will not preferentially
+move towards a patch with zero habitat all else being equal, but can
+move over a patch with zero habitat towards another better patch. An
+example might be a species that lives and feeds on coastal habitats
+transiting through a patch of open ocean to reach a new feeding ground.
+In contrast, a physical barrier represents something like a peninsula
+that an animal must move around to transit from one side to another.
 
-$$
-\boldsymbol{M}_{t,s,a} = e^{\Delta_{t}(\boldsymbol{D}_{t,s,a})} 
-$$ {#eq-movement}
+## Setting Movement Parameter Values
 
+One of the advantages of the CTMC method is that it's parameters can in theory be estimated from data. However, in many cases users will not have the resources to directly estimate movement parameters, and will need to decide on logical values on their own. 
+
+Movement enters marlin in two ways; through the dispersal parameter $D$ and the ratio of habitat gradients. 
+Let's focus first on setting up the dispersal parameter. $D$ is in units of time / distance^2^. So if one was running a model using time units of years and distance of km^2, $D$ might be 100km^2/yeark meaning that a fish can diffuse over an area of 100km^2^ over the span of a year. Values of $D$ can then be set through literature review or best judgement given the species in question. 
+
+Once we have set $D$, `marlin` then estimates the correct diffusion matrix given the spatial and temporal resolution of the simulation itself. 
+
+
+Let's set
+
+  * a 10x10 simulation grid
+  * width of a square cell side $\Delta_d$ of 5km
+  * a time step $\Delta_t$ of one quarter (1/4 years)
+  * a diffusion parameter *D* of 20 km^2^/year
+  
+While we could run this through `marlin`, we're going to actually step through the calculations here so readers can get a sense for what is actually happening in the model. 
 
 ```{r}
 
 resolution <- 10 # cells per side
 
-patches <- resolution^2
+patches <- resolution^2 # number of patches
 
-delta_d <- 1 # length of a cell side
+delta_d <- 5 # length of a cell side in km
 
-delta_t = 0.25 # length of one time step in the simulation in units of years 
+patch_area = delta_d^2 # in units of km^2/patch
 
-time_steps <- 4 # number of time steps to run the population forward in in units of delta_t 
 
-D <- 2 # km^2  / year
+simulation_area <- patch_area * patches
 
+delta_t = 1 # length of one time step in the simulation in units of years 
+
+D <- 100 # km^2  / year
+
+
+
+```
+
+
+We're now going to set up an "adjacency matrix". This is a patches x patches dimension matrix that has a 1 if two patches are adjacent to each other, and a 0 if not. 
+
+```{r}
 grid <- tidyr::expand_grid(x = 1:resolution, y = 1:resolution)
 
 adjacent <- grid |> 
@@ -91,8 +157,19 @@ adjacent <- grid |>
 # Mark adjacent cells
 adjacent[adjacent != 1] <- 0
 
+image(adjacent)
 
-diffusion_matrix <- adjacent * D * (delta_t / delta_d^2) # adjacenty times diffusion rate times simulation units
+```
+
+We'll now fill in the diffusion matrix, using $D$, $\delta_t$ and $\delta_d$ to translate the diffusion parameter into the correct units. 
+
+See Thorson et al. (2021) for details of the math here if you're interested. 
+
+The net result of this step is we create an *instantaneous diffusion matrix* that will then be used to calculate the total diffusion probabilities over a **discrete amount of time** using matrix exponentiation. 
+
+
+```{r}
+diffusion_matrix <- adjacent * D * (delta_t / delta_d^2) # adjacent times diffusion rate times simulation units
 
 # fill in diagonal
 diag(diffusion_matrix) <-  -1 * colSums(diffusion_matrix)
@@ -100,304 +177,134 @@ diag(diffusion_matrix) <-  -1 * colSums(diffusion_matrix)
 # ensure matrix class
 diffusion_matrix <- as.matrix(diffusion_matrix)
 
+image(diffusion_matrix)
 
+```
+
+
+Now, we'll use this diffusion model to simulate ths diffusion of some critters from a central patch to the patches around it. 
+
+```{r, fig.cap=""}
 # put some animals in around the center
 
-n <- rep(0, patches)
 
-n[grid$x == resolution / 2 & grid$y == resolution / 2] <- 100
+D_patches <- D / patch_area # translate diffusion into units of patches / year
 
-# Now, diffuse for one year (i.e. delta_t = 1) 
+D_patches_side <- sqrt(D_patches) # side of the diffusion box
 
-n_next <- n %*% as.matrix(expm::expm(time_steps * diffusion_matrix))
+n <- rep(0, patches) 
+
+n[grid$x == resolution / 2 & grid$y == resolution / 2] <- 100 # add 100 critters to the rough center
+
+n_next <- n %*% as.matrix(expm::expm(diffusion_matrix)) # calculate the realized diffusion over one time step of the model
 
 grid$n <- as.numeric(n_next)
 
-grid |> 
-  ggplot() + 
-  geom_tile(aes(x,y,fill = n)) + 
-  geom_hline(yintercept = pmax(1,pmin(resolution,resolution / 2 + sqrt(D) * c(1,-1 ))), color = "red") +
-  geom_vline(xintercept = pmax(1,pmin(resolution,resolution / 2 + sqrt(D)  * c(1, -1))), color = "red")
+grid |>
+  ggplot() +
+  geom_tile(aes(x * delta_d, y * delta_d, fill = n)) +
+  geom_tile(
+    aes(
+      x = resolution / 2 * delta_d ,
+      y = resolution / 2 * delta_d,
+      width = sqrt(D),
+      height = sqrt(D)
+    ),
+    alpha = 0.25,
+    fill = "tomato"
+  ) +
+  scale_fill_viridis_c() + 
+  scale_x_continuous(name = "Distance from Bottom Left Corned in KM", expand = c(0,0)) + 
+  scale_y_continuous(name = "Distance from Bottom Left Corned in KM", expand = c(0,0))
+
+
 
 
 ```
 
-Now, let's add taxis in. 
+### Adding in Habitat Preference through Taxis
 
 The taxis matrix is a function of a habitat function, which must return habitat values in the same units as the distance, in this case km / year. 
 
-Taxis is often modeled in terms of **difference** in habitat preferences. However, this produces a complication. In order for the CTMC model to work the component movemenet matrices must be "Metzler matrices", defined as a matrix where all the off-diagonal elements are non-negative
+Taxis is in `marlin` is modeled in terms of **difference** in habitat preferences. However, this produces a complication. In order for the CTMC model to work the component movemenet matrices must be "Metzler matrices", defined as a matrix where all the off-diagonal elements are non-negative. 
+
+So, simply adding a taxis matrix to a diffusion matrix can produce negative off-diagonal elements if the values of the taxis matrix are much greater than the diffusion matrix.
+
+To get around this, we use an alternative parameterization of CTMC in which the habitat gradient produces a multiplier of the diffusion rate. This has two advantages. First, it ensures that the resulting movement matrix will not have negative off-diagonal elements and secondly, it makes it a bit easier to set the scale of the habitat gradient. 
+
+As parameterized, the differences in habitat gradient, whether measured in linear or log space, get exponentiated and then multiplied by the diffusion rate *D*. This means that the absolute scale of the habitat gradient matters less than the scaled of their logged differences. So, when generating simulated habitat layers, you can keep the dynamics sane by thinking about values that would produce habitat multipliers that make sense
+
+If you're simulating a scallop with a diffusion rate of 0.1km^2^/year, it doesn't make much sense to use a habitat gradient function with a range of 0 to 100, which would produce a taxis multiplier of exp(100-0) roughly 2e43 KM, meaning you've got scallops flying through space every year. 
+
+One trick is to then once you've generated a habitat gradient that you like the overall shape of is to rescale it so that the scale of the differences makes sense. 
 
 
+Let's set up some habitat to see this in action. 
+Suppose that I think that the most a critter could move towards desirable habitat is three times the diffusion rate. 
 
+First, let's just set up some arbitrary habitat
 
 ```{r}
 
 habitat <- rep(0, patches)
 
-habitat[grid$x == 1 & grid$y == resolution / 2] <- D
+reefs <- sample(1:patches,10)
 
-habitat[grid$x == 4 & grid$y == resolution / 2] <- 2 * D
+habitat[sample(1:patches,10)] <- rnorm(10,D,5)
 
 
-grid$habitat <- habitat
 
 # calculate difference in habitat
 
 habitat_difference = outer(habitat, habitat, "-")
 
-
-#, now create taxis matrix
-taxis_matrix <- adjacent * (5 + (habitat_difference) * (delta_t / delta_d))  # adjacency times taxis matrix 
-
-
-# fill in diagonal
-diag(taxis_matrix) <-  -1 * colSums(taxis_matrix)
-
-# ensure matrix class
-taxis_matrix <- as.matrix(taxis_matrix)
-
-# now, we're going to multiply the exponent of this by 
-
-n <- matrix(rep(10, patches), ncol = 1)
-
-# Now, diffuse for one year (i.e. delta_t = 1) 
-
-grid$n <-  as.numeric(as.matrix(expm::expm(taxis_matrix)) %*% n)
-
-grid |> 
-  ggplot() + 
-  geom_tile(aes(x,y,fill = n))
+hist(habitat_difference)
 
 
 ```
 
-xx quesetion for Jim, is there any reason to do this version instead of just ratios?
+The resulting habitat gradient has values as high as 100, which would produce illogical results. 
 
-exp(log(100) - log(.1)) = 100 / .1
+We can use the `rescale` function in R to get things into a more reasonable space, where the largest differences in habitat would produce a taxis multiplier of three
 
-As a solution to the Metzlre requirement, we can reparameterize the model slightly to 
+```{r}
+
+new_habitat <- scales::rescale(habitat, to = c(0, log(3)))
+
+habitat_difference = exp(outer(new_habitat, new_habitat, "-"))
+
+hist(habitat_difference)
+
+
+```
+
+Rescaling like this is clearly distoring the ratios of the habitat gradient, and so should only be done if you're making up habitats for simulation and want something that makes sense; you should **not** do this to habitat gradients estimated as part of an empircal CTMC model!
+
+
+## Putting it All Together
+
+Putting it all together then, we'll now use bothe the diffusion and taxis data to simulate movement over one time step of the model
 
 
 ```{r}
 
 
-movement_matrix <- adjacent * ((D * delta_t / delta_d^2) * pmin(2,exp((delta_t * habitat_difference) / delta_d)))
+movement_matrix <- adjacent * ((D * delta_t / delta_d^2) * exp((delta_t * habitat_difference) / delta_d))
 
 diag(movement_matrix) <-  -1 * colSums(movement_matrix)
 
-taxis_matrix <- as.matrix(taxis_matrix)
-
-n <- matrix(rep(10, patches), ncol = 1)
-
-grid$n <-  as.numeric(as.matrix(expm::expm(1 * movement_matrix)) %*% n)
+grid$n <-  as.numeric(as.matrix(expm::expm(movement_matrix)) %*% n)
 
 grid |> 
   ggplot() + 
-  geom_tile(aes(x,y,fill = n)) + 
-  scale_fill_viridis_c()
+  geom_tile(aes(x * delta_d,y * delta_d,fill = n)) + 
+  scale_fill_viridis_c(name = "Number of Fish") + 
+  scale_x_continuous(name = "Distance from Bottom Left Corned in KM", expand = c(0,0)) + 
+  scale_y_continuous(name = "Distance from Bottom Left Corned in KM", expand = c(0,0))
+
 
 
 ```
 
-This parametreization helps ensure that the resulting movement matrices are mathematically correct. 
-
-Given sufficiently high quality data, the parameters of this equation can be estimated. For simulation analysis though this formulation poses a bit of a problem. The diffusion rate *D* has a clear biological intuition and is relatively easy to set. Setting the difference in the habitat preferences behind the taxis matrix is not as simple though, as useres must now consider the interaction of the degree of habitat difference and the diffusion rate. If the range of habitat values are large, one could easily produce habitat multipliers that rapidly approach infinity (e.g. exp(100 - 1)). 
-
-As an alternative...
-
-- The simplest approach is just to put a cap in where the post-taxis diffusion parameter can't be more than X. That's way easier than a tuning thing... let's start with that?
-
-
-OK so what you need to do... 
-
-store raw habitat and raw diffusion
-
-
-```{r}
-library(marlin)
-library(tidyverse)
-options(dplyr.summarise.inform = FALSE)
-theme_set(marlin::theme_marlin(base_size = 42))
-
-resolution <- 10 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
-
-years <- 20
-
-seasons <- 1
-
-time_step <- 1 / seasons
-
-steps <- years * seasons
-
-seasons <- 4
-
-steps <- years * seasons
-
-time_step <- 1 / seasons
-
-skipjack_diffusion <- 2
-
-bigeye_diffusion <- 5
-
-# for now make up some habitat
-
-
-
-
-skipjack_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  dplyr::mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 20, 200),
-  habitat = habitat / max(habitat) * skipjack_diffusion) |> 
-  pivot_wider(names_from = y, values_from = habitat) %>% 
-  select(-x) %>% 
-  as.matrix()
-
-
-bigeye_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 300, 100),
-         habitat = habitat / max(habitat) * bigeye_diffusion) %>% 
-  pivot_wider(names_from = y, values_from = habitat) %>% 
-  select(-x) %>% 
-  as.matrix()
-
-
-bigeye_habitat2 <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(habitat =  dnorm((x ^ .2 + y ^ .2), 100, 100),
-         habitat = habitat / max(habitat) * bigeye_diffusion) %>% 
-  pivot_wider(names_from = y, values_from = habitat) %>% 
-  select(-x) %>% 
-  as.matrix()
-
-a <- Sys.time()
-
-fauna <- 
-  list(
-    "skipjack" = create_critter(
-      scientific_name = "Katsuwonus pelamis",
-      habitat = list(skipjack_habitat, skipjack_habitat), # pass habitat as lists
-      season_blocks = list(c(1, 2), c(3, 4)), # seasons each habitat apply to
-      recruit_habitat = skipjack_habitat,
-      adult_diffusion = 2, # standard deviation of the number of patches moved by adults
-      fished_depletion = .6, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
-      density_dependence = "global_habitat", # recruitment form, where 1 implies local recruitment
-      seasons = seasons,
-      init_explt = 0.2, 
-      explt_type = "f"
-      ),
-    "bigeye" = create_critter(
-      common_name = "bigeye tuna",
-      habitat = list(bigeye_habitat, bigeye_habitat2), # pass habitat as lists
-      season_blocks = list(c(1, 2), c(3, 4)), # seasons each habitat apply to
-      recruit_habitat = bigeye_habitat,
-      adult_diffusion = 1,
-      fished_depletion = .1,
-      density_dependence = "local_habitat",
-      seasons = seasons,
-      init_explt = 0.3, 
-      explt_type = "f"
-    )
-  )
-Sys.time() - a
-
-# create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
-# with lists for each species inside there. Price specifies the price per unit weight of that 
-# species for that fleet
-# sel_form can be one of logistic or dome
-
-
-fleets <- list(
-  "longline" = create_fleet(
-    list(
-       "skipjack" = Metier$new(
-        critter = fauna$skipjack,
-        price = 100,
-        # price per unit weight
-        sel_form = "logistic",
-        # selectivity form, one of logistic or dome
-        sel_start = .3,
-        # percentage of length at maturity that selectivity starts
-        sel_delta = .1,
-        # additional percentage of sel_start where selectivity asymptotes
-        catchability = .01,
-        # overwritten by tune_fleet but can be set manually here
-        p_explt = 1
-      ),
-       "bigeye" = Metier$new(
-        critter = fauna$bigeye,
-        price = 10,
-        sel_form = "logistic",
-        sel_start = .1,
-        sel_delta = .01,
-        catchability = 0,
-        p_explt = 1
-      )
-    ),
-    base_effort = resolution ^ 2,
-        resolution = resolution
-
-  ),
-  "purseseine" = create_fleet(list(
-    skipjack = Metier$new(
-      critter = fauna$skipjack,
-      price = 100,
-      sel_form = "logistic",
-      sel_start = 0.25,
-      sel_delta = .1,
-      catchability = .01,
-      p_explt = 0.9
-    ),
-    bigeye = Metier$new(
-      critter = fauna$bigeye,
-      price = 100,
-      sel_form = "logistic",
-      sel_start = .25,
-      sel_delta = .5,
-      catchability = .01,
-      p_explt = 1
-    )
-  ),
-  base_effort = resolution ^ 2,    resolution = resolution
-)
-)
-
-a <- Sys.time()
-
-fleets <- tune_fleets(fauna, fleets) 
-
-Sys.time() - a
-
-
-# run simulations
-
-# run the simulation using marlin::simmar
-a <- Sys.time()
-
-sim3 <- simmar(fauna = fauna,
-                  fleets = fleets,
-                  years = years)
-
-Sys.time() - a
-# a <- Sys.time()
-
-processed_marlin <- process_marlin(sim = sim3, time_step = time_step, keep_age = TRUE)
-# Sys.time() - a
-
-plot_marlin(processed_marlin)
-
-plot_marlin(processed_marlin, plot_var = "c")
-
-plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", fauna = fauna)
-
-plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space")
-
-  e_p_f <- map(sim3[[length(sim3)]],"e_p_fl") %>%
-    bind_rows(.id = "critter") %>%
-    pivot_longer(-critter, names_to = "fleet", values_to = "effort") %>%
-    group_by(critter, fleet) %>%
-    mutate(patch = seq_along(effort)) %>%
-    group_by(fleet, patch) %>%
-    summarise(effort = sum(effort))
-
-```
 
 
