@@ -210,7 +210,7 @@ grid |>
       width = sqrt(D),
       height = sqrt(D)
     ),
-    alpha = 0.25,
+    alpha = 0.1,
     fill = "tomato"
   ) +
   scale_fill_viridis_c() + 
