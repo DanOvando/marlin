@@ -233,7 +233,7 @@ grid |>
     y0 = resolution / 2 * delta_d, 
     r = radius
   )) +
-  scale_fill_viridis_c() + 
+  scale_fill_viridis_c(limits = c(0, NA)) + 
   scale_x_continuous(name = "Distance from Bottom Left Corned in KM", expand = c(0,0)) + 
   scale_y_continuous(name = "Distance from Bottom Left Corned in KM", expand = c(0,0)) + 
   coord_fixed()
@@ -319,7 +319,7 @@ grid$n <-  as.numeric(as.matrix(expm::expm(movement_matrix)) %*% n)
 grid |> 
   ggplot() + 
   geom_tile(aes(x * delta_d,y * delta_d,fill = n)) + 
-  scale_fill_viridis_c(name = "Number of Fish") + 
+  scale_fill_viridis_c(name = "Number of Fish", limits = c(0, NA)) + 
   scale_x_continuous(name = "Distance from Bottom Left Corned in KM", expand = c(0,0)) + 
   scale_y_continuous(name = "Distance from Bottom Left Corned in KM", expand = c(0,0))
 
