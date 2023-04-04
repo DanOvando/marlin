@@ -135,8 +135,8 @@ Let's set
 
   * a 10x10 simulation grid
   * width of a square cell side $\Delta_d$ of 5km
-  * a time step $\Delta_t$ of one quarter (1/4 years)
-  * a diffusion parameter *D* of 20 km^2^/year
+  * a time step $\Delta_t$ of one year
+  * a diffusion parameter *D* of 100 km^2^/year
   
 While we could run this through `marlin`, we're going to actually step through the calculations here so readers can get a sense for what is actually happening in the model. 
 
