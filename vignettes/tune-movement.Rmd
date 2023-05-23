@@ -20,6 +20,7 @@ library(marlin)
 
 library(ggplot2)
 
+library(ggforce)
 
 theme_set(theme_marlin(base_size = 8))
 
@@ -40,52 +41,62 @@ habitat defined by a dynamic thermal range.
 
 ## Details
 
-Under this model, movement from each patch to each other patch in the system in a given timestep
+`marlin`'s movement dynamics are based on a continuous-time Markov chain
+(CTMC), as described in @thorson2021a. Within this framework, the model
+allows for movement to be broken down into three components of
+*advection* (drifting with currents), *taxis* (active movement towards
+preferred habitat), and *diffusion* (essentially remaining variation in
+movement not explained by advection or taxis). For now, `marlin` focuses
+just on the diffusion and taxis components of this model, assuming that
+advection is zero, though future extensions could easily incorporate
+advection vectors from oceanographic models. In this way, `marlin`
+allows users to run anything from a simple Gaussian dispersal kernel up
+to a system governed by species that passively diffuse out from a core
+habitat defined by a dynamic thermal range.
+
+We provide a brief overview of the the general CTMC method here (see
+@thorson2021a for a detailed description). Under this framework, movement of individuals
+from each patch to each other patch in the system in a given timestep
 *t* for life stage *a* of species *s* is defined by a movement matrix
-$\boldsymbol{M}_{t,s,a}$. $\boldsymbol{M}_{t,s,a}$ is calculated as the
-matrix exponent of a function of the diffusion $\boldsymbol{D}$ and
-taxis $\boldsymbol{\tau}$ matrices scaled by the width of the time step
+$\pmb{M}_{t,s,a}$. $\pmb{M}_{t,s,a}$ is calculated as a function of diffusion $\pmb{D}$ and
+taxis $\pmb{\tau}$ matrices scaled by the width of the time step
 $\Delta_{t}$ and the length of the edge of each patch $\Delta_d$ that
-the model is running under. So for example, if we are running a model on
-a monthly timestep, and we define the units of time in years, then
-$\Delta_{t} = 1/12$. Similarly, if we are running a model where one
-patch equals 100km^2^, then $\Delta_d = 10km$. This parameterization
+the model is running under. This parameterization
 allows users to set the effective area of the spatial domain through two
 avenues; the number of patches, which effectively scales the resolution
 of the model, and the area of each patch, which scales the spatial
 extent of the simulation.
 
-$$
-\boldsymbol{M}_{t,s,a} = e^{\Delta_{t}(\boldsymbol{D}_{t,s,a} + \boldsymbol{\tau}_{t,s,a})} 
-$$ {#eq-movement}
 
-The individual components (*m*) of the movement matrix are filled based
+The individual components (*M*) of the movement matrix ($\pmb{M}$) are filled based
 on an adjacency matrix, which defines whether two patches are both
 adjacent and water (as opposed to land or another physical barrier), a
 diffusion rate $D$ defined in units of area of a patch per unit of time,
-and a habitat preference function *h* in units of length of a side of a
+and a habitat preference function *H* in units of length of a side of a
 patch per unit time. For example, if we are defining the time units as
 years and the distance units as kilometers, for a tuna $D$ might be
 1,000 $\frac{KM^2}{Year}$. We then use parameters $\Delta_{t}$ and
 $\Delta_{d}$ parameters to translate the diffusion rate $D$ to match the
-time step and patch size used in a simulation. This "scale free"
+time step and patch size used in a simulation. For example, if we were to run a model on
+a monthly timestep given time units of years, then
+$\Delta_{t} = 1/12 years$. If one square patch in the simulation has an area of 100km^2^, then $\Delta_d = 10KM$. This "scale free"
 parameterization means that appropriate value of $D$ can be identified
 for a species and then set, regardless of the time step or patch size
 used in the simulation model itself. The taxis component of the movement
-process is a function of the difference in habitat quality *h*. The
+process is a function of the difference in habitat quality *H*. The
 habitat preference function itself can take any form the user wishes.
 Exponentiating the difference in the habitat preference function between
 patches turns the taxis matrix into a multiplier of the diffusion rate
 *D*. As such, when creating habitat layers for simulation, users can
 tune the scale of the habitat gradient function to result in realistic
 multipliers of the diffusion rate. This parameterization ensure that the
-off-diagonal elements of the movement matrix $\boldsymbol{M}_{t,s,a}$
+off-diagonal elements of the movement matrix $\pmb{M}_{t,s,a}$
 are all non-negative, a requirement of the CTMC method.
 
 $$ 
-m_{p1,p2,t,s,a} = \begin{cases}
-      = \frac{\Delta_{t}}{\Delta_{d}^2}De^{\frac{\Delta_t(h(p2,t,s,a) - h(p1,t,s,a))}{\Delta_d}} & \text{if p2 and p1 are adjacent}\\
-     = -\sum_{p' \neq p1} m_{p1,p2,t,s,a} & \text{if p1 = p2}\\
+M_{p1,p2,t,s,a} = \begin{cases}
+      = \frac{\Delta_{t}}{\Delta_{d}^2}De^{\frac{\Delta_t(H(p2,t,s,a) - H(p1,t,s,a))}{\Delta_d}} & \text{if p2 and p1 are adjacent}\\
+     = -\sum_{p' \neq p1} M_{p1,p2,t,s,a} & \text{if p1 = p2}\\
      = 0 & \text{otherwise.}
 \end{cases}
 $$ {#eq-diffusion}
@@ -103,6 +114,13 @@ transiting through a patch of open ocean to reach a new feeding ground.
 In contrast, a physical barrier represents something like a peninsula
 that an animal must move around to transit from one side to another.
 
+The movement of individuals across patches is then calculated by matrix multiplication of the pre-movement vector of the number of individuals ($\pmb{n}$) of species *s* at age *a* in time step *t* across all patches *p* times the matrix exponential of the movement matrix $\pmb{M}$
+
+$$
+\pmb{n}_{t+1,s,a} = \pmb{n}_{t,s,a}e^{\pmb{M}_{t,s,a}}
+$$ {#eq-movement}
+
+
 ## Setting Movement Parameter Values
 
 One of the advantages of the CTMC method is that it's parameters can in theory be estimated from data. However, in many cases users will not have the resources to directly estimate movement parameters, and will need to decide on logical values on their own. 
@@ -117,8 +135,8 @@ Let's set
 
   * a 10x10 simulation grid
   * width of a square cell side $\Delta_d$ of 5km
-  * a time step $\Delta_t$ of one quarter (1/4 years)
-  * a diffusion parameter *D* of 20 km^2^/year
+  * a time step $\Delta_t$ of one year
+  * a diffusion parameter *D* of 100 km^2^/year
   
 While we could run this through `marlin`, we're going to actually step through the calculations here so readers can get a sense for what is actually happening in the model. 
 
@@ -196,6 +214,13 @@ n <- rep(0, patches)
 
 n[grid$x == resolution / 2 & grid$y == resolution / 2] <- 100 # add 100 critters to the rough center
 
+ytmp <- as.matrix(expm::expm(diffusion_matrix)) 
+
+ytmp[ytmp < 1e-3] <- 0
+
+
+radius <- sqrt( D / pi)
+
 n_next <- n %*% as.matrix(expm::expm(diffusion_matrix)) # calculate the realized diffusion over one time step of the model
 
 grid$n <- as.numeric(n_next)
@@ -203,19 +228,15 @@ grid$n <- as.numeric(n_next)
 grid |>
   ggplot() +
   geom_tile(aes(x * delta_d, y * delta_d, fill = n)) +
-  geom_tile(
-    aes(
-      x = resolution / 2 * delta_d ,
-      y = resolution / 2 * delta_d,
-      width = sqrt(D),
-      height = sqrt(D)
-    ),
-    alpha = 0.1,
-    fill = "tomato"
-  ) +
-  scale_fill_viridis_c() + 
+  ggforce::geom_circle(aes(
+    x0 = resolution / 2 * delta_d,
+    y0 = resolution / 2 * delta_d, 
+    r = radius
+  )) +
+  scale_fill_viridis_c(limits = c(0, NA)) + 
   scale_x_continuous(name = "Distance from Bottom Left Corned in KM", expand = c(0,0)) + 
-  scale_y_continuous(name = "Distance from Bottom Left Corned in KM", expand = c(0,0))
+  scale_y_continuous(name = "Distance from Bottom Left Corned in KM", expand = c(0,0)) + 
+  coord_fixed()
 
 
 
@@ -298,7 +319,7 @@ grid$n <-  as.numeric(as.matrix(expm::expm(movement_matrix)) %*% n)
 grid |> 
   ggplot() + 
   geom_tile(aes(x * delta_d,y * delta_d,fill = n)) + 
-  scale_fill_viridis_c(name = "Number of Fish") + 
+  scale_fill_viridis_c(name = "Number of Fish", limits = c(0, NA)) + 
   scale_x_continuous(name = "Distance from Bottom Left Corned in KM", expand = c(0,0)) + 
   scale_y_continuous(name = "Distance from Bottom Left Corned in KM", expand = c(0,0))
 
