@@ -223,11 +223,14 @@ range_shift <- processed_marlin$fauna %>%
   geom_tile() + 
   transition_time(step) +
   ease_aes('linear') +
-  scale_fill_viridis_c(name = "Tunas") + 
-  scale_x_continuous(name = "longitude") + 
-  scale_y_continuous(name = "latitude")
+  scale_fill_viridis_c(name = "Tunas", guide = guide_colorbar(frame.colour = "black", barwidth = unit(10, "lines"))) + 
+  scale_x_continuous(name = "Longitude", expand = c(0,0)) + 
+  scale_y_continuous(name = "Latitude", expand = c(0,0)) + 
+  theme(legend.position = "top")
 
 
-animate(range_shift, nframes = 100, fps=2)
 
+
+anim_save(filename = "ctmc.gif", animation = animate(range_shift, nframes = 100, fps=4)
+)
 ```

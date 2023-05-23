@@ -728,10 +728,10 @@ simmar <- function(fauna = list(),
       
       r_p_a_fl <- c_p_a_fl * p_p_a_fl
       
-      tmp_e_p_fl <-  purrr::list_cbind(purrr::map(fleets, ~ data.frame(.x$e_p_s[, s] * fmult)))
+      tmp_e_p_fl <-  purrr::list_cbind(unname(purrr::map(fleets, ~ data.frame(x = as.numeric(.x$e_p_s[, s] * fmult)))))
       
       colnames(tmp_e_p_fl) <-  names(fleets)
-
+      
       for (fl in 1:length(fleets)) {
         c_p_fl[, fl] <- rowSums(c_p_a_fl[, , fl], na.rm = TRUE)
         

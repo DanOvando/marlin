@@ -26,6 +26,7 @@ knitr::opts_chunk$set(
   -  seasonal spawning aggregations or climate induced range shifts
   -  the impacts of port distance in fleet dynamics
   -  optimized marine protected area network design
+  -  Data-generating processes for spatial-stock assessment
 
 The model is described in Ovando *et al.* (2023...) hopefully.   
   
