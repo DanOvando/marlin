@@ -78,40 +78,27 @@ there….
 If your version of R is lower than 4.0, you might want to consider
 updating R itself.
 
-From there…
+In order to install and run `marlin` you need to have R compiler tools
+correctly set up.
+
+To do this…
 
 - On Windows, make sure you have the appropriate version of Rtools
   installed ([here](https://cran.r-project.org/bin/windows/Rtools/)),
   most likely Rtools4X if you have R version 4.X
   - Make sure that you select the box that says something about adding
     Rtools to the PATH variable if prompted
-- On macOS, there might be some issues with the your compiler,
-  particularly if your version of R is less than 4.0.0.
+- On macOS I recommend either using the unofficial
+  [macrtools](https://github.com/coatless-mac/macrtools) package, or if
+  you prefer you can follow the official instructions on CRAN
+  [here](https://mac.r-project.org/tools/). If you’re using a version of
+  R pre- 4.XX, then follow instructions
+  [here](https://thecoatlessprofessor.com/programming/cpp/r-compiler-tools-for-rcpp-on-macos-before-r-4.0.0/),
+  though your mileage may vary depending on how out of date you R
+  ecosystem is.
 
-If you get an error that says something like
-`clang: error: unsupported option '-fopenmp'`, follow the instructions
-[here](https://thecoatlessprofessor.com/programming/cpp/r-compiler-tools-for-rcpp-on-macos-before-r-4.0.0/)
-
-Once you’ve tried those, restart your computer and try running
-re-installing `marlin`.
-
-There are also some issues with compilation on Apple M1 chips. If you
-get an installation error related to
-`ld: library not found for -lgfortran`, try these steps to resolve it
-
-1.  Install xcode via terminal: xcode-select –install. If xcode is
-    already installed,
-    [uninstall](https://mac.install.guide/commandlinetools/6.html) it
-    first.
-
-2.  Install
-    [gfortran](https://github.com/fxcoudert/gfortran-for-macOS/releases/tag/12.1-monterey)
-    12.1 for Monterey (macOS 12) using the version for Apple Silicon
-    computers (computers with Apple M1 chips),
-    `gfortran-ARM-12.1-Monterey.dmg`.
-
-3.  Restart your computer and try to install `marlin` again. It should
-    work this time.
+Once you’ve got your R compiler tools installed correctly, close down
+then re-open R and then try installing `marlin` again.
 
 ## A Caveat
 
@@ -273,7 +260,7 @@ example_sim <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - start_time
-#> Time difference of 0.3574841 secs
+#> Time difference of 0.325253 secs
 ```
 
 we can then use `process_marlin` and `plot_marlin` to examine the
@@ -388,7 +375,7 @@ fauna <-
 #> • Found: 1 
 #> • Not Found: 0
 Sys.time() - a
-#> Time difference of 2.664147 secs
+#> Time difference of 2.509863 secs
 
 # create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
 # with lists for each species inside there. Price specifies the price per unit weight of that 
@@ -456,7 +443,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets) 
 
 Sys.time() - a
-#> Time difference of 25.17633 secs
+#> Time difference of 21.6369 secs
 
 
 # run simulations
@@ -469,7 +456,7 @@ sim3 <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 4.848104 secs
+#> Time difference of 4.053628 secs
 # a <- Sys.time()
 
 processed_marlin <- process_marlin(sim = sim3, time_step = time_step, keep_age = TRUE)
@@ -630,7 +617,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
-#> Time difference of 16.57179 secs
+#> Time difference of 14.76869 secs
 
 # run simulations
 
@@ -641,7 +628,7 @@ nearshore <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.3670251 secs
+#> Time difference of 0.329144 secs
   
 proc_nearshore <- process_marlin(nearshore, time_step =  fauna[[1]]$time_step)
 
@@ -684,7 +671,7 @@ nearshore_mpa <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.367382 secs
+#> Time difference of 0.30423 secs
 
 proc_nearshore_mpa <- process_marlin(nearshore_mpa, time_step =  fauna[[1]]$time_step)
 
@@ -757,7 +744,7 @@ offshore <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.3742301 secs
+#> Time difference of 0.3137581 secs
   
 proc_offshore <- process_marlin(offshore, time_step =  fauna[[1]]$time_step)
 
@@ -772,7 +759,7 @@ offshore_mpa_sim <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.3727238 secs
+#> Time difference of 0.3306451 secs
 
 
 proc_offshore_mpa <- process_marlin(offshore_mpa_sim, time_step =  fauna[[1]]$time_step)
@@ -900,7 +887,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
-#> Time difference of 0.8067729 secs
+#> Time difference of 0.7291729 secs
 
 # run simulations
 

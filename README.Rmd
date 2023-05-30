@@ -69,25 +69,16 @@ If you run into an error, first off try updating your R packages. From there....
 
 If your version of R is lower than 4.0, you might want to consider updating R itself. 
 
-From there...
+In order to install and run `marlin` you need to have R compiler tools correctly set up. 
+
+To do this... 
 
 - On Windows, make sure you have the appropriate version of Rtools installed ([here](https://cran.r-project.org/bin/windows/Rtools/)), most likely Rtools4X if you have R version 4.X
-  - Make sure that you select the box that says something about adding Rtools to the PATH variable if prompted
+    - Make sure that you select the box that says something about adding Rtools to the PATH variable if prompted
 
-- On macOS, there might be some issues with the your compiler, particularly if your version of R is less than 4.0.0.
+- On macOS I recommend either using the unofficial [macrtools](https://github.com/coatless-mac/macrtools) package, or if you prefer you can follow the official instructions on CRAN [here](https://mac.r-project.org/tools/). If you're using a version of R pre- 4.XX, then follow instructions [here](https://thecoatlessprofessor.com/programming/cpp/r-compiler-tools-for-rcpp-on-macos-before-r-4.0.0/), though your mileage may vary depending on how out of date you R ecosystem is. 
 
-If you get an error that says something like `clang: error: unsupported option '-fopenmp'`, follow the instructions [here](https://thecoatlessprofessor.com/programming/cpp/r-compiler-tools-for-rcpp-on-macos-before-r-4.0.0/)
-
-Once you've tried those, restart your computer and try running re-installing `marlin`.
-
-There are also some issues with compilation on Apple M1 chips. If you get an installation error related to `ld: library not found for -lgfortran`, try these steps to resolve it
-
-
-1. Install xcode via terminal: xcode-select –install. If xcode is already installed, [uninstall](https://mac.install.guide/commandlinetools/6.html) it first.
-
-2. Install [gfortran](https://github.com/fxcoudert/gfortran-for-macOS/releases/tag/12.1-monterey) 12.1 for Monterey (macOS 12) using the version for Apple Silicon computers (computers with Apple M1 chips), `gfortran-ARM-12.1-Monterey.dmg`.
-
-3. Restart your computer and try to install `marlin` again. It should work this time.
+Once you've got your R compiler tools installed correctly, close down then re-open R and then try installing `marlin` again.
 
 
 ## A Caveat
