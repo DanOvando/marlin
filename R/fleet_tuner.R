@@ -45,7 +45,11 @@ fleet_tuner <- function(qs,fauna, fleets, years = 50){
                     fleets = fleets,
                     years = years)
   
-  tmp <- purrr::map_dfr(storage[[length(storage)]], ~as.data.frame(.x$ssb_p_a), .id = "fauna")
+  # tmp <- purrr::map_dfr(storage[[length(storage)]], ~as.data.frame(.x$ssb_p_a), .id = "fauna")
+  
+  tmp <- purrr::map(storage[[length(storage)]], ~as.data.frame(.x$ssb_p_a)) |> 
+    purrr::list_rbind(names_to = "fauna")
+  
   
   b_p <- rowSums(tmp[,2:ncol(tmp)], na.rm = TRUE)
   
