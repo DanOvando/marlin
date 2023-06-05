@@ -51,8 +51,19 @@ tune_fleets <- function(fauna,
                       fleets = fleets,
                       years = years)
     
-  revenue <- purrr::map(storage[[1]],~ reshape2::melt(.x$r_p_a_fl) %>%
-                          purrr::set_names("patch", "age", "fleet", "revenue")) %>%
+  
+
+  
+  
+  revenue <-
+    purrr::map(
+      storage[[1]],
+      ~  data.frame(expand.grid(dimnames(.x$r_p_a_fl)), value = as.vector(.x$r_p_a_fl)) |>
+        purrr::set_names("patch", "age", "fleet", "revenue") |>
+        dplyr::mutate(across(patch:age, ~ as.numeric(as.character(
+          .x
+        ))))
+    ) %>%
     dplyr::bind_rows(.id = "critter") %>%
     dplyr::group_by(fleet) %>%
     dplyr::summarise(revenue = sum(revenue, na.rm = TRUE))
@@ -160,30 +171,40 @@ tune_fleets <- function(fauna,
 
     eq <- init_sim[[length(init_sim)]]
 
+    
     revenue <-
-      purrr::map_dfr(eq,
-                     ~ tibble::rownames_to_column(data.frame( revenue = (colSums(.x$r_p_fl, na.rm = TRUE))), "fleet"),
-                     .id = "critter") %>%
+      purrr::map(eq,
+                     ~ tibble::rownames_to_column(data.frame( revenue = (colSums(.x$r_p_fl, na.rm = TRUE))), "fleet")) %>%
+      purrr::list_rbind(names_to = "critter") |> 
       dplyr::group_by(fleet) %>%
       dplyr::summarise(revenue = sum(revenue))
 
-    effort <-    purrr::map_dfr(eq[1],
-                                ~ data.frame(.x$e_p_fl) %>% dplyr::mutate(patch = 1:nrow(.)),
-                                .id = "critter") %>%
+    effort <-    purrr::map(eq[1],
+                                ~ data.frame(.x$e_p_fl) %>% dplyr::mutate(patch = 1:nrow(.))) %>%
+      purrr::list_rbind(names_to = "critter") |> 
       tidyr::pivot_longer(-c(critter, patch), names_to = "fleet", values_to = "effort") # effort is the same for all critters per fleet so only selecting first entry
 
 
+    effort <-    purrr::map(eq[1],
+                                ~ data.frame(.x$e_p_fl) %>% dplyr::mutate(patch = 1:nrow(.))) %>%
+      purrr::list_rbind(names_to = "critter") |> 
+      tidyr::pivot_longer(-c(critter, patch), names_to = "fleet", values_to = "effort") # effort is the same for all critters per fleet so only selecting first entry
+    
+    
+    
     cost_per_patch <-
-      purrr::map_dfr(fleets,
+      purrr::map(fleets,
                      ~ data.frame(
                        patch = 1:length(.x$cost_per_patch),
                        cost = .x$cost_per_patch
-                     ),
-                     .id = "fleet")
+                     )) |> 
+      purrr::list_rbind(names_to = "fleet")
 
-    base_cr_ratio <- purrr::map_dfr(fleets, ~data.frame(base_cr_ratio = .x$cr_ratio), .id = "fleet")
+    base_cr_ratio <- purrr::map(fleets, ~data.frame(base_cr_ratio = .x$cr_ratio), .id = "fleet") |> 
+      purrr::list_rbind(names_to = "fleet")
     
-    fleet_cost_expos <- purrr::map_df(fleets, ~ data.frame(beta = .x$effort_cost_exponent),.id = "fleet")
+    fleet_cost_expos <- purrr::map(fleets, ~ data.frame(beta = .x$effort_cost_exponent)) |> 
+      purrr::list_rbind(names_to = "fleet")
     
     effort_and_costs <- effort %>%
       dplyr::left_join(cost_per_patch, by = c("fleet", "patch")) %>%

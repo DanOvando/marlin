@@ -61,8 +61,6 @@ process_marlin <- function(sim,
           
           x <- data.frame(V0 = rowSums(x))
           
-          # colnames(x) <- "V0"
-          
         }
         
         out <- cbind(patch = 1:nrow(x),
@@ -71,11 +69,10 @@ process_marlin <- function(sim,
         
       }
       
-
       tmp <-
-        purrr::map_dfr(pop,bindfoo,
-                       grid= grid,
-                        .id = "metric") %>%
+        purrr::map(pop,bindfoo,
+                       grid= grid) %>%
+        purrr::list_rbind(names_to = "metric") |> 
         tidyr::pivot_longer(
           # tidy ages
           tidyselect::contains("V"),
@@ -100,52 +97,47 @@ process_marlin <- function(sim,
       
     }
     
-    out <- purrr::map2_dfr(x, names(x), tidy_marlin, grid= grid)
+
+    out <- purrr::map2(x, names(x), tidy_marlin, grid= grid) |> 
+      purrr::list_rbind()
     
   }
   
-  tidy_sim <-  purrr::imap_dfr(sim, ~ stepper(.x, grid = grid), .id = "step") %>%
+  tidy_sim <-  purrr::imap(sim, ~ stepper(.x, grid = grid), .id = "step") %>%
+    purrr::list_rbind(names_to = "step") |> 
     dplyr::mutate(step = as.numeric(step),
                   year = floor(as.numeric(step)))
 
-  # tidy_sim <-  purrr::imap_dfr(sim, ~ stepper(.x), .id = "step") %>%
-  #   dplyr::mutate(step = as.numeric(step),
-  #          year = floor(as.numeric(step)))
-  
+
   # process fleets
   # ok this is the concept, but you need to wrap this in a map function to tidy by species
   
   
   fleet_stepper <- function(tmp, grid) {
     get_fleet <- function(x, z, grid) {
-      #
-      # tidy_catch <-  reshape::melt(sim[[1]]$bigeye$c_p_a_fl) %>%
-      #   purrr::set_names("patch","age","fleet","catch")
-      #
-      tidy_catch <-  reshape2::melt(x$c_p_a_fl) %>%
-        purrr::set_names("patch", "age", "fleet", "catch")
+
+      tidy_catch <-  data.frame(expand.grid(dimnames(x$c_p_a_fl)), value = as.vector(x$c_p_a_fl)) |> 
+        purrr::set_names("patch", "age", "fleet", "catch") |> 
+        dplyr::mutate(across(patch:age, ~as.numeric(as.character(.x))))
       
-      tidy_rev <-  reshape2::melt(x$r_p_a_fl) %>%
-        purrr::set_names("patch", "age", "fleet", "revenue")
+      tidy_rev <-  data.frame(expand.grid(dimnames(x$r_p_a_fl)), value = as.vector(x$r_p_a_fl)) |> 
+        purrr::set_names("patch", "age", "fleet", "revenue") |> 
+        dplyr::mutate(across(patch:age, ~as.numeric(as.character(.x))))
       
       
       if (keep_age == FALSE){
         
         tidy_catch <-  tidy_catch %>% 
-          # dtplyr::lazy_dt() %>% 
           dplyr::group_by(patch, fleet) %>% 
           dplyr::summarise(catch = sum(catch, na.rm = TRUE)) %>% 
-          dplyr::mutate(age = "all") #%>% 
-          # tibble::as_tibble()
+          dplyr::mutate(age = "all")
         
         tidy_rev <-  tidy_rev %>% 
-          # dtplyr::lazy_dt() %>% 
           dplyr::group_by(patch, fleet) %>% 
           dplyr::summarise(revenue = sum(revenue, na.rm = TRUE)) %>% 
-          dplyr::mutate(age = "all") #%>% 
+          dplyr::mutate(age = "all") 
         
-        # on.exit(unloadNamespace("dtplyr"))
-        
+
       }
       
       coords <- grid %>%
@@ -172,21 +164,19 @@ process_marlin <- function(sim,
     
     # tmp <- sim[[1]]
     
-    step_fleet <- purrr::imap_dfr(tmp, get_fleet, grid = grid)
+    step_fleet <- purrr::imap(tmp, get_fleet, grid = grid) |> 
+      purrr::list_rbind()
     
     
   }
   
   tidy_sim_fleet <-
-    purrr::imap_dfr(sim, ~ fleet_stepper(.x, grid = grid),.id = "step") %>%
+    purrr::imap(sim, ~ fleet_stepper(.x, grid = grid)) %>%
+    purrr::list_rbind(names_to = "step") |> 
     dplyr::mutate(step = as.numeric(step),
       year = floor(as.numeric(step)))
   
-  
-  # tidy_sim_fleet <-
-  #   purrr::imap_dfr(sim, ~ fleet_stepper(.x), .id = "step") %>%
-  #   dplyr::mutate(step = as.integer(step) * time_step,
-  #                 year = floor(as.integer(step) * time_step))
+
   out <- list(fauna = tidy_sim,
               fleets = tidy_sim_fleet)
   

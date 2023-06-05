@@ -200,7 +200,8 @@ Fish <- R6::R6Class(
         }
       
       all_habitat_seasons <-
-        purrr::map_dfr(season_blocks, ~ data.frame(season = .x))
+        purrr::map(season_blocks, ~ data.frame(season = .x)) |> 
+        purrr::list_rbind()
       
       if (!all(1:seasons %in% all_habitat_seasons$season)) {
         stop("all seasons must be represented in season_blocks")
