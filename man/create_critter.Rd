@@ -9,7 +9,7 @@ create_critter(
   scientific_name = NA,
   get_common_name = FALSE,
   critter_type = "fish",
-  base_habitat = list(),
+  habitat = list(),
   season_blocks = list(),
   recruit_habitat = NA,
   seasons = 1,
@@ -23,6 +23,7 @@ create_critter(
   weight_a = NA,
   fec_expo = 1,
   resolution = 20,
+  patch_area = 1,
   spawning_seasons = NA,
   density_dependence = "global_habitat",
   ...
@@ -35,7 +36,7 @@ create_critter(
 
 \item{critter_type}{}
 
-\item{base_habitat}{}
+\item{habitat}{}
 
 \item{season_blocks}{}
 
