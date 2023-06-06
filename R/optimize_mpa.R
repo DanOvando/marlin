@@ -27,16 +27,21 @@ optimize_mpa <-
            econ_objective = "yield",
            work_backwards = TRUE,
            patches_at_a_time = 1) {
+    
+    
+    if (length(resolution) == 1){
+      resolution <- rep(resolution,2)
+    }
     future::plan(future::multisession, workers = workers)
     
     on.exit(future::plan(future::sequential))
     
-    patches <- resolution ^ 2
+    patches <- prod(resolution)
     
     samps <- round(prop_sampled * patches)
     
     mpas <-
-      tidyr::expand_grid(x = 1:resolution, y = 1:resolution) %>%
+      tidyr::expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
       dplyr::mutate(patch = 1:nrow(.))
     
     if (max_prop_mpa < 1) {

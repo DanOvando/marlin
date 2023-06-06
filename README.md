@@ -131,9 +131,12 @@ the various options in `marlin`.
 
 Some of the core options for `marlin`
 
-- `resolution`: the number of patches to a side of the 2D population
-  grid. So, setting a resolution of 10 means you will be simulating a
-  10x10 system, i.e. 100 patches
+- `resolution`: the number of patches to each a side of the 2D grid.
+  Setting one number creates and X by X matrix( e.g. resolution = 10
+  creates a 10x10 simulation grid). Alternatively you can specify a
+  vector of length two showing the number of dimensions in the X and Y
+  dimension. So, `resolution = c(2,10)` creates a 2 x 10 simulation
+  grid.
 
 - `years`: the number of years to run the simulation
 
@@ -147,7 +150,7 @@ library(tidyverse)
 options(dplyr.summarise.inform = FALSE)
 theme_set(marlin::theme_marlin(base_size = 42))
 
-resolution <- 10 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
+resolution <- c(5,10) # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
 
 years <- 20
 
@@ -203,6 +206,11 @@ fauna$bigeye$plot()
 
 <img src="man/figures/README-unnamed-chunk-3-1.png" width="100%" />
 
+``` r
+
+resolution <- fauna[[1]]$resolution
+```
+
 The `fleets` object is a list of individual fishing fleets created by
 the `create_fleet` function. Importantly, each fleet is broken up into
 metiers specifying the dynamics of a fishing fleet with regards to a
@@ -229,7 +237,7 @@ fleets <- list(
         p_explt = 1
       )
     ),
-    base_effort = resolution ^ 2,
+    base_effort = prod(resolution),
     resolution = resolution
   )
 )
@@ -260,7 +268,7 @@ example_sim <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - start_time
-#> Time difference of 0.325253 secs
+#> Time difference of 0.1274521 secs
 ```
 
 we can then use `process_marlin` and `plot_marlin` to examine the
@@ -315,7 +323,7 @@ bigeye_diffusion <- 5
 
 # for now make up some habitat
 
-skipjack_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+skipjack_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   dplyr::mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 20, 200),
   habitat = habitat / max(habitat) * skipjack_diffusion) |> 
   pivot_wider(names_from = y, values_from = habitat) %>% 
@@ -323,7 +331,7 @@ skipjack_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
   as.matrix()
 
 
-bigeye_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+bigeye_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 300, 100),
          habitat = habitat / max(habitat) * bigeye_diffusion) %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
@@ -331,7 +339,7 @@ bigeye_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
   as.matrix()
 
 
-bigeye_habitat2 <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+bigeye_habitat2 <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   mutate(habitat =  dnorm((x ^ .2 + y ^ .2), 100, 100),
          habitat = habitat / max(habitat) * bigeye_diffusion) %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
@@ -375,7 +383,7 @@ fauna <-
 #> • Found: 1 
 #> • Not Found: 0
 Sys.time() - a
-#> Time difference of 2.509863 secs
+#> Time difference of 2.440063 secs
 
 # create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
 # with lists for each species inside there. Price specifies the price per unit weight of that 
@@ -410,7 +418,7 @@ fleets <- list(
         p_explt = 1
       )
     ),
-    base_effort = resolution ^ 2,
+    base_effort = prod(resolution),
         resolution = resolution
 
   ),
@@ -434,7 +442,7 @@ fleets <- list(
       p_explt = 1
     )
   ),
-  base_effort = resolution ^ 2,    resolution = resolution
+  base_effort = prod(resolution),    resolution = resolution
 )
 )
 
@@ -443,7 +451,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets) 
 
 Sys.time() - a
-#> Time difference of 21.6369 secs
+#> Time difference of 2.380806 secs
 
 
 # run simulations
@@ -456,7 +464,7 @@ sim3 <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 4.053628 secs
+#> Time difference of 0.5664029 secs
 # a <- Sys.time()
 
 processed_marlin <- process_marlin(sim = sim3, time_step = time_step, keep_age = TRUE)
@@ -514,7 +522,7 @@ library(tidyverse)
 
 theme_set(marlin::theme_marlin())
 
-resolution <- 20 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
+resolution <- c(20,20) # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
 
 seasons <- 1
 
@@ -534,7 +542,7 @@ mako_diffusion <- 5
 
 # for now make up some habitat
 
-yft_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+yft_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   mutate(habitat =  .05 * x,
          habitat = habitat / max(habitat) * yft_diffusion) %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
@@ -542,7 +550,7 @@ yft_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
   as.matrix()
  
 
-mako_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+mako_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   mutate(habitat =  dnorm(x,resolution, 8),
          habitat = habitat / max(habitat) * mako_diffusion) %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
@@ -608,7 +616,7 @@ fleets <- list("longline" = create_fleet(list(
     p_explt = 1
   )),
   mpa_response = "stay",
-  base_effort = resolution^2,
+  base_effort = prod(resolution),
   resolution = resolution
 ))
 
@@ -617,7 +625,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
-#> Time difference of 14.76869 secs
+#> Time difference of 18.51861 secs
 
 # run simulations
 
@@ -628,7 +636,7 @@ nearshore <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.329144 secs
+#> Time difference of 0.3899872 secs
   
 proc_nearshore <- process_marlin(nearshore, time_step =  fauna[[1]]$time_step)
 
@@ -643,7 +651,7 @@ frame with columns x,y, and mpa denoting the coordinates of MPA patches.
 ``` r
 set.seed(42)
 #specify some MPA locations
-mpa_locations <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+mpa_locations <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
 mutate(mpa = x > 15 & y < 15)
 
 mpa_locations %>% 
@@ -671,7 +679,7 @@ nearshore_mpa <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.30423 secs
+#> Time difference of 0.345463 secs
 
 proc_nearshore_mpa <- process_marlin(nearshore_mpa, time_step =  fauna[[1]]$time_step)
 
@@ -689,7 +697,7 @@ same MPA on this new scenario.
 ``` r
 
 
-mako_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+mako_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   mutate(habitat =  dnorm(x,.3 * resolution, 8),
          habitat = habitat / max(habitat) * mako_diffusion) %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
@@ -744,7 +752,7 @@ offshore <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.3137581 secs
+#> Time difference of 0.352124 secs
   
 proc_offshore <- process_marlin(offshore, time_step =  fauna[[1]]$time_step)
 
@@ -759,7 +767,7 @@ offshore_mpa_sim <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.3306451 secs
+#> Time difference of 0.3616929 secs
 
 
 proc_offshore_mpa <- process_marlin(offshore_mpa_sim, time_step =  fauna[[1]]$time_step)
@@ -811,7 +819,7 @@ tune_type <- "explt"
 
 # make up some habitat
 
-yft_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+yft_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   mutate(habitat =  .05 * x,
          habitat = habitat / max(habitat) * yft_diffusion) %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
@@ -819,7 +827,7 @@ yft_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
   as.matrix()
 
 
-mako_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+mako_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   mutate(habitat =  x > 12 & y >12,
          habitat = habitat / max(habitat) * mako_diffusion) %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
@@ -878,7 +886,7 @@ fleets <- list("longline" = create_fleet(list(
     p_explt = 1
   )),
   mpa_response = "stay",
-  base_effort = resolution^2,
+  base_effort = prod(resolution),
   resolution  = resolution
 ))
 
@@ -887,7 +895,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
-#> Time difference of 0.7291729 secs
+#> Time difference of 0.8951211 secs
 
 # run simulations
 

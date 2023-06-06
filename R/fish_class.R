@@ -48,7 +48,7 @@ Fish <- R6::R6Class(
     #' @param tune_weight
     #' @param density_movement_modifier
     #' @param linf_buffer
-    #' @param resolution
+    #' @param resolution a vector of length two with number of patches in X and Y dimensions
     #' @param season_blocks
     #' @param recruit_habitat
     #' @param fished_depletion
@@ -118,6 +118,9 @@ Fish <- R6::R6Class(
                           lorenzen_m = TRUE) {
       seasons <- as.integer(seasons)
       
+      # if only one resolution dimension provided, assume square
+     
+      
       if (seasons < 1) {
         stop("seasons must be greater than or equal to 1")
       }
@@ -127,23 +130,29 @@ Fish <- R6::R6Class(
       }
       
       spawning_seasons <- (spawning_seasons / seasons) - 1 / seasons
-      
-      if (length(habitat) > 1 && class(habitat) == "list") {
-        resolution <- nrow(habitat[[1]])
+      if (length(habitat)>0 && class(habitat) == "list") {
+        resolution <- c(nrow(habitat[[1]]), ncol(habitat[[1]]))
       } else if (any(class(habitat) == "matrix")){
-        resolution <- nrow(habitat)
+        resolution <- c(nrow(habitat), ncol(habitat))
       }
       
       # if habitat is an empty list
-      if (length(habitat) == 0) {
-        habitat <-
-          purrr::map(1:seq_along(seasons), function(x, res)
-            matrix(0, nrow = res, ncol = res), res = resolution)
-        
+      if (length(resolution) == 1 & all(!is.na(resolution))){
+        resolution <- rep(resolution,2)
       }
       
-      patches <- resolution ^ 2
+      self$resolution <- resolution
       
+      patches <- prod(resolution)
+      
+      self$patches <- patches
+      
+      if (purrr::is_empty(habitat)) {
+        habitat <-
+          purrr::map(1:seq_along(seasons), function(x, res)
+            matrix(0, nrow = res[1], ncol = res[2]), res = self$resolution)
+        
+      }
       
       if (length(season_blocks) == 0) {
         seasons_per_habitat <-
@@ -213,12 +222,12 @@ Fish <- R6::R6Class(
                    time_step = time_step,
                    seasons = seasons)
       
-      if (!is.null(dim(habitat[[1]]))) {
-        resolution <- nrow(habitat[[1]])
-        
-      }
-      
-      es <- resolution ^ 2
+      # if (!is.null(dim(habitat[[1]]))) {
+      #   resolution <- c(nrow(habitat[[1]]), nrow(habitat[[2]]))
+      #   
+      # }
+      # 
+      # es <- prod(resolution)
       
       if (!is.na(scientific_name) & get_common_name == TRUE) {
         common_name <-
@@ -519,7 +528,7 @@ Fish <- R6::R6Class(
       
       inst_movement_matrix <-  purrr::pmap(list(multiplier = diffusion_and_taxis),
                                prep_movement,
-                               resolution = resolution)
+                               resolution = self$resolution)
   
      ## broken through here
       
@@ -544,7 +553,7 @@ Fish <- R6::R6Class(
       
       # set up unfished recruitment by patch
       if (is.null(dim(recruit_habitat))) {
-        recruit_habitat <- matrix(1, nrow = resolution, ncol = resolution)
+        recruit_habitat <- matrix(1, nrow = resolution[1], ncol = resolution[2])
         
       }
       
@@ -624,7 +633,6 @@ Fish <- R6::R6Class(
       init_pop <- matrix(NA, nrow = patches, ncol = length(m_at_age))
       
       init_pop[,1] <- local_r0s
-      
       for (i in 2:length(m_at_age)){
         
         init_pop[,i] <- init_pop[,i-1] * exp(-m_at_age[i-1] * time_step)
@@ -695,7 +703,7 @@ Fish <- R6::R6Class(
         maturity_at_age = maturity_at_age,
         steepness = steepness,
         m_at_age = m_at_age,
-        patches = resolution ^ 2,
+        patches = prod(resolution),
         burn_steps = burn_steps,
         time_step = time_step,
         season = spawning_seasons[1],
@@ -714,6 +722,8 @@ Fish <- R6::R6Class(
       )
       
       unfished$tmppop$ages <- ages
+      
+      unfished$tmppop$resolution <- self$resolution
       
       self$b0 <- sum(unfished$tmppop$b_p_a)
       
@@ -815,6 +825,7 @@ Fish <- R6::R6Class(
     )
     pop$ages <- self$ages
     
+    pop$resolution <- self$resolution
     return(pop)
     
   } # close swim

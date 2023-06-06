@@ -97,7 +97,7 @@ Let's start with a simple one-fleet one-critter example to illustrate the variou
 
 Some of the core options for `marlin` 
 
-- `resolution`: the number of patches to a side of the 2D population grid. So, setting a resolution of 10 means you will be simulating a 10x10 system, i.e. 100 patches
+- `resolution`: the number of patches to each a side of the 2D  grid. Setting one number creates and X by X matrix( e.g. resolution = 10 creates a 10x10 simulation grid). Alternatively you can specify a vector of length two showing the number of dimensions in the X and Y dimension. So, `resolution = c(2,10)` creates a 2 x 10 simulation grid. 
 
 - `years`: the number of years to run the simulation
 
@@ -110,7 +110,7 @@ library(tidyverse)
 options(dplyr.summarise.inform = FALSE)
 theme_set(marlin::theme_marlin(base_size = 42))
 
-resolution <- 10 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
+resolution <- c(5,10) # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
 
 years <- 20
 
@@ -150,6 +150,7 @@ fauna <-
 
 fauna$bigeye$plot()
 
+resolution <- fauna[[1]]$resolution
 ```
 
 
@@ -169,7 +170,7 @@ fleets <- list(
         p_explt = 1
       )
     ),
-    base_effort = resolution ^ 2,
+    base_effort = prod(resolution),
     resolution = resolution
   )
 )
@@ -238,7 +239,7 @@ bigeye_diffusion <- 5
 
 # for now make up some habitat
 
-skipjack_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+skipjack_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   dplyr::mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 20, 200),
   habitat = habitat / max(habitat) * skipjack_diffusion) |> 
   pivot_wider(names_from = y, values_from = habitat) %>% 
@@ -246,7 +247,7 @@ skipjack_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
   as.matrix()
 
 
-bigeye_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+bigeye_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 300, 100),
          habitat = habitat / max(habitat) * bigeye_diffusion) %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
@@ -254,7 +255,7 @@ bigeye_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
   as.matrix()
 
 
-bigeye_habitat2 <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+bigeye_habitat2 <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   mutate(habitat =  dnorm((x ^ .2 + y ^ .2), 100, 100),
          habitat = habitat / max(habitat) * bigeye_diffusion) %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
@@ -325,7 +326,7 @@ fleets <- list(
         p_explt = 1
       )
     ),
-    base_effort = resolution ^ 2,
+    base_effort = prod(resolution),
         resolution = resolution
 
   ),
@@ -349,7 +350,7 @@ fleets <- list(
       p_explt = 1
     )
   ),
-  base_effort = resolution ^ 2,    resolution = resolution
+  base_effort = prod(resolution),    resolution = resolution
 )
 )
 
@@ -407,7 +408,7 @@ library(tidyverse)
 
 theme_set(marlin::theme_marlin())
 
-resolution <- 20 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
+resolution <- c(20,20) # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
 
 seasons <- 1
 
@@ -427,7 +428,7 @@ mako_diffusion <- 5
 
 # for now make up some habitat
 
-yft_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+yft_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   mutate(habitat =  .05 * x,
          habitat = habitat / max(habitat) * yft_diffusion) %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
@@ -435,7 +436,7 @@ yft_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
   as.matrix()
  
 
-mako_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+mako_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   mutate(habitat =  dnorm(x,resolution, 8),
          habitat = habitat / max(habitat) * mako_diffusion) %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
@@ -496,7 +497,7 @@ fleets <- list("longline" = create_fleet(list(
     p_explt = 1
   )),
   mpa_response = "stay",
-  base_effort = resolution^2,
+  base_effort = prod(resolution),
   resolution = resolution
 ))
 
@@ -528,7 +529,7 @@ We will now design and implement an MPA network by specifying a data frame with 
 ```{r}
 set.seed(42)
 #specify some MPA locations
-mpa_locations <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+mpa_locations <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
 mutate(mpa = x > 15 & y < 15)
 
 mpa_locations %>% 
@@ -568,7 +569,7 @@ Now though, consider a different scenario. Here the tunas still slightly prefer 
 ```{r}
 
 
-mako_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+mako_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   mutate(habitat =  dnorm(x,.3 * resolution, 8),
          habitat = habitat / max(habitat) * mako_diffusion) %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
@@ -683,7 +684,7 @@ tune_type <- "explt"
 
 # make up some habitat
 
-yft_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+yft_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   mutate(habitat =  .05 * x,
          habitat = habitat / max(habitat) * yft_diffusion) %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
@@ -691,7 +692,7 @@ yft_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
   as.matrix()
 
 
-mako_habitat <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+mako_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   mutate(habitat =  x > 12 & y >12,
          habitat = habitat / max(habitat) * mako_diffusion) %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
@@ -750,7 +751,7 @@ fleets <- list("longline" = create_fleet(list(
     p_explt = 1
   )),
   mpa_response = "stay",
-  base_effort = resolution^2,
+  base_effort = prod(resolution),
   resolution  = resolution
 ))
 

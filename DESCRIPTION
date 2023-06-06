@@ -1,11 +1,11 @@
 Package: marlin
-Title: Simulation of Ocean Fisheries
-Version: 0.3.0.9000
+Title: Simulation of Marine Social-Ecological Systems
+Version: 0.4.0
 Authors@R: 
     person(given = "Dan",
            family = "Ovando",
            role = c("aut", "cre"),
-           email = "danovan@uw.edu",
+           email = "dovando@iattc.org",
            comment = c(ORCID = "0000-0003-2120-7345"))
 Description: Fast simulation of marine fauna and fisheries. Runs multiple (independent) age structured species simultaneously in 2D
 License: file LICENSE

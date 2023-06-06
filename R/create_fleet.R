@@ -30,17 +30,19 @@ create_fleet <-
            base_effort = NA) {
     # idea: each fleet has a list of fauna inside of it specifying the price, selectivity, q for that species
     
+    if (length(resolution) == 1){
+      resolution <- rep(resolution,2)
+    }
     if (is.na(base_effort)){
-      base_effort <- resolution^2
+      base_effort <- prod(resolution)
     }
     
     if (is.null(ports)){
       
-      cost_per_patch <- rep(0, resolution^2)
+      cost_per_patch <- rep(0, prod(resolution))
       
     } else {
-      
-      patches <- tidyr::expand_grid(x = 1:resolution, y = 1:resolution) %>% 
+      patches <- tidyr::expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>% 
         dplyr::mutate(patch = 1:nrow(.)) # extra step to make sure patch ordering is consistent
       
       ports <- ports %>% 
@@ -48,11 +50,11 @@ create_fleet <-
       
       # calculate the distance between each of the patches
       port_distance <- distance <-
-        tidyr::expand_grid(x = 1:resolution, y = 1:resolution) %>%
+        tidyr::expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
         dist(diag = TRUE) %>%
         as.matrix()
       
-      port_distances <- apply(matrix(port_distance[ports$patch,], nrow = length(ports$patch), ncol = ),2,min) # calculate the distance from each patch to the port patches, then find the minimum distance
+      port_distances <- apply(matrix(port_distance[ports$patch,], nrow = length(ports$patch)),2,min) # calculate the distance from each patch to the port patches, then find the minimum distance
       
       cost_per_patch <- port_distances * cost_per_distance # calculate total travel cost per patch
       

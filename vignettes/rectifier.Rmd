@@ -1,0 +1,104 @@
+---
+title: "Don't Be a Square"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Don't Be a Square}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  message = FALSE
+)
+```
+
+```{r setup}
+library(marlin)
+library(tidyverse)
+options(dplyr.summarise.inform = FALSE)
+theme_set(marlin::theme_marlin(base_size = 42))
+
+resolution <- c(6,40) #specify a 8 wide by 40 tall grid
+
+patch_area <- 10 # 10km2
+
+years <- 20
+
+seasons <- 1
+
+time_step <- 1 / seasons
+
+steps <- years * seasons
+
+rockfish_diffusion <- 2
+
+coastal_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
+  dplyr::mutate(habitat =  -.2 + .2 *x,
+  habitat = habitat / max(habitat) * rockfish_diffusion) |> 
+  pivot_wider(names_from = y, values_from = habitat) %>% 
+  select(-x) %>% 
+  as.matrix()
+
+
+fauna <- 
+  list(
+    "rockfish" = create_critter(
+      common_name = "blue rockfish",
+      adult_diffusion = 10,
+      density_dependence = "post_dispersal",
+      habitat = coastal_habitat,
+      patch_area = patch_area,
+      seasons = 4,
+      fished_depletion = .25,
+      resolution = resolution,
+      steepness = 0.6,
+      ssb0 = 42,
+      m = 0.4
+    )
+  )
+
+
+fleets <- list(
+  "dayboats" = create_fleet(
+    list("rockfish" = Metier$new(
+        critter = fauna$rockfish,
+        price = 10,
+        sel_form = "logistic",
+        sel_start = 1,
+        sel_delta = .01,
+        catchability = 0,
+        p_explt = 1
+      )
+    ),
+    base_effort = prod(resolution),
+    resolution = resolution
+  )
+)
+
+
+fleets <- tune_fleets(fauna, fleets, tune_type = "depletion") 
+
+fauna$rockfish$plot()
+
+resolution <- fauna[[1]]$resolution
+
+start_time <- Sys.time()
+
+coastline_sim <- simmar(fauna = fauna,
+                  fleets = fleets,
+                  years = years)
+
+Sys.time() - start_time
+  
+
+processed_coastline <- process_marlin(coastline_sim)
+```
+
+```{r, fig.cap="Rectangular coastline simulation", fig.height=8, fig.width=3}
+
+plot_marlin(processed_coastline, plot_type = "space")
+
+```
