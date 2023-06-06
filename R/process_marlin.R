@@ -38,9 +38,9 @@ process_marlin <- function(sim,
   sim <-
     sim[as.character(steps_to_keep)] # option to only select some years for memory's sake
   
-  resolution <- sqrt(nrow(sim[[1]][[1]]$n_p_a))
+  resolution <- sim[[1]][[1]]$resolution
   
-  grid <- tidyr::expand_grid(x = 1:resolution, y = 1:resolution)
+  grid <- tidyr::expand_grid(x = 1:resolution[1], y = 1:resolution[2])
   
   stepper <- function(x, grid) {
     # x <- sim[[1]]

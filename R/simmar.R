@@ -51,10 +51,15 @@ simmar <- function(fauna = list(),
   step_names <- seq(0 + starting_step, years + 1 + starting_step, by = time_step)
   
   patches <- unique(purrr::map_dbl(fauna, "patches"))
+  
+  # not building checks for same resolution here since almost redundant to patches unless product of resolution is identical
+  resolution <- (purrr::map(fauna[1], ~ data.frame(t(.x$resolution)))) |> 
+    purrr::list_rbind() |> 
+    unlist()
+  
   if (all(is.na(initial_conditions))) {
     initial_conditions <-
       purrr::map(fauna, c("unfished")) # pull out unfished conditions created by create_critter
-    
   }
   
   if (length(patches) > 1) {
@@ -622,7 +627,7 @@ simmar <- function(fauna = list(),
         
         diffusion_and_taxis <- fauna[[f]]$diffusion_foundation[[season_block]] * current_habitat
     
-        inst_movement_matrix <-  prep_movement(diffusion_and_taxis, resolution = sqrt(patches))
+        inst_movement_matrix <-  prep_movement(diffusion_and_taxis, resolution = resolution)
         
    
         # update movement matrix with current habitat
@@ -775,7 +780,6 @@ simmar <- function(fauna = list(),
       }
       
       storage[[s]][[f]] <- pop
-      
     } # close fauni, much faster this way than dopar, who knew
     
     
@@ -788,6 +792,4 @@ simmar <- function(fauna = list(),
     rlang::set_names(storage, nm = step_names[ifelse(keep_starting_step,1,2):(steps - 1)])
   
   storage <- purrr::map(storage, ~ rlang::set_names(.x, fauni))
-  
-  
 } # close function

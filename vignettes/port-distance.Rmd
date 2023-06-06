@@ -27,7 +27,9 @@ library(marlin)
 library(ggplot2)
 
 
-resolution <- 10 
+resolution <- c(10,10) 
+
+patches <- prod(resolution)
 
 years <- 20
 
@@ -69,7 +71,7 @@ fleets <- list(
     )
     ),
     ports = ports,
-    base_effort = resolution ^ 2,
+    base_effort = prod(resolution),
     resolution  = resolution,
     spatial_allocation = "ppue",
     cost_per_unit_effort = 1,
@@ -99,7 +101,7 @@ plot_marlin(
   plot_var = "ssb",
   plot_type = "space")
 
-patch_effort <- tidyr::expand_grid(x = 1:resolution, y = 1:resolution) %>% 
+patch_effort <- tidyr::expand_grid(x = 1:fauna[[1]]$resolution[1], y = 1:fauna[[1]]$resolution[2]) %>% 
   dplyr::mutate(effort = port_sim[[length(port_sim)]]$bigeye$e_p_fl$longline )
 
 patch_effort %>% 

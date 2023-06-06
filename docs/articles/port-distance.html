@@ -41,11 +41,11 @@
 <li class="active nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
+    <a class="dropdown-item" href="../articles/MSE.html">MSE</a>
     <a class="dropdown-item" href="../articles/dynamic-habitat.html">dynamic-habitat</a>
     <a class="dropdown-item" href="../articles/fleet-management.html">fleet-management</a>
-    <a class="dropdown-item" href="../articles/MSE.html">MSE</a>
-    <a class="dropdown-item" href="../articles/optimize-mpas.html">optimize-mpas</a>
     <a class="dropdown-item" href="../articles/port-distance.html">port-distance</a>
+    <a class="dropdown-item" href="../articles/rectifier.html">Don't Be a Square</a>
     <a class="dropdown-item" href="../articles/tune-movement.html">tune-movement</a>
   </div>
 </li>
@@ -109,7 +109,9 @@ specified by x and y coordinates.</p>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span></span>
 <span></span>
-<span><span class="va">resolution</span> <span class="op">&lt;-</span> <span class="fl">10</span> </span>
+<span><span class="va">resolution</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>,<span class="fl">10</span><span class="op">)</span> </span>
+<span></span>
+<span><span class="va">patches</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/prod.html" class="external-link">prod</a></span><span class="op">(</span><span class="va">resolution</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">years</span> <span class="op">&lt;-</span> <span class="fl">20</span></span>
 <span></span>
@@ -144,7 +146,7 @@ locations.</p>
 <span>    <span class="op">)</span></span>
 <span>    <span class="op">)</span>,</span>
 <span>    ports <span class="op">=</span> <span class="va">ports</span>,</span>
-<span>    base_effort <span class="op">=</span> <span class="va">resolution</span> <span class="op">^</span> <span class="fl">2</span>,</span>
+<span>    base_effort <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/prod.html" class="external-link">prod</a></span><span class="op">(</span><span class="va">resolution</span><span class="op">)</span>,</span>
 <span>    resolution  <span class="op">=</span> <span class="va">resolution</span>,</span>
 <span>    spatial_allocation <span class="op">=</span> <span class="st">"ppue"</span>,</span>
 <span>    cost_per_unit_effort <span class="op">=</span> <span class="fl">1</span>,</span>
@@ -177,7 +179,7 @@ the ports.</p>
 <p><img src="port-distance_files/figure-html/unnamed-chunk-5-1.png" width="700"></p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="va">patch_effort</span> <span class="op">&lt;-</span> <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/expand_grid.html" class="external-link">expand_grid</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">resolution</span>, y <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">resolution</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
+<span><span class="va">patch_effort</span> <span class="op">&lt;-</span> <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/expand_grid.html" class="external-link">expand_grid</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">fauna</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">resolution</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, y <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">fauna</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">resolution</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>effort <span class="op">=</span> <span class="va">port_sim</span><span class="op">[[</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">port_sim</span><span class="op">)</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">bigeye</span><span class="op">$</span><span class="va">e_p_fl</span><span class="op">$</span><span class="va">longline</span> <span class="op">)</span></span>
 <span></span>
 <span><span class="va">patch_effort</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>

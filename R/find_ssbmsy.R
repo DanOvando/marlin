@@ -60,7 +60,7 @@ assign_ssbmsy <- function(fauna, sel_start = 0.01, years = 50){
     fleets <- list(
       "longline" = create_fleet(
         tmp_metier,
-        base_effort = mult * resolution ^ 2,
+        base_effort = mult * prod(resolution),
         resolution = resolution
       )
     )

@@ -41,11 +41,11 @@
 <li class="active nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
+    <a class="dropdown-item" href="../articles/MSE.html">MSE</a>
     <a class="dropdown-item" href="../articles/dynamic-habitat.html">dynamic-habitat</a>
     <a class="dropdown-item" href="../articles/fleet-management.html">fleet-management</a>
-    <a class="dropdown-item" href="../articles/MSE.html">MSE</a>
-    <a class="dropdown-item" href="../articles/optimize-mpas.html">optimize-mpas</a>
     <a class="dropdown-item" href="../articles/port-distance.html">port-distance</a>
+    <a class="dropdown-item" href="../articles/rectifier.html">Don't Be a Square</a>
     <a class="dropdown-item" href="../articles/tune-movement.html">tune-movement</a>
   </div>
 </li>
@@ -245,6 +245,7 @@ steps, the model treats the supplied habitat list as being seasonal.</p>
 <span></span>
 <span></span>
 <span><span class="fu"><a href="https://gganimate.com/reference/animate.html" class="external-link">animate</a></span><span class="op">(</span><span class="va">spawning_agg</span>, nframes <span class="op">=</span> <span class="fl">100</span>, fps<span class="op">=</span><span class="fl">2</span><span class="op">)</span></span></code></pre></div>
+<p><img src="../docs/articles/dynamic-habitat_files/figure-html/setup-1.gif"><!-- --></p>
 </div>
 <div class="section level2">
 <h2 id="range-shifts">Range Shifts<a class="anchor" aria-label="anchor" href="#range-shifts"></a>
@@ -300,12 +301,16 @@ around a land mass.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_tile</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>  <span class="fu"><a href="https://gganimate.com/reference/transition_time.html" class="external-link">transition_time</a></span><span class="op">(</span><span class="va">step</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://gganimate.com/reference/ease_aes.html" class="external-link">ease_aes</a></span><span class="op">(</span><span class="st">'linear'</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_viridis.html" class="external-link">scale_fill_viridis_c</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"Tunas"</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"longitude"</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_continuous</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"latitude"</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_viridis.html" class="external-link">scale_fill_viridis_c</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"Tunas"</span>, guide <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guide_colourbar.html" class="external-link">guide_colorbar</a></span><span class="op">(</span>frame.colour <span class="op">=</span> <span class="st">"black"</span>, barwidth <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html" class="external-link">unit</a></span><span class="op">(</span><span class="fl">10</span>, <span class="st">"lines"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"Longitude"</span>, expand <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">0</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_continuous</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"Latitude"</span>, expand <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">0</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"top"</span><span class="op">)</span></span>
 <span></span>
 <span></span>
-<span><span class="fu"><a href="https://gganimate.com/reference/animate.html" class="external-link">animate</a></span><span class="op">(</span><span class="va">range_shift</span>, nframes <span class="op">=</span> <span class="fl">100</span>, fps<span class="op">=</span><span class="fl">2</span><span class="op">)</span></span></code></pre></div>
+<span></span>
+<span></span>
+<span><span class="fu"><a href="https://gganimate.com/reference/anim_save.html" class="external-link">anim_save</a></span><span class="op">(</span>filename <span class="op">=</span> <span class="st">"ctmc.gif"</span>, animation <span class="op">=</span> <span class="fu"><a href="https://gganimate.com/reference/animate.html" class="external-link">animate</a></span><span class="op">(</span><span class="va">range_shift</span>, nframes <span class="op">=</span> <span class="fl">100</span>, fps<span class="op">=</span><span class="fl">4</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside>
