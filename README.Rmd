@@ -130,14 +130,13 @@ From there, `marlin` works be specifying three list objects
 
 - `manager`: a list of the management strategies being employed
 
+### A Warning about Default Life History Values
 The `fauna` object is a list with individual slots for every "critter" you want to simulate, created by the `create_critter` function. If you supply a common or scientific name, the model will try and populate the life history values for your species based on the values reported in [FishLife](https://github.com/James-Thorson-NOAA/FishLife). Note that you **NEED* an internet connection for this feature to work. Running `marlin` offline requires you to supply all life history values on your own. 
 
 **WARNING**. The values from `FishLife` are model estimates. You should always check the results to see if they are good enough for your application, and where possible / needed update the values with more precise local studies. 
 
 We recommend using `scientific_name` rather than `common_name`. If you tried to lookup by common_name and get an error that says `Error in seq.default(min_age, max_age, by = time_step)...` it's most likely a database connection problem and simply running the code again will work. 
-
-though for more specific applications you should always check these values and replace them with more local and specific values as needed. 
-
+### Creating a basic simulation
 ```{r}
 fauna <- 
   list(
