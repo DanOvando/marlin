@@ -66,6 +66,8 @@ fauna <-
       ssb0 = 1000
     )
   )
+
+fauna$bigeye$m_at_age
 ```
 
 

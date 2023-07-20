@@ -1,4 +1,5 @@
 # specific things
+*.DS_Store
 marlin-notebook.Rmd
 scratch.R
 *.gif

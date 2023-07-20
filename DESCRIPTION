@@ -1,6 +1,6 @@
 Package: marlin
 Title: Simulation of Marine Social-Ecological Systems
-Version: 0.4.0
+Version: 0.4.1
 Authors@R: 
     person(given = "Dan",
            family = "Ovando",
@@ -34,8 +34,7 @@ Imports:
     tidyr,
     R6,
     ranger,
-    expm,
-    rfishbase (>= 4.0.0)
+    expm
 VignetteBuilder: knitr
 URL: https://danovando.github.io/marlin/,
     https://github.com/danovando/marlin

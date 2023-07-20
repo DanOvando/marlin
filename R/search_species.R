@@ -18,78 +18,90 @@
 #' @return integer of row numbers of \code{ParentChild_gz} matching \code{genus_species}
 
 #' @export
-search_species = function( Class="predictive", Order="predictive", Family="predictive", Genus="predictive", Species="predictive",
-                           add_ancestors=TRUE, Database=marlin::FishBase_and_RAM, ParentChild_gz=Database$ParentChild_gz ){
-  
-  qlt <- purrr::quietly(rfishbase::load_taxa)
-  
-  fishbase <- qlt()$result
-  # note in modern version of fishbase Species returns the genus and species not just the species, hence modifications to use grep instead
-  
-  # Match full taxonomy from fishbase
-  Match = 1:nrow(fishbase)
-  if( Class!="predictive" ){ Match = Match[ which(tolower(fishbase$Class[Match])==tolower(Class)) ]}
-  if( Order!="predictive" ){ Match = Match[ which(tolower(fishbase$Order[Match])==tolower(Order)) ]}
-  if( Family!="predictive" ){Match = Match[ which(tolower(fishbase$Family[Match])==tolower(Family)) ]}
-  if( Genus!="predictive" ){ Match = Match[ which(tolower(fishbase$Genus[Match])==tolower(Genus)) ]}
-  if( Species!="predictive" ){Match = Match[grep(tolower(Species),tolower(fishbase$Species[Match]))]}
-  if( length(Match)==0 ){ stop( paste("Inputs not found in FishBase, please check spelling of",tolower(Class),tolower(Order),tolower(Family),tolower(Genus),tolower(Species)) )}
+search_species = function(Class = "predictive",
+                          Order = "predictive",
+                          Family = "predictive",
+                          Genus = "predictive",
+                          Species = "predictive",
+                          add_ancestors = TRUE,
+                          Database = marlin::FishBase_and_RAM,
+                          ParentChild_gz = Database$ParentChild_gz,
+                          show_match = FALSE) {
+  qcl <- purrr::quietly(taxize::classification)
+  taxonomy <-
+    (qcl(paste0(
+      Genus, ifelse(Species == "predictive", "", paste0(" ", Species))
+    ), db = "ncbi")$result)[[1]]
   
   # add missing taxonomic levels from FishBase if uniquely defined (and throw error if not)
   full_taxonomy = c(Class, Order, Family, Genus, Species)
-  if( !all(c(Species)=="predictive") ){
-    if( length(unique(fishbase[Match,'Species']))!=1) stop("inputs are not unique")
-    if( length(unique(fishbase[Match,'Species']))==1) full_taxonomy[5] = unique(fishbase[Match,'Species'])[1]
+  if (!all(c(Species) == "predictive")) {
+    full_taxonomy[5] <- taxonomy$name[taxonomy$rank == "species"]
   }
-  if( !all(c(Species,Genus)=="predictive") ){
-    if( length(unique(fishbase[Match,'Genus']))!=1) stop("inputs are not unique")
-    if( length(unique(fishbase[Match,'Genus']))==1) full_taxonomy[4] = unique(fishbase[Match,'Genus'])[1]
+  if (!all(c(Species, Genus) == "predictive")) {
+    full_taxonomy[4] <- taxonomy$name[taxonomy$rank == "genus"]
   }
-  if( !all(c(Species,Genus,Family)=="predictive") ){
-    if( length(unique(fishbase[Match,'Family']))!=1) stop("inputs are not unique")
-    if( length(unique(fishbase[Match,'Family']))==1) full_taxonomy[3] = unique(fishbase[Match,'Family'])[1]
+  if (!all(c(Species, Genus, Family) == "predictive")) {
+    full_taxonomy[3] <- taxonomy$name[taxonomy$rank == "family"]
   }
-  if( !all(c(Species,Genus,Family,Order)=="predictive") ){
-    if( length(unique(fishbase[Match,'Order']))!=1) stop("inputs are not unique")
-    if( length(unique(fishbase[Match,'Order']))==1) full_taxonomy[2] = unique(fishbase[Match,'Order'])[1]
+  if (!all(c(Species, Genus, Family, Order) == "predictive")) {
+    full_taxonomy[2] <- taxonomy$name[taxonomy$rank == "order"]
   }
-  if( !all(c(Species,Genus,Family,Order,Class)=="predictive") ){
-    if( length(unique(fishbase[Match,'Class']))!=1) stop("inputs are not unique")
-    if( length(unique(fishbase[Match,'Class']))==1) full_taxonomy[1] = unique(fishbase[Match,'Class'])[1]
+  if (!all(c(Species, Genus, Family, Order, Class) == "predictive")) {
+    
+    # superclass seems to more frequently match the values in FishLife so defaulting to this for now
+    class <- taxonomy$name[taxonomy$rank == "superclass"]
+    
+    if (length(class) == 0) {
+      class <- taxonomy$name[taxonomy$rank == "class"]
+      
+    }    
+    
+    full_taxonomy[1] <- class
   }
+  
+  
+  # check if species has been returned as Genus + species
+  if (length(strsplit(full_taxonomy[[5]], "\\s+")[[1]]) > 1) {
+    full_taxonomy[[5]] <-
+      strsplit(full_taxonomy[[5]], "\\s+")[[1]][2] # If "species" entry contains Genus + species, convert to the second element, assuming this is species, splitting by whitespace
+  }
+  
   match_taxonomy = full_taxonomy
   
-  # Match in database
-  Count = 1
-  Group = NA
-  while( is.na(Group) ){
-    Group = match( paste(tolower(match_taxonomy),collapse="_"), tolower(ParentChild_gz[,'ChildName']) )
-    if( is.na(Group) ){
-      match_taxonomy[length(match_taxonomy)-Count+1] = "predictive"
-      Count = Count+1
-    }
-  }
-  message( "Closest match: ", as.character(ParentChild_gz[Group,'ChildName']) )
+  # find closest matches in FishLife database, based on entries with the most number of taxonomic matches.
+  # Doing this instead of exact matches since taxonomy in FishLife no longer matches taxonomy in Fishbase / taxize, e.g.
+  # FishLife says Thunnus opesus is order Perciformes, whereas resources now classify them as in order Scombriformes
   
+  fishlife_match_counter <-
+    purrr::map_dbl(ParentChild_gz$ChildName,
+                   \(x, match_taxonomy) sum(match_taxonomy %in% strsplit(as.character(x), "_")[[1]]),
+                   match_taxonomy = match_taxonomy)
+  
+  Group <- which.max(fishlife_match_counter)
+  if (show_match) {
+    message("Closest match: ", as.character(ParentChild_gz[Group, 'ChildName']))
+  }
   # Pick out ancestors
-  if( add_ancestors==TRUE ){
-    Group = marlin::find_ancestors(child_num=Group, ParentChild_gz=ParentChild_gz)
+  if (add_ancestors == TRUE) {
+    Group = marlin::find_ancestors(child_num = Group, ParentChild_gz = ParentChild_gz)
   }
   
   # Function to add predictive to taxon name
-  Add_predictive = function( char_vec ){
+  Add_predictive = function(char_vec) {
     return_vec = char_vec
-    for(i in 1:length(return_vec)){
-      vec = strsplit(as.character(return_vec[i]),"_")[[1]]
-      return_vec[i] = paste( c(vec,rep("predictive",5-length(vec))), collapse="_")
+    for (i in 1:length(return_vec)) {
+      vec = strsplit(as.character(return_vec[i]), "_")[[1]]
+      return_vec[i] = paste(c(vec, rep("predictive", 5 - length(vec))), collapse =
+                              "_")
     }
     return(return_vec)
   }
-  match_taxonomy = unique(as.character(Add_predictive(ParentChild_gz[Group,'ChildName'])))
+  match_taxonomy = unique(as.character(Add_predictive(ParentChild_gz[Group, 'ChildName'])))
   # Find new matches
-  GroupNum = match(match_taxonomy,ParentChild_gz[,'ChildName'])
+  GroupNum = match(match_taxonomy, ParentChild_gz[, 'ChildName'])
   
   # Return match
-  Return = list( "GroupNum"=GroupNum, "match_taxonomy"=match_taxonomy )
-  return( Return )
+  Return = list("GroupNum" = GroupNum, "match_taxonomy" = match_taxonomy)
+  return(Return)
 }

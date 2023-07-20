@@ -229,7 +229,7 @@ range_shift <- processed_marlin$fauna %>%
   theme(legend.position = "top")
 
 
-
+animate(range_shift, nframes = 100, fps=4)
 
 anim_save(filename = "ctmc.gif", animation = animate(range_shift, nframes = 100, fps=4)
 )
