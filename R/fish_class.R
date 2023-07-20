@@ -147,6 +147,8 @@ Fish <- R6::R6Class(
       
       self$patches <- patches
       
+      self$closest_taxa_match <- NA
+      
       if (purrr::is_empty(habitat)) {
         habitat <-
           purrr::map(1:seq_along(seasons), function(x, res)
@@ -262,7 +264,6 @@ Fish <- R6::R6Class(
         if (!is.null(fish_life$life_traits[[1]]$error)) {
           stop("No match in FishLife: check spelling or supply your own life history values")
         }
-        
         fish_life <- fish_life %>%
           dplyr::mutate(fish_life_worked = purrr::map(life_traits, 'error') %>% purrr::map_lgl(is.null)) %>%
           dplyr::filter(fish_life_worked) %>%
@@ -271,6 +272,7 @@ Fish <- R6::R6Class(
           dplyr::mutate(taxa = glue::glue('{genus} {species}')) %>%
           rlang::set_names(tolower)
         
+        self$closest_taxa_match <- fish_life$closest_taxa_match
         
         if (weight_units == "kg") {
           fish_life$winfinity <- fish_life$winfinity / 1000

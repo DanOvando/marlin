@@ -25,8 +25,7 @@ search_species = function(Class = "predictive",
                           Species = "predictive",
                           add_ancestors = TRUE,
                           Database = marlin::FishBase_and_RAM,
-                          ParentChild_gz = Database$ParentChild_gz,
-                          show_match = FALSE) {
+                          ParentChild_gz = Database$ParentChild_gz) {
   qcl <- purrr::quietly(taxize::classification)
   taxonomy <-
     (qcl(paste0(
@@ -79,9 +78,9 @@ search_species = function(Class = "predictive",
                    match_taxonomy = match_taxonomy)
   
   Group <- which.max(fishlife_match_counter)
-  if (show_match) {
-    message("Closest match: ", as.character(ParentChild_gz[Group, 'ChildName']))
-  }
+  
+  closest_match <-  as.character(ParentChild_gz[Group, 'ChildName'])
+
   # Pick out ancestors
   if (add_ancestors == TRUE) {
     Group = marlin::find_ancestors(child_num = Group, ParentChild_gz = ParentChild_gz)
@@ -102,6 +101,6 @@ search_species = function(Class = "predictive",
   GroupNum = match(match_taxonomy, ParentChild_gz[, 'ChildName'])
   
   # Return match
-  Return = list("GroupNum" = GroupNum, "match_taxonomy" = match_taxonomy)
+  Return = list("GroupNum" = GroupNum, "match_taxonomy" = match_taxonomy,closest_match = closest_match)
   return(Return)
 }

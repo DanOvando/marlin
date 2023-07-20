@@ -24,23 +24,25 @@ get_traits <-
            Order = "predictive",
            Family = "predictive",
            Genus = "predictive",
-           Species = "predictive",
-           show_match = FALSE) {
+           Species = "predictive") {
     closest_match <-
       marlin::search_species(
         Class = Class,
         Order = Order,
         Family = Family,
         Genus = Genus,
-        Species = Species,
-        show_match = show_match
+        Species = Species
       )
+    
+    closest_taxa_match <- closest_match$closest_match
     
     trait_table <-
       as.data.frame(t(marlin::FishBase_and_RAM$ParHat$beta_gj[closest_match$GroupNum[[1]], ]))
     
     trait_table[colnames(trait_table) != 'Temperature'] <-
       exp(trait_table[colnames(trait_table) != 'Temperature'])
+    
+    trait_table$closest_taxa_match <- closest_taxa_match
     
     return(trait_table)
   }
