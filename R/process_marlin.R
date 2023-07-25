@@ -155,13 +155,16 @@ process_marlin <- function(sim,
       
       tidy_effort <- x$e_p_fl %>%
         purrr::set_names(paste0(colnames(.), "_effort")) %>%
-        dplyr::mutate(patch = 1:nrow(.))
+        dplyr::mutate(patch = 1:nrow(.)) |> 
+        tidyr::pivot_longer(tidyselect::ends_with("_effort"), names_to = "fleet", values_to = "effort") |> 
+        dplyr::mutate(fleet = gsub("_effort","", fleet))
       
       # hello? is it me you're looking for?
       tidy_fleet <- tidy_catch %>%
         dplyr::left_join(tidy_rev, by = c("patch", "age","fleet","x","y")) %>%
-        dplyr::left_join(tidy_effort, by = "patch") %>%
-        dplyr::mutate(critter = z)
+        dplyr::left_join(tidy_effort, by = c("patch", "fleet")) %>%
+        dplyr::mutate(critter = z,
+                      cpue = catch / effort)
       
     }
     
@@ -177,7 +180,8 @@ process_marlin <- function(sim,
     purrr::imap(sim, ~ fleet_stepper(.x, grid = grid)) %>%
     purrr::list_rbind(names_to = "step") |> 
     dplyr::mutate(step = as.numeric(step),
-      year = floor(as.numeric(step)))
+      year = floor(as.numeric(step))) |> 
+    dplyr::as_tibble()
   
 
   out <- list(fauna = tidy_sim,

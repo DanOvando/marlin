@@ -9,8 +9,7 @@ get_traits(
   Order = "predictive",
   Family = "predictive",
   Genus = "predictive",
-  Species = "predictive",
-  verbose = FALSE
+  Species = "predictive"
 )
 }
 \arguments{

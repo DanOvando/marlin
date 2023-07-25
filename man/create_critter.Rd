@@ -22,7 +22,7 @@ create_critter(
   burn_years = 50,
   weight_a = NA,
   fec_expo = 1,
-  resolution = 20,
+  resolution = c(10, 10),
   patch_area = 1,
   spawning_seasons = NA,
   density_dependence = "global_habitat",

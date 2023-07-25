@@ -130,7 +130,7 @@ mse_sim <- simmar(fauna = fauna,
 
 initial_conditions <- mse_sim[[length(mse_sim)]]
 
-starting_step = as.numeric(last(names(mse_sim)))
+starting_step = as.numeric(gsub("step_","",last(names(mse_sim))))
 
 for (y in 2:sim_years){
   
@@ -152,7 +152,7 @@ for (y in 2:sim_years){
 
   initial_conditions <- next_year[[length(next_year)]]
   
-  starting_step <- as.numeric(last(names(next_year)))
+  starting_step = as.numeric(gsub("step_","",last(names(next_year))))
 
   mse_sim <- append(mse_sim, next_year)
   

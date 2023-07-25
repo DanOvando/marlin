@@ -88,6 +88,8 @@ fill in fish object
 
 \item{\code{fec_expo}}{exponent for fecundity at weight relationship, 1 = isometric > 1 hyperallometric}
 
+\item{\code{resolution}}{a vector of length two with number of patches in X and Y dimensions}
+
 \item{\code{habitat}}{}
 
 \item{\code{explt_type}}{Swim

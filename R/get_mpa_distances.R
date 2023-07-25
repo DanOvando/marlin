@@ -1,55 +1,55 @@
-get_mpa_distances <- function(patch_grid){
+#' Measures the distance of each cell to the nearest MPA edge and to all MPA cells
+#'
+#' @param mpa_locations a dataframe with at least column coordinate columns x,y,and mpa (TRUE or FALSE)
+#' @param patch_area the area of each patch 
+#' @param resolution the resolution of the simulation system. Can supply a vector `c(x,y)` to denote an X by Y system, or one number to denote an X by X system
+#'
+#' @return a dataframe with two columns added. 
+#' `distance_to_mpa_edge` measures the distance from each patch to the nearest MPA edge in units of sqrt(patch_area), with negative values indicating areas inside an MPA
+#' `total_mpa_distance` measure to total distance to all MPA cells from each patch, in units of sqrt(patch_area)
+#' @export
+#'
+get_distance_to_mpas <- function(mpa_locations, resolution, patch_area = 10){
   
-  open_patches <- patch_grid |> 
-    filter(!mpa)
+  if (length(resolution) == 1){
+    resolution <- rep(resolution,2)
+  }
   
-  mpa_patches <- patch_grid |> 
-    filter(mpa)
+  # prepare MPA locations
+  mpa_locations <- mpa_locations |> 
+    filter(mpa) |> 
+    dplyr::mutate(patch_name = paste(x, y, sep = "_"))
   
+  # set up patch grid in case MPA locations just has MPAs in it
+  patch_grid <- tidyr::expand_grid(x = 1:resolution[1], y = 1:resolution[2]) |> 
+    dplyr::arrange(x) |> 
+    dplyr::mutate(patch_name = paste(x, y, sep = "_"),
+                  patch = 1:length(x),
+                  mpa = patch_name %in% mpa_locations$patch_name)
+  
+  # calculate the euclidean distance between each patch
   patch_distances <- patch_grid |> 
     select(x,y) |> 
     dist(diag = TRUE) |> 
     as.matrix()
   
-  mpa_distances <- rowSums(patch_distances[open_patches$patch,mpa_patches$patch])
+  patch_distances <- patch_distances * sqrt(patch_area) # convert distances into the units of the system
   
-  nearest_mpa <- apply(patch_distances[open_patches$patch,mpa_patches$patch],1,min)
+  total_mpa_distance <- rowSums(patch_distances[,patch_grid$patch[patch_grid$mpa]]) # find the total distance to every MPA patch
   
-  fished_distances <- rowSums(patch_distances[mpa_patches$patch,open_patches$patch])
+  nearest_mpa <- apply(patch_distances[,patch_grid$patch[patch_grid$mpa]],1,min) # find the distance to the nearest MPA edge
   
-  nearest_fished <- apply(patch_distances[mpa_patches$patch,open_patches$patch],1,min)
+  nearest_fished <- apply(patch_distances[,patch_grid$patch[!patch_grid$mpa]],1,min) # find the distance to the nearest fished edge
   
-  mpa_patches$total_distance_to_fished <- fished_distances
+  distance_to_edge <- nearest_mpa - nearest_fished # calculate distance to nearest MPA edge, negative being inside MPA
   
-  mpa_patches$nearest_fished <- nearest_fished
+  out <- patch_grid
   
-  open_patches$total_distance_to_mpa <- mpa_distances
+  out$distance_to_mpa_edge <- distance_to_edge
   
-  open_patches$nearest_mpa <- nearest_mpa
+  out$total_mpa_distance <- total_mpa_distance
   
-  open_patches |> 
-    ggplot(aes(x,y,fill = total_distance_to_mpa)) + 
-    geom_tile() + 
-    geom_tile(data = mpa_patches, aes(x,y), fill = "red")
-  
-  open_patches |> 
-    ggplot(aes(x,y,fill = nearest_mpa)) + 
-    geom_tile() + 
-    geom_tile(data = mpa_patches, aes(x,y), fill = "red")
-  
-  mpa_patches |> 
-    ggplot(aes(x,y,fill = total_distance_to_fished)) + 
-    geom_tile() + 
-    geom_tile(data = open_patches, aes(x,y), fill = "red")
-  
-  mpa_patches |> 
-    ggplot(aes(x,y,fill = nearest_fished)) + 
-    geom_tile() + 
-    geom_tile(data = open_patches, aes(x,y), fill = "red")
-  
-  
-  
-  return(open_patches)
+  return(out)
   
   
 }
