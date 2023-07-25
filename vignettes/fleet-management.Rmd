@@ -155,10 +155,9 @@ proc_sim <- process_marlin(sim)
 plot_marlin(proc_sim)
 
 proc_sim$fleets %>% 
-  pivot_longer(contains("_effort"), names_to = "fleet2", values_to = "effort") %>% 
-  group_by(step, fleet2) %>%
+  group_by(step, fleet) %>%
   summarise(effort = sum(effort)) %>% 
-  ggplot(aes(step * time_step, effort, color = fleet2)) + 
+  ggplot(aes(step * time_step, effort, color = fleet)) + 
   geom_line() + 
     scale_x_continuous(name = "Year")
 
@@ -192,10 +191,9 @@ proc_mpa_sim <- process_marlin(with_mpa)
 
 
 proc_mpa_sim$fleets %>% 
-  pivot_longer(contains("_effort"), names_to = "fleet2", values_to = "effort") %>% 
-  group_by(step, fleet2) %>%
+  group_by(step, fleet) %>%
   summarise(effort = sum(effort)) %>% 
-  ggplot(aes(step * time_step, effort, color = fleet2)) + 
+  ggplot(aes(step * time_step, effort, color = fleet)) + 
   geom_line() + 
   scale_x_continuous(name = "year")
 
@@ -225,10 +223,9 @@ proc_sim_quota$fleets %>%
 
 
 proc_sim_quota$fleets %>% 
-  pivot_longer(contains("_effort"), names_to = "fleet2", values_to = "effort") %>% 
-  group_by(step, fleet2) %>%
+  group_by(step, fleet) %>%
   summarise(effort = sum(effort)) %>% 
-  ggplot(aes(step * time_step, effort, color = fleet2)) + 
+  ggplot(aes(step * time_step, effort, color = fleet)) + 
   geom_line() + 
     scale_x_continuous(name = "Year")
 
@@ -263,10 +260,9 @@ proc_sim_effort$fleets %>%
 
 
 proc_sim_effort$fleets %>% 
-  pivot_longer(contains("_effort"), names_to = "fleet2", values_to = "effort") %>% 
-  group_by(step, fleet2) %>%
+  group_by(step, fleet) %>%
   summarise(effort = sum(effort)) %>% 
-  ggplot(aes(step * time_step, effort, color = fleet2)) + 
+  ggplot(aes(step * time_step, effort, color = fleet)) + 
   geom_line() + 
     scale_x_continuous(name = "Year")
 
@@ -291,10 +287,9 @@ proc_sim <- process_marlin(sim)
 plot_marlin(proc_sim, plot_var = "c")
 
 proc_sim$fleets %>% 
-  pivot_longer(contains("_effort"), names_to = "fleet2", values_to = "effort") %>% 
-  group_by(step, fleet2) %>%
+  group_by(step, fleet) %>%
   summarise(effort = sum(effort)) %>% 
-  ggplot(aes(step * time_step, effort, color = fleet2)) + 
+  ggplot(aes(step * time_step, effort, color = fleet)) + 
   geom_line() + 
   scale_x_continuous(name = "Year") + 
   scale_y_continuous(limits = c(0, NA))

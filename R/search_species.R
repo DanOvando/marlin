@@ -30,7 +30,7 @@ search_species = function(Class = "predictive",
   worms_id <-
     (quiet_query(paste0(
       Genus, ifelse(Species == "predictive", "", paste0(" ", Species))
-    ))$result)
+    ), accepted = TRUE, ask = FALSE, rows = 1)$result)
   
   taxonomy <- taxize::classification(worms_id, db = "worms")[[1]]
   
