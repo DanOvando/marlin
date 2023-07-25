@@ -1,6 +1,6 @@
 Package: marlin
 Title: Simulation of Marine Social-Ecological Systems
-Version: 0.4.1
+Version: 0.4.11
 Authors@R: 
     person(given = "Dan",
            family = "Ovando",
