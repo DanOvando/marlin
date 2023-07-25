@@ -26,13 +26,17 @@ search_species = function(Class = "predictive",
                           add_ancestors = TRUE,
                           Database = marlin::FishBase_and_RAM,
                           ParentChild_gz = Database$ParentChild_gz) {
-  qcl <- purrr::quietly(taxize::classification)
-  taxonomy <-
-    (qcl(paste0(
+  quiet_query <- purrr::quietly(taxize::get_wormsid)
+  worms_id <-
+    (quiet_query(paste0(
       Genus, ifelse(Species == "predictive", "", paste0(" ", Species))
-    ), db = "ncbi")$result)[[1]]
+    ))$result)
   
-  # add missing taxonomic levels from FishBase if uniquely defined (and throw error if not)
+  taxonomy <- taxize::classification(worms_id, db = "worms")[[1]]
+  
+  taxonomy$rank <- tolower(taxonomy$rank)
+  
+  # add missing taxonomic levels from taxize 
   full_taxonomy = c(Class, Order, Family, Genus, Species)
   if (!all(c(Species) == "predictive")) {
     full_taxonomy[5] <- taxonomy$name[taxonomy$rank == "species"]

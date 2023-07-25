@@ -20,6 +20,9 @@ process_marlin <- function(sim,
                            steps_to_keep = NA,
                            time_step = NA,
                            keep_age = TRUE) {
+  
+  names(sim) <- gsub("step_",'',names(sim))
+  
   if (all(is.na(steps_to_keep))) {
     
     steps_to_keep <-  names(sim)

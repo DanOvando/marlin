@@ -789,7 +789,7 @@ simmar <- function(fauna = list(),
   storage <-
     storage[ifelse(keep_starting_step,1,2):(steps - 1)] # since catch is retrospective, chop off last time step to ensure that every step has a catch history, and drop starting step is specified
   storage <-
-    rlang::set_names(storage, nm = step_names[ifelse(keep_starting_step,1,2):(steps - 1)])
+    rlang::set_names(storage, nm = paste0("step_",step_names[ifelse(keep_starting_step,1,2):(steps - 1)]))
   
   storage <- purrr::map(storage, ~ rlang::set_names(.x, fauni))
 } # close function

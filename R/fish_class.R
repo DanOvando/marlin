@@ -233,18 +233,18 @@ Fish <- R6::R6Class(
       
       if (!is.na(scientific_name) & get_common_name == TRUE) {
         common_name <-
-          taxize::sci2comm(scientific_name, db = "ncbi")[[1]][1]
+          taxize::sci2comm(scientific_name, db = "worms")[[1]][1]
         
       }
       
       if (is.na(scientific_name) &
           !is.na(common_name)) {
         scientific_name <-
-          taxize::comm2sci(common_name, db = "ncbi")[[1]][1]
+          taxize::comm2sci(common_name, db = "worms")[[1]][1]
         
       }
       
-      # check fishbase -------------
+      # check fishlife -------------
       if (is.na(scientific_name) == F &
           query_fishlife == T) {
         sq <- purrr::safely(purrr::quietly(get_traits))
@@ -260,9 +260,9 @@ Fish <- R6::R6Class(
             Genus = genus, Species = species
           ),
           sq))
-        
+
         if (!is.null(fish_life$life_traits[[1]]$error)) {
-          stop("No match in FishLife: check spelling or supply your own life history values")
+          stop("No match in taxize::classification or there was a problem connecting to the taxize database: check network connection/spelling or supply your own life history values")
         }
         fish_life <- fish_life %>%
           dplyr::mutate(fish_life_worked = purrr::map(life_traits, 'error') %>% purrr::map_lgl(is.null)) %>%

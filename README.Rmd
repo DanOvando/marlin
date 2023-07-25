@@ -135,9 +135,9 @@ The `fauna` object is a list with individual slots for every "critter" you want 
 
 **WARNING**. The values from `FishLife` are model estimates. You should always check the results to see if they are good enough for your application, and where possible / needed update the values with more precise local studies. 
 
-When you use `FishLife` to look up your life history values the objecting resulting from `create_critter` will have an entry called `closest_taxa_match`. This is the taxonomic level that `FishLife` ended up using given the scientific or common name supplied to it. You shoul double check that the result is as close to the species you wanted as possible!
+When you use `FishLife` to look up your life history values the objecting resulting from `create_critter` will have an entry called `closest_taxa_match`. This is the taxonomic level that `FishLife` ended up using given the scientific or common name supplied to it. You should double check that the result is as close to the species you wanted as possible!
 
-We recommend using `scientific_name` rather than `common_name`. If you tried to lookup by common_name and get an error that says `Error in seq.default(min_age, max_age, by = time_step)...` it's most likely a database connection problem and simply running the code again will work. 
+We recommend using `scientific_name` rather than `common_name`. If you tried to look up by common_name and get an error that says `Error in seq.default(min_age, max_age, by = time_step)...` it's most likely a database connection problem and simply running the code again will work. 
 
 ### Creating a basic simulation
 ```{r}
