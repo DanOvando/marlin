@@ -21,8 +21,8 @@ process_marlin <- function(sim,
                            time_step = NA,
                            keep_age = TRUE) {
   
-  names(sim) <- gsub("step_",'',names(sim))
-  
+  names(sim) <- marlin::clean_steps(names(sim))
+
   if (all(is.na(steps_to_keep))) {
     
     steps_to_keep <-  names(sim)

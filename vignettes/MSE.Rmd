@@ -130,8 +130,8 @@ mse_sim <- simmar(fauna = fauna,
 
 initial_conditions <- mse_sim[[length(mse_sim)]]
 
-starting_step = as.numeric(gsub("step_","",last(names(mse_sim))))
-
+starting_step = marlin::clean_steps(last(names(mse_sim)))
+  
 for (y in 2:sim_years){
   
   depletion <- purrr::map(mse_sim[[length(mse_sim)]], ~ sum(.x$ssb_p_a) / .x$ssb0)
@@ -152,7 +152,7 @@ for (y in 2:sim_years){
 
   initial_conditions <- next_year[[length(next_year)]]
   
-  starting_step = as.numeric(gsub("step_","",last(names(next_year))))
+  starting_step = marlin::clean_steps(last(names(next_year)))
 
   mse_sim <- append(mse_sim, next_year)
   
