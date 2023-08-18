@@ -231,7 +231,7 @@ simmar <- function(fauna = list(),
               fleets[[l]]$metiers[[fauni[f]]]$spatial_catchability,
               nrow = nrow(last_b_p_a),
               ncol = ncol(last_b_p_a),
-              byrow = TRUE
+              byrow = FALSE
             ) *
               matrix(
                 fleets[[l]]$metiers[[fauni[f]]]$sel_at_age,
@@ -578,7 +578,7 @@ simmar <- function(fauna = list(),
             fleets[[l]]$metiers[[fauni[f]]]$spatial_catchability,
             nrow = nrow(last_n_p_a),
             ncol = ncol(last_n_p_a),
-            byrow = TRUE
+            byrow = FALSE
           ) *
           matrix(
             fleets[[l]]$metiers[[fauni[f]]]$sel_at_age,

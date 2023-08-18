@@ -34,18 +34,18 @@ tune_type <- "depletion"
 
 steps <- years * seasons
 
-yft_diffusion <- 6
+yft_diffusion <- 120
   
-yft_depletion <- 0.5
+yft_depletion <- .4
 
-mako_depletion <- 0.4
+mako_depletion <- 0.2
 
-mako_diffusion <- 5
+mako_diffusion <- 150
 
 # for now make up some habitat
 
 yft_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
-  mutate(habitat =  .05 * x,
+  mutate(habitat =  1,
          habitat = habitat / max(habitat) * yft_diffusion) %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
   select(-x) %>% 
@@ -53,7 +53,7 @@ yft_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
  
 
 mako_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
-  mutate(habitat =  dnorm(x,resolution, 8),
+  mutate(habitat =  1,
          habitat = habitat / max(habitat) * mako_diffusion) %>% 
   pivot_wider(names_from = y, values_from = habitat) %>% 
   select(-x) %>% 
@@ -138,7 +138,7 @@ mpa_locations <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) |>
   mutate(patch_name = paste(x,y, sep = "_"))
 
 
-mpas <- sample(mpa_locations$patch_name, round(nrow(mpa_locations) * 0.4), replace = FALSE, prob = mpa_locations$x)
+mpas <- sample(mpa_locations$patch_name, round(nrow(mpa_locations) * 0.2), replace = FALSE, prob = mpa_locations$x)
 
 mpa_locations$mpa <- mpa_locations$patch_name %in% mpas
   
@@ -176,23 +176,29 @@ conservation_outcomes <- proc_nearshore_mpa$fauna
   
 fishery_outcomes <- proc_nearshore_mpa$fleets 
 
-conservation_outcomes |> 
-  filter(step == max(step)) |> 
-  group_by(step,x,y,patch, critter) |> 
-  summarise(biomass = sum(b)) |> 
-    left_join(mpa_distances, by = c("x","y","patch")) |> 
-  ggplot(aes(distance_to_mpa_edge, biomass, color = factor(step))) + 
+conservation_outcomes |>
+  filter(step == max(step)) |>
+  group_by(step, x, y, patch, critter) |>
+  summarise(biomass = sum(b)) |>
+  left_join(mpa_distances, by = c("x", "y", "patch")) |>
+  ggplot(aes(distance_to_mpa_edge, biomass, color = factor(step))) +
   geom_point() +
-  facet_wrap(~critter, scales = "free_y")
+  facet_wrap( ~ critter, scales = "free_y")
 
 fishery_outcomes |> 
   mutate(cpue =  effort) |> 
-  filter(step == max(step)) |> 
+  filter(step == max(step), effort > 0) |> 
     left_join(mpa_distances, by = c("x","y","patch")) |> 
   ggplot(aes(distance_to_mpa_edge, cpue, color = factor(step))) + 
   geom_point() +
   facet_wrap(~critter, scales = "free_y")
 
+
+fishery_outcomes |>
+  mutate(cpue =  effort) |>
+  filter(step == max(step)) |>
+  ggplot(aes(x, y, fill = effort)) +
+  geom_tile()
 
 
 

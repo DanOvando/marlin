@@ -1,0 +1,110 @@
+---
+title: "Spatial Catchability"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(marlin)
+
+library(tidyverse)
+
+library(marlin)
+
+library(tidyverse)
+
+library(gganimate)
+
+library(ggridges)
+
+years <- 20
+
+resolution <-  10
+
+patches <- resolution^2
+
+seasons <- 4
+
+steps <- years * seasons
+
+time_step <-  1 / seasons
+
+spatial_catchability<-  expand_grid(x = 1:resolution, y = 1:resolution) %>%
+  mutate(habitat =  dnorm(x, resolution / 2, .5 *resolution) *  dnorm(y, resolution / 2, .5 * resolution)) %>% 
+  mutate(habitat = habitat * (x >= 4)) 
+
+bigeye_catchability <- spatial_catchability %>% 
+  pivot_wider(names_from = y, values_from = habitat) %>% 
+  select(-x) %>% 
+  as.matrix()
+
+
+fauna <- 
+  list(
+    "bigeye" = create_critter(
+      scientific_name = "thunnus obesus",
+      adult_diffusion = 10, # standard deviation of the number of patches moved by adults
+      recruit_diffusion = 5,
+      density_dependence = "global_ssb", 
+      seasons = seasons,
+      init_explt =  1,
+      explt_type = "f",
+      spawning_seasons = c(2,3),
+      sigma_r = 0,
+      rec_ac = 0,
+      linf = 100,
+      vbk = 0.2,
+      age_mature = 4,
+      m = 0.2,
+      weight_a = 1e-4,
+      weight_b = 3,
+      max_age = 15,
+      query_fishlife = FALSE
+    )
+  )
+
+
+fleets <- list(
+  "longline" = create_fleet(
+    list("bigeye" = Metier$new(
+      critter = fauna$bigeye,
+      price = 10,
+      sel_form = "logistic",
+      sel_start = 1,
+      sel_delta = .01,
+      catchability = 1e-3,
+      p_explt = 1,
+      spatial_catchability = bigeye_catchability
+    )
+    ),
+    base_effort = resolution ^ 2,
+    resolution = resolution
+  )
+)
+
+
+fleets <- tune_fleets(fauna, fleets) 
+
+
+spatial_q_sim <- simmar(fauna = fauna,
+               fleets = fleets,
+               years = years)
+
+
+
+test<- process_marlin(sim = spatial_q_sim, time_step = time_step)
+
+
+spatial_catchability |> 
+  ggplot(aes(x,y,fill = habitat)) + 
+  geom_tile()
+
+
+plot_marlin(test, plot_type = "space")
+
+```

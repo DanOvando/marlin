@@ -253,7 +253,7 @@ So, simply adding a taxis matrix to a diffusion matrix can produce negative off-
 
 To get around this, we use an alternative parameterization of CTMC in which the habitat gradient produces a multiplier of the diffusion rate. This has two advantages. First, it ensures that the resulting movement matrix will not have negative off-diagonal elements and secondly, it makes it a bit easier to set the scale of the habitat gradient. 
 
-As parameterized, the differences in habitat gradient, whether measured in linear or log space, get exponentiated and then multiplied by the diffusion rate *D*. This means that the absolute scale of the habitat gradient matters less than the scaled of their logged differences. So, when generating simulated habitat layers, you can keep the dynamics sane by thinking about values that would produce habitat multipliers that make sense
+As parameterized, the differences in habitat gradient, whether measured in linear or log space, get exponentiated and then multiplied by the diffusion rate *D*. This means that the absolute scale of the habitat gradient matters less than the scale of their logged differences. So, when generating simulated habitat layers, you can keep the dynamics sane by thinking about values that would produce habitat multipliers that make sense
 
 If you're simulating a scallop with a diffusion rate of 0.1km^2^/year, it doesn't make much sense to use a habitat gradient function with a range of 0 to 100, which would produce a taxis multiplier of exp(100-0) roughly 2e43 KM, meaning you've got scallops flying through space every year. 
 

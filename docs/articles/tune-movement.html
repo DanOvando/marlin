@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">marlin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.12</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -42,8 +42,10 @@
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
     <a class="dropdown-item" href="../articles/MSE.html">MSE</a>
+    <a class="dropdown-item" href="../articles/Spatial-Catchability.html">Spatial Catchability</a>
     <a class="dropdown-item" href="../articles/dynamic-habitat.html">dynamic-habitat</a>
     <a class="dropdown-item" href="../articles/fleet-management.html">fleet-management</a>
+    <a class="dropdown-item" href="../articles/measure_gradients.html">Measure MPA Gradients</a>
     <a class="dropdown-item" href="../articles/port-distance.html">port-distance</a>
     <a class="dropdown-item" href="../articles/rectifier.html">Don't Be a Square</a>
     <a class="dropdown-item" href="../articles/tune-movement.html">tune-movement</a>
@@ -331,7 +333,7 @@ makes it a bit easier to set the scale of the habitat gradient.</p>
 <p>As parameterized, the differences in habitat gradient, whether
 measured in linear or log space, get exponentiated and then multiplied
 by the diffusion rate <em>D</em>. This means that the absolute scale of
-the habitat gradient matters less than the scaled of their logged
+the habitat gradient matters less than the scale of their logged
 differences. So, when generating simulated habitat layers, you can keep
 the dynamics sane by thinking about values that would produce habitat
 multipliers that make sense</p>

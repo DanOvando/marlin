@@ -34,7 +34,7 @@ options(dplyr.summarise.inform = FALSE)
 
 theme_set(marlin::theme_marlin(base_size = 14))
 
-resolution <- c(6,42) #specify a 6 wide by 40 tall grid
+resolution <- c(10,100) #specify a 6 wide by 40 tall grid
 
 patch_area <- 10 # 10km2
 
@@ -73,6 +73,19 @@ fauna <-
       steepness = 0.6,
       ssb0 = 42,
       m = 0.4
+    ),
+      "lingcod" = create_critter(
+      common_name = "lingcod",
+      adult_diffusion = 10,
+      density_dependence = "post_dispersal",
+      habitat = coastal_habitat,
+      patch_area = patch_area,
+      seasons = 4,
+      fished_depletion = .7,
+      resolution = resolution,
+      steepness = 0.6,
+      ssb0 = 100,
+      m = 0.2
     )
   )
 
@@ -81,6 +94,15 @@ fleets <- list(
   "dayboats" = create_fleet(
     list("rockfish" = Metier$new(
         critter = fauna$rockfish,
+        price = 10,
+        sel_form = "logistic",
+        sel_start = 1,
+        sel_delta = .01,
+        catchability = 0,
+        p_explt = 1
+      ),
+      "lingcod" = Metier$new(
+        critter = fauna$lingcod,
         price = 10,
         sel_form = "logistic",
         sel_start = 1,
@@ -106,7 +128,7 @@ coastline_sim <- simmar(fauna = fauna,
 Sys.time() - start_time
   
 
-processed_coastline <- process_marlin(coastline_sim)
+processed_coastline <- process_marlin(coastline_sim, keep_age = FALSE)
 ```
 
 ```{r, fig.cap="Rectangular simulation of a coastal rockfish species", fig.height=8, fig.width=3}
