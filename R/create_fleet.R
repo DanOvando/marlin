@@ -45,6 +45,10 @@ create_fleet <-
       patches <- tidyr::expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>% 
         dplyr::mutate(patch = 1:nrow(.)) # extra step to make sure patch ordering is consistent
       
+      if (any(ports$x > resolution[1]) | any(ports$y > resolution[2])){
+        stop("one or more port locations is outside of spatial grid")
+      }
+      
       ports <- ports %>% 
         dplyr::left_join(patches, by = c("x","y"))
       

@@ -6,6 +6,9 @@
 #' @param fauna a fauna object
 #' @param fleets a fleet object
 #' @param years the number of years to tune over
+#' @param tune_type one of 'explt' or 'depletion' to tune to an exploitation rate or a target depletion (B/B0)
+#' @param tune_costs TRUE or FALSE to tune costs to a target cost to revenue ratio
+#' @param fine_tune_costs TRUE or FALSE 
 #'
 #' @return tuned fleet object
 #' @export

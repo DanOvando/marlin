@@ -144,7 +144,7 @@ simmar <- function(fauna = list(),
     matrix(0, patches, length(fauni)) # fishable revenue by patch and fauna
   
   e_p_f <-
-    matrix(0, patches, length(fauni)) # total fishing mortality by patch and fauna
+    matrix(0, patches, length(fauni)) # total fishing effort by patch and fauna
   
   f_q <- rep(0, length(fauni)) # storage for q by fauna
   
@@ -303,6 +303,8 @@ simmar <- function(fauna = list(),
       } # close open access
       
       e_p <- fleets[[l]]$e_p_s[, s - 1]
+      
+      # allocate fleets in space
       
       if (fleets[[l]]$spatial_allocation == "revenue") {
         if (sum(fishable) == 0) {
@@ -586,11 +588,13 @@ simmar <- function(fauna = list(),
             ncol = ncol(last_n_p_a),
             byrow = TRUE
           )
+        ## could add in the effective discard factor here, where that would be a multipliier as a function of 1 - (discard_rate * discard_survival)
+        
         f_p_a <-
           f_p_a + fleets[[l]]$e_p_s[, s] * tmp
         
         f_p_a_fl[, , l] <-
-          fleets[[l]]$e_p_s[, s] * tmp
+          fleets[[l]]$e_p_s[, s] * tmp 
         
         p_p_a_fl[, , l] <- fleets[[l]]$metiers[[fauni[f]]]$price
         
