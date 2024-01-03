@@ -7,18 +7,24 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = FALSE}
+```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
 ```
 
-```{r setup}
+MPA performance is often measured by examining gradients of various outcomes, such as catch-per-unit-effort (CPUE) inside vs. various distances outside the protected area. 
+Here is an example of generating these kinds of measurements using `marlin`
+
+
+```{r, message=FALSE, warning=FALSE}
 
 library(marlin)
 
 library(tidyverse)
+
+library(patchwork)
 
 theme_set(marlin::theme_marlin())
 
@@ -34,15 +40,15 @@ tune_type <- "depletion"
 
 steps <- years * seasons
 
-yft_diffusion <- 100
+yft_diffusion <- 5
   
 yft_depletion <- .2
 
-rec_factor <- 100
+rec_factor <- 10
 
 mako_depletion <- 0.1
 
-mako_diffusion <- 1
+mako_diffusion <- 100
 
 # for now make up some habitat
 
@@ -72,18 +78,20 @@ fauna <-
       adult_diffusion = yft_diffusion, # cells per year
       recruit_diffusion = rec_factor * yft_diffusion,
       fished_depletion = yft_depletion, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
-      density_dependence = "local_habitat", # recruitment form, where 1 implies local recruitment
-      seasons = seasons
+      density_dependence = "pre_dispersal", # recruitment form, where 1 implies local recruitment
+      seasons = seasons,
+      ssb0 = 5000,
       ),
     "Shortfin Mako" = create_critter(
       scientific_name = "Isurus oxyrinchus",
       habitat = list(mako_habitat), # pass habitat as lists
       recruit_habitat = mako_habitat,
       adult_diffusion = mako_diffusion,
-      recruit_diffusion = rec_factor * mako_diffusion,
+      recruit_diffusion = rec_factor * .1,
       fished_depletion = mako_depletion,
       density_dependence = "local_habitat", # recruitment form, where 1 implies local recruitment
       burn_years = 200,
+      ssb0 = 100,
       seasons = seasons,
       fec_form = "pups",
       pups = 2,
@@ -91,7 +99,6 @@ fauna <-
     )
   )
 
-fauna$`Shortfin Mako`$plot()
 
 fleets <- list("longline" = create_fleet(list(
   `Yellowfin Tuna` = Metier$new(
@@ -128,22 +135,21 @@ Sys.time() - a
 
 a <- Sys.time()
 
-nearshore <- simmar(fauna = fauna,
+spillover_sim <- simmar(fauna = fauna,
                   fleets = fleets,
                   years = years)
 
 Sys.time() - a
   
-proc_nearshore <- process_marlin(nearshore, time_step =  fauna[[1]]$time_step)
+proc_spillover <- process_marlin(spillover_sim, time_step =  fauna[[1]]$time_step)
 
-plot_marlin(proc_nearshore, max_scale = FALSE)
+plot_marlin(proc_spillover, max_scale = FALSE)
 
 mpa_locations <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) |> 
   arrange(x) |> 
   mutate(patch_name = paste(x,y, sep = "_"))
 
-
-mpas <- mpa_locations$patch_name[1:round(nrow(mpa_locations) * 0.2)]
+mpas <- mpa_locations$patch_name[1:round(nrow(mpa_locations) * .3)]
 
 # mpas <- sample(mpa_locations$patch_name, round(nrow(mpa_locations) * 0.2), replace = FALSE, prob = mpa_locations$x)
 
@@ -151,7 +157,7 @@ mpa_locations$mpa <- mpa_locations$patch_name %in% mpas
   
 a <- Sys.time()
 
-nearshore_mpa <- simmar(
+mpa_spillover <- simmar(
   fauna = fauna,
   fleets = fleets,
   years = years,
@@ -161,50 +167,53 @@ nearshore_mpa <- simmar(
 
 Sys.time() - a
 
-proc_nearshore_mpa <- process_marlin(nearshore_mpa, time_step =  fauna[[1]]$time_step)
+proc_mpa_spillover <- process_marlin(mpa_spillover, time_step =  fauna[[1]]$time_step)
 
-plot_marlin(proc_nearshore_mpa, max_scale = FALSE)
+plot_marlin(proc_mpa_spillover, max_scale = FALSE) + 
+  labs(y = "Spawning Stock Biomass")
+
+plot_marlin(proc_mpa_spillover, max_scale = FALSE, plot_var = "c") + 
+  labs(y = "Catch")
+
+
+
+```
+
+We can use `marlin::get_distance_to_mpas` to measure the euclidian distance between the centroid of each cell and the nearest MPA cell centroid. 
+
+```{r fig-mpa-dist, fig.cap="Distance of each cell to the nearest MPA edge."}
 
 mpa_distances <- get_distance_to_mpas(mpa_locations = mpa_locations, resolution = resolution, patch_area = patch_area)
 
   mpa_distances |>
     ggplot(aes(x,y,fill = distance_to_mpa_edge)) +
     geom_tile() +
-    geom_tile(aes(x,y, color = mpa)) +
-    scale_fill_gradient2(low = "darkblue", high = "tomato", mid = "white", midpoint = 0)
+    geom_tile(aes(x,y, color = mpa), size = 1.5) +
+    scale_fill_gradient2(low = "darkblue", high = "green", mid = "white", midpoint = 0)
+```
+
+```{r fig-dist2, fig.cap="MPA gravity per cell."}
 
   mpa_distances |>
     ggplot(aes(x,y,fill = total_mpa_distance)) +
     geom_tile() +
-    geom_tile(aes(x,y, color = mpa))
+    geom_tile(aes(x,y, color = mpa)) + 
+  scale_fill_viridis_c(name = "MPA gravity",option = "magma", direction = -1)
 
+```
+
+We can then plot the gradients of various metrics in space and as a function of MPA distance. 
+
+We can see first off that the model generates "fishing the line" behavior where the fishing fleet is concentrated more around the borders of the protected area. 
+
+```{r fig-line, fig.cap="Distribution of fishing effort in space post-MPA."}
+
+conservation_outcomes <- proc_mpa_spillover$fauna 
   
-conservation_outcomes <- proc_nearshore_mpa$fauna 
-  
-fishery_outcomes <- proc_nearshore_mpa$fleets 
+fishery_outcomes <- proc_mpa_spillover$fleets 
 
-conservation_outcomes |>
-  filter(step == max(step)) |>
-  group_by(step, x, y, patch, critter) |>
-  summarise(biomass = sum(b)) |>
-  left_join(mpa_distances, by = c("x", "y", "patch")) |>
-  ggplot(aes(distance_to_mpa_edge, biomass, color = factor(step))) +
-  geom_jitter() +
-  facet_wrap( ~ critter, scales = "free_y")
 
-conservation_outcomes |>
-  filter(step == max(step)) |>
-  group_by(step, x, y, patch, critter) |>
-  summarise(biomass = sum(b)) |>
-  group_by(critter) |> 
-  mutate(biomass = biomass / max(biomass)) |> 
-  left_join(mpa_distances, by = c("x", "y", "patch")) |>
-  ggplot(aes(x,y, fill = biomass)) +
-  geom_tile() +
-  facet_wrap( ~ critter, scales = "free_y") + 
-  scale_fill_continuous(limits = c(0,1))
-
-fishery_outcomes |> 
+a = fishery_outcomes |> 
   filter(step == max(step), effort > 0) |> 
     left_join(mpa_distances, by = c("x","y","patch")) |> 
   ggplot(aes(distance_to_mpa_edge, effort, color = factor(step))) + 
@@ -212,12 +221,30 @@ fishery_outcomes |>
   facet_wrap(~critter, scales = "free_y")
 
 
-fishery_outcomes |>
+b = fishery_outcomes |>
   mutate(effort = if_else(effort == 0, NA, effort)) |> 
   filter(step == max(step)) |>
   ggplot(aes(x, y, fill = effort)) +
   geom_tile()
 
+a / b
+```
+
+The complex interactions of the life history and fishing fleet strategies mean that this "fishing the line" behavior results in a linear biomass gradient with distance from the MPA for the tuna, but actually a reverse trend for the shark where biomass is depressed right by the border due to fishing the line, and then increases with distance. 
+
+Note that we see clear "fishing the line" and spillover gradients even though this MPA has had almost no impact on total biomass or
+
+```{r fig-spillover, fig.cap="Biomass of each species as a function of distance from MPA border. Negative distance means inside the MPA."}
+
+conservation_outcomes |>
+  filter(step == max(step)) |>
+  group_by(step, x, y, patch, critter) |>
+  summarise(biomass = sum(b)) |>
+  left_join(mpa_distances, by = c("x", "y", "patch")) |>
+  ggplot(aes(distance_to_mpa_edge, biomass, color = factor(step))) +
+  geom_vline(xintercept = 0) +
+  geom_jitter() +
+  facet_wrap( ~ critter, scales = "free_y")
 
 
 ```
