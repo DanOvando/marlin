@@ -30,31 +30,41 @@ create_critter(
 )
 }
 \arguments{
-\item{common_name}{}
+\item{common_name}{the common name of the species}
 
-\item{scientific_name}{}
+\item{scientific_name}{the scientific name of the species, preferable to common name}
 
-\item{critter_type}{}
+\item{habitat}{a list with adult habitat per season}
 
-\item{habitat}{}
+\item{season_blocks}{a list with seasons per block}
 
-\item{season_blocks}{}
+\item{recruit_habitat}{habitat for recruitment}
 
-\item{seasons}{}
+\item{seasons}{number of seasons per year (integer)}
 
-\item{fished_depletion}{}
+\item{fec_form}{one of "weight" or "pups"}
 
-\item{init_explt}{initial annual exploitation rate}
+\item{adult_diffusion}{adult diffusion rate}
+
+\item{recruit_diffusion}{recruit diffusion rate}
+
+\item{fished_depletion}{depletion (biomass / unfished biomass) at start of simulation}
+
+\item{init_explt}{initial annual exploitation rate (fraction of exploitable population killed)}
 
 \item{explt_type}{f or fmsy}
 
-\item{...}{}
+\item{burn_years}{number of years to burn in the simulation prior to starting things}
 
-\item{rec_habitat}{}
+\item{fec_expo}{exponent for fecundity relationship. >1 means hyperallometric fecundity}
 
-\item{adult_movement}{}
+\item{resolution}{the resolution of the system, either an integer or a vector integers of length two specifying the dimensions of the system in width and height (e.g. \code{c(10,100)})}
 
-\item{adult_movement_sigma}{}
+\item{patch_area}{the area of each patch}
+
+\item{spawning_seasons}{which seasons spawning occurs}
+
+\item{density_dependence}{one of 'global_habitat','local_habitat','pre_dispersal','post_dispersal','global_ssb'}
 }
 \description{
 Creates a critter object. If only a scientific name is provided

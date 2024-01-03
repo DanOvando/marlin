@@ -34,7 +34,7 @@ options(dplyr.summarise.inform = FALSE)
 
 theme_set(marlin::theme_marlin(base_size = 14))
 
-resolution <- c(10,100) #specify a 6 wide by 40 tall grid
+resolution <- c(10,100) #specify a 10 wide by 100 tall grid
 
 patch_area <- 10 # 10km2
 

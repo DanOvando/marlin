@@ -1,25 +1,32 @@
 #' Create Critter
-#' 
+#'
 #' Creates a critter object. If only a scientific name is provided
 #' create_critter will try and look up relevant life history from
 #' FishLife
-#' 
-#' Critical inputs are adult_movement, adult_movement_sigma, and resolution
-#' 
 #'
-#' @param common_name 
-#' @param scientific_name 
-#' @param critter_type 
-#' @param habitat 
-#' @param season_blocks 
-#' @param rec_habitat 
-#' @param seasons 
-#' @param adult_movement 
-#' @param adult_movement_sigma 
-#' @param fished_depletion 
-#' @param init_explt initial annual exploitation rate
+#' Critical inputs are adult_movement, adult_movement_sigma, and resolution
+#'
+#'
+#' @param common_name the common name of the species
+#' @param scientific_name the scientific name of the species, preferable to common name
+#' @param habitat a list with adult habitat per season
+#' @param season_blocks a list with seasons per block
+#' @param seasons number of seasons per year (integer)
+#' @param fished_depletion depletion (biomass / unfished biomass) at start of simulation
+#' @param init_explt initial annual exploitation rate (fraction of exploitable population killed)
 #' @param explt_type f or fmsy
-#' @param ... 
+#' @param recruit_habitat habitat for recruitment
+#' @param fec_form one of "weight" or "pups"
+#' @param adult_diffusion adult diffusion rate
+#' @param recruit_diffusion recruit diffusion rate
+#' @param burn_years number of years to burn in the simulation prior to starting things
+#' @param weight_a
+#' @param fec_expo exponent for fecundity relationship. >1 means hyperallometric fecundity
+#' @param resolution the resolution of the system, either an integer or a vector integers of length two specifying the dimensions of the system in width and height (e.g. `c(10,100)`)
+#' @param patch_area the area of each patch
+#' @param spawning_seasons which seasons spawning occurs
+#' @param density_dependence one of 'global_habitat','local_habitat','pre_dispersal','post_dispersal','global_ssb'
+#' @param ...
 
 create_critter <- function(common_name = NA,
                            scientific_name = NA,
@@ -44,7 +51,7 @@ create_critter <- function(common_name = NA,
                            density_dependence = "global_habitat",
                            ...) {
 
-  
+
   if (!is.list(habitat)){
     habitat <-  list(habitat)
   }
@@ -73,7 +80,7 @@ create_critter <- function(common_name = NA,
         spawning_seasons = spawning_seasons,
         ...
       )
-    
+
   }
 
   return(critter)

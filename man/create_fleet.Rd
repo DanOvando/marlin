@@ -26,7 +26,7 @@ create_fleet(
 
 \item{fleet_model}{which fleet model to use, one of "constant effort" or "open access"}
 
-\item{spatial_allocation}{spatial effort allocation strategy (ideal_free or revenue)}
+\item{spatial_allocation}{spatial effort allocation strategy ('revenue','rpue','profit','ppue')}
 
 \item{cr_ratio}{cost to revenue ratio at initial conditions (1 implies OA equilibrium, total profits = 0)}
 

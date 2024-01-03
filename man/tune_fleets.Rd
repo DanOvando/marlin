@@ -22,6 +22,12 @@ tune_fleets(
 \item{fleets}{a fleet object}
 
 \item{years}{the number of years to tune over}
+
+\item{tune_type}{one of 'explt' or 'depletion' to tune to an exploitation rate or a target depletion (B/B0)}
+
+\item{tune_costs}{TRUE or FALSE to tune costs to a target cost to revenue ratio}
+
+\item{fine_tune_costs}{TRUE or FALSE}
 }
 \value{
 tuned fleet object
