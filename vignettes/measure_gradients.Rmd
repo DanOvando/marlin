@@ -34,13 +34,15 @@ tune_type <- "depletion"
 
 steps <- years * seasons
 
-yft_diffusion <- 120
+yft_diffusion <- 100
   
-yft_depletion <- .4
+yft_depletion <- .2
 
-mako_depletion <- 0.2
+rec_factor <- 100
 
-mako_diffusion <- 150
+mako_depletion <- 0.1
+
+mako_diffusion <- 1
 
 # for now make up some habitat
 
@@ -68,8 +70,9 @@ fauna <-
       habitat = yft_habitat, # pass habitat as lists
       recruit_habitat = yft_habitat,
       adult_diffusion = yft_diffusion, # cells per year
+      recruit_diffusion = rec_factor * yft_diffusion,
       fished_depletion = yft_depletion, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
-      density_dependence = "global_habitat", # recruitment form, where 1 implies local recruitment
+      density_dependence = "local_habitat", # recruitment form, where 1 implies local recruitment
       seasons = seasons
       ),
     "Shortfin Mako" = create_critter(
@@ -77,8 +80,9 @@ fauna <-
       habitat = list(mako_habitat), # pass habitat as lists
       recruit_habitat = mako_habitat,
       adult_diffusion = mako_diffusion,
+      recruit_diffusion = rec_factor * mako_diffusion,
       fished_depletion = mako_depletion,
-      density_dependence = "global_habitat", # recruitment form, where 1 implies local recruitment
+      density_dependence = "local_habitat", # recruitment form, where 1 implies local recruitment
       burn_years = 200,
       seasons = seasons,
       fec_form = "pups",
@@ -101,7 +105,7 @@ fleets <- list("longline" = create_fleet(list(
     ),
   `Shortfin Mako` = Metier$new(
     critter = fauna$`Shortfin Mako`,
-    price = 0,
+    price = 10,
     sel_form = "logistic",
     sel_start = .1,
     sel_delta = .01,
@@ -110,6 +114,7 @@ fleets <- list("longline" = create_fleet(list(
   )),
   mpa_response = "stay",
   base_effort = prod(resolution),
+  spatial_allocation = "rpue",
   resolution = resolution
 ))
 
@@ -138,7 +143,9 @@ mpa_locations <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) |>
   mutate(patch_name = paste(x,y, sep = "_"))
 
 
-mpas <- sample(mpa_locations$patch_name, round(nrow(mpa_locations) * 0.2), replace = FALSE, prob = mpa_locations$x)
+mpas <- mpa_locations$patch_name[1:round(nrow(mpa_locations) * 0.2)]
+
+# mpas <- sample(mpa_locations$patch_name, round(nrow(mpa_locations) * 0.2), replace = FALSE, prob = mpa_locations$x)
 
 mpa_locations$mpa <- mpa_locations$patch_name %in% mpas
   
@@ -182,20 +189,31 @@ conservation_outcomes |>
   summarise(biomass = sum(b)) |>
   left_join(mpa_distances, by = c("x", "y", "patch")) |>
   ggplot(aes(distance_to_mpa_edge, biomass, color = factor(step))) +
-  geom_point() +
+  geom_jitter() +
   facet_wrap( ~ critter, scales = "free_y")
 
+conservation_outcomes |>
+  filter(step == max(step)) |>
+  group_by(step, x, y, patch, critter) |>
+  summarise(biomass = sum(b)) |>
+  group_by(critter) |> 
+  mutate(biomass = biomass / max(biomass)) |> 
+  left_join(mpa_distances, by = c("x", "y", "patch")) |>
+  ggplot(aes(x,y, fill = biomass)) +
+  geom_tile() +
+  facet_wrap( ~ critter, scales = "free_y") + 
+  scale_fill_continuous(limits = c(0,1))
+
 fishery_outcomes |> 
-  mutate(cpue =  effort) |> 
   filter(step == max(step), effort > 0) |> 
     left_join(mpa_distances, by = c("x","y","patch")) |> 
-  ggplot(aes(distance_to_mpa_edge, cpue, color = factor(step))) + 
+  ggplot(aes(distance_to_mpa_edge, effort, color = factor(step))) + 
   geom_point() +
   facet_wrap(~critter, scales = "free_y")
 
 
 fishery_outcomes |>
-  mutate(cpue =  effort) |>
+  mutate(effort = if_else(effort == 0, NA, effort)) |> 
   filter(step == max(step)) |>
   ggplot(aes(x, y, fill = effort)) +
   geom_tile()

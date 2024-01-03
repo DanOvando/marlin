@@ -1,8 +1,8 @@
 ---
-title: "tune-movement"
+title: "Setting Movement Rates"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{tune-movement}
+  %\VignetteIndexEntry{movement-rates}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -155,7 +155,7 @@ simulation_area <- patch_area * patches
 
 delta_t = 1 # length of one time step in the simulation in units of years 
 
-D <- 100 # km^2  / year
+D <- 1 # km^2  / year
 
 
 
@@ -242,6 +242,82 @@ grid |>
 
 
 ```
+
+We visualize effect of the the diffusion rate $D$ by simulating dispersal of organisms initially seeded in one central patch after one year across a range of diffusion rates $D$. 
+
+```{r}
+diffusion_frame <- data.frame(D = seq(0,1000, length.out = 8))
+
+
+sim_diffusion <- function(D, resolution, delta_d = 5,delta_t = 1){
+
+patches <- resolution^2 # number of patches
+
+delta_d <- 5 # length of a cell side in km
+
+patch_area = delta_d^2 # in units of km^2/patch
+
+simulation_area <- patch_area * patches
+
+grid <- tidyr::expand_grid(x = 1:resolution, y = 1:resolution)
+
+adjacent <- grid |> 
+  dist() |> 
+  as.matrix()
+
+# Mark adjacent cells
+adjacent[adjacent != 1] <- 0
+
+diffusion_matrix <- adjacent * D * (delta_t / delta_d^2) # adjacent times diffusion rate times simulation units
+
+# fill in diagonal
+diag(diffusion_matrix) <-  -1 * colSums(diffusion_matrix)
+
+# ensure matrix class
+diffusion_matrix <- as.matrix(diffusion_matrix)
+
+D_patches <- D / patch_area # translate diffusion into units of patches / year
+
+D_patches_side <- sqrt(D_patches) # side of the diffusion box
+
+n <- rep(0, patches) 
+
+n[grid$x == resolution / 2 & grid$y == resolution / 2] <- 100 # add 100 critters to the rough center
+
+ytmp <- as.matrix(expm::expm(diffusion_matrix)) 
+
+ytmp[ytmp < 1e-3] <- 0
+
+
+radius <- sqrt( D / pi)
+
+n_next <- n %*% as.matrix(expm::expm(diffusion_matrix)) # calculate the realized diffusion over one time step of the model
+
+grid$n <- as.numeric(n_next)
+
+return(grid)
+}
+
+diffusion_frame <- diffusion_frame |> 
+  dplyr::mutate(tmp = purrr::map(D, sim_diffusion, resolution = resolution))
+```
+
+```{r fig-disp, fig.cap="Diffusion from one central patch after one year for a range of diffusion rates."}
+diffusion_frame |>
+  tidyr::unnest(cols = tmp) |> 
+  dplyr::group_by(D) |> 
+  dplyr::mutate(n = n / max(n)) |> 
+  ggplot() +
+  geom_tile(aes(x * delta_d, y * delta_d, fill = n)) +
+  scale_fill_viridis_c("N/max(N)",limits = c(0, NA)) + 
+  scale_x_continuous(name = "Distance from Bottom Left Corned in KM", expand = c(0,0)) + 
+  scale_y_continuous(name = "Distance from Bottom Left Corned in KM", expand = c(0,0)) + 
+  coord_fixed() + 
+  facet_wrap(~round(D))
+
+```
+
+
 
 ### Adding in Habitat Preference through Taxis
 

@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">marlin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.11</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.12</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -377,14 +377,42 @@ effort will never expand beyond the supplied cap for that fleet.</p>
 <div class="section level2">
 <h2 id="seasons">Seasons<a class="anchor" aria-label="anchor" href="#seasons"></a>
 </h2>
-<p>We can also impose closed fishing seasons that apply to one or more
-targeted species</p>
+<p>We can also impose closed or reduced fishing seasons that apply to
+one or more targeted species. This is specified by a vector containing
+values between 0 and 1 with length equal to the number of seasons in the
+simulation. When a season has a value of 1, that implies that fishing
+continues as normal in that season. When that value is 0, that means
+that the fishery is closed in that season. Setting intermediate values,
+like say 0.5, is akin to simulating a closed seasons with a 50% discard
+mortality rate</p>
+<p>So one option would be to specify a discard mortality rate, and a
+discard rate, with the discard rate being potentially seasonal.</p>
+<p>The problem is the need to separate out the accounting between how
+many fish actually die and how many the fleet is allowed to retain.
+Suppose you set a discard rate of 50%, and a discard mortality rate of
+0%. That is equivalent to just cutting effort in half.</p>
+<p>But, suppose you set a discard rate of 100% and a discard mortality
+rate of 100%. That would mean that the same amount of fish are dying,
+but you can’t keep them. So that would be easy since again effort
+doesn’t change, you’d just need a multiplier on converting dead fish to
+catch.</p>
+<p>But, now suppose that discard rate is 100% and discard mortality is
+50%. Now, you need to both reduce effort by 50%, but allow zero
+retention.</p>
+<p>So, you’d need to adjust fishing mortality rate by a function of
+discard rate + discard mortality</p>
+<p>That will get the correct amount of fish dead</p>
+<p>Then you’d adjust the catch by just the discard rate</p>
+<p>This gets pretty complicated pretty quickly though, since it means
+that you need to adjust the actual amount killed. So that would come in
+on a multiplier of the fishing mortality rate in the manner you have
+now, where say if you</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simmar.html">simmar</a></span><span class="op">(</span>fauna <span class="op">=</span> <span class="va">fauna</span>,</span>
 <span>                  fleets <span class="op">=</span> <span class="va">fleets</span>,</span>
 <span>                  years <span class="op">=</span> <span class="va">years</span>,</span>
-<span>              manager <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>closed_seasons <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>bigeye <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span>              manager <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>seasonal_effort_mult <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>bigeye <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">proc_sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">sim</span><span class="op">)</span></span>
 <span></span>

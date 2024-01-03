@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">marlin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.12</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -42,8 +42,10 @@
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
     <a class="dropdown-item" href="../articles/MSE.html">MSE</a>
+    <a class="dropdown-item" href="../articles/Spatial-Catchability.html">Spatial Catchability</a>
     <a class="dropdown-item" href="../articles/dynamic-habitat.html">dynamic-habitat</a>
     <a class="dropdown-item" href="../articles/fleet-management.html">fleet-management</a>
+    <a class="dropdown-item" href="../articles/measure_gradients.html">Measure MPA Gradients</a>
     <a class="dropdown-item" href="../articles/port-distance.html">port-distance</a>
     <a class="dropdown-item" href="../articles/rectifier.html">Don't Be a Square</a>
     <a class="dropdown-item" href="../articles/tune-movement.html">tune-movement</a>
@@ -159,7 +161,7 @@ locations.</p>
 <span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span>, tune_costs <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> </span>
 <span></span>
 <span><span class="va">fleets</span><span class="op">$</span><span class="va">longline</span><span class="op">$</span><span class="va">cost_per_unit_effort</span></span>
-<span><span class="co">#&gt; [1] 0.07763811</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 2.219164</span></span></code></pre></div>
 <p>From there, run simulation and see how the fleet concentrates around
 the ports.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
