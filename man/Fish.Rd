@@ -90,13 +90,9 @@ fill in fish object
 
 \item{\code{resolution}}{a vector of length two with number of patches in X and Y dimensions}
 
-\item{\code{habitat}}{}
-
 \item{\code{explt_type}}{Swim
 
 Swim advances the population one time step}
-
-\item{\code{spawning_seasons}}{}
 }
 \if{html}{\out{</div>}}
 }

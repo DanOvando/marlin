@@ -28,7 +28,7 @@ resolution <-  10
 
 patches <- resolution^2
 
-seasons <- 4
+seasons <- 8
 
 steps <- years * seasons
 
@@ -54,7 +54,7 @@ fauna <-
       seasons = seasons,
       init_explt =  1,
       explt_type = "f",
-      spawning_seasons = c(2,3),
+      spawning_seasons = c(7),
       sigma_r = 0,
       rec_ac = 0,
       linf = 100,
@@ -64,7 +64,8 @@ fauna <-
       weight_a = 1e-4,
       weight_b = 3,
       max_age = 15,
-      query_fishlife = FALSE
+      query_fishlife = FALSE,
+      ssb0 = 42
     )
   )
 
@@ -82,13 +83,13 @@ fleets <- list(
       spatial_catchability = bigeye_catchability
     )
     ),
-    base_effort = resolution ^ 2,
+    base_effort = 0,
     resolution = resolution
   )
 )
 
 
-fleets <- tune_fleets(fauna, fleets) 
+# fleets <- tune_fleets(fauna, fleets) 
 
 
 spatial_q_sim <- simmar(fauna = fauna,
@@ -100,11 +101,24 @@ spatial_q_sim <- simmar(fauna = fauna,
 test<- process_marlin(sim = spatial_q_sim, time_step = time_step)
 
 
+test$fauna |> 
+  filter(step  < 5) |> 
+  group_by(step, age) |> 
+  summarise(n = sum(n)) |> 
+  ggplot() +
+  geom_col(aes(age, n, fill = age == min(age))) +
+  facet_wrap(~step) + 
+  theme_minimal()
+
 spatial_catchability |> 
   ggplot(aes(x,y,fill = habitat)) + 
   geom_tile()
 
 
+plot_marlin(test)
+
 plot_marlin(test, plot_type = "space")
+
+plot_marlin(test, plot_type = "length", fauna = fauna, plot_var = "n")
 
 ```
