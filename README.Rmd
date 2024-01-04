@@ -29,7 +29,11 @@ set.seed(42)
   -  optimized marine protected area network design
   -  Data-generating processes for spatial-stock assessment
 
-The model is described in Ovando *et al.* (2023...) hopefully.   
+The model is described in Ovando *et al.* (2023) hopefully.  
+
+Ovando, Daniel, Darcy Bradley, Echelle Burns, Lennon Thomas, and James Thorson. “Simulating Benefits, Costs and Trade-Offs of Spatial Management in Marine Social-Ecological Systems.” Fish and Fisheries, (2023). https://doi.org/10.1111/faf.12804.
+
+
   
 ## What is `marlin` for?
 
@@ -412,10 +416,7 @@ Now let's compare the effect of an MPA on two species: a shark population and a 
 
 
 ```{r}
-library(marlin)
-library(tidyverse)
 
-theme_set(marlin::theme_marlin())
 
 resolution <- c(20,20) # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
 

@@ -45,10 +45,16 @@ simmar <- function(fauna = list(),
     )
   }
 
+
+test =   paste(rep(1:years, each = seasons), 1:seasons, sep = "_")
+
   steps <-
-    (years + 1) / time_step  # tack on extra year for accounting
+    (years) / time_step + 1  # tack on extra step for accounting
 
   step_names <- seq(0 + starting_step, years + 1 + starting_step, by = time_step)
+
+  # step_names <-  paste(rep(1:years, each = seasons), 1:seasons, sep = "_")
+
 
   patches <- unique(purrr::map_dbl(fauna, "patches"))
 
@@ -108,7 +114,6 @@ simmar <- function(fauna = list(),
           year <-  floor(step_names[i] - starting_step) # put year in index form not named form
 
           new_habitat[[i]] <- habitat[[f]][[year + 1]] # adding 1 since steps are zero indexed for reasons
-
         }
 
         habitat[[f]] <- new_habitat

@@ -109,11 +109,10 @@ List sim_fish(
       // if you try and name them
       // season = burn_seq(b) - floor(burn_seq(b)); // determine the next season
 
-      if (((b >= burn_steps) & Rcpp::any(season == spawning_seasons).is_true())){
-        stopper = 1;
-      }
+
 
       for (int season = 1; season <= seasons; season++){
+
 
         // Rcpp::Rcout << season << std::endl;
 
@@ -156,13 +155,15 @@ List sim_fish(
 
       } // keep track of the SSB0 in the last spawning season to occur
 
-    }
+    } // close season loop
 
-  }
+      if (((b >= burn_steps))){
+        stopper = 1;
+      }
 
 
-
-  }
+  } // close while loop
+  } // close SSB0 tuner
 
   //////////////////// move ////////////////////////
 

@@ -20,7 +20,12 @@ spawning aggregations or climate induced range shifts - the impacts of
 port distance in fleet dynamics - optimized marine protected area
 network design - Data-generating processes for spatial-stock assessment
 
-The model is described in Ovando *et al.* (2023…) hopefully.
+The model is described in Ovando *et al.* (2023) hopefully.
+
+Ovando, Daniel, Darcy Bradley, Echelle Burns, Lennon Thomas, and James
+Thorson. “Simulating Benefits, Costs and Trade-Offs of Spatial
+Management in Marine Social-Ecological Systems.” Fish and Fisheries,
+(2023). <https://doi.org/10.1111/faf.12804>.
 
 ## What is `marlin` for?
 
@@ -154,7 +159,7 @@ resolution <- c(5,10) # resolution is in squared patches, so 20 implies a 20X20 
 
 years <- 20
 
-seasons <- 1
+seasons <- 4
 
 time_step <- 1 / seasons
 
@@ -284,7 +289,7 @@ example_sim <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - start_time
-#> Time difference of 0.03163004 secs
+#> Time difference of 0.03504109 secs
 ```
 
 we can then use `process_marlin` and `plot_marlin` to examine the
@@ -392,7 +397,7 @@ fauna <-
     )
   )
 Sys.time() - a
-#> Time difference of 1.641406 secs
+#> Time difference of 1.623864 secs
 
 # create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
 # with lists for each species inside there. Price specifies the price per unit weight of that 
@@ -460,7 +465,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets) 
 
 Sys.time() - a
-#> Time difference of 0.626581 secs
+#> Time difference of 0.6058419 secs
 
 
 # run simulations
@@ -473,7 +478,7 @@ sim3 <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.08299208 secs
+#> Time difference of 0.166816 secs
 # a <- Sys.time()
 
 processed_marlin <- process_marlin(sim = sim3, time_step = time_step, keep_age = TRUE)
@@ -526,10 +531,7 @@ eastern habitat, but the sharks live further offshore. In both, we will
 design an MPA based on the distribution of tunas.
 
 ``` r
-library(marlin)
-library(tidyverse)
 
-theme_set(marlin::theme_marlin())
 
 resolution <- c(20,20) # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
 
@@ -634,7 +636,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
-#> Time difference of 5.339066 secs
+#> Time difference of 4.942466 secs
 
 # run simulations
 
@@ -645,7 +647,7 @@ nearshore <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.09721899 secs
+#> Time difference of 0.09502816 secs
   
 proc_nearshore <- process_marlin(nearshore, time_step =  fauna[[1]]$time_step)
 
@@ -688,7 +690,7 @@ nearshore_mpa <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.092278 secs
+#> Time difference of 0.09758401 secs
 
 proc_nearshore_mpa <- process_marlin(nearshore_mpa, time_step =  fauna[[1]]$time_step)
 
@@ -761,7 +763,7 @@ offshore <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.08978796 secs
+#> Time difference of 0.09321284 secs
   
 proc_offshore <- process_marlin(offshore, time_step =  fauna[[1]]$time_step)
 
@@ -776,7 +778,7 @@ offshore_mpa_sim <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.09466791 secs
+#> Time difference of 0.08729005 secs
 
 
 proc_offshore_mpa <- process_marlin(offshore_mpa_sim, time_step =  fauna[[1]]$time_step)
@@ -904,7 +906,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
-#> Time difference of 0.2041061 secs
+#> Time difference of 0.2066691 secs
 
 # run simulations
 

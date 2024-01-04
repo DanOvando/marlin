@@ -51,6 +51,8 @@ fleets <- list(
   )
 )
 
+tune_fleets(fauna, fleets)
+
 fleets$longline$metiers$bigeye$spatial_catchability
 
 storage <- simmar(fauna = fauna,
