@@ -46,15 +46,12 @@ simmar <- function(fauna = list(),
   }
 
 
-test =   paste(rep(1:years, each = seasons), 1:seasons, sep = "_")
-
   steps <-
     (years) / time_step + 1  # tack on extra step for accounting
 
   step_names <- seq(0 + starting_step, years + 1 + starting_step, by = time_step)
 
   # step_names <-  paste(rep(1:years, each = seasons), 1:seasons, sep = "_")
-
 
   patches <- unique(purrr::map_dbl(fauna, "patches"))
 
