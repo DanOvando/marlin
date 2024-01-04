@@ -61,7 +61,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // sim_fish
-List sim_fish(const NumericVector length_at_age, const NumericVector weight_at_age, const NumericVector fec_at_age, const NumericVector maturity_at_age, const NumericMatrix f_p_a, const List movement_matrix, const List movement_seasons, Eigen::MatrixXd recruit_movement_matrix, Rcpp::NumericMatrix last_n_p_a, const int patches, const int burn_steps, const double time_step, double season, const double steepness, const NumericVector r0s, double ssb0, NumericVector ssb0_p, const NumericVector m_at_age, bool tune_unfished, const String rec_form, const NumericVector spawning_seasons, const NumericVector rec_devs);
+List sim_fish(const NumericVector length_at_age, const NumericVector weight_at_age, const NumericVector fec_at_age, const NumericVector maturity_at_age, const NumericMatrix f_p_a, const List movement_matrix, const List movement_seasons, Eigen::MatrixXd recruit_movement_matrix, Rcpp::NumericMatrix last_n_p_a, const int patches, const int burn_steps, const double time_step, int season, const double steepness, const NumericVector r0s, double ssb0, NumericVector ssb0_p, const NumericVector m_at_age, bool tune_unfished, const String rec_form, const NumericVector spawning_seasons, const NumericVector rec_devs);
 RcppExport SEXP _marlin_sim_fish(SEXP length_at_ageSEXP, SEXP weight_at_ageSEXP, SEXP fec_at_ageSEXP, SEXP maturity_at_ageSEXP, SEXP f_p_aSEXP, SEXP movement_matrixSEXP, SEXP movement_seasonsSEXP, SEXP recruit_movement_matrixSEXP, SEXP last_n_p_aSEXP, SEXP patchesSEXP, SEXP burn_stepsSEXP, SEXP time_stepSEXP, SEXP seasonSEXP, SEXP steepnessSEXP, SEXP r0sSEXP, SEXP ssb0SEXP, SEXP ssb0_pSEXP, SEXP m_at_ageSEXP, SEXP tune_unfishedSEXP, SEXP rec_formSEXP, SEXP spawning_seasonsSEXP, SEXP rec_devsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -78,7 +78,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const int >::type patches(patchesSEXP);
     Rcpp::traits::input_parameter< const int >::type burn_steps(burn_stepsSEXP);
     Rcpp::traits::input_parameter< const double >::type time_step(time_stepSEXP);
-    Rcpp::traits::input_parameter< double >::type season(seasonSEXP);
+    Rcpp::traits::input_parameter< int >::type season(seasonSEXP);
     Rcpp::traits::input_parameter< const double >::type steepness(steepnessSEXP);
     Rcpp::traits::input_parameter< const NumericVector >::type r0s(r0sSEXP);
     Rcpp::traits::input_parameter< double >::type ssb0(ssb0SEXP);
