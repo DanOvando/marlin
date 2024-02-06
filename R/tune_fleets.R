@@ -32,7 +32,7 @@ tune_fleets <- function(fauna,
 
   for (f in names(fleets)){
     og_fleet_model[f] <- fleets[[f]]$fleet_model
-    fleets[[f]]$fleet_model <- "constant effort"
+    fleets[[f]]$fleet_model <- "constant_effort"
   }
 
   # normalize p_explt to make sure it sums to 1

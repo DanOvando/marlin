@@ -783,7 +783,6 @@ Fish <- R6::R6Class(
                   adult_movement = NULL,
                   tune_unfished = 0,
                   rec_devs = NA) {
-    # season <- (season / self$seasons) - self$time_step
 
     if (is.null(f_p_a)) {
       f_p_a <-

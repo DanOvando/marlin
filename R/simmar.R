@@ -20,6 +20,8 @@ simmar <- function(fauna = list(),
                    manager = list(),
                    habitat = list(),
                    years = 100,
+                   steps = NA,
+                   starting_season = NA,
                    initial_conditions = NA,
                    starting_step = 0,
                    keep_starting_step = TRUE) {
@@ -33,6 +35,8 @@ simmar <- function(fauna = list(),
 
   time_step <- unique(purrr::map_dbl(fauna, "time_step"))
 
+  steps_per_year <- 1 / time_step
+
   patch_area <- unique(purrr::map_dbl(fauna, "patch_area"))
 
 
@@ -45,13 +49,16 @@ simmar <- function(fauna = list(),
     )
   }
 
-
+if (is.na(steps)) {
   steps <-
     (years) / time_step + 1  # tack on extra step for accounting
+} else {
+  steps <- steps + 1 # to store initial conditions
+} # if year are specified instead of steps
 
-  step_names <- seq(0 + starting_step, years + 1 + starting_step, by = time_step)
-
-  # step_names <-  paste(rep(1:years, each = seasons), 1:seasons, sep = "_")
+  # step_names <- seq(0 + starting_step, years + 1 + starting_step, by = time_step)
+  # browser()
+  step_names <-  paste(rep(1:years, each = seasons), 1:steps_per_year, sep = "_")
 
   patches <- unique(purrr::map_dbl(fauna, "patches"))
 
@@ -108,7 +115,9 @@ simmar <- function(fauna = list(),
 
         for (i in 1:(steps - 1)) {
 
-          year <-  floor(step_names[i] - starting_step) # put year in index form not named form
+          year <-  as.integer(gsub("_.*$","",step_names[i])) # put year in index form not named form
+
+          # year <-  floor(step_names[i] - starting_step) # put year in index form not named form
 
           new_habitat[[i]] <- habitat[[f]][[year + 1]] # adding 1 since steps are zero indexed for reasons
         }
@@ -179,14 +188,20 @@ simmar <- function(fauna = list(),
   # loop over steps
   for (s in 2:steps) {
 
-    last_season <-
-      as.integer(round((step_names[s-1] - floor(step_names[s-1])) / time_step) + 1) # determine what season the last time step was, seasons are 1 indexed
+    # last_season <-
+    #   as.integer(round((step_names[s-1] - floor(step_names[s-1])) / time_step) + 1) # determine what season the last time step was, seasons are 1 indexed
 
-    year <-  floor(step_names[s])
+    last_season <- as.integer(gsub("^.*_","",step_names[s-1]))
 
-    current_season <-
-      as.integer(round((step_names[s] - floor(step_names[s])) / time_step) + 1) # determine what season the last time step was
+    year <-  as.integer(gsub("_.*$","",step_names[s]))
 
+    # year <-  floor(step_names[s])
+
+    current_season <- as.integer(gsub("^.*_","",step_names[s]))
+
+    # current_season <-
+    #   as.integer(round((step_names[s] - floor(step_names[s])) / time_step) + 1) # determine what season the last time step was
+    #
 
       # (season + fauna[[1]]$time_step) * fauna[[1]]$seasons  # annoying step to get seasons back to which season is it, not decimal season
 
@@ -282,7 +297,7 @@ simmar <- function(fauna = list(),
         last_r_to_c <- last_revenue / last_cost
       }
 
-      if (fleets[[l]]$fleet_model == "open access") {
+      if (fleets[[l]]$fleet_model == "open_access") {
         if (is.na(fleets[[l]]$cost_per_unit_effort) |
             is.na(fleets[[l]]$responsiveness)) {
           stop(
