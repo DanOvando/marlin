@@ -10,8 +10,10 @@ simmar(
   manager = list(),
   habitat = list(),
   years = 100,
+  steps = NA,
+  starting_season = NA,
   initial_conditions = NA,
-  starting_step = 0,
+  starting_step = NA,
   keep_starting_step = TRUE
 )
 }

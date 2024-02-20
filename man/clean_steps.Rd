@@ -10,12 +10,12 @@ clean_steps(step)
 \item{step}{The name of the step in question}
 }
 \value{
-a numeric value with only the numeric (plus decimal) parts of the step name
+the step in units of {year}_{season index}
 }
 \description{
 A small function to trim any characters from step names in the output of \code{marlin::simmar}
 }
 \examples{
-clean_steps("step_1")
+clean_steps("step_1_2")
 
 }

@@ -161,6 +161,7 @@ for (y in 2:sim_steps){
   
 }
 
+
 processed_mse_sim <- process_marlin(mse_sim)
 
 a = processed_mse_sim$fauna |> 

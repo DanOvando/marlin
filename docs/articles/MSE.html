@@ -127,9 +127,10 @@ the results of our assessment</p></li>
 <span></span>
 <span><span class="va">burn_years</span> <span class="op">&lt;-</span> <span class="fl">20</span></span>
 <span></span>
-<span><span class="va">sim_years</span> <span class="op">&lt;-</span> <span class="fl">20</span></span>
-<span></span>
 <span><span class="va">seasons</span> <span class="op">&lt;-</span> <span class="fl">4</span></span>
+<span></span>
+<span><span class="va">sim_steps</span> <span class="op">&lt;-</span> <span class="fl">20</span> <span class="op">*</span> <span class="va">seasons</span></span>
+<span></span>
 <span></span>
 <span><span class="va">time_step</span> <span class="op">&lt;-</span> <span class="fl">1</span> <span class="op">/</span> <span class="va">seasons</span></span>
 <span></span>
@@ -211,13 +212,13 @@ the results of our assessment</p></li>
 <span>                  fleets <span class="op">=</span> <span class="va">fleets</span>,</span>
 <span>                  years <span class="op">=</span> <span class="va">burn_years</span><span class="op">)</span></span>
 <span></span>
+<span><span class="va">test</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">mse_sim</span>, keep_age <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
 <span><span class="va">initial_conditions</span> <span class="op">&lt;-</span> <span class="va">mse_sim</span><span class="op">[[</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">mse_sim</span><span class="op">)</span><span class="op">]</span><span class="op">]</span></span>
 <span></span>
 <span><span class="va">starting_step</span> <span class="op">=</span> <span class="fu">marlin</span><span class="fu">::</span><span class="fu"><a href="../reference/clean_steps.html">clean_steps</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/nth.html" class="external-link">last</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">mse_sim</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in marlin::clean_steps(last(names(mse_sim))): NAs introduced by</span></span>
-<span><span class="co">#&gt; coercion</span></span>
 <span>  </span>
-<span><span class="kw">for</span> <span class="op">(</span><span class="va">y</span> <span class="kw">in</span> <span class="fl">2</span><span class="op">:</span><span class="va">sim_years</span><span class="op">)</span><span class="op">{</span></span>
+<span><span class="kw">for</span> <span class="op">(</span><span class="va">y</span> <span class="kw">in</span> <span class="fl">2</span><span class="op">:</span><span class="va">sim_steps</span><span class="op">)</span><span class="op">{</span></span>
 <span>  </span>
 <span>  <span class="va">depletion</span> <span class="op">&lt;-</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">map</a></span><span class="op">(</span><span class="va">mse_sim</span><span class="op">[[</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">mse_sim</span><span class="op">)</span><span class="op">]</span><span class="op">]</span>, <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">.x</span><span class="op">$</span><span class="va">ssb_p_a</span><span class="op">)</span> <span class="op">/</span> <span class="va">.x</span><span class="op">$</span><span class="va">ssb0</span><span class="op">)</span></span>
 <span>  </span>
@@ -225,86 +226,45 @@ the results of our assessment</p></li>
 <span>  </span>
 <span>  <span class="va">quotas</span> <span class="op">&lt;-</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map2.html" class="external-link">map2</a></span><span class="op">(</span><span class="va">mse_sim</span><span class="op">[[</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">mse_sim</span><span class="op">)</span><span class="op">]</span><span class="op">]</span>, <span class="va">u</span>, <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">.x</span><span class="op">$</span><span class="va">ssb_p_a</span><span class="op">)</span> <span class="op">*</span> <span class="va">.y</span><span class="op">)</span></span>
 <span>  </span>
-<span>  <span class="va">next_year</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simmar.html">simmar</a></span><span class="op">(</span></span>
+<span>  <span class="va">next_step</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simmar.html">simmar</a></span><span class="op">(</span></span>
 <span>  fauna <span class="op">=</span> <span class="va">fauna</span>,</span>
 <span>  fleets <span class="op">=</span> <span class="va">fleets</span>,</span>
-<span>  years <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  steps <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  initial_conditions <span class="op">=</span> <span class="va">initial_conditions</span>,</span>
 <span>  manager <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>quotas <span class="op">=</span> <span class="va">quotas</span><span class="op">)</span>,</span>
 <span>  starting_step <span class="op">=</span> <span class="va">starting_step</span>,</span>
 <span>  keep_starting_step <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span>  <span class="va">initial_conditions</span> <span class="op">&lt;-</span> <span class="va">next_year</span><span class="op">[[</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">next_year</span><span class="op">)</span><span class="op">]</span><span class="op">]</span></span>
+<span>  <span class="va">initial_conditions</span> <span class="op">&lt;-</span> <span class="va">next_step</span><span class="op">[[</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">next_step</span><span class="op">)</span><span class="op">]</span><span class="op">]</span></span>
 <span>  </span>
-<span>  <span class="va">starting_step</span> <span class="op">=</span> <span class="fu">marlin</span><span class="fu">::</span><span class="fu"><a href="../reference/clean_steps.html">clean_steps</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/nth.html" class="external-link">last</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">next_year</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="va">starting_step</span> <span class="op">=</span> <span class="fu">marlin</span><span class="fu">::</span><span class="fu"><a href="../reference/clean_steps.html">clean_steps</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/nth.html" class="external-link">last</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">next_step</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span>  <span class="va">mse_sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/append.html" class="external-link">append</a></span><span class="op">(</span><span class="va">mse_sim</span>, <span class="va">next_year</span><span class="op">)</span></span>
+<span>  <span class="va">mse_sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/append.html" class="external-link">append</a></span><span class="op">(</span><span class="va">mse_sim</span>, <span class="va">next_step</span><span class="op">)</span></span>
 <span>  </span>
 <span><span class="op">}</span></span>
-<span><span class="co">#&gt; Warning in marlin::clean_steps(last(names(next_year))): NAs introduced by</span></span>
-<span><span class="co">#&gt; coercion</span></span>
-<span><span class="co">#&gt; Warning in marlin::clean_steps(last(names(next_year))): NAs introduced by</span></span>
-<span><span class="co">#&gt; coercion</span></span>
 <span></span>
-<span><span class="co">#&gt; Warning in marlin::clean_steps(last(names(next_year))): NAs introduced by</span></span>
-<span><span class="co">#&gt; coercion</span></span>
-<span></span>
-<span><span class="co">#&gt; Warning in marlin::clean_steps(last(names(next_year))): NAs introduced by</span></span>
-<span><span class="co">#&gt; coercion</span></span>
-<span></span>
-<span><span class="co">#&gt; Warning in marlin::clean_steps(last(names(next_year))): NAs introduced by</span></span>
-<span><span class="co">#&gt; coercion</span></span>
-<span></span>
-<span><span class="co">#&gt; Warning in marlin::clean_steps(last(names(next_year))): NAs introduced by</span></span>
-<span><span class="co">#&gt; coercion</span></span>
-<span></span>
-<span><span class="co">#&gt; Warning in marlin::clean_steps(last(names(next_year))): NAs introduced by</span></span>
-<span><span class="co">#&gt; coercion</span></span>
-<span></span>
-<span><span class="co">#&gt; Warning in marlin::clean_steps(last(names(next_year))): NAs introduced by</span></span>
-<span><span class="co">#&gt; coercion</span></span>
-<span></span>
-<span><span class="co">#&gt; Warning in marlin::clean_steps(last(names(next_year))): NAs introduced by</span></span>
-<span><span class="co">#&gt; coercion</span></span>
-<span></span>
-<span><span class="co">#&gt; Warning in marlin::clean_steps(last(names(next_year))): NAs introduced by</span></span>
-<span><span class="co">#&gt; coercion</span></span>
-<span></span>
-<span><span class="co">#&gt; Warning in marlin::clean_steps(last(names(next_year))): NAs introduced by</span></span>
-<span><span class="co">#&gt; coercion</span></span>
-<span></span>
-<span><span class="co">#&gt; Warning in marlin::clean_steps(last(names(next_year))): NAs introduced by</span></span>
-<span><span class="co">#&gt; coercion</span></span>
-<span></span>
-<span><span class="co">#&gt; Warning in marlin::clean_steps(last(names(next_year))): NAs introduced by</span></span>
-<span><span class="co">#&gt; coercion</span></span>
-<span></span>
-<span><span class="co">#&gt; Warning in marlin::clean_steps(last(names(next_year))): NAs introduced by</span></span>
-<span><span class="co">#&gt; coercion</span></span>
-<span></span>
-<span><span class="co">#&gt; Warning in marlin::clean_steps(last(names(next_year))): NAs introduced by</span></span>
-<span><span class="co">#&gt; coercion</span></span>
-<span></span>
-<span><span class="co">#&gt; Warning in marlin::clean_steps(last(names(next_year))): NAs introduced by</span></span>
-<span><span class="co">#&gt; coercion</span></span>
-<span></span>
-<span><span class="co">#&gt; Warning in marlin::clean_steps(last(names(next_year))): NAs introduced by</span></span>
-<span><span class="co">#&gt; coercion</span></span>
-<span></span>
-<span><span class="co">#&gt; Warning in marlin::clean_steps(last(names(next_year))): NAs introduced by</span></span>
-<span><span class="co">#&gt; coercion</span></span>
-<span></span>
-<span><span class="co">#&gt; Warning in marlin::clean_steps(last(names(next_year))): NAs introduced by</span></span>
-<span><span class="co">#&gt; coercion</span></span>
 <span></span>
 <span><span class="va">processed_mse_sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">mse_sim</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">a</span> <span class="op">=</span> <span class="va">processed_mse_sim</span><span class="op">$</span><span class="va">fauna</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">step</span>, <span class="va">critter</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span>ssb <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">ssb</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; `summarise()` has grouped output by 'step'. You can override using the</span></span>
+<span><span class="co">#&gt; `.groups` argument.</span></span>
+<span></span>
+<span><span class="va">b</span> <span class="op">=</span> <span class="va">processed_mse_sim</span><span class="op">$</span><span class="va">fauna</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">step</span>, <span class="va">critter</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span>c <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">c</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; `summarise()` has grouped output by 'step'. You can override using the</span></span>
+<span><span class="co">#&gt; `.groups` argument.</span></span>
+<span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/plot_marlin.html">plot_marlin</a></span><span class="op">(</span><span class="va">processed_mse_sim</span>, plot_var <span class="op">=</span> <span class="st">"c"</span>, max_scale <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <p><img src="MSE_files/figure-html/unnamed-chunk-2-1.png" width="700"></p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="fu"><a href="../reference/plot_marlin.html">plot_marlin</a></span><span class="op">(</span><span class="va">processed_mse_sim</span>, plot_var <span class="op">=</span> <span class="st">"ssb"</span>, max_scale <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/plot_marlin.html">plot_marlin</a></span><span class="op">(</span><span class="va">processed_mse_sim</span>, plot_var <span class="op">=</span> <span class="st">"b"</span>, max_scale <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <p><img src="MSE_files/figure-html/unnamed-chunk-2-2.png" width="700"></p>
   </main>
 </div>
