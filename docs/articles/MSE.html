@@ -214,6 +214,8 @@ the results of our assessment</p></li>
 <span><span class="va">initial_conditions</span> <span class="op">&lt;-</span> <span class="va">mse_sim</span><span class="op">[[</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">mse_sim</span><span class="op">)</span><span class="op">]</span><span class="op">]</span></span>
 <span></span>
 <span><span class="va">starting_step</span> <span class="op">=</span> <span class="fu">marlin</span><span class="fu">::</span><span class="fu"><a href="../reference/clean_steps.html">clean_steps</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/nth.html" class="external-link">last</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">mse_sim</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning in marlin::clean_steps(last(names(mse_sim))): NAs introduced by</span></span>
+<span><span class="co">#&gt; coercion</span></span>
 <span>  </span>
 <span><span class="kw">for</span> <span class="op">(</span><span class="va">y</span> <span class="kw">in</span> <span class="fl">2</span><span class="op">:</span><span class="va">sim_years</span><span class="op">)</span><span class="op">{</span></span>
 <span>  </span>
@@ -240,6 +242,61 @@ the results of our assessment</p></li>
 <span>  <span class="va">mse_sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/append.html" class="external-link">append</a></span><span class="op">(</span><span class="va">mse_sim</span>, <span class="va">next_year</span><span class="op">)</span></span>
 <span>  </span>
 <span><span class="op">}</span></span>
+<span><span class="co">#&gt; Warning in marlin::clean_steps(last(names(next_year))): NAs introduced by</span></span>
+<span><span class="co">#&gt; coercion</span></span>
+<span><span class="co">#&gt; Warning in marlin::clean_steps(last(names(next_year))): NAs introduced by</span></span>
+<span><span class="co">#&gt; coercion</span></span>
+<span></span>
+<span><span class="co">#&gt; Warning in marlin::clean_steps(last(names(next_year))): NAs introduced by</span></span>
+<span><span class="co">#&gt; coercion</span></span>
+<span></span>
+<span><span class="co">#&gt; Warning in marlin::clean_steps(last(names(next_year))): NAs introduced by</span></span>
+<span><span class="co">#&gt; coercion</span></span>
+<span></span>
+<span><span class="co">#&gt; Warning in marlin::clean_steps(last(names(next_year))): NAs introduced by</span></span>
+<span><span class="co">#&gt; coercion</span></span>
+<span></span>
+<span><span class="co">#&gt; Warning in marlin::clean_steps(last(names(next_year))): NAs introduced by</span></span>
+<span><span class="co">#&gt; coercion</span></span>
+<span></span>
+<span><span class="co">#&gt; Warning in marlin::clean_steps(last(names(next_year))): NAs introduced by</span></span>
+<span><span class="co">#&gt; coercion</span></span>
+<span></span>
+<span><span class="co">#&gt; Warning in marlin::clean_steps(last(names(next_year))): NAs introduced by</span></span>
+<span><span class="co">#&gt; coercion</span></span>
+<span></span>
+<span><span class="co">#&gt; Warning in marlin::clean_steps(last(names(next_year))): NAs introduced by</span></span>
+<span><span class="co">#&gt; coercion</span></span>
+<span></span>
+<span><span class="co">#&gt; Warning in marlin::clean_steps(last(names(next_year))): NAs introduced by</span></span>
+<span><span class="co">#&gt; coercion</span></span>
+<span></span>
+<span><span class="co">#&gt; Warning in marlin::clean_steps(last(names(next_year))): NAs introduced by</span></span>
+<span><span class="co">#&gt; coercion</span></span>
+<span></span>
+<span><span class="co">#&gt; Warning in marlin::clean_steps(last(names(next_year))): NAs introduced by</span></span>
+<span><span class="co">#&gt; coercion</span></span>
+<span></span>
+<span><span class="co">#&gt; Warning in marlin::clean_steps(last(names(next_year))): NAs introduced by</span></span>
+<span><span class="co">#&gt; coercion</span></span>
+<span></span>
+<span><span class="co">#&gt; Warning in marlin::clean_steps(last(names(next_year))): NAs introduced by</span></span>
+<span><span class="co">#&gt; coercion</span></span>
+<span></span>
+<span><span class="co">#&gt; Warning in marlin::clean_steps(last(names(next_year))): NAs introduced by</span></span>
+<span><span class="co">#&gt; coercion</span></span>
+<span></span>
+<span><span class="co">#&gt; Warning in marlin::clean_steps(last(names(next_year))): NAs introduced by</span></span>
+<span><span class="co">#&gt; coercion</span></span>
+<span></span>
+<span><span class="co">#&gt; Warning in marlin::clean_steps(last(names(next_year))): NAs introduced by</span></span>
+<span><span class="co">#&gt; coercion</span></span>
+<span></span>
+<span><span class="co">#&gt; Warning in marlin::clean_steps(last(names(next_year))): NAs introduced by</span></span>
+<span><span class="co">#&gt; coercion</span></span>
+<span></span>
+<span><span class="co">#&gt; Warning in marlin::clean_steps(last(names(next_year))): NAs introduced by</span></span>
+<span><span class="co">#&gt; coercion</span></span>
 <span></span>
 <span><span class="va">processed_mse_sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">mse_sim</span><span class="op">)</span></span>
 <span></span>

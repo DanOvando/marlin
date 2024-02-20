@@ -23,7 +23,7 @@ simmar <- function(fauna = list(),
                    steps = NA,
                    starting_season = NA,
                    initial_conditions = NA,
-                   starting_step = 0,
+                   starting_step = NA,
                    keep_starting_step = TRUE) {
 
 
@@ -54,12 +54,34 @@ if (is.na(steps)) {
     (years) / time_step + 1  # tack on extra step for accounting
 } else {
   steps <- steps + 1 # to store initial conditions
-} # if year are specified instead of steps
+} # if steps are specified instead of years
 
   # step_names <- seq(0 + starting_step, years + 1 + starting_step, by = time_step)
   # browser()
-  step_names <-  paste(rep(1:years, each = seasons), 1:steps_per_year, sep = "_")
 
+  if (!is.na(starting_step)){
+
+    year_season <- marlin::clean_steps(starting_step)
+
+    starting_year <-  as.integer(gsub("_.*$","",year_season)) - 1 # -1 to account for years being 1 indexed
+
+    starting_season <- as.integer(gsub("^.*_","",year_season)) - 1 # -1 to account for it would be starting in the third season
+
+    offset <- (starting_year * steps_per_year) + starting_season
+
+    # tack on a number of steps equal to the number of
+
+  } else {
+    offset <- 0
+  }
+
+  step_names <-  paste(rep(1:(steps + offset), each = steps_per_year), 1:steps_per_year, sep = "_") # generate at least as many steps as you're going to need
+
+  step_names <- step_names[1:steps + offset] # chop back to the actual number of steps used; works this way in case there are multiple steps per year but an incomplete number of years
+
+  # step_names <-  paste(rep((1:steps) + offset, each = steps_per_year), 1:steps_per_year, sep = "_") # generate at least as many steps as you're going to need
+
+  # step_names <- step_names[1:steps] # chop back to the actual number of steps used; works this way in case there are multiple steps per year but an incomplete number of years
   patches <- unique(purrr::map_dbl(fauna, "patches"))
 
   # not building checks for same resolution here since almost redundant to patches unless product of resolution is identical
@@ -119,7 +141,7 @@ if (is.na(steps)) {
 
           # year <-  floor(step_names[i] - starting_step) # put year in index form not named form
 
-          new_habitat[[i]] <- habitat[[f]][[year + 1]] # adding 1 since steps are zero indexed for reasons
+          new_habitat[[i]] <- habitat[[f]][[year]]
         }
 
         habitat[[f]] <- new_habitat
