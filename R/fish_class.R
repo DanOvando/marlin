@@ -31,7 +31,6 @@ Fish <- R6::R6Class(
     #' @param age_50_mature
     #' @param age_95_mature
     #' @param age_mature
-    #' @param length_mature
     #' @param m
     #' @param steepness
     #' @param r0
@@ -84,7 +83,6 @@ Fish <- R6::R6Class(
                           age_50_mature = NA,
                           age_95_mature = NA,
                           age_mature = NA,
-                          length_mature = NA,
                           m = NA,
                           steepness = 0.8,
                           r0 = 10000,
@@ -347,8 +345,9 @@ Fish <- R6::R6Class(
 
         }
 
-        if (is.na(length_mature)) {
-          length_mature <- fish_life$lm
+
+        if (is.na(length_50_mature)) {
+          length_50_mature <- fish_life$lm
 
         }
 
@@ -359,6 +358,10 @@ Fish <- R6::R6Class(
 
       } #close fishlife query
 
+      # if there still is no max age, guess it based on natural mortality
+     if (is.na(max_age)){
+        max_age <-  -log(0.05) / m
+     }
       ages <- seq(min_age, max_age, by = time_step)
 
       self$ages <- ages
@@ -373,7 +376,7 @@ Fish <- R6::R6Class(
 
 
 
-      lmat_to_linf_ratio <- length_mature / linf
+      lmat_to_linf_ratio <- length_50_mature / linf
 
       if (lorenzen_m){
 
@@ -426,17 +429,19 @@ Fish <- R6::R6Class(
         length_bins <-
           as.numeric(colnames(length_at_age_key))
 
-          length_50_mature <- length_mature <- length_bins[which.min((cumsum(as.matrix(length_at_age_key)[which.min((ages - (age_95_mature))^2),]) - 0.5)^2)[1]]
+          length_50_mature <- length_bins[which.min((cumsum(as.matrix(length_at_age_key)[which.min((ages - (age_95_mature))^2),]) - 0.5)^2)[1]]
 
           length_95_mature <- length_bins[which.min((cumsum(as.matrix(length_at_age_key)[which.min((ages - (age_95_mature))^2),]) - 0.95)^2)[1]]
 
       } else if (is.na(age_mature) |
                  mat_mode == "length") {
-        if (is.na(length_mature)) {
-          length_mature <-  linf * lmat_to_linf_ratio
+        if (is.na(length_50_mature)) {
+          length_50_mature <-  linf * lmat_to_linf_ratio
         }
 
-        length_50_mature <- length_mature
+        if (!is.na(length_95_mature)){
+          delta_mature <- length_95_mature - length_50_mature
+        }
 
         length_95_mature <-
           length_50_mature + delta_mature
@@ -446,7 +451,7 @@ Fish <- R6::R6Class(
 
         mat_at_bin <- ((1 / (1 + exp(-log(
           19
-        ) * ((length_bins - length_mature) / (delta_mature)
+        ) * ((length_bins - length_50_mature) / (delta_mature)
         )))))
 
         p_mat_at_age <-
@@ -469,13 +474,12 @@ Fish <- R6::R6Class(
       }
 
 
-      if (is.na(length_50_mature)) {
-        length_50_mature <- length_mature
-
-        length_95_mature <-
-          length_50_mature + delta_mature
-
-      }
+      # if (is.na(length_50_mature)) {
+      #
+      #   length_95_mature <-
+      #     length_50_mature + delta_mature
+      #
+      # }
 
       if (fec_form == "pups") {
         fec_at_age <- rep(pups, length(maturity_at_age))
