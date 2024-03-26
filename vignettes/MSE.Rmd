@@ -41,9 +41,10 @@ resolution <- 10 # resolution is in squared patches, so 20 implies a 20X20 syste
 
 burn_years <- 20
 
-sim_years <- 20
-
 seasons <- 4
+
+sim_steps <- 20 * seasons
+
 
 time_step <- 1 / seasons
 
@@ -128,11 +129,13 @@ mse_sim <- simmar(fauna = fauna,
                   fleets = fleets,
                   years = burn_years)
 
+test <- process_marlin(mse_sim, keep_age = FALSE)
+
 initial_conditions <- mse_sim[[length(mse_sim)]]
 
 starting_step = marlin::clean_steps(last(names(mse_sim)))
   
-for (y in 2:sim_years){
+for (y in 2:sim_steps){
   
   depletion <- purrr::map(mse_sim[[length(mse_sim)]], ~ sum(.x$ssb_p_a) / .x$ssb0)
   
@@ -140,29 +143,39 @@ for (y in 2:sim_years){
   
   quotas <- purrr::map2(mse_sim[[length(mse_sim)]], u, ~ sum(.x$ssb_p_a) * .y)
   
-  next_year <- simmar(
+  next_step <- simmar(
   fauna = fauna,
   fleets = fleets,
-  years = 1,
+  steps = 1,
   initial_conditions = initial_conditions,
   manager = list(quotas = quotas),
   starting_step = starting_step,
   keep_starting_step = FALSE
 )
 
-  initial_conditions <- next_year[[length(next_year)]]
+  initial_conditions <- next_step[[length(next_step)]]
   
-  starting_step = marlin::clean_steps(last(names(next_year)))
+  starting_step = marlin::clean_steps(last(names(next_step)))
 
-  mse_sim <- append(mse_sim, next_year)
+  mse_sim <- append(mse_sim, next_step)
   
 }
 
+
 processed_mse_sim <- process_marlin(mse_sim)
+
+a = processed_mse_sim$fauna |> 
+  group_by(step, critter) |> 
+  summarise(ssb = sum(ssb))
+
+b = processed_mse_sim$fauna |> 
+  group_by(step, critter) |> 
+  summarise(c = sum(c))
+
 
 plot_marlin(processed_mse_sim, plot_var = "c", max_scale = FALSE)
 
-plot_marlin(processed_mse_sim, plot_var = "ssb", max_scale = FALSE)
+plot_marlin(processed_mse_sim, plot_var = "b", max_scale = FALSE)
 
 
 ```

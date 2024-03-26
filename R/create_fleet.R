@@ -8,7 +8,7 @@
 #' @param cr_ratio cost to revenue ratio at initial conditions (1 implies OA equilibrium, total profits = 0)
 #' @param spatial_allocation spatial effort allocation strategy ('revenue','rpue','profit','ppue')
 #' @param metiers a list of metiers
-#' @param fleet_model which fleet model to use, one of "constant effort" or "open access"
+#' @param fleet_model which fleet model to use, one of "constant_effort" or "open_access"
 #' @param profit_sensitivity the profit sensitivity of the open access model
 #' @param cost_per_unit_effortt the cost per unit effort in the open access model
 #'
@@ -18,7 +18,7 @@
 create_fleet <-
   function(metiers,
            mpa_response = "stay",
-           fleet_model = "constant effort",
+           fleet_model = "constant_effort",
            responsiveness = 0.5,
            cost_per_unit_effort = 1,
            spatial_allocation = "rpue",
@@ -29,6 +29,8 @@ create_fleet <-
            resolution,
            base_effort = NA) {
     # idea: each fleet has a list of fauna inside of it specifying the price, selectivity, q for that species
+
+    fleet_model <- gsub(" ","_", fleet_model) # in case someone used spaces accidentally (like dumbass old dan)
 
     if (length(resolution) == 1){
       resolution <- rep(resolution,2)

@@ -20,62 +20,70 @@ process_marlin <- function(sim,
                            steps_to_keep = NA,
                            time_step = NA,
                            keep_age = TRUE) {
-  
-  names(sim) <- marlin::clean_steps(names(sim))
+
+  # names(sim) <- marlin::clean_steps(names(sim))
+
+  names(sim) <- gsub("step_","", names(sim))
+
 
   if (all(is.na(steps_to_keep))) {
-    
+
     steps_to_keep <-  names(sim)
-    
+
   }
+
+  seasons <- as.integer(unique(gsub("^.*_","",names(sim))))
+
   if (is.na(time_step)){
     if (length(sim) > 1){
-      time_step <- as.numeric(names(sim))
-      time_step <- time_step[2] - time_step[1]
+
+      time_step <- 1 / dplyr::n_distinct(seasons)
+      # time_step <- as.numeric(names(sim))
+      # time_step <- time_step[2] - time_step[1]
     } else {
       time_step <-  1
       warning("unclear what time step length is; assuming it is 1. Consider setting manually with time_step parameter")
     }
   }
-  
+
   sim <-
     sim[as.character(steps_to_keep)] # option to only select some years for memory's sake
-  
+
   resolution <- sim[[1]][[1]]$resolution
-  
+
   grid <- tidyr::expand_grid(x = 1:resolution[1], y = 1:resolution[2])
-  
+
   stepper <- function(x, grid) {
     # x <- sim[[1]]
-    
-    
+
+
     tidy_marlin <- function(y, z, grid) {
       ages <- y$ages
-      
+
       pop <- y[c("n_p_a", "b_p_a", "ssb_p_a", "c_p_a")]
-      
+
       # create coordinates for each location
-  
+
       bindfoo <- function(x, grid){
-        
+
         x <- as.data.frame(x)
-        
+
         if (keep_age == FALSE){
-          
+
           x <- data.frame(V0 = rowSums(x))
-          
+
         }
-        
+
         out <- cbind(patch = 1:nrow(x),
                      x,
                      grid)
-        
+
       }
-      
+
       tmp <-
         purrr::map(pop,bindfoo,
                        grid= grid) %>%
-        purrr::list_rbind(names_to = "metric") |> 
+        purrr::list_rbind(names_to = "metric") |>
         tidyr::pivot_longer(
           # tidy ages
           tidyselect::contains("V"),
@@ -92,101 +100,98 @@ process_marlin <- function(sim,
             dplyr::mutate(., age =  rep(ages, dplyr::n_distinct(.$patch)))
           } else {
             dplyr::mutate(., age = "all")
-            
+
           }
         }
-      
+
       return(tmp)
-      
+
     }
-    
 
-    out <- purrr::map2(x, names(x), tidy_marlin, grid= grid) |> 
+
+    out <- purrr::map2(x, names(x), tidy_marlin, grid= grid) |>
       purrr::list_rbind()
-    
+
   }
-  
+
   tidy_sim <-  purrr::imap(sim, ~ stepper(.x, grid = grid), .id = "step") %>%
-    purrr::list_rbind(names_to = "step") |> 
-    dplyr::mutate(step = as.numeric(step),
-                  year = floor(as.numeric(step)))
-
-
+    purrr::list_rbind(names_to = "step") |>
+    dplyr::mutate(year = (as.integer(gsub("_.*$", "", step))),
+                  season =  (as.integer(gsub("^.*_", "", step))),
+                  step = year + (season * time_step - time_step))
   # process fleets
-  # ok this is the concept, but you need to wrap this in a map function to tidy by species
-  
-  
   fleet_stepper <- function(tmp, grid) {
     get_fleet <- function(x, z, grid) {
 
-      tidy_catch <-  data.frame(expand.grid(dimnames(x$c_p_a_fl)), value = as.vector(x$c_p_a_fl)) |> 
-        purrr::set_names("patch", "age", "fleet", "catch") |> 
+      tidy_catch <-  data.frame(expand.grid(dimnames(x$c_p_a_fl)), value = as.vector(x$c_p_a_fl)) |>
+        purrr::set_names("patch", "age", "fleet", "catch") |>
         dplyr::mutate(across(patch:age, ~as.numeric(as.character(.x))))
-      
-      tidy_rev <-  data.frame(expand.grid(dimnames(x$r_p_a_fl)), value = as.vector(x$r_p_a_fl)) |> 
-        purrr::set_names("patch", "age", "fleet", "revenue") |> 
+
+      tidy_rev <-  data.frame(expand.grid(dimnames(x$r_p_a_fl)), value = as.vector(x$r_p_a_fl)) |>
+        purrr::set_names("patch", "age", "fleet", "revenue") |>
         dplyr::mutate(across(patch:age, ~as.numeric(as.character(.x))))
-      
-      
+
+
       if (keep_age == FALSE){
-        
-        tidy_catch <-  tidy_catch %>% 
-          dplyr::group_by(patch, fleet) %>% 
-          dplyr::summarise(catch = sum(catch, na.rm = TRUE)) %>% 
+
+        tidy_catch <-  tidy_catch %>%
+          dplyr::group_by(patch, fleet) %>%
+          dplyr::summarise(catch = sum(catch, na.rm = TRUE)) %>%
           dplyr::mutate(age = "all")
-        
-        tidy_rev <-  tidy_rev %>% 
-          dplyr::group_by(patch, fleet) %>% 
-          dplyr::summarise(revenue = sum(revenue, na.rm = TRUE)) %>% 
-          dplyr::mutate(age = "all") 
-        
+
+        tidy_rev <-  tidy_rev %>%
+          dplyr::group_by(patch, fleet) %>%
+          dplyr::summarise(revenue = sum(revenue, na.rm = TRUE)) %>%
+          dplyr::mutate(age = "all")
+
 
       }
-      
+
       coords <- grid %>%
         dplyr::mutate(patch = 1:nrow(.))
-      
+
       tidy_catch <- tidy_catch %>%
         dplyr::left_join(coords, by = "patch")
-      
+
       tidy_rev <- tidy_rev %>%
         dplyr::left_join(coords, by = "patch")
-      
-      
+
+
       tidy_effort <- x$e_p_fl %>%
         purrr::set_names(paste0(colnames(.), "_effort")) %>%
-        dplyr::mutate(patch = 1:nrow(.)) |> 
-        tidyr::pivot_longer(tidyselect::ends_with("_effort"), names_to = "fleet", values_to = "effort") |> 
+        dplyr::mutate(patch = 1:nrow(.)) |>
+        tidyr::pivot_longer(tidyselect::ends_with("_effort"), names_to = "fleet", values_to = "effort") |>
         dplyr::mutate(fleet = gsub("_effort","", fleet))
-      
+
       # hello? is it me you're looking for?
       tidy_fleet <- tidy_catch %>%
         dplyr::left_join(tidy_rev, by = c("patch", "age","fleet","x","y")) %>%
         dplyr::left_join(tidy_effort, by = c("patch", "fleet")) %>%
         dplyr::mutate(critter = z,
                       cpue = catch / effort)
-      
+
     }
-    
+
     # tmp <- sim[[1]]
-    
-    step_fleet <- purrr::imap(tmp, get_fleet, grid = grid) |> 
+
+    step_fleet <- purrr::imap(tmp, get_fleet, grid = grid) |>
       purrr::list_rbind()
-    
-    
+
+
   }
-  
+
   tidy_sim_fleet <-
     purrr::imap(sim, ~ fleet_stepper(.x, grid = grid)) %>%
-    purrr::list_rbind(names_to = "step") |> 
-    dplyr::mutate(step = as.numeric(step),
-      year = floor(as.numeric(step))) |> 
-    dplyr::as_tibble()
-  
+    purrr::list_rbind(names_to = "step") |>
+    dplyr::mutate(year = (as.integer(gsub("_.*$", "", step))),
+                  season =  (as.integer(gsub("^.*_", "", step))),
+                  step = year + (season * time_step - time_step)) |>
+  dplyr::as_tibble()
+
 
   out <- list(fauna = tidy_sim,
               fleets = tidy_sim_fleet)
-  
+
   return(out)
-  
+
 }

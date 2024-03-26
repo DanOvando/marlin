@@ -271,48 +271,48 @@ proc_sim_effort$fleets %>%
 
 
 
-## Seasons
+<!-- ## Seasons -->
 
-We can also impose closed or reduced fishing seasons that apply to one or more targeted species. This is specified by a vector containing values between 0 and 1 with length equal to the number of seasons in the simulation.  When a season has a value of 1, that implies that fishing continues as normal in that season. When that value is 0, that means that the fishery is closed in that season. Setting intermediate values, like say 0.5, is akin to simulating a closed seasons with a 50% discard mortality rate
+<!-- We can also impose closed or reduced fishing seasons that apply to one or more targeted species. This is specified by a vector containing values between 0 and 1 with length equal to the number of seasons in the simulation.  When a season has a value of 1, that implies that fishing continues as normal in that season. When that value is 0, that means that the fishery is closed in that season. Setting intermediate values, like say 0.5, is akin to simulating a closed seasons with a 50% discard mortality rate -->
 
-So one option would be to specify a discard mortality rate, and a discard rate, with the discard rate being potentially seasonal. 
+<!-- So one option would be to specify a discard mortality rate, and a discard rate, with the discard rate being potentially seasonal.  -->
 
-The problem is the need to separate out the accounting between how many fish actually die and how many the fleet is allowed to retain. Suppose you set a discard rate of 50%, and a discard mortality rate of 0%. That is equivalent to just cutting effort in half. 
+<!-- The problem is the need to separate out the accounting between how many fish actually die and how many the fleet is allowed to retain. Suppose you set a discard rate of 50%, and a discard mortality rate of 0%. That is equivalent to just cutting effort in half.  -->
 
-But, suppose you set a discard rate of 100% and a discard mortality rate of 100%. That would mean that the same amount of fish are dying, but you can't keep them. So that would be easy since again effort doesn't change, you'd just need a multiplier on converting dead fish to catch. 
+<!-- But, suppose you set a discard rate of 100% and a discard mortality rate of 100%. That would mean that the same amount of fish are dying, but you can't keep them. So that would be easy since again effort doesn't change, you'd just need a multiplier on converting dead fish to catch.  -->
 
-But, now suppose that discard rate is 100% and discard mortality is 50%. Now, you need to both reduce effort by 50%, but allow zero retention. 
+<!-- But, now suppose that discard rate is 100% and discard mortality is 50%. Now, you need to both reduce effort by 50%, but allow zero retention.  -->
 
-So, you'd need to adjust fishing mortality rate by a function of discard rate + discard mortality
+<!-- So, you'd need to adjust fishing mortality rate by a function of discard rate + discard mortality -->
 
-That will get the correct amount of fish dead
+<!-- That will get the correct amount of fish dead -->
 
-Then you'd adjust the catch by just the discard rate
+<!-- Then you'd adjust the catch by just the discard rate -->
 
-This gets pretty complicated pretty quickly though, since it means that you need to adjust the actual amount killed. So that would come in on a multiplier of the fishing mortality rate in the manner you have now, where say if you 
-
-
-```{r}
-
-sim <- simmar(fauna = fauna,
-                  fleets = fleets,
-                  years = years,
-              manager = list(seasonal_effort_mult = list(bigeye = c(1,2))))
-
-proc_sim <- process_marlin(sim)
-
-plot_marlin(proc_sim, plot_var = "c")
-
-proc_sim$fleets %>% 
-  group_by(step, fleet) %>%
-  summarise(effort = sum(effort)) %>% 
-  ggplot(aes(step * time_step, effort, color = fleet)) + 
-  geom_line() + 
-  scale_x_continuous(name = "Year") + 
-  scale_y_continuous(limits = c(0, NA))
+<!-- This gets pretty complicated pretty quickly though, since it means that you need to adjust the actual amount killed. So that would come in on a multiplier of the fishing mortality rate in the manner you have now, where say if you  -->
 
 
-```
+<!-- ```{r} -->
+
+<!-- sim <- simmar(fauna = fauna, -->
+<!--                   fleets = fleets, -->
+<!--                   years = years, -->
+<!--               manager = list(seasonal_effort_mult = list(bigeye = c(1,2)))) -->
+
+<!-- proc_sim <- process_marlin(sim) -->
+
+<!-- plot_marlin(proc_sim, plot_var = "c") -->
+
+<!-- proc_sim$fleets %>%  -->
+<!--   group_by(step, fleet) %>% -->
+<!--   summarise(effort = sum(effort)) %>%  -->
+<!--   ggplot(aes(step * time_step, effort, color = fleet)) +  -->
+<!--   geom_line() +  -->
+<!--   scale_x_continuous(name = "Year") +  -->
+<!--   scale_y_continuous(limits = c(0, NA)) -->
+
+
+<!-- ``` -->
 
 
 

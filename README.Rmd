@@ -116,7 +116,6 @@ options(dplyr.summarise.inform = FALSE)
 theme_set(marlin::theme_marlin(base_size = 42))
 
 resolution <- c(5,10) # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
-
 years <- 20
 
 seasons <- 4
@@ -152,7 +151,7 @@ fauna <-
       common_name = "bigeye tuna",
       adult_diffusion = 10,
       density_dependence = "post_dispersal",
-      seasons = 4,
+      seasons = seasons,
       fished_depletion = .25,
       resolution = resolution,
       steepness = 0.6,
@@ -192,7 +191,6 @@ fleets <- list(
 We then use the `tune_fleets` function as needed to tune the dynamics of the fleet to achieve specific objectives. In this case, we specified a target equilibrium fished depletion of 25% (meaning biomass at equilibrium is 25% of unfished biomass). `tune_fleets` adjusts the catchability coefficients by fleet to achieve the desired depletion level, taking into account the dynamics and `p_explt` values per metier. 
 
 ```{r}
-
 
 fleets <- tune_fleets(fauna, fleets, tune_type = "depletion") 
 
