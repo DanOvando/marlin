@@ -7,10 +7,12 @@ lat_g = seq(55, 65, length=n_g)
 Temp_g = seq(15, 5, length=n_g)
 
 # Parameters
-diffusion = 2
-preference_g =  (-2*diffusion * (Temp_g - 10)^2)
+diffusion = 0
+preference_g =  (-2 * (Temp_g - 10)^2)
 
 preference_g <-  preference_g - min(preference_g)
+
+preference_g[42] <- 0
 
 # plot
 matplot( cbind(lat_g,Temp_g,preference_g), type="l", lty="solid", lwd=2 )
@@ -51,9 +53,9 @@ n <- matrix(ncol = 1, nrow = n_g,rep(0,n_g))
 n[1,1] <-  100
 
 for (y in 1:1000){
-  
+
  n <-  mfraction_gg %*% n
-  
+
 }
 
 # Stationary distribution

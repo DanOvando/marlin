@@ -1,0 +1,91 @@
+---
+title: "vary-habitat"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(marlin)
+
+library(tidyverse)
+
+
+resolution <- c(10,10)
+
+years <- 20
+
+seasons <- 4
+
+steps <- years * seasons
+
+time_step <- 1 / seasons
+
+critter_diffusion <- 0.01
+
+# for now make up some habitat
+
+critter_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
+  dplyr::mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 20, 200),
+  habitat = habitat / max(habitat) * critter_diffusion) |> 
+  mutate(habitat = habitat * as.numeric(x > 4)) |> 
+  pivot_wider(names_from = y, values_from = habitat) %>% 
+  select(-x) %>% 
+  as.matrix()
+
+larval_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
+  dplyr::mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 20, 200),
+  habitat = habitat / max(habitat) * critter_diffusion) |> 
+  mutate(habitat = habitat * as.numeric(x <= 4)) |> 
+  pivot_wider(names_from = y, values_from = habitat) %>% 
+  select(-x) %>% 
+  as.matrix()
+
+image(critter_habitat)
+
+fauna <- 
+  list(
+    "snapper" = create_critter(
+      scientific_name = "Lutjanus jocu",
+      habitat = critter_habitat, # pass habitat as lists
+      recruit_habitat = critter_habitat, # pass habitat as lists
+      adult_diffusion = critter_diffusion, # standard deviation of the number of patches moved by adults
+      fished_depletion = .2, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
+      density_dependence = "global_habitat", # recruitment form, where 1 implies local recruitment
+      seasons = seasons
+      )
+  )
+
+fleets <- list(
+  "longline" = create_fleet(
+    list("snapper" = Metier$new(
+        critter = fauna$snapper,
+        price = 10,
+        sel_form = "logistic",
+        sel_start = 1,
+        sel_delta = .01,
+        catchability = 0,
+        p_explt = 1
+      )
+    ),
+    base_effort = prod(resolution),
+    resolution = resolution
+  )
+)
+
+fleets <- tune_fleets(fauna, fleets)
+
+sim <- simmar(fauna, fleets)
+
+proc_sim <- process_marlin(sim, keep_age = FALSE)
+
+min(proc_sim$fauna$n)
+
+plot_marlin(proc_sim, plot_type = "space", plot_var = "c", max_scale = FALSE)
+
+
+```

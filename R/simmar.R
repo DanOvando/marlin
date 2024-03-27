@@ -139,12 +139,22 @@ simmar <- function(fauna = list(),
         new_habitat <- vector(mode = "list", length = steps - 1)
 
         for (i in 1:(steps - 1)) {
-          year <-
-            as.integer(gsub("_.*$", "", step_names[i])) # put year in index form not named form
+
+          supplied_years <- length(habitat[[f]])
+          if (!is.na(starting_step)){
+            years_in <-
+              as.integer(gsub("_.*$", "", step_names[i])) -  as.integer(gsub("_.*$", "", starting_step)) + 1
+            # put year in index form not named form
+
+          } else {
+            years_in <-
+              as.integer(gsub("_.*$", "", step_names[i]))
+          }
+          years_in <- min(years_in, supplied_years)
+
 
           # year <-  floor(step_names[i] - starting_step) # put year in index form not named form
-
-          new_habitat[[i]] <- habitat[[f]][[year]]
+          new_habitat[[i]] <- habitat[[f]][[years_in]]
         }
 
         habitat[[f]] <- new_habitat
@@ -862,7 +872,7 @@ simmar <- function(fauna = list(),
   storage <-
     storage[ifelse(keep_starting_step, 1, 2):pmax(2,steps - 1)] # since catch is retrospective, chop off last time step to ensure that every step has a catch history, and drop starting step is specified
   storage <-
-    rlang::set_names(storage, nm = paste0("step_", trimmed_names))
+    rlang::set_names(storage, nm = paste0(trimmed_names))
 
   storage <- purrr::map(storage, ~ rlang::set_names(.x, fauni))
 } # close function

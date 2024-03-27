@@ -46,7 +46,6 @@ fill in fish object
   age_50_mature = NA,
   age_95_mature = NA,
   age_mature = NA,
-  length_mature = NA,
   m = NA,
   steepness = 0.8,
   r0 = 10000,

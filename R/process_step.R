@@ -16,8 +16,13 @@ process_step <- function(step){
   season <-
     as.integer(gsub("^.*_", "", year_season))
 
+  season_length <- 1 / max(season)
+
+  time_step <- year + (season / max(season) - season_length)
+
   return(list(year_season = year_season,
               year = year,
-              season = season))
+              season = season,
+              time_step = time_step))
 
 }
