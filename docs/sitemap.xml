@@ -22,19 +22,22 @@
     <loc>https://danovando.github.io/marlin/articles/index.html</loc>
   </url>
   <url>
-    <loc>https://danovando.github.io/marlin/articles/migrations.html</loc>
+    <loc>https://danovando.github.io/marlin/articles/manual_fleets.html</loc>
   </url>
   <url>
-    <loc>https://danovando.github.io/marlin/articles/optimize-mpas.html</loc>
+    <loc>https://danovando.github.io/marlin/articles/measure_gradients.html</loc>
   </url>
   <url>
-    <loc>https://danovando.github.io/marlin/articles/optimize_mpa.html</loc>
+    <loc>https://danovando.github.io/marlin/articles/movement-rates.html</loc>
   </url>
   <url>
     <loc>https://danovando.github.io/marlin/articles/port-distance.html</loc>
   </url>
   <url>
-    <loc>https://danovando.github.io/marlin/articles/port_distance.html</loc>
+    <loc>https://danovando.github.io/marlin/articles/rectifier.html</loc>
+  </url>
+  <url>
+    <loc>https://danovando.github.io/marlin/articles/vary-habitat.html</loc>
   </url>
   <url>
     <loc>https://danovando.github.io/marlin/authors.html</loc>
@@ -64,6 +67,9 @@
     <loc>https://danovando.github.io/marlin/reference/bird.html</loc>
   </url>
   <url>
+    <loc>https://danovando.github.io/marlin/reference/clean_steps.html</loc>
+  </url>
+  <url>
     <loc>https://danovando.github.io/marlin/reference/create_critter.html</loc>
   </url>
   <url>
@@ -85,6 +91,9 @@
     <loc>https://danovando.github.io/marlin/reference/generate_length_at_age_key.html</loc>
   </url>
   <url>
+    <loc>https://danovando.github.io/marlin/reference/get_distance_to_mpas.html</loc>
+  </url>
+  <url>
     <loc>https://danovando.github.io/marlin/reference/get_traits.html</loc>
   </url>
   <url>
@@ -100,9 +109,6 @@
     <loc>https://danovando.github.io/marlin/reference/pipe.html</loc>
   </url>
   <url>
-    <loc>https://danovando.github.io/marlin/reference/place_mpa.html</loc>
-  </url>
-  <url>
     <loc>https://danovando.github.io/marlin/reference/plot_marlin.html</loc>
   </url>
   <url>
@@ -110,6 +116,9 @@
   </url>
   <url>
     <loc>https://danovando.github.io/marlin/reference/process_marlin.html</loc>
+  </url>
+  <url>
+    <loc>https://danovando.github.io/marlin/reference/process_step.html</loc>
   </url>
   <url>
     <loc>https://danovando.github.io/marlin/reference/quota_finder.html</loc>

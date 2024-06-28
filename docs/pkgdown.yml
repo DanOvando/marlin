@@ -1,13 +1,17 @@
-pandoc: 2.19.2
-pkgdown: 2.0.6
+pandoc: 3.1.11
+pkgdown: 2.0.9
 pkgdown_sha: ~
 articles:
-  MSE: MSE.html
   dynamic-habitat: dynamic-habitat.html
   fleet-management: fleet-management.html
-  optimize-mpas: optimize-mpas.html
+  manual_fleets: manual_fleets.html
+  measure_gradients: measure_gradients.html
+  movement-rates: movement-rates.html
+  MSE: MSE.html
   port-distance: port-distance.html
-last_built: 2022-11-16T01:42Z
+  rectifier: rectifier.html
+  vary-habitat: vary-habitat.html
+last_built: 2024-06-28T21:04Z
 urls:
   reference: https://danovando.github.io/marlin/reference
   article: https://danovando.github.io/marlin/articles
