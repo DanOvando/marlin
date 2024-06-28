@@ -99,7 +99,6 @@ fishing_ground_sim <- simmar(fauna = fauna,
 
 proc_sim <- process_marlin(fishing_ground_sim)
 
-plot_marlin(proc_sim, plot_var = "ssb", plot_type = "space")
 
 fleet_summary <- proc_sim$fleets |> 
   filter(step == max(step)) |> 
@@ -109,19 +108,7 @@ fleet_summary <- proc_sim$fleets |>
   mutate(cpue = catch / effort) 
 
 fleet_summary |> 
-  ggplot(aes(x,y,fill = catch)) + 
-  geom_tile() + 
-  facet_wrap(~fleet) + 
-  scale_fill_viridis_c()
-
-fleet_summary |> 
   ggplot(aes(x,y,fill = effort)) + 
-  geom_tile() + 
-  facet_wrap(~fleet) + 
-  scale_fill_viridis_c()
-
-fleet_summary |> 
-  ggplot(aes(x,y,fill = cpue)) + 
   geom_tile() + 
   facet_wrap(~fleet) + 
   scale_fill_viridis_c()
