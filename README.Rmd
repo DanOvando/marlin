@@ -179,7 +179,7 @@ fleets <- list(
         sel_start = 1,
         sel_delta = .01,
         catchability = 0,
-        p_explt = 1
+        p_explt = 1,
       )
     ),
     base_effort = prod(resolution),

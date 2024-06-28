@@ -19,6 +19,8 @@ Metier <- R6::R6Class("metier",
                   #' @param sel_start the value of sel_unit at which selectivity "starts"
                   #' @param sel_delta the delta parameter in the selectivity function
                   #' @param catchability the catchability per uni effort pararmeter, generally overwritten by tune_fleet
+                  #' @param spatial_catchability a matrix of spatial q
+                  #' @param sel_at_age a manual vector of gear (contact) selectivity at age, where values are between 0 and 1
                   #' @param p_explt the proportion of total exploitation for a given critter coming from this metier. This value is relaive to all other p_explt values for the critter in question. Set to 0 to have metier not catch critter at all
                   initialize = function(critter = NA, # this might be redundant
                                         price = 10,
@@ -28,7 +30,8 @@ Metier <- R6::R6Class("metier",
                                         sel_delta = .1,
                                         catchability = 0.2,
                                         spatial_catchability = NA,
-                                        p_explt = 1) {
+                                        p_explt = 1,
+                                        sel_at_age = NULL) {
 
 
                       catchability <- pmax(1e-9,catchability)
@@ -89,7 +92,15 @@ Metier <- R6::R6Class("metier",
 
                         self$sel_at_age <- as.numeric(sel_at_age)
 
-                      } # close dome shaped
+                      } else if (sel_form == "manual") {
+
+                        if (is.null(sel_at_age)){
+                          stop("sel_form = 'manual' but no manual set_at_age provided")
+                        }
+
+                        self$sel_at_age <- sel_at_age
+
+                      } # close sel_form things
 
 
 

@@ -31,7 +31,8 @@ Parameters for specific metier of a given fleet
   sel_delta = 0.1,
   catchability = 0.2,
   spatial_catchability = NA,
-  p_explt = 1
+  p_explt = 1,
+  sel_at_age = NULL
 )}\if{html}{\out{</div>}}
 }
 
@@ -52,7 +53,11 @@ Parameters for specific metier of a given fleet
 
 \item{\code{catchability}}{the catchability per uni effort pararmeter, generally overwritten by tune_fleet}
 
+\item{\code{spatial_catchability}}{a matrix of spatial q}
+
 \item{\code{p_explt}}{the proportion of total exploitation for a given critter coming from this metier. This value is relaive to all other p_explt values for the critter in question. Set to 0 to have metier not catch critter at all}
+
+\item{\code{sel_at_age}}{a manual vector of gear (contact) selectivity at age, where values are between 0 and 1}
 }
 \if{html}{\out{</div>}}
 }

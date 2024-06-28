@@ -28,7 +28,7 @@ simmar(
 
 \item{years}{the number of years to run the simulation}
 
-\item{initial_conditions}{initial conditions for the simulation, in the form simmar()[\link{final year}]}
+\item{initial_conditions}{initial conditions for the simulation, in the form simmar()[\link{final step}]}
 
 \item{starting_step}{the step to start the simulation from, used to keep track of steps across multiple runs of simmar}
 
