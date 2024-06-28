@@ -3,7 +3,7 @@ library(tidyverse)
 options(dplyr.summarise.inform = FALSE)
 theme_set(marlin::theme_marlin(base_size = 42))
 
-resolution <- 2 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
+resolution <- 10 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches
 
 years <- 50
 
@@ -13,7 +13,7 @@ time_step <- 1 / seasons
 
 steps <- years * seasons
 
-fauna <- 
+fauna <-
   list(
     "bigeye" = create_critter(
       common_name = "bigeye tuna",
@@ -26,6 +26,11 @@ fauna <-
       ssb0 = 1000
     )
   )
+
+fishing_grounds <- expand.grid(x = 1:resolution, y = 1:resolution) |>
+  mutate(fishing_ground = FALSE)
+
+fishing_grounds$fishing_ground[1:2] <- TRUE
 
 fleets <- list(
   "longline" = create_fleet(
@@ -40,17 +45,18 @@ fleets <- list(
     )
     ),
     base_effort = resolution ^ 2,
-    resolution = resolution
+    resolution = resolution,
+    fishing_grounds = fishing_grounds
   )
 )
 
 fauna$bigeye$plot()
 
-fleets <- tune_fleets(fauna, fleets, tune_type = "depletion") 
+fleets <- tune_fleets(fauna, fleets, tune_type = "depletion")
 
 start_time <- Sys.time()
 
-for (i in 1:(10 * 80)){
+for (i in 1:(1)){
 
 example_sim <- simmar(fauna = fauna,
                       fleets = fleets,
@@ -58,3 +64,7 @@ example_sim <- simmar(fauna = fauna,
 }
 Sys.time() - start_time
 
+
+proc_sim <- process_marlin(example_sim)
+
+plot_marlin(proc_sim, plot_var = "c", plot_type = "space", max_scale = FALSE)

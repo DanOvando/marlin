@@ -16,7 +16,8 @@ create_fleet(
   cost_per_distance = 1,
   cr_ratio = 1,
   resolution,
-  base_effort = NA
+  base_effort = NULL,
+  fishing_grounds = NULL
 )
 }
 \arguments{

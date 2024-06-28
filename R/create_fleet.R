@@ -27,15 +27,15 @@ create_fleet <-
            cost_per_distance = 1,
            cr_ratio = 1,
            resolution,
-           base_effort = NA) {
-    # idea: each fleet has a list of fauna inside of it specifying the price, selectivity, q for that species
+           base_effort = NULL,
+           fishing_grounds = NULL) {
 
     fleet_model <- gsub(" ","_", fleet_model) # in case someone used spaces accidentally (like dumbass old dan)
 
     if (length(resolution) == 1){
       resolution <- rep(resolution,2)
     }
-    if (is.na(base_effort)){
+    if (is.null(base_effort)){
       base_effort <- prod(resolution)
     }
 
@@ -76,7 +76,8 @@ create_fleet <-
                  spatial_allocation = spatial_allocation,
                  fleet_model = fleet_model,
                  effort_cost_exponent = effort_cost_exponent,
-                 cost_per_patch = cost_per_patch)
+                 cost_per_patch = cost_per_patch,
+                 fishing_grounds = fishing_grounds)
 
 
     return(fleet)

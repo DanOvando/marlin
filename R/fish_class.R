@@ -536,9 +536,6 @@ Fish <- R6::R6Class(
                                prep_movement,
                                resolution = self$resolution)
 
-     ## broken through here
-
-
       # ideally, you would set things up with mean environmental conditions, but for now, set up a placeholder for movement ignoring taxis for unfished conditions...
 
       self$movement_matrix <-
