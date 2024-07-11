@@ -29,7 +29,7 @@ set.seed(42)
   -  optimized marine protected area network design
   -  Data-generating processes for spatial-stock assessment
 
-The model is described in Ovando *et al.* (2023) hopefully.  
+The model is described in Ovando *et al.* (2023)  
 
 Ovando, Daniel, Darcy Bradley, Echelle Burns, Lennon Thomas, and James Thorson. “Simulating Benefits, Costs and Trade-Offs of Spatial Management in Marine Social-Ecological Systems.” Fish and Fisheries, (2023). https://doi.org/10.1111/faf.12804.
 
@@ -392,16 +392,6 @@ plot_marlin(processed_marlin)
 plot_marlin(processed_marlin, plot_var = "c")
 
 plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", fauna = fauna)
-
-plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space")
-
-  e_p_f <- map(sim3[[length(sim3)]],"e_p_fl") %>%
-    bind_rows(.id = "critter") %>%
-    pivot_longer(-critter, names_to = "fleet", values_to = "effort") %>%
-    group_by(critter, fleet) %>%
-    mutate(patch = seq_along(effort)) %>%
-    group_by(fleet, patch) %>%
-    summarise(effort = sum(effort))
 
 
 ```

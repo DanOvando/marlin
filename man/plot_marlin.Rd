@@ -21,7 +21,7 @@ plot_marlin(
 
 \item{steps_to_plot}{which steps to include in the plot}
 
-\item{plot_var}{the primary plotting variable, one of "n","b","ssb"}
+\item{plot_var}{the primary plotting variable, one of "c" (catch) "n" (numbers),"b" (biomass),"ssb" (spawning stock biomass)}
 
 \item{plot_type}{the plot type, one of "time", "length", or "space"}
 

@@ -6,12 +6,12 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="description" content="marlin">
-<title>Setting Movement Rates • marlin</title>
+<title>Setting &amp; Understanding Movement Rates • marlin</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
-<!-- bootstrap-toc --><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@v1.0.1/dist/bootstrap-toc.min.js" integrity="sha256-4veVQbu7//Lk5TSmc7YV48MxtMy98e26cf5MrgZYnwo=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.11/clipboard.min.js" integrity="sha512-7O5pXpc0oCRrxk8RUfDYFgn0nO1t+jLuIOQdOMRp4APB7uZ4vSjspzp5y6YDtDs4VzUSTbWzBFZ/LKJhnyFOKw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Setting Movement Rates">
+<!-- bootstrap-toc --><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@v1.0.1/dist/bootstrap-toc.min.js" integrity="sha256-4veVQbu7//Lk5TSmc7YV48MxtMy98e26cf5MrgZYnwo=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.11/clipboard.min.js" integrity="sha512-7O5pXpc0oCRrxk8RUfDYFgn0nO1t+jLuIOQdOMRp4APB7uZ4vSjspzp5y6YDtDs4VzUSTbWzBFZ/LKJhnyFOKw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Setting &amp; Understanding Movement Rates">
 <meta property="og:description" content="marlin">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
@@ -41,15 +41,14 @@
 <li class="active nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="../articles/dynamic-habitat.html">dynamic-habitat</a>
-    <a class="dropdown-item" href="../articles/fleet-management.html">fleet-management</a>
+    <a class="dropdown-item" href="../articles/dynamic-habitat.html">Set Dynamic Habitats</a>
+    <a class="dropdown-item" href="../articles/fleet-management.html">Manage Catch and Effort of Fleets</a>
     <a class="dropdown-item" href="../articles/manual_fleets.html">Manual Fishing Grounds and Effort Allocation</a>
     <a class="dropdown-item" href="../articles/measure_gradients.html">Measure MPA Gradients</a>
-    <a class="dropdown-item" href="../articles/movement-rates.html">Setting Movement Rates</a>
-    <a class="dropdown-item" href="../articles/MSE.html">MSE</a>
-    <a class="dropdown-item" href="../articles/port-distance.html">port-distance</a>
+    <a class="dropdown-item" href="../articles/movement-rates.html">Setting &amp; Understanding Movement Rates</a>
+    <a class="dropdown-item" href="../articles/MSE.html">Management Strategy Evaluation (sort of)</a>
+    <a class="dropdown-item" href="../articles/port-distance.html">Setting and Using Distance from Port</a>
     <a class="dropdown-item" href="../articles/rectifier.html">Don't Be a Square</a>
-    <a class="dropdown-item" href="../articles/vary-habitat.html">vary-habitat</a>
   </div>
 </li>
 <li class="nav-item">
@@ -79,7 +78,7 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-      <img src="" class="logo" alt=""><h1>Setting Movement Rates</h1>
+      <img src="" class="logo" alt=""><h1>Setting &amp; Understanding Movement Rates</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/danovando/marlin/blob/HEAD/vignettes/movement-rates.Rmd" class="external-link"><code>vignettes/movement-rates.Rmd</code></a></small>
@@ -203,12 +202,13 @@ need to decide on logical values on their own.</p>
 <p>Movement enters marlin in two ways; through the dispersal parameter
 <span class="math inline">\(D\)</span> and the ratio of habitat
 gradients. Let’s focus first on setting up the dispersal parameter.
-<span class="math inline">\(D\)</span> is in units of time /
-distance<sup>2</sup>. So if one was running a model using time units of
-years and distance of km^2, <span class="math inline">\(D\)</span> might
-be 100km^2/yeark meaning that a fish can diffuse over an area of
-100km<sup>2</sup> over the span of a year. Values of <span class="math inline">\(D\)</span> can then be set through literature
-review or best judgement given the species in question.</p>
+<span class="math inline">\(D\)</span> is in units of
+distance<sup>2</sup> / time. So if one was running a model using time
+units of years and distance of km^2, <span class="math inline">\(D\)</span> might be 100km^2/yeark meaning that a
+fish can diffuse over an area of 100km<sup>2</sup> over the span of a
+year. Values of <span class="math inline">\(D\)</span> can then be set
+through literature review or best judgement given the species in
+question.</p>
 <p>Once we have set <span class="math inline">\(D\)</span>,
 <code>marlin</code> then estimates the correct diffusion matrix given
 the spatial and temporal resolution of the simulation itself.</p>
@@ -229,7 +229,7 @@ for what is actually happening in the model.</p>
 <span></span>
 <span><span class="va">patches</span> <span class="op">&lt;-</span> <span class="va">resolution</span><span class="op">^</span><span class="fl">2</span> <span class="co"># number of patches</span></span>
 <span></span>
-<span><span class="va">delta_d</span> <span class="op">&lt;-</span> <span class="fl">5</span> <span class="co"># length of a cell side in km</span></span>
+<span><span class="va">delta_d</span> <span class="op">&lt;-</span> <span class="fl">100</span> <span class="co"># length of a cell side in km</span></span>
 <span></span>
 <span><span class="va">patch_area</span> <span class="op">=</span> <span class="va">delta_d</span><span class="op">^</span><span class="fl">2</span> <span class="co"># in units of km^2/patch</span></span>
 <span></span>
@@ -238,7 +238,7 @@ for what is actually happening in the model.</p>
 <span></span>
 <span><span class="va">delta_t</span> <span class="op">=</span> <span class="fl">1</span> <span class="co"># length of one time step in the simulation in units of years </span></span>
 <span></span>
-<span><span class="va">D</span> <span class="op">&lt;-</span> <span class="fl">1</span> <span class="co"># km^2  / year</span></span></code></pre></div>
+<span><span class="va">D</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="fl">4</span><span class="op">*</span><span class="va">patch_area</span><span class="op">)</span> <span class="co"># km^2  / year</span></span></code></pre></div>
 <p>We’re now going to set up an “adjacency matrix”. This is a patches x
 patches dimension matrix that has a 1 if two patches are adjacent to
 each other, and a 0 if not.</p>
@@ -319,14 +319,13 @@ critters from a central patch to the patches around it.</p>
 initially seeded in one central patch after one year across a range of
 diffusion rates <span class="math inline">\(D\)</span>.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">diffusion_frame</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>D <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">1000</span>, length.out <span class="op">=</span> <span class="fl">8</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
+<code class="sourceCode R"><span><span class="va">diffusion_frame</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>D <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">2</span><span class="op">*</span><span class="va">patch_area</span>, length.out <span class="op">=</span> <span class="fl">8</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">sim_diffusion</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">D</span>, <span class="va">resolution</span>, <span class="va">delta_d</span> <span class="op">=</span> <span class="fl">5</span>,<span class="va">delta_t</span> <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">{</span></span>
 <span></span>
 <span><span class="va">patches</span> <span class="op">&lt;-</span> <span class="va">resolution</span><span class="op">^</span><span class="fl">2</span> <span class="co"># number of patches</span></span>
 <span></span>
-<span><span class="va">delta_d</span> <span class="op">&lt;-</span> <span class="fl">5</span> <span class="co"># length of a cell side in km</span></span>
+<span><span class="va">delta_d</span> <span class="op">&lt;-</span> <span class="va">delta_d</span> <span class="co"># length of a cell side in km</span></span>
 <span></span>
 <span><span class="va">patch_area</span> <span class="op">=</span> <span class="va">delta_d</span><span class="op">^</span><span class="fl">2</span> <span class="co"># in units of km^2/patch</span></span>
 <span></span>
@@ -372,7 +371,7 @@ diffusion rates <span class="math inline">\(D\)</span>.</p>
 <span><span class="op">}</span></span>
 <span></span>
 <span><span class="va">diffusion_frame</span> <span class="op">&lt;-</span> <span class="va">diffusion_frame</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>tmp <span class="op">=</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">map</a></span><span class="op">(</span><span class="va">D</span>, <span class="va">sim_diffusion</span>, resolution <span class="op">=</span> <span class="va">resolution</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>tmp <span class="op">=</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">map</a></span><span class="op">(</span><span class="va">D</span>, <span class="va">sim_diffusion</span>, resolution <span class="op">=</span> <span class="va">resolution</span>, delta_d <span class="op">=</span> <span class="va">delta_d</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">diffusion_frame</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/unnest.html" class="external-link">unnest</a></span><span class="op">(</span>cols <span class="op">=</span> <span class="va">tmp</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
@@ -384,7 +383,7 @@ diffusion rates <span class="math inline">\(D\)</span>.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"Distance from Bottom Left Corned in KM"</span>, expand <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">0</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_continuous</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"Distance from Bottom Left Corned in KM"</span>, expand <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">0</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_fixed.html" class="external-link">coord_fixed</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">D</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">D</span><span class="op">)</span>, labeller <span class="op">=</span> <span class="va">label_both</span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
 <img src="movement-rates_files/figure-html/fig-disp-1.png" alt="Diffusion from one central patch after one year for a range of diffusion rates." width="700"><p class="caption">
 Diffusion from one central patch after one year for a range of diffusion
@@ -468,7 +467,7 @@ an empircal CTMC model!</p>
 <div class="section level2">
 <h2 id="putting-it-all-together">Putting it All Together<a class="anchor" aria-label="anchor" href="#putting-it-all-together"></a>
 </h2>
-<p>Putting it all together then, we’ll now use bothe the diffusion and
+<p>Putting it all together then, we’ll now use both the diffusion and
 taxis data to simulate movement over one time step of the model</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>

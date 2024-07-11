@@ -120,7 +120,7 @@ fleets <- list("longline" = create_fleet(list(
     p_explt = 1
   )),
   mpa_response = "stay",
-  base_effort = prod(resolution),
+  base_effort = 1000 * prod(resolution),
   spatial_allocation = "rpue",
   resolution = resolution
 ))

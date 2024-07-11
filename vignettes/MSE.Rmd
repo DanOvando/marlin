@@ -1,5 +1,5 @@
 ---
-title: "MSE"
+title: "Management Strategy Evaluation (sort of)"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{MSE}

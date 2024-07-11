@@ -1,13 +1,13 @@
 
 library(Matrix)
-n_g = 10
+n_g = 400
 
 # Domain characteristics
 lat_g = seq(55, 65, length=n_g)
 Temp_g = seq(15, 5, length=n_g)
 
 # Parameters
-diffusion = .8^2
+diffusion = 2* n_g
 preference_g =  (-.1 * (Temp_g - 10)^2)
 
 # plot
@@ -36,9 +36,9 @@ n <- matrix(ncol = 1, nrow = n_g,rep(0,n_g))
 n[1,1] <-  100
 
 for (y in 1:2){
-  
+
  n <-  mfraction_gg %*% n
-  
+
 }
 
 # Stationary distribution

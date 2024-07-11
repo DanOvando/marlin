@@ -41,15 +41,14 @@
 <li class="nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="articles/dynamic-habitat.html">dynamic-habitat</a>
-    <a class="dropdown-item" href="articles/fleet-management.html">fleet-management</a>
+    <a class="dropdown-item" href="articles/dynamic-habitat.html">Set Dynamic Habitats</a>
+    <a class="dropdown-item" href="articles/fleet-management.html">Manage Catch and Effort of Fleets</a>
     <a class="dropdown-item" href="articles/manual_fleets.html">Manual Fishing Grounds and Effort Allocation</a>
     <a class="dropdown-item" href="articles/measure_gradients.html">Measure MPA Gradients</a>
-    <a class="dropdown-item" href="articles/movement-rates.html">Setting Movement Rates</a>
-    <a class="dropdown-item" href="articles/MSE.html">MSE</a>
-    <a class="dropdown-item" href="articles/port-distance.html">port-distance</a>
+    <a class="dropdown-item" href="articles/movement-rates.html">Setting &amp; Understanding Movement Rates</a>
+    <a class="dropdown-item" href="articles/MSE.html">Management Strategy Evaluation (sort of)</a>
+    <a class="dropdown-item" href="articles/port-distance.html">Setting and Using Distance from Port</a>
     <a class="dropdown-item" href="articles/rectifier.html">Don't Be a Square</a>
-    <a class="dropdown-item" href="articles/vary-habitat.html">vary-habitat</a>
   </div>
 </li>
 <li class="nav-item">
@@ -82,7 +81,7 @@
 <!-- [![CRAN status](https://www.r-pkg.org/badges/version/mar)](https://CRAN.R-project.org/package=mar) -->
 <!-- badges: end -->
 <p><code>marlin</code> is a package for efficiently running simulations of marine fauna and fisheries. It can track the age-structured populations of multiple independent animals targeted by multiple fishing fleets across a two dimensional space. It allows users to simulate a wide range of life histories, movement dynamics, fishing fleet behaviors, and management strategies. See examples below and vignettes under the articles tab for how to use <code>marlin</code> to do things like simulate… - the impacts of displaced fishing effort across multiple species - seasonal spawning aggregations or climate induced range shifts - the impacts of port distance in fleet dynamics - optimized marine protected area network design - Data-generating processes for spatial-stock assessment</p>
-<p>The model is described in Ovando <em>et al.</em> (2023) hopefully.</p>
+<p>The model is described in Ovando <em>et al.</em> (2023)</p>
 <p>Ovando, Daniel, Darcy Bradley, Echelle Burns, Lennon Thomas, and James Thorson. “Simulating Benefits, Costs and Trade-Offs of Spatial Management in Marine Social-Ecological Systems.” Fish and Fisheries, (2023). <a href="https://doi.org/10.1111/faf.12804" class="external-link uri">https://doi.org/10.1111/faf.12804</a>.</p>
 <div class="section level2">
 <h2 id="what-is-marlin-for">What is <code>marlin</code> for?<a class="anchor" aria-label="anchor" href="#what-is-marlin-for"></a>
@@ -228,7 +227,7 @@
 <span>                  years <span class="op">=</span> <span class="va">years</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">start_time</span></span>
-<span><span class="co">#&gt; Time difference of 0.03603101 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 0.03846216 secs</span></span></code></pre></div>
 <p>we can then use <code>process_marlin</code> and <code>plot_marlin</code> to examine the simulation</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">processed_marlin</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_marlin.html">process_marlin</a></span><span class="op">(</span>sim <span class="op">=</span> <span class="va">example_sim</span>, time_step <span class="op">=</span> <span class="va">time_step</span><span class="op">)</span></span>
@@ -320,7 +319,7 @@
 <span>    <span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 1.686197 secs</span></span>
+<span><span class="co">#&gt; Time difference of 1.882205 secs</span></span>
 <span></span>
 <span><span class="co"># create a fleets object, which is a list of lists (of lists). Each fleet has one element, </span></span>
 <span><span class="co"># with lists for each species inside there. Price specifies the price per unit weight of that </span></span>
@@ -388,7 +387,7 @@
 <span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span><span class="op">)</span> </span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.640197 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.660609 secs</span></span>
 <span></span>
 <span></span>
 <span><span class="co"># run simulations</span></span>
@@ -401,7 +400,7 @@
 <span>                  years <span class="op">=</span> <span class="va">years</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.1813219 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.189923 secs</span></span>
 <span><span class="co"># a &lt;- Sys.time()</span></span>
 <span></span>
 <span><span class="va">processed_marlin</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_marlin.html">process_marlin</a></span><span class="op">(</span>sim <span class="op">=</span> <span class="va">sim3</span>, time_step <span class="op">=</span> <span class="va">time_step</span>, keep_age <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
@@ -417,25 +416,12 @@
 <code class="sourceCode R"><span></span>
 <span><span class="fu"><a href="reference/plot_marlin.html">plot_marlin</a></span><span class="op">(</span><span class="va">processed_marlin</span>, plot_var <span class="op">=</span> <span class="st">"n"</span>, plot_type <span class="op">=</span> <span class="st">"length"</span>, fauna <span class="op">=</span> <span class="va">fauna</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-example-3.png" width="100%"></p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="fu"><a href="reference/plot_marlin.html">plot_marlin</a></span><span class="op">(</span><span class="va">processed_marlin</span>, plot_var <span class="op">=</span> <span class="st">"ssb"</span>, plot_type <span class="op">=</span> <span class="st">"space"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-example-4.png" width="100%"></p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span>  <span class="va">e_p_f</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">map</a></span><span class="op">(</span><span class="va">sim3</span><span class="op">[[</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">sim3</span><span class="op">)</span><span class="op">]</span><span class="op">]</span>,<span class="st">"e_p_fl"</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
-<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind_rows.html" class="external-link">bind_rows</a></span><span class="op">(</span>.id <span class="op">=</span> <span class="st">"critter"</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
-<span>    <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_longer.html" class="external-link">pivot_longer</a></span><span class="op">(</span><span class="op">-</span><span class="va">critter</span>, names_to <span class="op">=</span> <span class="st">"fleet"</span>, values_to <span class="op">=</span> <span class="st">"effort"</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
-<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">critter</span>, <span class="va">fleet</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
-<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>patch <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_along</a></span><span class="op">(</span><span class="va">effort</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
-<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">fleet</span>, <span class="va">patch</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
-<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span>effort <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">effort</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="evaluating-mpas">Evaluating MPAs<a class="anchor" aria-label="anchor" href="#evaluating-mpas"></a>
 </h2>
 <p>Now let’s compare the effect of an MPA on two species: a shark population and a yellowfin tuna population. In one simulation, the sharks and the tuna will share the same nearshore habitat to the “east” of the simulated area. In the second, the tunas life onshore in the eastern habitat, but the sharks live further offshore. In both, we will design an MPA based on the distribution of tunas.</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span></span>
 <span><span class="va">resolution</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>,<span class="fl">20</span><span class="op">)</span> <span class="co"># resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches </span></span>
@@ -503,7 +489,7 @@
 <span></span>
 <span><span class="va">fauna</span><span class="op">$</span><span class="va">`Shortfin Mako`</span><span class="op">$</span><span class="fu">plot</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-8-1.png" width="100%"></p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># create a fleets object, which is a list of lists (of lists). Each fleet has one element, </span></span>
 <span><span class="co"># with lists for each species inside there. Price specifies the price per unit weight of that </span></span>
 <span><span class="co"># species for that fleet</span></span>
@@ -538,7 +524,7 @@
 <span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span>, tune_type <span class="op">=</span> <span class="va">tune_type</span><span class="op">)</span> <span class="co"># tunes the catchability by fleet to achieve target depletion</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 5.028091 secs</span></span>
+<span><span class="co">#&gt; Time difference of 3.637644 secs</span></span>
 <span></span>
 <span><span class="co"># run simulations</span></span>
 <span></span>
@@ -549,14 +535,14 @@
 <span>                  years <span class="op">=</span> <span class="va">years</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.089535 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.09066606 secs</span></span>
 <span>  </span>
 <span><span class="va">proc_nearshore</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">nearshore</span>, time_step <span class="op">=</span>  <span class="va">fauna</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">time_step</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="reference/plot_marlin.html">plot_marlin</a></span><span class="op">(</span><span class="va">proc_nearshore</span>, max_scale <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-8-2.png" width="100%"></p>
 <p>We will now design and implement an MPA network by specifying a data frame with columns x,y, and mpa denoting the coordinates of MPA patches.</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span>
 <span><span class="co">#specify some MPA locations</span></span>
 <span><span class="va">mpa_locations</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tidyr.tidyverse.org/reference/expand_grid.html" class="external-link">expand_grid</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">resolution</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, y <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">resolution</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
@@ -570,7 +556,7 @@
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_continuous</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"Lat"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-9-1.png" width="100%"></p>
 <p>We will now simulate the impacts of those MPAs by passing them to the manager slot.</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">a</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">nearshore_mpa</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/simmar.html">simmar</a></span><span class="op">(</span></span>
@@ -582,14 +568,14 @@
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.1652839 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.1507499 secs</span></span>
 <span></span>
 <span><span class="va">proc_nearshore_mpa</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">nearshore_mpa</span>, time_step <span class="op">=</span>  <span class="va">fauna</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">time_step</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="reference/plot_marlin.html">plot_marlin</a></span><span class="op">(</span><span class="va">proc_nearshore_mpa</span>, max_scale <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-10-1.png" width="100%"></p>
 <p>Now though, consider a different scenario. Here the tunas still slightly prefer their same nearshore habitat, but now the shortfin mako population primarily lives farther offshore. We will first simulate that population without the MPA, and then assess the effects of the exact same MPA on this new scenario.</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span></span>
 <span><span class="va">mako_habitat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tidyr.tidyverse.org/reference/expand_grid.html" class="external-link">expand_grid</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">resolution</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, y <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">resolution</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
@@ -630,7 +616,7 @@
 <span></span>
 <span><span class="va">fauna</span><span class="op">$</span><span class="va">`Shortfin Mako`</span><span class="op">$</span><span class="fu">plot</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-11-1.png" width="100%"></p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span>, tune_type <span class="op">=</span> <span class="va">tune_type</span><span class="op">)</span> <span class="co"># tunes the catchability by fleet to achieve target depletion</span></span>
 <span></span>
@@ -644,7 +630,7 @@
 <span>                  years <span class="op">=</span> <span class="va">years</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.07909393 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.1240561 secs</span></span>
 <span>  </span>
 <span><span class="va">proc_offshore</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">offshore</span>, time_step <span class="op">=</span>  <span class="va">fauna</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">time_step</span><span class="op">)</span></span>
 <span></span>
@@ -659,11 +645,11 @@
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.1393318 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.1548462 secs</span></span>
 <span></span>
 <span></span>
 <span><span class="va">proc_offshore_mpa</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">offshore_mpa_sim</span>, time_step <span class="op">=</span>  <span class="va">fauna</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">time_step</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/plot_marlin.html">plot_marlin</a></span><span class="op">(</span></span>
 <span>  `MPA: Sharks Offshore` <span class="op">=</span> <span class="va">proc_offshore_mpa</span>,</span>
 <span>  `No MPA: Sharks Nearshore` <span class="op">=</span> <span class="va">proc_nearshore</span>,</span>
@@ -673,7 +659,7 @@
 <span>  max_scale <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-12-1.png" width="100%"></p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/plot_marlin.html">plot_marlin</a></span><span class="op">(</span></span>
 <span>  `MPA: Sharks Offshore` <span class="op">=</span> <span class="va">proc_offshore_mpa</span>,</span>
 <span>  `Sharks Nearshore` <span class="op">=</span> <span class="va">proc_nearshore</span>,</span>
@@ -695,7 +681,7 @@
 <h2 id="defacto-mpas-through-bycatch-penalties">Defacto MPAs through bycatch penalties<a class="anchor" aria-label="anchor" href="#defacto-mpas-through-bycatch-penalties"></a>
 </h2>
 <p>We can also run a case where prices for shortfin mako are negative creating <em>de facto</em> MPAs, by imposing a severe negative price on shortfin mako that causes the fishing fleet to avoid that area.</p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">years</span> <span class="op">&lt;-</span> <span class="fl">100</span></span>
 <span></span>
 <span><span class="va">tune_type</span> <span class="op">&lt;-</span> <span class="st">"explt"</span></span>
@@ -778,7 +764,7 @@
 <span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span>, tune_type <span class="op">=</span> <span class="va">tune_type</span><span class="op">)</span> <span class="co"># tunes the catchability by fleet to achieve target depletion</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.20594 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.214632 secs</span></span>
 <span></span>
 <span><span class="co"># run simulations</span></span>
 <span></span>
@@ -788,7 +774,7 @@
 <span>                          years <span class="op">=</span> <span class="va">years</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">proc_negative_prices</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">negative_prices</span>, time_step <span class="op">=</span>  <span class="va">fauna</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">time_step</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/plot_marlin.html">plot_marlin</a></span><span class="op">(</span></span>
 <span>  `De-Facto MPA` <span class="op">=</span> <span class="va">proc_negative_prices</span>,</span>
 <span>  plot_var <span class="op">=</span> <span class="st">"ssb"</span>,</span>

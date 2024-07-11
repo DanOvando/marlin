@@ -1,5 +1,5 @@
 ---
-title: "fleet-management"
+title: "Manage Catch and Effort of Fleets"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{fleet-management}

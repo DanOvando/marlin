@@ -416,7 +416,7 @@ simmar <- function(fauna = list(),
 
           #1 / nrow(r_p_f)
         } else {
-          alloc = (last_r_p / (e_p + 1)) * fleet_fishable
+          alloc = (last_r_p / (e_p)) * fleet_fishable
 
           alloc[!is.finite(alloc)] <-  0
 
@@ -428,7 +428,7 @@ simmar <- function(fauna = list(),
           if (s > 2) {
             alloc <-
               rowSums(sapply(storage[[s - 2]], function(x)
-                x$r_p_fl[, l]), na.rm = TRUE) / (e_p + 1)
+                x$r_p_fl[, l]), na.rm = TRUE) / (e_p)
 
             alloc[!is.finite(alloc)] <-  0
 
@@ -439,7 +439,7 @@ simmar <- function(fauna = list(),
 
             alloc <- alloc / sum(alloc)
 
-            # if (s > 25 & fleet_names[l] != "artisanal"){
+            # if (s == (steps-10)  & fleet_names[l] != "artisanal"){
             #   browser()
             # }
 
@@ -462,7 +462,7 @@ simmar <- function(fauna = list(),
 
         } else {
           alloc = ((
-            last_r_p - fleets[[l]]$cost_per_unit_effort * ((e_p + 1) ^ fleets[[l]]$effort_cost_exponent
+            last_r_p - fleets[[l]]$cost_per_unit_effort * ((e_p) ^ fleets[[l]]$effort_cost_exponent
                                                            + fleets[[l]]$cost_per_patch * e_p
             ) / (e_p + 1)
           )) * fleet_fishable
@@ -477,7 +477,7 @@ simmar <- function(fauna = list(),
           if (s > 2) {
             alloc <-
               rowSums(sapply(storage[[s - 2]], function(x)
-                x$prof_p_fl[, l]), na.rm = TRUE) / (e_p + 1)
+                x$prof_p_fl[, l]), na.rm = TRUE) / (e_p)
 
             alloc[!is.finite(alloc)] <-  0
 

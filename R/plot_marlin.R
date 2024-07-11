@@ -2,7 +2,7 @@
 #' generates time series, spatial, or length composition plots from marlin run
 #' @param ... named or unnamed outputs of process_marlin
 #' @param steps_to_plot  which steps to include in the plot
-#' @param plot_var the primary plotting variable, one of "n","b","ssb"
+#' @param plot_var the primary plotting variable, one of "c" (catch) "n" (numbers),"b" (biomass),"ssb" (spawning stock biomass)
 #' @param plot_type the plot type, one of "time", "length", or "space"
 #' @param fauna a fauna object corresponding to the critters in process_marlin outputs
 #' @param drop_recruits TRUE to drop recruits from length composition plots

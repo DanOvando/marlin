@@ -1,5 +1,5 @@
 ---
-title: "port-distance"
+title: "Setting and Using Distance from Port"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{port-distance}
