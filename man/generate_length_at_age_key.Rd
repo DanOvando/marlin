@@ -16,7 +16,21 @@ generate_length_at_age_key(
 )
 }
 \arguments{
-\item{max_age}{}
+\item{min_age}{minimum age tracked in the model. Best to leave at 0, as the model does not explicitly track delays for recruitment}
+
+\item{max_age}{maximum age tracked by the model (individuals this age or older are tracked in the plus group)}
+
+\item{cv}{the coefficient of variation of the length-at-age relationship (log-space)}
+
+\item{k}{the}
+
+\item{linf}{asymptotic length of the species in a von Bertalanffy growth function}
+
+\item{t0}{hypothetical age at which the fish would have length 0 (e.g. -0.5 years)}
+
+\item{time_step}{the time step the model is running on (1 / seasons)}
+
+\item{linf_buffer}{multiplier around linf to create length at age key, taking into account that some fish will be larger than Linf}
 }
 \value{
 a length-at-age key

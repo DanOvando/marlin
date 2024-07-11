@@ -1,4 +1,4 @@
-#' Title
+#' Internal function to fine-tune cost parameters
 #'
 #' @param log_cost_mult log cost per unit effort multiplier
 #' @param target the target to be achieved
@@ -7,7 +7,7 @@
 #' @param years the number of years to run the optimization
 #' @param tune_type what is being tuned for
 #'
-#' @return
+#' @return fine-tuned costs
 #' @export
 #'
 fine_tune_costs <-

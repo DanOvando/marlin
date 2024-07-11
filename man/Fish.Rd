@@ -22,7 +22,7 @@ Fish like to swim
 \if{html}{\out{<a id="method-Fish-new"></a>}}
 \if{latex}{\out{\hypertarget{method-Fish-new}{}}}
 \subsection{Method \code{new()}}{
-fill in fish object
+Used to store parameters describing the behavior of an object of class Fish
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Fish$new(
   common_name = NA,
@@ -60,7 +60,6 @@ fill in fish object
   mat_mode = "age",
   default_wb = 2.8,
   tune_weight = FALSE,
-  density_movement_modifier = 1,
   linf_buffer = 1.2,
   resolution = NA,
   patch_area = 1,
@@ -69,7 +68,6 @@ fill in fish object
   recruit_habitat = NA,
   fished_depletion = 1,
   burn_years = 50,
-  seasonal_hab = NA,
   seasons = 1,
   explt_type = "f",
   init_explt = 0.1,
@@ -83,15 +81,106 @@ fill in fish object
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{common_name}}{common name}
+\item{\code{common_name}}{common name of the species (can be used to lookup information using \code{taxize} and \code{fishlife})}
+
+\item{\code{scientific_name}}{common name of the species (can be used to lookup information in \code{fishlife})}
+
+\item{\code{linf}}{asymptotic length of the species in a von Bertalanffy growth function}
+
+\item{\code{vbk}}{growth parameter \emph{k} of the species in a von Bertalanffy growth function}
+
+\item{\code{t0}}{hypothetical age at which the fish would have length 0 (e.g. -0.5 years)}
+
+\item{\code{cv_len}}{coefficient of variation around the length at age relationship (in log space)}
+
+\item{\code{length_units}}{units of the length at age function (arbitrary)}
+
+\item{\code{min_age}}{minimum age tracked in the model. Best to leave at 0, as the model does not explicitly track delays for recruitment}
+
+\item{\code{max_age}}{maximum age tracked by the model (individuals this age or older are tracked in the plus group)}
+
+\item{\code{weight_a}}{alpha parameter in the allometric weight function alpha x length ^ beta}
+
+\item{\code{weight_b}}{beta parameter in the allometric weight function alpha x length ^ beta}
+
+\item{\code{pups}}{number of pups per individual for animals with pups rather than larvae}
+
+\item{\code{weight_units}}{units of the allometric weight function (defaults to kg)}
+
+\item{\code{fec_form}}{one of of  "weight" (default) or "pups". When "weight", fecundity is a function of weight. When "pups", constant number of pups per individual produced}
 
 \item{\code{fec_expo}}{exponent for fecundity at weight relationship, 1 = isometric > 1 hyperallometric}
 
+\item{\code{length_50_mature}}{length at 50\% maturity in a logistic maturity ogive}
+
+\item{\code{length_95_mature}}{length at 95\% maturity in a logistic maturity ogive}
+
+\item{\code{delta_mature}}{as an alternative, the different in units of length between length_50_mature and length_95_mature}
+
+\item{\code{age_50_mature}}{age at 50\% maturity in a logistic maturity ogive if maturity is age based}
+
+\item{\code{age_95_mature}}{age at 95\% maturity in a logistic maturity ogive if maturity is age based}
+
+\item{\code{age_mature}}{an alternative option to just set one age mature, which ends up as the age_50_mature}
+
+\item{\code{m}}{instantaneous natural mortality rate. When \code{lorenzen_m = TRUE}, this is the average natural mortality across all ages}
+
+\item{\code{steepness}}{steepness parameter (h) in a Beverton-Holt spawner-recruit function}
+
+\item{\code{r0}}{asymptotic number of recruits under unfished conditions}
+
+\item{\code{ssb0}}{asymptotic spawning stock biomass of recruits under unfished conditions. Tunnes r0 to achieve}
+
+\item{\code{density_dependence}}{timing and nature of density dependence in the Beverton-Holt spawner recruit function, one of one of 'global_habitat','local_habitat','pre_dispersal','post_dispersal','global_ssb'}
+
+\item{\code{adult_diffusion}}{diffusion parameter \emph{D} in the CTMC movement function for "adults" (not recruits)}
+
+\item{\code{recruit_diffusion}}{diffusion parameter \emph{D} in the CTMC movement function for recruits}
+
+\item{\code{query_fishlife}}{TRUE or FALSE to query \code{Fishlife} for missing life history values. When set to FALSE all required life history values must be supplied by the user}
+
+\item{\code{sigma_r}}{the standard deviation of recruitment deviates in log-normal space}
+
+\item{\code{rec_ac}}{the autocorrelation of recruitment deviates}
+
+\item{\code{cores}}{the number of cores used to tun the weight relationship if used (deprecated)}
+
+\item{\code{mat_mode}}{specifies whether maturity is a function of age (default) or length}
+
+\item{\code{default_wb}}{deprecated}
+
+\item{\code{tune_weight}}{deprecated}
+
+\item{\code{linf_buffer}}{multiplier around linf to create length at age key, taking into account that some fish will be larger than Linf}
+
 \item{\code{resolution}}{a vector of length two with number of patches in X and Y dimensions}
 
-\item{\code{explt_type}}{Swim
+\item{\code{patch_area}}{area of each patch (e.g. KM2)}
 
-Swim advances the population one time step}
+\item{\code{habitat}}{a matrix with dimensions X and Y specifying quality of adult (non-recruit) habitat. Determines taxis matrix}
+
+\item{\code{season_blocks}}{list with elements indicating blocks of seasons. For example, if there are four seasons, setting \code{season_blocks = list(c(1,2),c(3,4))} indicates that seasons 1 and 2 are one block, 3 and 4 another. Allows for the model to be run at fine time scales while allowing some processes like movement or spawning to operate at coarser scales}
+
+\item{\code{recruit_habitat}}{a matrix with dimensions X and Y with quality of recruit habitat (scales r0 in space as well as recruit diffusion under applicable forms of density dependence)}
+
+\item{\code{fished_depletion}}{depletion (SSB/SSB0) under initial fished conditions}
+
+\item{\code{burn_years}}{number of years used to burn in the population to tune parameters without analytical solutions like SSB0}
+
+\item{\code{seasons}}{number of seasons per year. 4 would indicate quarterly time steps, 12 monthly, 365 daily.}
+
+\item{\code{explt_type}}{deprecated
+plot object of class fish}
+
+\item{\code{init_explt}}{instantaneous fishing mortality rate under initial fished conditions}
+
+\item{\code{get_common_name}}{TRUE or FALSE to lookup common name from scientific name. Requires internet connection}
+
+\item{\code{spawning_seasons}}{seasons in which spawning occurs}
+
+\item{\code{max_hab_mult}}{maximum value of that habitat matrix multiplier (to prevent some habitats from being >>> good, defaults to 2)}
+
+\item{\code{lorenzen_m}}{TRUE or FALSE to use the Lorenzen function to calculate natural mortality at age}
 }
 \if{html}{\out{</div>}}
 }
@@ -104,6 +193,19 @@ Swim advances the population one time step}
 \if{html}{\out{<div class="r">}}\preformatted{Fish$plot(type = 2)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{type}}{}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+a plot of the life history values
+Swim
+
+Swim advances the population one time step
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Fish-swim"></a>}}
@@ -132,7 +234,11 @@ Swim advances the population one time step}
 
 \item{\code{last_n_p_a}}{matrix of initial numbers by patch and age}
 
+\item{\code{adult_movement}}{the adult movement matrix}
+
 \item{\code{tune_unfished}}{boolean indicating whether to tune unfished}
+
+\item{\code{rec_devs}}{externally supplied recruitment deviates}
 }
 \if{html}{\out{</div>}}
 }

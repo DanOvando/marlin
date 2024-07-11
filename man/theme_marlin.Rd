@@ -9,11 +9,13 @@ theme_marlin(base_size = 14, ...)
 \arguments{
 \item{...}{}
 }
+\value{
+nothing
+}
 \description{
 ggplot2 theme for marlin
 }
 \examples{
- 
 
 ggplot(mtcars, aes(mpg)) + geom_histogram() + marlin::theme_marlin()
 

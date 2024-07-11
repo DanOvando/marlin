@@ -11,57 +11,58 @@ Fish <- R6::R6Class(
   lock_objects = FALSE,
   public = list(
     #' @description
-    #' fill in fish object
+    #' Used to store parameters describing the behavior of an object of class Fish
     #'
-    #' @param common_name common name
-    #' @param scientific_name
-    #' @param linf
-    #' @param vbk
-    #' @param t0
-    #' @param cv_len
-    #' @param length_units
-    #' @param min_age
-    #' @param max_age
-    #' @param weight_a
-    #' @param weight_b
-    #' @param weight_units
-    #' @param length_50_mature
-    #' @param length_95_mature
-    #' @param delta_mature
-    #' @param age_50_mature
-    #' @param age_95_mature
-    #' @param age_mature
-    #' @param m
-    #' @param steepness
-    #' @param r0
-    #' @param ssb0
-    #' @param density_dependence
-    #' @param adult_diffusion
-    #' @param recruit_diffusion
-    #' @param query_fishlife
-    #' @param sigma_r
-    #' @param rec_ac
-    #' @param cores
-    #' @param mat_mode
-    #' @param default_wb
-    #' @param tune_weight
-    #' @param density_movement_modifier
-    #' @param linf_buffer
+    #' @param common_name common name of the species (can be used to lookup information using `taxize` and `fishlife`)
+    #' @param scientific_name common name of the species (can be used to lookup information in `fishlife`)
+    #' @param linf asymptotic length of the species in a von Bertalanffy growth function
+    #' @param vbk  growth parameter *k* of the species in a von Bertalanffy growth function
+    #' @param t0  hypothetical age at which the fish would have length 0 (e.g. -0.5 years)
+    #' @param cv_len coefficient of variation around the length at age relationship (in log space)
+    #' @param length_units  units of the length at age function (arbitrary)
+    #' @param min_age  minimum age tracked in the model. Best to leave at 0, as the model does not explicitly track delays for recruitment
+    #' @param max_age  maximum age tracked by the model (individuals this age or older are tracked in the plus group)
+    #' @param weight_a  alpha parameter in the allometric weight function alpha x length ^ beta
+    #' @param weight_b  beta parameter in the allometric weight function alpha x length ^ beta
+    #' @param weight_units  units of the allometric weight function (defaults to kg)
+    #' @param length_50_mature  length at 50% maturity in a logistic maturity ogive
+    #' @param length_95_mature  length at 95% maturity in a logistic maturity ogive
+    #' @param delta_mature as an alternative, the different in units of length between length_50_mature and length_95_mature
+    #' @param age_50_mature  age at 50% maturity in a logistic maturity ogive if maturity is age based
+    #' @param age_95_mature  age at 95% maturity in a logistic maturity ogive if maturity is age based
+    #' @param age_mature an alternative option to just set one age mature, which ends up as the age_50_mature
+    #' @param m instantaneous natural mortality rate. When `lorenzen_m = TRUE`, this is the average natural mortality across all ages
+    #' @param steepness  steepness parameter (h) in a Beverton-Holt spawner-recruit function
+    #' @param r0  asymptotic number of recruits under unfished conditions
+    #' @param ssb0  asymptotic spawning stock biomass of recruits under unfished conditions. Tunnes r0 to achieve
+    #' @param density_dependence  timing and nature of density dependence in the Beverton-Holt spawner recruit function, one of one of 'global_habitat','local_habitat','pre_dispersal','post_dispersal','global_ssb'
+    #' @param adult_diffusion  diffusion parameter *D* in the CTMC movement function for "adults" (not recruits)
+    #' @param recruit_diffusion  diffusion parameter *D* in the CTMC movement function for recruits
+    #' @param query_fishlife TRUE or FALSE to query `Fishlife` for missing life history values. When set to FALSE all required life history values must be supplied by the user
+    #' @param sigma_r the standard deviation of recruitment deviates in log-normal space
+    #' @param rec_ac the autocorrelation of recruitment deviates
+    #' @param cores the number of cores used to tun the weight relationship if used (deprecated)
+    #' @param mat_mode specifies whether maturity is a function of age (default) or length
+    #' @param default_wb deprecated
+    #' @param tune_weight deprecated
+    #' @param linf_buffer multiplier around linf to create length at age key, taking into account that some fish will be larger than Linf
     #' @param resolution a vector of length two with number of patches in X and Y dimensions
-    #' @param season_blocks
-    #' @param recruit_habitat
-    #' @param fished_depletion
-    #' @param burn_years
-    #' @param seasonal_hab
-    #' @param seasons
-    #' @param init_explt
-    #' @param pups
-    #' @param fec_form
+    #' @param season_blocks list with elements indicating blocks of seasons. For example, if there are four seasons, setting `season_blocks = list(c(1,2),c(3,4))` indicates that seasons 1 and 2 are one block, 3 and 4 another. Allows for the model to be run at fine time scales while allowing some processes like movement or spawning to operate at coarser scales
+    #' @param recruit_habitat a matrix with dimensions X and Y with quality of recruit habitat (scales r0 in space as well as recruit diffusion under applicable forms of density dependence)
+    #' @param fished_depletion  depletion (SSB/SSB0) under initial fished conditions
+    #' @param burn_years  number of years used to burn in the population to tune parameters without analytical solutions like SSB0
+    #' @param seasons  number of seasons per year. 4 would indicate quarterly time steps, 12 monthly, 365 daily.
+    #' @param init_explt  instantaneous fishing mortality rate under initial fished conditions
+    #' @param pups  number of pups per individual for animals with pups rather than larvae
+    #' @param fec_form one of of  "weight" (default) or "pups". When "weight", fecundity is a function of weight. When "pups", constant number of pups per individual produced
     #' @param fec_expo exponent for fecundity at weight relationship, 1 = isometric > 1 hyperallometric
-    #' @param get_common_name
-    #' @param habitat
-    #' @param spawning_seasons
-    #' @param explt_type
+    #' @param get_common_name TRUE or FALSE to lookup common name from scientific name. Requires internet connection
+    #' @param habitat a matrix with dimensions X and Y specifying quality of adult (non-recruit) habitat. Determines taxis matrix
+    #' @param spawning_seasons  seasons in which spawning occurs
+    #' @param patch_area  area of each patch (e.g. KM2)
+    #' @param max_hab_mult maximum value of that habitat matrix multiplier (to prevent some habitats from being >>> good, defaults to 2)
+    #' @param lorenzen_m TRUE or FALSE to use the Lorenzen function to calculate natural mortality at age
+    #' @param explt_type deprecated
     initialize = function(common_name = NA,
                           scientific_name = NA,
                           linf = NA,
@@ -97,7 +98,6 @@ Fish <- R6::R6Class(
                           mat_mode = "age",
                           default_wb = 2.8,
                           tune_weight = FALSE,
-                          density_movement_modifier = 1,
                           linf_buffer = 1.2,
                           resolution = NA,
                           patch_area = 1,
@@ -106,7 +106,6 @@ Fish <- R6::R6Class(
                           recruit_habitat = NA,
                           fished_depletion = 1,
                           burn_years = 50,
-                          seasonal_hab = NA,
                           seasons = 1,
                           explt_type = "f",
                           init_explt = .1,
@@ -742,6 +741,11 @@ Fish <- R6::R6Class(
 
     },
   # close initialize
+#' plot object of class fish
+#'
+#' @param type
+#'
+#' @return a plot of the life history values
   plot = function(type = 2) {
     tmp <- as.list(self)
 
@@ -775,6 +779,8 @@ Fish <- R6::R6Class(
   #' @param f_p_a matrix of fishing mortality by patch and age
   #' @param last_n_p_a matrix of initial numbers by patch and age
   #' @param tune_unfished boolean indicating whether to tune unfished
+  #' @param adult_movement the adult movement matrix
+  #' @param rec_devs externally supplied recruitment deviates
   #'
   #' @return the population in the next time step
   swim = function(burn_steps = 0,

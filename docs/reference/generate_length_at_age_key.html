@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">marlin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -78,8 +78,36 @@
 
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
-    <dl><dt>max_age</dt>
-<dd></dd>
+    <dl><dt>min_age</dt>
+<dd><p>minimum age tracked in the model. Best to leave at 0, as the model does not explicitly track delays for recruitment</p></dd>
+
+
+<dt>max_age</dt>
+<dd><p>maximum age tracked by the model (individuals this age or older are tracked in the plus group)</p></dd>
+
+
+<dt>cv</dt>
+<dd><p>the coefficient of variation of the length-at-age relationship (log-space)</p></dd>
+
+
+<dt>k</dt>
+<dd><p>the</p></dd>
+
+
+<dt>linf</dt>
+<dd><p>asymptotic length of the species in a von Bertalanffy growth function</p></dd>
+
+
+<dt>t0</dt>
+<dd><p>hypothetical age at which the fish would have length 0 (e.g. -0.5 years)</p></dd>
+
+
+<dt>time_step</dt>
+<dd><p>the time step the model is running on (1 / seasons)</p></dd>
+
+
+<dt>linf_buffer</dt>
+<dd><p>multiplier around linf to create length at age key, taking into account that some fish will be larger than Linf</p></dd>
 
 </dl></div>
     <div class="section level2">

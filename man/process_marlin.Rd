@@ -12,12 +12,14 @@ process_marlin(sim, steps_to_keep = NA, time_step = NA, keep_age = TRUE)
 \item{steps_to_keep}{which steps you'd like to keep}
 
 \item{time_step}{the time step interval, as fractions of a year}
+
+\item{keep_age}{TRUE keeps age structure, FALSE adds up across ages}
 }
 \value{
 a tidy dataframe of population results
 }
 \description{
-tidy's arrays of outputs from marlin::simmar
+tidy arrays of outputs from marlin::simmar
 }
 \examples{
 \dontrun{

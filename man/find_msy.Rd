@@ -20,10 +20,12 @@ find_msy(effort_mult, fauna, fleets, opt = TRUE, target_critter)
 \item{target_critter}{the name of the critter to find MSY for}
 }
 \value{
+nothing at the moment
+
 MSY conditions
 }
 \description{
-Still early days
+Deprecated and likely not to come back, only really possible with one fleet, one critter, and no space, so in other words not what \code{marlin} is intended for
 
 Note that this is mostly an internal function to \code{assign_ref_points}
 }

@@ -7,13 +7,16 @@
 fleet_tuner(qs, fauna, fleets, years = 50)
 }
 \arguments{
-\item{qs}{}
+\item{qs}{vector of catchability coefficients}
 
-\item{fauna}{}
+\item{fauna}{fauna object}
 
-\item{fleets}{}
+\item{fleets}{fleet object}
 
-\item{years}{}
+\item{years}{number of years to tune}
+}
+\value{
+objective function of fleet tuner
 }
 \description{
 finds catchability (q) by fleet such that

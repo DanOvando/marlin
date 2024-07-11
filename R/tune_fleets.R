@@ -12,8 +12,6 @@
 #'
 #' @return tuned fleet object
 #' @export
-#'
-#' @examples
 tune_fleets <- function(fauna,
                         fleets,
                         years = 50,

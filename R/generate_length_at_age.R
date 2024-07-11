@@ -2,14 +2,14 @@
 #'
 #' produces an age by length bins matrix with probability of being in length bin at age
 #'
-#' @param cv
-#' @param k
-#' @param linf
-#' @param t0
-#' @param time_step
-#' @param linf_buffer
-#' @param min_age
-#' @param max_age
+#' @param cv the coefficient of variation of the length-at-age relationship (log-space)
+#' @param k the
+#' @param linf asymptotic length of the species in a von Bertalanffy growth function
+#' @param t0 hypothetical age at which the fish would have length 0 (e.g. -0.5 years)
+#' @param time_step the time step the model is running on (1 / seasons)
+#' @param linf_buffer multiplier around linf to create length at age key, taking into account that some fish will be larger than Linf
+#' @param min_age minimum age tracked in the model. Best to leave at 0, as the model does not explicitly track delays for recruitment
+#' @param max_age maximum age tracked by the model (individuals this age or older are tracked in the plus group)
 #'
 #' @return a length-at-age key
 #' @export

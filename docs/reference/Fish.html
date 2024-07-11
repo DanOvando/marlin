@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">marlin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -79,7 +79,7 @@
 <li><p><a href="#method-Fish-clone"><code>Fish$clone()</code></a></p></li>
 </ul></div><p></p><hr><a id="method-Fish-new"></a><div class="section">
 <h3 id="method-new-">Method <code><a href="https://rdrr.io/r/methods/new.html" class="external-link">new()</a></code><a class="anchor" aria-label="anchor" href="#method-new-"></a></h3>
-<p>fill in fish object</p><div class="section">
+<p>Used to store parameters describing the behavior of an object of class Fish</p><div class="section">
 <h4 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va"><a href="../reference/Fish.html">Fish</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>  common_name <span class="op">=</span> <span class="cn">NA</span>,</span>
@@ -117,7 +117,6 @@
 <span>  mat_mode <span class="op">=</span> <span class="st">"age"</span>,</span>
 <span>  default_wb <span class="op">=</span> <span class="fl">2.8</span>,</span>
 <span>  tune_weight <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  density_movement_modifier <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  linf_buffer <span class="op">=</span> <span class="fl">1.2</span>,</span>
 <span>  resolution <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  patch_area <span class="op">=</span> <span class="fl">1</span>,</span>
@@ -126,7 +125,6 @@
 <span>  recruit_habitat <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  fished_depletion <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  burn_years <span class="op">=</span> <span class="fl">50</span>,</span>
-<span>  seasonal_hab <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  seasons <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  explt_type <span class="op">=</span> <span class="st">"f"</span>,</span>
 <span>  init_explt <span class="op">=</span> <span class="fl">0.1</span>,</span>
@@ -140,20 +138,204 @@
 <div class="section">
 <h4 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>common_name</code></dt>
-<dd><p>common name</p></dd>
+<dd><p>common name of the species (can be used to lookup information using <code>taxize</code> and <code>fishlife</code>)</p></dd>
+
+
+<dt><code>scientific_name</code></dt>
+<dd><p>common name of the species (can be used to lookup information in <code>fishlife</code>)</p></dd>
+
+
+<dt><code>linf</code></dt>
+<dd><p>asymptotic length of the species in a von Bertalanffy growth function</p></dd>
+
+
+<dt><code>vbk</code></dt>
+<dd><p>growth parameter <em>k</em> of the species in a von Bertalanffy growth function</p></dd>
+
+
+<dt><code>t0</code></dt>
+<dd><p>hypothetical age at which the fish would have length 0 (e.g. -0.5 years)</p></dd>
+
+
+<dt><code>cv_len</code></dt>
+<dd><p>coefficient of variation around the length at age relationship (in log space)</p></dd>
+
+
+<dt><code>length_units</code></dt>
+<dd><p>units of the length at age function (arbitrary)</p></dd>
+
+
+<dt><code>min_age</code></dt>
+<dd><p>minimum age tracked in the model. Best to leave at 0, as the model does not explicitly track delays for recruitment</p></dd>
+
+
+<dt><code>max_age</code></dt>
+<dd><p>maximum age tracked by the model (individuals this age or older are tracked in the plus group)</p></dd>
+
+
+<dt><code>weight_a</code></dt>
+<dd><p>alpha parameter in the allometric weight function alpha x length ^ beta</p></dd>
+
+
+<dt><code>weight_b</code></dt>
+<dd><p>beta parameter in the allometric weight function alpha x length ^ beta</p></dd>
+
+
+<dt><code>pups</code></dt>
+<dd><p>number of pups per individual for animals with pups rather than larvae</p></dd>
+
+
+<dt><code>weight_units</code></dt>
+<dd><p>units of the allometric weight function (defaults to kg)</p></dd>
+
+
+<dt><code>fec_form</code></dt>
+<dd><p>one of of  "weight" (default) or "pups". When "weight", fecundity is a function of weight. When "pups", constant number of pups per individual produced</p></dd>
 
 
 <dt><code>fec_expo</code></dt>
 <dd><p>exponent for fecundity at weight relationship, 1 = isometric &gt; 1 hyperallometric</p></dd>
 
 
+<dt><code>length_50_mature</code></dt>
+<dd><p>length at 50% maturity in a logistic maturity ogive</p></dd>
+
+
+<dt><code>length_95_mature</code></dt>
+<dd><p>length at 95% maturity in a logistic maturity ogive</p></dd>
+
+
+<dt><code>delta_mature</code></dt>
+<dd><p>as an alternative, the different in units of length between length_50_mature and length_95_mature</p></dd>
+
+
+<dt><code>age_50_mature</code></dt>
+<dd><p>age at 50% maturity in a logistic maturity ogive if maturity is age based</p></dd>
+
+
+<dt><code>age_95_mature</code></dt>
+<dd><p>age at 95% maturity in a logistic maturity ogive if maturity is age based</p></dd>
+
+
+<dt><code>age_mature</code></dt>
+<dd><p>an alternative option to just set one age mature, which ends up as the age_50_mature</p></dd>
+
+
+<dt><code>m</code></dt>
+<dd><p>instantaneous natural mortality rate. When <code>lorenzen_m = TRUE</code>, this is the average natural mortality across all ages</p></dd>
+
+
+<dt><code>steepness</code></dt>
+<dd><p>steepness parameter (h) in a Beverton-Holt spawner-recruit function</p></dd>
+
+
+<dt><code>r0</code></dt>
+<dd><p>asymptotic number of recruits under unfished conditions</p></dd>
+
+
+<dt><code>ssb0</code></dt>
+<dd><p>asymptotic spawning stock biomass of recruits under unfished conditions. Tunnes r0 to achieve</p></dd>
+
+
+<dt><code>density_dependence</code></dt>
+<dd><p>timing and nature of density dependence in the Beverton-Holt spawner recruit function, one of one of 'global_habitat','local_habitat','pre_dispersal','post_dispersal','global_ssb'</p></dd>
+
+
+<dt><code>adult_diffusion</code></dt>
+<dd><p>diffusion parameter <em>D</em> in the CTMC movement function for "adults" (not recruits)</p></dd>
+
+
+<dt><code>recruit_diffusion</code></dt>
+<dd><p>diffusion parameter <em>D</em> in the CTMC movement function for recruits</p></dd>
+
+
+<dt><code>query_fishlife</code></dt>
+<dd><p>TRUE or FALSE to query <code>Fishlife</code> for missing life history values. When set to FALSE all required life history values must be supplied by the user</p></dd>
+
+
+<dt><code>sigma_r</code></dt>
+<dd><p>the standard deviation of recruitment deviates in log-normal space</p></dd>
+
+
+<dt><code>rec_ac</code></dt>
+<dd><p>the autocorrelation of recruitment deviates</p></dd>
+
+
+<dt><code>cores</code></dt>
+<dd><p>the number of cores used to tun the weight relationship if used (deprecated)</p></dd>
+
+
+<dt><code>mat_mode</code></dt>
+<dd><p>specifies whether maturity is a function of age (default) or length</p></dd>
+
+
+<dt><code>default_wb</code></dt>
+<dd><p>deprecated</p></dd>
+
+
+<dt><code>tune_weight</code></dt>
+<dd><p>deprecated</p></dd>
+
+
+<dt><code>linf_buffer</code></dt>
+<dd><p>multiplier around linf to create length at age key, taking into account that some fish will be larger than Linf</p></dd>
+
+
 <dt><code>resolution</code></dt>
 <dd><p>a vector of length two with number of patches in X and Y dimensions</p></dd>
 
 
+<dt><code>patch_area</code></dt>
+<dd><p>area of each patch (e.g. KM2)</p></dd>
+
+
+<dt><code>habitat</code></dt>
+<dd><p>a matrix with dimensions X and Y specifying quality of adult (non-recruit) habitat. Determines taxis matrix</p></dd>
+
+
+<dt><code>season_blocks</code></dt>
+<dd><p>list with elements indicating blocks of seasons. For example, if there are four seasons, setting <code>season_blocks = list(c(1,2),c(3,4))</code> indicates that seasons 1 and 2 are one block, 3 and 4 another. Allows for the model to be run at fine time scales while allowing some processes like movement or spawning to operate at coarser scales</p></dd>
+
+
+<dt><code>recruit_habitat</code></dt>
+<dd><p>a matrix with dimensions X and Y with quality of recruit habitat (scales r0 in space as well as recruit diffusion under applicable forms of density dependence)</p></dd>
+
+
+<dt><code>fished_depletion</code></dt>
+<dd><p>depletion (SSB/SSB0) under initial fished conditions</p></dd>
+
+
+<dt><code>burn_years</code></dt>
+<dd><p>number of years used to burn in the population to tune parameters without analytical solutions like SSB0</p></dd>
+
+
+<dt><code>seasons</code></dt>
+<dd><p>number of seasons per year. 4 would indicate quarterly time steps, 12 monthly, 365 daily.</p></dd>
+
+
 <dt><code>explt_type</code></dt>
-<dd><p>Swim</p>
-<p>Swim advances the population one time step</p></dd>
+<dd><p>deprecated
+plot object of class fish</p></dd>
+
+
+<dt><code>init_explt</code></dt>
+<dd><p>instantaneous fishing mortality rate under initial fished conditions</p></dd>
+
+
+<dt><code>get_common_name</code></dt>
+<dd><p>TRUE or FALSE to lookup common name from scientific name. Requires internet connection</p></dd>
+
+
+<dt><code>spawning_seasons</code></dt>
+<dd><p>seasons in which spawning occurs</p></dd>
+
+
+<dt><code>max_hab_mult</code></dt>
+<dd><p>maximum value of that habitat matrix multiplier (to prevent some habitats from being &gt;&gt;&gt; good, defaults to 2)</p></dd>
+
+
+<dt><code>lorenzen_m</code></dt>
+<dd><p>TRUE or FALSE to use the Lorenzen function to calculate natural mortality at age</p></dd>
 
 
 </dl><p></p></div>
@@ -167,6 +349,20 @@
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Fish</span><span class="op">$</span><span class="fu">plot</span><span class="op">(</span>type <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>type</code></dt>
+<dd></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
+<p>a plot of the life history values
+Swim</p>
+<p>Swim advances the population one time step</p>
+</div>
 
 </div><p></p><hr><a id="method-Fish-swim"></a><div class="section">
 <h3 id="method-swim-">Method <code>swim()</code><a class="anchor" aria-label="anchor" href="#method-swim-"></a></h3>
@@ -185,7 +381,7 @@
 </div>
 
 <div class="section">
-<h4 id="arguments-1">Arguments<a class="anchor" aria-label="anchor" href="#arguments-1"></a></h4>
+<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>burn_steps</code></dt>
 <dd><p>number of steps for burn in period if applicable</p></dd>
 
@@ -202,14 +398,22 @@
 <dd><p>matrix of initial numbers by patch and age</p></dd>
 
 
+<dt><code>adult_movement</code></dt>
+<dd><p>the adult movement matrix</p></dd>
+
+
 <dt><code>tune_unfished</code></dt>
 <dd><p>boolean indicating whether to tune unfished</p></dd>
+
+
+<dt><code>rec_devs</code></dt>
+<dd><p>externally supplied recruitment deviates</p></dd>
 
 
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
+<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
 <p>the population in the next time step</p>
 </div>
 
@@ -221,7 +425,7 @@
 </div>
 
 <div class="section">
-<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 

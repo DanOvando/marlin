@@ -14,7 +14,7 @@ FishLife"><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/ma
     
     <a class="navbar-brand me-2" href="../index.html">marlin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -106,6 +106,14 @@ FishLife</p>
 <dd><p>the scientific name of the species, preferable to common name</p></dd>
 
 
+<dt>get_common_name</dt>
+<dd><p>TRUE or FALSE to lookup common name from scientific name. Requires internet connection</p></dd>
+
+
+<dt>critter_type</dt>
+<dd><p>placeholder for someday if non-Fish objects are implemented</p></dd>
+
+
 <dt>habitat</dt>
 <dd><p>a list with adult habitat per season</p></dd>
 
@@ -150,6 +158,10 @@ FishLife</p>
 <dd><p>number of years to burn in the simulation prior to starting things</p></dd>
 
 
+<dt>weight_a</dt>
+<dd><p>alpha parameter in the allometric weight function alpha x length ^ beta</p></dd>
+
+
 <dt>fec_expo</dt>
 <dd><p>exponent for fecundity relationship. &gt;1 means hyperallometric fecundity</p></dd>
 
@@ -169,10 +181,15 @@ FishLife</p>
 <dt>density_dependence</dt>
 <dd><p>one of 'global_habitat','local_habitat','pre_dispersal','post_dispersal','global_ssb'</p></dd>
 
+
+<dt>...</dt>
+<dd><p>additional parameters passed to <code>Fish</code> class, see <code><a href="Fish.html">?Fish</a></code></p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>Critical inputs are adult_movement, adult_movement_sigma, and resolution</p>
+<p>See ?Fish for documentation of all possible parameters</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

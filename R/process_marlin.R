@@ -1,10 +1,11 @@
 #' Process Marlin
 #'
-#' tidy's arrays of outputs from marlin::simmar
+#' tidy arrays of outputs from marlin::simmar
 #'
-#' @param sim # the output from simmar
-#' @param steps_to_keep # which steps you'd like to keep
-#' @param time_step # the time step interval, as fractions of a year
+#' @param sim  the output from simmar
+#' @param steps_to_keep  which steps you'd like to keep
+#' @param time_step the time step interval, as fractions of a year
+#' @param keep_age TRUE keeps age structure, FALSE adds up across ages
 #'
 #' @return a tidy dataframe of population results
 #' @export

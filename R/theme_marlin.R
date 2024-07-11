@@ -2,14 +2,14 @@
 #'
 #' @param ...
 #'
-#' @return
+#' @return nothing
 #' @export
 #' @importFrom ggplot2 %+replace%
-#' 
-#' @examples  
-#' 
+#'
+#' @examples
+#'
 #' ggplot(mtcars, aes(mpg)) + geom_histogram() + marlin::theme_marlin()
-#' 
+#'
 theme_marlin <- function(base_size = 14,...) {
   ggplot2::theme_classic(...) %+replace%
     ggplot2::theme(

@@ -6,6 +6,8 @@
 #'
 #' Critical inputs are adult_movement, adult_movement_sigma, and resolution
 #'
+#' See ?Fish for documentation of all possible parameters
+#'
 #'
 #' @param common_name the common name of the species
 #' @param scientific_name the scientific name of the species, preferable to common name
@@ -20,13 +22,15 @@
 #' @param adult_diffusion adult diffusion rate
 #' @param recruit_diffusion recruit diffusion rate
 #' @param burn_years number of years to burn in the simulation prior to starting things
-#' @param weight_a
+#' @param weight_a alpha parameter in the allometric weight function alpha x length ^ beta
 #' @param fec_expo exponent for fecundity relationship. >1 means hyperallometric fecundity
 #' @param resolution the resolution of the system, either an integer or a vector integers of length two specifying the dimensions of the system in width and height (e.g. `c(10,100)`)
 #' @param patch_area the area of each patch
 #' @param spawning_seasons which seasons spawning occurs
 #' @param density_dependence one of 'global_habitat','local_habitat','pre_dispersal','post_dispersal','global_ssb'
-#' @param ...
+#' @param get_common_name TRUE or FALSE to lookup common name from scientific name. Requires internet connection
+#' @param critter_type placeholder for someday if non-Fish objects are implemented
+#' @param ... additional parameters passed to `Fish` class, see `?Fish`
 
 create_critter <- function(common_name = NA,
                            scientific_name = NA,

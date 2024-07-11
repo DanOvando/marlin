@@ -2,7 +2,7 @@
 % Please edit documentation in R/fine_tune_costs.R
 \name{fine_tune_costs}
 \alias{fine_tune_costs}
-\title{Title}
+\title{Internal function to fine-tune cost parameters}
 \usage{
 fine_tune_costs(log_cost_mult, target, fauna, fleets, years = 25, tune_type)
 }
@@ -19,6 +19,9 @@ fine_tune_costs(log_cost_mult, target, fauna, fleets, years = 25, tune_type)
 
 \item{tune_type}{what is being tuned for}
 }
+\value{
+fine-tuned costs
+}
 \description{
-Title
+Internal function to fine-tune cost parameters
 }

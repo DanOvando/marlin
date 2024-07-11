@@ -34,6 +34,10 @@ create_critter(
 
 \item{scientific_name}{the scientific name of the species, preferable to common name}
 
+\item{get_common_name}{TRUE or FALSE to lookup common name from scientific name. Requires internet connection}
+
+\item{critter_type}{placeholder for someday if non-Fish objects are implemented}
+
 \item{habitat}{a list with adult habitat per season}
 
 \item{season_blocks}{a list with seasons per block}
@@ -56,6 +60,8 @@ create_critter(
 
 \item{burn_years}{number of years to burn in the simulation prior to starting things}
 
+\item{weight_a}{alpha parameter in the allometric weight function alpha x length ^ beta}
+
 \item{fec_expo}{exponent for fecundity relationship. >1 means hyperallometric fecundity}
 
 \item{resolution}{the resolution of the system, either an integer or a vector integers of length two specifying the dimensions of the system in width and height (e.g. \code{c(10,100)})}
@@ -65,6 +71,8 @@ create_critter(
 \item{spawning_seasons}{which seasons spawning occurs}
 
 \item{density_dependence}{one of 'global_habitat','local_habitat','pre_dispersal','post_dispersal','global_ssb'}
+
+\item{...}{additional parameters passed to \code{Fish} class, see \code{?Fish}}
 }
 \description{
 Creates a critter object. If only a scientific name is provided
@@ -73,4 +81,6 @@ FishLife
 }
 \details{
 Critical inputs are adult_movement, adult_movement_sigma, and resolution
+
+See ?Fish for documentation of all possible parameters
 }
