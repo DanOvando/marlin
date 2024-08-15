@@ -725,6 +725,8 @@ Fish <- R6::R6Class(
 
       unfished$tmppop$ages <- ages
 
+      unfished$tmppop$length_at_age <- self$length_at_age
+
       unfished$tmppop$resolution <- self$resolution
 
       self$b0 <- sum(unfished$tmppop$b_p_a)
@@ -832,6 +834,8 @@ Fish <- R6::R6Class(
       rec_devs = rec_devs
     )
     pop$ages <- self$ages
+
+    pop$length_at_age <- self$length_at_age
 
     pop$resolution <- self$resolution
     return(pop)

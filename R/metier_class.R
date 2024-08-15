@@ -14,7 +14,7 @@ Metier <- R6::R6Class("metier",
                   #'
                   #' @param critter the name of the critter in the fauna object this metier applies to
                   #' @param price the price per unit weight of the critter in question
-                  #' @param sel_form the selectivity form, one of "logistic" or "dome"
+                  #' @param sel_form the selectivity form, one of "logistic", "dome", or "manual"
                   #' @param sel_unit the unit of selectivity, one of "p_of_mat" which means selectivity is in proportion of age at maturity, or "length" where selectivity is in units of length
                   #' @param sel_start the value of sel_unit at which selectivity "starts"
                   #' @param sel_delta the delta parameter in the selectivity function

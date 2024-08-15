@@ -43,7 +43,7 @@ Parameters for specific metier of a given fleet
 
 \item{\code{price}}{the price per unit weight of the critter in question}
 
-\item{\code{sel_form}}{the selectivity form, one of "logistic" or "dome"}
+\item{\code{sel_form}}{the selectivity form, one of "logistic", "dome", or "manual"}
 
 \item{\code{sel_unit}}{the unit of selectivity, one of "p_of_mat" which means selectivity is in proportion of age at maturity, or "length" where selectivity is in units of length}
 
