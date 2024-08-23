@@ -133,7 +133,7 @@ Once we have set $D$, `marlin` then estimates the correct diffusion matrix given
 
 Let's set
 
-  * a 10x10 simulation grid
+  * a 20x20 simulation grid
   * width of a square cell side $\Delta_d$ of 5km
   * a time step $\Delta_t$ of one year
   * a diffusion parameter *D* of 100 km^2^/year
@@ -142,14 +142,13 @@ While we could run this through `marlin`, we're going to actually step through t
 
 ```{r}
 
-resolution <- 10 # cells per side
+resolution <- 20 # cells per side
 
 patches <- resolution^2 # number of patches
 
-delta_d <- 100 # length of a cell side in km
+delta_d <- sqrt(5) # length of a cell side in km
 
 patch_area = delta_d^2 # in units of km^2/patch
-
 
 simulation_area <- patch_area * patches
 
@@ -246,7 +245,7 @@ grid |>
 We visualize effect of the the diffusion rate $D$ by simulating dispersal of organisms initially seeded in one central patch after one year across a range of diffusion rates $D$. 
 
 ```{r}
-diffusion_frame <- data.frame(D = seq(0,2*patch_area, length.out = 8))
+diffusion_frame <- data.frame(D = c(1,20,200))
 
 sim_diffusion <- function(D, resolution, delta_d = 5,delta_t = 1){
 

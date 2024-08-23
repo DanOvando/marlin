@@ -14,9 +14,10 @@ knitr::opts_chunk$set(
 )
 ```
 
-MPA performance is often measured by examining gradients of various outcomes, such as catch-per-unit-effort (CPUE) inside vs. various distances outside the protected area. 
-Here is an example of generating these kinds of measurements using `marlin`
+MPA performance is often attempted to be measured by empirical indicators, such as the biomass inside the reserve relative to the biomass in a selected reference site outside the reserve. This vignette shows an example of how to simulate those processes using `marlin`. 
 
+
+We'll first simulate a system with some heterogeneous habitat.  
 
 ```{r, message=FALSE, warning=FALSE}
 
@@ -26,9 +27,15 @@ library(tidyverse)
 
 library(patchwork)
 
+library(rstanarm)
+
+library(ggdist)
+
+library(bayesplot)
+
 theme_set(marlin::theme_marlin())
 
-resolution <- c(5,20) # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
+resolution <- c(10,10) # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
 
 patch_area <- 10
 
@@ -40,38 +47,68 @@ tune_type <- "depletion"
 
 steps <- years * seasons
 
-yft_diffusion <- 5
+yft_diffusion <- 2
   
 yft_depletion <- .2
 
 rec_factor <- 10
 
-mako_depletion <- 0.1
+mako_depletion <- 0.3
 
 mako_diffusion <- 100
 
 # for now make up some habitat
 
-yft_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
-  mutate(habitat =  1,
-         habitat = habitat / max(habitat) * yft_diffusion) %>% 
-  pivot_wider(names_from = y, values_from = habitat) %>% 
-  select(-x) %>% 
-  as.matrix()
- 
+critters <- c("yellowfin", "mako")
 
-mako_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
-  mutate(habitat =  1,
-         habitat = habitat / max(habitat) * mako_diffusion) %>% 
-  pivot_wider(names_from = y, values_from = habitat) %>% 
-  select(-x) %>% 
-  as.matrix()
+critter_correlation <- -0.4
+
+corr_mat <- matrix( c(1,critter_correlation,critter_correlation,1) , nrow=2 ) # correlation matrix
+    
+
+habitats <- sim_habitat(
+  critters,
+  kp = 0.1,
+  critter_correlations = corr_mat,
+  resolution = resolution,
+  patch_area = patch_area
+)
+
+    
+critter_habitats <- habitats$critter_distributions |>
+  group_by(critter) |>
+  nest() |>
+  mutate(habitat = map(
+    data,
+    \(x) x |> select(-patch) |> pivot_wider(names_from = y, values_from = habitat) |>
+      select(-x) %>%
+      as.matrix()
+  ))
+  
 
 
+```
+
+
+```{r, fig.cap="Simulated Species Habitat"}
+habitats$critter_distributions |> 
+  ggplot(aes(x,y,fill = habitat)) + 
+  geom_tile() + 
+  facet_wrap(~critter) + 
+  scale_fill_viridis_c()
+```
+
+
+```{r}
 # create a fauna object, which is a list of lists
+
+yft_habitat <- critter_habitats$habitat[[which(critter_habitats$critter == "yellowfin")]]
+
+mako_habitat <- critter_habitats$habitat[[which(critter_habitats$critter == "mako")]]
+
 fauna <- 
   list(
-    "Yellowfin Tuna" = create_critter(
+    "yellowfin" = create_critter(
       scientific_name = "Thunnus albacares",
       habitat = yft_habitat, # pass habitat as lists
       recruit_habitat = yft_habitat,
@@ -82,9 +119,9 @@ fauna <-
       seasons = seasons,
       ssb0 = 5000,
       ),
-    "Shortfin Mako" = create_critter(
+    "mako" = create_critter(
       scientific_name = "Isurus oxyrinchus",
-      habitat = list(mako_habitat), # pass habitat as lists
+    habitat = mako_habitat, 
       recruit_habitat = mako_habitat,
       adult_diffusion = mako_diffusion,
       recruit_diffusion = rec_factor * .1,
@@ -101,8 +138,8 @@ fauna <-
 
 
 fleets <- list("longline" = create_fleet(list(
-  `Yellowfin Tuna` = Metier$new(
-    critter = fauna$`Yellowfin Tuna`,
+  `yellowfin` = Metier$new(
+    critter = fauna$`yellowfin`,
     price = 100, # price per unit weight
     sel_form = "logistic", # selectivity form, one of logistic or dome
     sel_start = .3, # percentage of length at maturity that selectivity starts
@@ -110,8 +147,8 @@ fleets <- list("longline" = create_fleet(list(
     catchability = .01, # overwritten by tune_fleet but can be set manually here
     p_explt = 1
     ),
-  `Shortfin Mako` = Metier$new(
-    critter = fauna$`Shortfin Mako`,
+  `mako` = Metier$new(
+    critter = fauna$`mako`,
     price = 10,
     sel_form = "logistic",
     sel_start = .1,
@@ -140,8 +177,17 @@ spillover_sim <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
+
+
   
-proc_spillover <- process_marlin(spillover_sim, time_step =  fauna[[1]]$time_step)
+proc_spillover <- process_marlin(spillover_sim, time_step =  fauna[[1]]$time_step, keep_age = TRUE)
+
+plot_marlin(
+  proc_spillover,
+  max_scale = TRUE,
+  plot_var = "b",
+  plot_type = "space"
+)
 
 plot_marlin(proc_spillover, max_scale = FALSE)
 
@@ -169,13 +215,6 @@ Sys.time() - a
 
 proc_mpa_spillover <- process_marlin(mpa_spillover, time_step =  fauna[[1]]$time_step)
 
-plot_marlin(proc_mpa_spillover, max_scale = FALSE) + 
-  labs(y = "Spawning Stock Biomass")
-
-plot_marlin(proc_mpa_spillover, max_scale = FALSE, plot_var = "c") + 
-  labs(y = "Catch")
-
-
 
 ```
 
@@ -192,19 +231,28 @@ mpa_distances <- get_distance_to_mpas(mpa_locations = mpa_locations, resolution 
     scale_fill_gradient2(low = "darkblue", high = "green", mid = "white", midpoint = 0)
 ```
 
+We can also calculate an "MPA gravity", measured as the sum of all the distances from the current cell to all MPA cells. So, a single MPA patch far from any other MPAs might actually have a lower MPA gravity than a fished patch right next to a very large number of MPA cells. 
+
 ```{r fig-dist2, fig.cap="MPA gravity per cell."}
 
   mpa_distances |>
-    ggplot(aes(x,y,fill = total_mpa_distance)) +
+    ggplot(aes(x,y,fill = -total_mpa_distance)) +
     geom_tile() +
-    geom_tile(aes(x,y, color = mpa)) + 
+    geom_tile(aes(x,y, color = mpa), size = 1.5) + 
   scale_fill_viridis_c(name = "MPA gravity",option = "magma", direction = -1)
 
 ```
+### Indicators
 
-We can then plot the gradients of various metrics in space and as a function of MPA distance. 
+We can then use these simulated data to generate a series of indicators of MPA performance
 
-We can see first off that the model generates "fishing the line" behavior where the fishing fleet is concentrated more around the borders of the protected area. 
+
+#### Fishing the Line
+
+
+
+The complex interactions of the life history and fishing fleet strategies mean that this "fishing the line" behavior results in a linear biomass gradient with distance from the MPA for the tuna, but actually a reverse trend for the shark where biomass is depressed right by the border due to fishing the line, and then increases with distance. 
+
 
 ```{r fig-line, fig.cap="Distribution of fishing effort in space post-MPA."}
 
@@ -230,17 +278,42 @@ b = fishery_outcomes |>
 a / b
 ```
 
-The complex interactions of the life history and fishing fleet strategies mean that this "fishing the line" behavior results in a linear biomass gradient with distance from the MPA for the tuna, but actually a reverse trend for the shark where biomass is depressed right by the border due to fishing the line, and then increases with distance. 
+#### Response Ratios
 
-Note that we see clear "fishing the line" and spillover gradients even though this MPA has had almost no impact on total biomass or
+The most common form of indicator used in the empirical MPA monitoring literature is a "response ratio" *r*, generally measured as some version of 
 
-```{r fig-spillover, fig.cap="Biomass of each species as a function of distance from MPA border. Negative distance means inside the MPA."}
+$$
+r = log(\frac{inside}{outside})
+$$
+Which at lower ratio values is roughly equivalent to the percent difference in the metric in question inside the MPA relative to outside. 
 
-conservation_outcomes |>
-  filter(step == max(step)) |>
+This can be generalized into a regression of the form
+
+$$
+log(Y_i) \sim N(\beta_0 + rMPA_i + \pmb{\beta}\pmb{X_i},\sigma)
+$$
+where $\beta_0$ is the value of outcome *Y* when MPA = 0, MPA is a dummy variable indicating whether observation *i* is inside or outside of an MPA, and $\pmb{\beta}$ is a vector of coefficients for the vector of covariates $\pmb{X}$. 
+
+We can use this equation then to calculate response ratios in various metrics, such as biomass density or mean length of fish. 
+
+```{r}
+rr_data <- conservation_outcomes |>
+  filter(step == max(step) | year == floor(years * .5)) |>
   group_by(step, x, y, patch, critter) |>
-  summarise(biomass = sum(b)) |>
-  left_join(mpa_distances, by = c("x", "y", "patch")) |>
+  summarise(biomass = sum(b),
+            mean_length = weighted.mean(mean_length, n)) |>
+  left_join(mpa_distances, by = c("x", "y", "patch"))
+
+
+
+
+```
+
+
+
+```{r fig-bgradient, fig.cap="Biomass of each species as a function of distance from MPA border. Negative distance means inside the MPA."}
+
+rr_data|>
   ggplot(aes(distance_to_mpa_edge, biomass, color = factor(step))) +
   geom_vline(xintercept = 0) +
   geom_jitter() +
@@ -248,3 +321,200 @@ conservation_outcomes |>
 
 
 ```
+
+
+```{r fig-mlgradient, fig.cap="Biomass of each species as a function of distance from MPA border. Negative distance means inside the MPA."}
+
+rr_data|>
+  ggplot(aes(distance_to_mpa_edge, mean_length, color = factor(step))) +
+  geom_vline(xintercept = 0) +
+  geom_jitter() +
+  facet_wrap( ~ critter, scales = "free_y") + 
+  scale_y_continuous(name = "Mean Length")
+
+
+```
+
+## Quantifying Gradients
+
+
+```{r}
+
+model_critter <- "yellowfin"
+
+
+baseline <- data.frame(ssb0_p = fauna[[model_critter]]$ssb0_p) |>
+  mutate(patch = 1:n()) |> 
+  mutate(scaled_ssb0_p = as.numeric(scale(ssb0_p)))
+
+
+survey_indicators = conservation_outcomes |>
+  filter(step == max(step), critter == model_critter) |>
+  group_by(step, x, y, patch, critter) |>
+  summarise(biomass = sum(b),
+            mean_length = weighted.mean(mean_length, n)) |>
+  left_join(mpa_and_ssb, by = c("x", "y", "patch")) |>
+  ungroup() 
+
+response_ratio_model = stan_glm(
+  biomass ~ mpa + scaled_ssb0_p - 1,
+  data = survey_indicators,
+  chains = 1,
+  cores = 1
+)
+
+response_ratio <- tidybayes::tidy_draws(response_ratio_model) |>
+  mutate(response_ratio = mpaTRUE / (mpaFALSE) - 1)
+
+
+response_ratio |>
+  ggplot(aes(response_ratio)) +
+  geom_histogram() +
+  scale_x_continuous(labels = scales::percent, name = "Response Ratio")
+
+```
+
+
+### Gradients
+
+```{r}
+
+model_critter <- "mako"
+
+
+halpern_foo <- function(pars, y, distance_to_mpa, use = "fit") {
+  yhat = pars[1] / (1 + pars[2] * exp(pars[3] * distance_to_mpa)) + pars[4]
+  
+  if (use == "fit") {
+    out <- sum(((yhat) - (y)) ^ 2)
+  } else {
+    out <- yhat
+  }
+  
+}
+
+
+baseline <- data.frame(ssb0_p = fauna[[model_critter]]$ssb0_p) |>
+  mutate(patch = 1:n()) |> 
+  mutate(scaled_ssb0_p = as.numeric(scale(ssb0_p)))
+
+mpa_and_ssb <- mpa_distances |>
+  left_join(baseline, by = "patch")
+
+
+survey_indicators = conservation_outcomes |>
+  filter(step == max(step), critter == model_critter) |>
+  group_by(step, x, y, patch, critter) |>
+  summarise(biomass = sum(b),
+            mean_length = weighted.mean(mean_length, n)) |>
+  left_join(mpa_and_ssb, by = c("x", "y", "patch")) |>
+  ungroup() 
+
+fishery_indicators <- fishery_outcomes |>
+  filter(step == max(step), critter == model_critter) |>
+  group_by(step, x, y, patch, critter, fleet) |>
+  summarise(
+    mean_length = weighted.mean(mean_length, catch),
+    catch = sum(catch),
+    effort = sum(effort),
+    cpue = sum(catch) / sum(effort)
+  ) |>
+  left_join(mpa_and_ssb, by = c("x", "y", "patch")) |>
+  ungroup() 
+
+
+test <- nlminb(rep(0,4),lower = c(-Inf,0,-Inf,0),halpern_foo, y = survey_indicators$biomass, distance_to_mpa = survey_indicators$distance_to_mpa_edge, control = list(eval.max = 1000, iter.max = 1000))
+
+out <- halpern_foo(
+  test$par,
+  y = survey_indicators$biomass,
+  distance_to_mpa = survey_indicators$distance_to_mpa_edge,
+  use = "predict"
+)
+
+plot(survey_indicators$biomass)
+lines(out)
+
+spillpars <- test$par
+
+spillpars[4] <- 0
+
+dists <- seq(0,1000)
+spillover <- halpern_foo(
+  spillpars,
+  y = survey_indicators$biomass,
+  distance_to_mpa = dists,
+  use = "predict"
+)
+
+zerotol <- 0.05
+spillplot <- data.frame(distance_to_mpa_edge =dists, spillover = spillover) 
+
+spillover_distance <- spillplot |> 
+  filter(spillover < (1 + zerotol) * min(spillover)) |> 
+  slice(1)
+
+spillplot |> 
+  ggplot(aes(distance_to_mpa_edge, spillover)) + 
+  geom_point() + 
+  geom_vline(xintercept = spillover_distance$distance_to_mpa_edge)
+
+
+```
+
+
+
+Aha, so use the model, then calculate the distance at which the predicted 
+
+```{r}
+
+b_gradient_model = stan_glm(
+  biomass ~ distance_to_mpa_edge,
+  data = survey_indicators |> filter(!mpa),
+  family = Gamma(link = "log"),
+  chains = 1,
+  cores = 1
+)
+
+
+plot(b_gradient_model)
+
+cpue_gradient_model = stan_glm(
+  cpue ~ distance_to_mpa_edge,
+  data = fishery_indicators |> filter(!mpa),
+  family = Gamma(link = "log"),
+  chains = 1,
+  cores = 1
+)
+
+effort_gradient_model = stan_glm(
+  effort ~ distance_to_mpa_edge + scaled_ssb0_p,
+  data = fishery_indicators |> filter(!mpa),
+  family = Gamma(link = "log"),
+  chains = 1,
+  cores = 1
+)
+
+mcmc_hist(b_gradient_model, pars = "distance_to_mpa_edge")
+
+mcmc_hist(effort_gradient_model, pars = "distance_to_mpa_edge")
+
+predictions <- posterior_predict(b_gradient_model, newdata = survey_indicators |> mutate(scaled_ssb0_p = 0), type = "response") |>
+  as.data.frame() |>
+  mutate(iteration = 1:n()) |>
+  pivot_longer(-iteration, names_to = "patch", values_to = "biomass_hat", 
+               names_transform = list(patch = as.integer)) |> 
+  left_join(mpa_and_ssb, by = "patch")
+
+survey_indicators |> 
+  ggplot(aes(distance_to_mpa_edge, biomass)) + 
+  geom_point() + 
+  stat_lineribbon(data = predictions, aes(distance_to_mpa_edge, biomass_hat), alpha = 0.5) + 
+  scale_fill_brewer() + 
+  scale_y_continuous(limits = c(0, NA))
+
+
+```
+
+
+

@@ -39,8 +39,8 @@ Fish <- R6::R6Class(
     #' @param adult_diffusion  diffusion parameter *D* in the CTMC movement function for "adults" (not recruits)
     #' @param recruit_diffusion  diffusion parameter *D* in the CTMC movement function for recruits
     #' @param query_fishlife TRUE or FALSE to query `Fishlife` for missing life history values. When set to FALSE all required life history values must be supplied by the user
-    #' @param sigma_r the standard deviation of recruitment deviates in log-normal space
-    #' @param rec_ac the autocorrelation of recruitment deviates
+    #' @param sigma_rec the standard deviation of recruitment deviates in log-normal space
+    #' @param ac_rec the autocorrelation of recruitment deviates
     #' @param cores the number of cores used to tun the weight relationship if used (deprecated)
     #' @param mat_mode specifies whether maturity is a function of age (default) or length
     #' @param default_wb deprecated
@@ -92,8 +92,8 @@ Fish <- R6::R6Class(
                           adult_diffusion = 4,
                           recruit_diffusion = 10,
                           query_fishlife = T,
-                          sigma_r = 0,
-                          rec_ac = 0,
+                          sigma_rec = 0,
+                          ac_rec = 0,
                           cores = 4,
                           mat_mode = "age",
                           default_wb = 2.8,
@@ -694,9 +694,9 @@ Fish <- R6::R6Class(
 
       self$spawning_seasons <- spawning_seasons
 
-      self$sigma_r <- sigma_r
+      self$sigma_rec <- sigma_rec
 
-      self$rec_ac <- rec_ac
+      self$ac_rec <- ac_rec
 
       unfished <- marlin::sim_fish(
         length_at_age = length_at_age,
@@ -724,6 +724,8 @@ Fish <- R6::R6Class(
       )
 
       unfished$tmppop$ages <- ages
+
+      unfished$tmppop$length_at_age <- self$length_at_age
 
       unfished$tmppop$resolution <- self$resolution
 
@@ -804,7 +806,7 @@ Fish <- R6::R6Class(
     }
 
     if (all(is.na(rec_devs))){
-      rec_devs <- exp(rnorm(self$patches, 0, self$sigma_r) - self$sigma_r^2/2)
+      rec_devs <- exp(rnorm(self$patches, 0, self$sigma_rec) - self$sigma_rec^2/2)
     }
 
     pop <- marlin::sim_fish(
@@ -832,6 +834,8 @@ Fish <- R6::R6Class(
       rec_devs = rec_devs
     )
     pop$ages <- self$ages
+
+    pop$length_at_age <- self$length_at_age
 
     pop$resolution <- self$resolution
     return(pop)
