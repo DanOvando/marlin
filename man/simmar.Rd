@@ -14,7 +14,9 @@ simmar(
   starting_season = NA,
   initial_conditions = NA,
   starting_step = NA,
-  keep_starting_step = TRUE
+  keep_starting_step = TRUE,
+  log_rec_devs = NULL,
+  cor_rec = diag(length(fauna))
 )
 }
 \arguments{
@@ -28,11 +30,19 @@ simmar(
 
 \item{years}{the number of years to run the simulation}
 
+\item{steps}{the number of steps to run, as an alternative to years}
+
+\item{starting_season}{the starting season for the simulation}
+
 \item{initial_conditions}{initial conditions for the simulation, in the form simmar()[\link{final step}]}
 
 \item{starting_step}{the step to start the simulation from, used to keep track of steps across multiple runs of simmar}
 
 \item{keep_starting_step}{should the starting step by kept (TRUE) or dropped (FALSE)}
+
+\item{log_rec_devs}{externally supplied log recruitment deviates}
+
+\item{cor_rec}{correlation matrix in recruitment deviates across species}
 }
 \value{
 a list containing the results of the simulation

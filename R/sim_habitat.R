@@ -31,12 +31,10 @@ sim_habitat <-
            patch_area,
            rescale_habitat = TRUE,
            max_delta = 3,
-           max_abs_cor = 1) {
-
-
-    if (length(resolution) == 1){
-
-      resolution <- rep(resolution,2)
+           max_abs_cor = 1,
+           output = "df") {
+    if (length(resolution) == 1) {
+      resolution <- rep(resolution, 2)
 
     }
 
@@ -83,15 +81,16 @@ sim_habitat <-
 
     # create species correlation matrix
 
-    if (all(is.na(critter_correlations))){
-
+    if (all(is.na(critter_correlations))) {
       n_species_cores <- n_species * (n_species + 1) / 2 - n_species
       # n_species * (n_species + 1) / 2 # formula for the number of elements in the upper triangle of an n x n matric
 
       core_matrix <- matrix(0, nrow = n_species, ncol = n_species)
 
       species_cores <-
-        runif(n_species_cores, min = -max_abs_cor, max = max_abs_cor) # randomly generate correlations among species
+        runif(n_species_cores,
+              min = -max_abs_cor,
+              max = max_abs_cor) # randomly generate correlations among species
       # Fill in the upper triangle of the matrix
       core_matrix[upper.tri(core_matrix)] <- species_cores
 
@@ -104,7 +103,9 @@ sim_habitat <-
     }
 
     species_x_space <-
-      as.matrix(Matrix::nearPD(Matrix::kronecker(spatial_correlations, critter_correlations))$mat)
+      as.matrix(Matrix::nearPD(
+        Matrix::kronecker(spatial_correlations, critter_correlations)
+      )$mat)
 
     # generate a random species distribution for each species in space
     habitats <-
@@ -116,7 +117,7 @@ sim_habitat <-
       dplyr::arrange(patch, rev(critter)) |>
       dplyr::mutate(habitat = habitats)
 
-    if (rescale_habitat){
+    if (rescale_habitat) {
       species_distributions$habitat <- scales::rescale(species_distributions$habitat, to = c(0, log(max_delta)))
     }
 
@@ -126,8 +127,29 @@ sim_habitat <-
 
     final_species_cores <- cor(check_species_cores[, -1])
 
-    out <- list(critter_distributions = species_distributions, critter_correlations = final_species_cores,
-                wtf = critter_correlations)
+
+    if (output == "list") {
+      critter_habitats <- species_distributions |>
+        dplyr::group_by(critter) |>
+        tidyr::nest() |>
+        dplyr::mutate(
+          habitat = purrr::map(
+            data,
+            \(x) x |> dplyr::select(-patch) |> tidyr::pivot_wider(names_from = y, values_from = habitat) |>
+              dplyr::select(-x) %>%
+              as.matrix()
+          )
+        )
+
+      species_distributions <- critter_habitats$habitat |>
+        purrr::set_names(critter_habitats$critter)
+    }
+
+
+    out <- list(
+      critter_distributions = species_distributions,
+      critter_correlations = final_species_cores,
+      wtf = critter_correlations
+    )
 
   }
-
