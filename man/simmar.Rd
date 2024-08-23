@@ -14,7 +14,9 @@ simmar(
   starting_season = NA,
   initial_conditions = NA,
   starting_step = NA,
-  keep_starting_step = TRUE
+  keep_starting_step = TRUE,
+  log_rec_devs = NULL,
+  cor_rec = diag(length(fauna))
 )
 }
 \arguments{

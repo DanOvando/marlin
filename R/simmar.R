@@ -11,6 +11,10 @@
 #' @param starting_step  the step to start the simulation from, used to keep track of steps across multiple runs of simmar
 #' @param keep_starting_step should the starting step by kept (TRUE) or dropped (FALSE)
 #' @param manager a list of management actions
+#' @param steps the number of steps to run, as an alternative to years
+#' @param starting_season the starting season for the simulation
+#' @param log_rec_devs externally supplied log recruitment deviates
+#' @param cor_rec correlation matrix in recruitment deviates across species
 #'
 #' @return a list containing the results of the simulation
 #' @export
@@ -24,11 +28,15 @@ simmar <- function(fauna = list(),
                    starting_season = NA,
                    initial_conditions = NA,
                    starting_step = NA,
-                   keep_starting_step = TRUE) {
+                   keep_starting_step = TRUE,
+                   log_rec_devs = NULL,
+                   cor_rec = diag(length(fauna))) {
   init_cond_provided <-
     !all(is.na(initial_conditions)) # marker in case initial conditions were provided
 
   fauni <- names(fauna)
+
+  n_critters <- length(fauna)
 
   fleet_names <- names(fleets)
 
@@ -38,6 +46,23 @@ simmar <- function(fauna = list(),
 
   patch_area <- unique(purrr::map_dbl(fauna, "patch_area"))
 
+  sigma_recs <- purrr::map_dbl(fauna, "sigma_rec") # gather recruitment standard deviations
+
+  ac_recs <- purrr::map_dbl(fauna, "ac_rec") # gather autocorrelation in recruitment standard deviations
+
+  if (any(abs(ac_recs) >= 1)){
+    stop("all sigma_ac values must be between -1 and 1")
+  }
+
+  covariance_rec <- cor_rec * (sigma_recs %o% sigma_recs)
+
+
+
+  # if (!is.null(rec_devs)){
+  #   if (length(rec_devs) > 1 & length(rec_devs) != length(fauna)){
+  #     stop("rev_devs must either be a vector of length")
+  #   }
+  # }
 
   if (length(time_step) > 1) {
     stop(
@@ -56,6 +81,9 @@ simmar <- function(fauna = list(),
   } # if steps are specified instead of years
 
   steps <- pmax(steps, 3) # need to be at least 1 initial + 2 running steps
+
+  # generate recruitment deviates
+
 
   if (!is.na(starting_step)) {
     year_season <- marlin::clean_steps(starting_step)
@@ -80,6 +108,19 @@ simmar <- function(fauna = list(),
   step_names <-
     step_names[1:steps + offset] # chop back to the actual number of steps used; works this way in case there are multiple steps per year but an incomplete number of years
 
+  if (is.null(log_rec_devs)) {
+  log_rec_devs <- matrix(NA, nrow = length(step_names), ncol = n_critters, dimnames = list(step_names, fauni))
+
+  log_rec_devs[1,] <- mvtnorm::rmvnorm(1,rep(0, n_critters),sigma = covariance_rec)
+
+  for (i in 2:length(step_names)){
+
+    log_rec_devs[i, ] <- ac_recs *  log_rec_devs[i - 1, ] + sqrt(1 - ac_recs ^ 2) * mvtnorm::rmvnorm(1, rep(0,n_critters), sigma = covariance_rec)
+
+  }
+
+
+}
   # step_names <-  paste(rep((1:steps) + offset, each = steps_per_year), 1:steps_per_year, sep = "_") # generate at least as many steps as you're going to need
 
   # step_names <- step_names[1:steps] # chop back to the actual number of steps used; works this way in case there are multiple steps per year but an incomplete number of years
@@ -214,7 +255,6 @@ simmar <- function(fauna = list(),
       dimnames = list(NULL, fleet_names)
     )
 
-  log_rec_devs <- vector("list", length(fauna))
 
   fishable <- rep(1, patches)
 
@@ -737,27 +777,15 @@ simmar <- function(fauna = list(),
 
       }
 
-      new_rec_devs <-  rnorm(patches, 0, fauna[[f]]$sigma_r)
-      # update recruitment deviates allowing for autocorrelation within each critter
+      fauna_rec_devs <- rep(exp(log_rec_devs[s,f] - fauna[[f]]$sigma_rec ^ 2 / 2), patches)
 
-      if (s > 2) {
-        log_rec_devs[[f]] <-
-          fauna[[f]]$rec_ac *  log_rec_devs[[f]] + sqrt(1 - fauna[[f]]$rec_ac ^ 2) * new_rec_devs
-      } else {
-        log_rec_devs[[f]] <- new_rec_devs
-      }
-
-      rec_devs <- exp(log_rec_devs[[f]] - fauna[[f]]$sigma_r ^ 2 / 2)
-      # if (current_season >= 5){
-      # browser()
-      # }
       pop <-
         fauna[[f]]$swim(
           season = current_season,
           adult_movement = movement,
           f_p_a = f_p_a,
           last_n_p_a = last_n_p_a,
-          rec_devs = rec_devs
+          rec_devs = fauna_rec_devs
         )
       # process catch data
       c_p_a_fl <-

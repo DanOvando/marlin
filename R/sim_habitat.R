@@ -31,7 +31,8 @@ sim_habitat <-
            patch_area,
            rescale_habitat = TRUE,
            max_delta = 3,
-           max_abs_cor = 1) {
+           max_abs_cor = 1,
+           output = "df") {
 
 
     if (length(resolution) == 1){
@@ -125,6 +126,22 @@ sim_habitat <-
       tidyr::pivot_wider(names_from = "critter", values_from = "habitat")
 
     final_species_cores <- cor(check_species_cores[, -1])
+
+  if (output == "list"){
+    critter_habitats <- species_distributions |>
+      dplyr::group_by(critter) |>
+      tidyr::nest() |>
+      dplyr::mutate(habitat = purrr::map(
+        data,
+        \(x) x |> dplyr::select(-patch) |> tidyr::pivot_wider(names_from = y, values_from = habitat) |>
+          dplyr::select(-x) %>%
+          as.matrix()
+      ))
+
+    species_distributions <- critter_habitats$habitat |>
+      purrr::set_names(critter_habitats$critter)
+  }
+
 
     out <- list(critter_distributions = species_distributions, critter_correlations = final_species_cores,
                 wtf = critter_correlations)

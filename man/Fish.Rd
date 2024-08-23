@@ -54,8 +54,8 @@ Used to store parameters describing the behavior of an object of class Fish
   adult_diffusion = 4,
   recruit_diffusion = 10,
   query_fishlife = T,
-  sigma_r = 0,
-  rec_ac = 0,
+  sigma_rec = 0,
+  ac_rec = 0,
   cores = 4,
   mat_mode = "age",
   default_wb = 2.8,
@@ -139,9 +139,9 @@ Used to store parameters describing the behavior of an object of class Fish
 
 \item{\code{query_fishlife}}{TRUE or FALSE to query \code{Fishlife} for missing life history values. When set to FALSE all required life history values must be supplied by the user}
 
-\item{\code{sigma_r}}{the standard deviation of recruitment deviates in log-normal space}
+\item{\code{sigma_rec}}{the standard deviation of recruitment deviates in log-normal space}
 
-\item{\code{rec_ac}}{the autocorrelation of recruitment deviates}
+\item{\code{ac_rec}}{the autocorrelation of recruitment deviates}
 
 \item{\code{cores}}{the number of cores used to tun the weight relationship if used (deprecated)}
 
