@@ -817,7 +817,7 @@ simmar <- function(fauna = list(),
               patches = patches,
               ages = ages,
               fleets = fleets,
-              rec_devs = rec_devs,
+              rec_devs = fauna_rec_devs,
               lower = 0,
               upper = 1
             )
@@ -832,7 +832,7 @@ simmar <- function(fauna = list(),
               adult_movement = movement,
               f_p_a = f_p_a,
               last_n_p_a = last_n_p_a,
-              rec_devs = rec_devs
+              rec_devs = fauna_rec_devs
             )
           # process catch data
           c_p_a_fl <-

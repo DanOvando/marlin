@@ -348,6 +348,9 @@ baseline <- data.frame(ssb0_p = fauna[[model_critter]]$ssb0_p) |>
   mutate(scaled_ssb0_p = as.numeric(scale(ssb0_p)))
 
 
+mpa_and_ssb <- mpa_distances |>
+  left_join(baseline, by = "patch")
+
 survey_indicators = conservation_outcomes |>
   filter(step == max(step), critter == model_critter) |>
   group_by(step, x, y, patch, critter) |>
@@ -398,8 +401,7 @@ baseline <- data.frame(ssb0_p = fauna[[model_critter]]$ssb0_p) |>
   mutate(patch = 1:n()) |> 
   mutate(scaled_ssb0_p = as.numeric(scale(ssb0_p)))
 
-mpa_and_ssb <- mpa_distances |>
-  left_join(baseline, by = "patch")
+
 
 
 survey_indicators = conservation_outcomes |>

@@ -12,12 +12,8 @@ sim_habitat(
   patch_area,
   rescale_habitat = TRUE,
   max_delta = 3,
-<<<<<<< HEAD
-  max_abs_cor = 1
-=======
   max_abs_cor = 1,
   output = "df"
->>>>>>> 1e3fda23c595963331c094fd6f9789407c6c31ac
 )
 }
 \arguments{

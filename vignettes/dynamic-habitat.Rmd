@@ -108,7 +108,7 @@ fauna <-
       explt_type = "f",
       spawning_seasons = c(2,3),
       sigma_rec = 0,
-      rec_ac = 0,
+      ac_rec = 0,
       linf = 100,
       vbk = 0.2,
       age_mature = 4,

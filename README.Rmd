@@ -22,6 +22,8 @@ set.seed(42)
 <!-- [![CRAN status](https://www.r-pkg.org/badges/version/mar)](https://CRAN.R-project.org/package=mar) -->
 <!-- badges: end -->
 
+This package is back under active construction and so many of the vignettes are still works-in-progress at this time. 
+
 `marlin` is a package for efficiently running simulations of marine fauna and fisheries. It can track the age-structured populations of multiple independent animals targeted by multiple fishing fleets across a two dimensional space. It allows users to simulate a wide range of life histories, movement dynamics, fishing fleet behaviors, and management strategies. See examples below and vignettes under the articles tab for how to use `marlin` to do things like simulate... 
   -  the impacts of displaced fishing effort across multiple species
   -  seasonal spawning aggregations or climate induced range shifts

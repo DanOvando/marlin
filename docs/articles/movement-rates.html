@@ -49,6 +49,7 @@
     <a class="dropdown-item" href="../articles/MSE.html">Management Strategy Evaluation (sort of)</a>
     <a class="dropdown-item" href="../articles/port-distance.html">Setting and Using Distance from Port</a>
     <a class="dropdown-item" href="../articles/rectifier.html">Don't Be a Square</a>
+    <a class="dropdown-item" href="../articles/Working-with-Recruitment-Deviates.html">Working with Recruitment Deviates</a>
   </div>
 </li>
 <li class="nav-item">
@@ -214,7 +215,7 @@ question.</p>
 the spatial and temporal resolution of the simulation itself.</p>
 <p>Let’s set</p>
 <ul>
-<li>a 10x10 simulation grid</li>
+<li>a 20x20 simulation grid</li>
 <li>width of a square cell side <span class="math inline">\(\Delta_d\)</span> of 5km</li>
 <li>a time step <span class="math inline">\(\Delta_t\)</span> of one
 year</li>
@@ -225,14 +226,13 @@ actually step through the calculations here so readers can get a sense
 for what is actually happening in the model.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="va">resolution</span> <span class="op">&lt;-</span> <span class="fl">10</span> <span class="co"># cells per side</span></span>
+<span><span class="va">resolution</span> <span class="op">&lt;-</span> <span class="fl">20</span> <span class="co"># cells per side</span></span>
 <span></span>
 <span><span class="va">patches</span> <span class="op">&lt;-</span> <span class="va">resolution</span><span class="op">^</span><span class="fl">2</span> <span class="co"># number of patches</span></span>
 <span></span>
-<span><span class="va">delta_d</span> <span class="op">&lt;-</span> <span class="fl">100</span> <span class="co"># length of a cell side in km</span></span>
+<span><span class="va">delta_d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span> <span class="co"># length of a cell side in km</span></span>
 <span></span>
 <span><span class="va">patch_area</span> <span class="op">=</span> <span class="va">delta_d</span><span class="op">^</span><span class="fl">2</span> <span class="co"># in units of km^2/patch</span></span>
-<span></span>
 <span></span>
 <span><span class="va">simulation_area</span> <span class="op">&lt;-</span> <span class="va">patch_area</span> <span class="op">*</span> <span class="va">patches</span></span>
 <span></span>
@@ -311,7 +311,7 @@ critters from a central patch to the patches around it.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"Distance from Bottom Left Corned in KM"</span>, expand <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">0</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_continuous</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"Distance from Bottom Left Corned in KM"</span>, expand <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">0</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_fixed.html" class="external-link">coord_fixed</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in ggforce::geom_circle(aes(x0 = resolution/2 * delta_d, y0 = resolution/2 * : All aesthetics have length 1, but the data has 100 rows.</span></span>
+<span><span class="co">#&gt; Warning in ggforce::geom_circle(aes(x0 = resolution/2 * delta_d, y0 = resolution/2 * : All aesthetics have length 1, but the data has 400 rows.</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Please consider using `annotate()` or provide this layer with data containing</span></span>
 <span><span class="co">#&gt;   a single row.</span></span></code></pre></div>
 <p><img src="movement-rates_files/figure-html/unnamed-chunk-5-1.png" width="700"></p>
@@ -319,7 +319,7 @@ critters from a central patch to the patches around it.</p>
 initially seeded in one central patch after one year across a range of
 diffusion rates <span class="math inline">\(D\)</span>.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">diffusion_frame</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>D <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">2</span><span class="op">*</span><span class="va">patch_area</span>, length.out <span class="op">=</span> <span class="fl">8</span><span class="op">)</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">diffusion_frame</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>D <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">20</span>,<span class="fl">200</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">sim_diffusion</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">D</span>, <span class="va">resolution</span>, <span class="va">delta_d</span> <span class="op">=</span> <span class="fl">5</span>,<span class="va">delta_t</span> <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">{</span></span>
 <span></span>
