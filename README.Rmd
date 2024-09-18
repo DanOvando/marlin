@@ -426,6 +426,10 @@ mako_depletion <- 0.4
 
 mako_diffusion <- 5
 
+yft_b0 <- 1000
+
+mako_b0 <- 42
+
 # for now make up some habitat
 
 yft_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
@@ -454,7 +458,8 @@ fauna <-
       adult_diffusion = yft_diffusion, # cells per year
       fished_depletion = yft_depletion, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
       density_dependence = "global_habitat", # recruitment form, where 1 implies local recruitment
-      seasons = seasons
+      seasons = seasons,
+      b0 = yft_b0
       ),
     "Shortfin Mako" = create_critter(
       scientific_name = "Isurus oxyrinchus",
@@ -466,8 +471,9 @@ fauna <-
       burn_years = 200,
       seasons = seasons,
       fec_form = "pups",
-      pups = 2,
-      lorenzen_m = FALSE
+      pups = 6,
+      b0 = mako_b0,
+      lorenzen_m = TRUE
     )
   )
 
@@ -519,7 +525,9 @@ Sys.time() - a
   
 proc_nearshore <- process_marlin(nearshore, time_step =  fauna[[1]]$time_step)
 
-plot_marlin(proc_nearshore, max_scale = FALSE)
+plot_marlin(proc_nearshore, max_scale = FALSE, plot_var = "b")
+plot_marlin(proc_nearshore, max_scale = FALSE, plot_var = "ssb")
+
 
 ```
 
@@ -588,7 +596,8 @@ fauna <-
       adult_diffusion = yft_diffusion, # cells per year
       fished_depletion = yft_depletion, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
       density_dependence = "global_habitat", # recruitment form, where 1 implies local recruitment
-      seasons = seasons
+      seasons = seasons,
+      b0 = yft_b0
       ),
     "Shortfin Mako" = create_critter(
       scientific_name = "Isurus oxyrinchus",
@@ -600,8 +609,9 @@ fauna <-
       burn_years = 200,
       seasons = seasons,
       fec_form = "pups",
-      pups = 2,
-      lorenzen_m = FALSE
+      pups = 6,
+      b0 = mako_b0,
+      lorenzen_m = TRUE
     )
   )
 

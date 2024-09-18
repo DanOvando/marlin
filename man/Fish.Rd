@@ -50,6 +50,8 @@ Used to store parameters describing the behavior of an object of class Fish
   steepness = 0.8,
   r0 = 10000,
   ssb0 = NA,
+  b0 = NA,
+  popsize_measure = "ssb0",
   density_dependence = "global_habitat",
   adult_diffusion = 4,
   recruit_diffusion = 10,

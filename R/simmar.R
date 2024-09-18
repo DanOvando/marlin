@@ -901,6 +901,9 @@ simmar <- function(fauna = list(),
       }
 
       storage[[s]][[f]] <- pop
+      
+      storage[[s]][[f]]$b0 <- fauna[[f]]$b0
+
     } # close fauni, much faster this way than dopar, who knew
 
 

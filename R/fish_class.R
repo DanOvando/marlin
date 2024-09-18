@@ -62,6 +62,8 @@ Fish <- R6::R6Class(
     #' @param patch_area  area of each patch (e.g. KM2)
     #' @param max_hab_mult maximum value of that habitat matrix multiplier (to prevent some habitats from being >>> good, defaults to 2)
     #' @param lorenzen_m TRUE or FALSE to use the Lorenzen function to calculate natural mortality at age
+    #' @param b0 desired level of unfished biomass
+    #' @param popsize_measure whether unfished population size should be set based on biomass or spawning stock biomass
     #' @param explt_type deprecated
     initialize = function(common_name = NA,
                           scientific_name = NA,
@@ -88,6 +90,8 @@ Fish <- R6::R6Class(
                           steepness = 0.8,
                           r0 = 10000,
                           ssb0 = NA,
+                          b0 = NA,
+                          popsize_measure = "b0",
                           density_dependence = "global_habitat",
                           adult_diffusion = 4,
                           recruit_diffusion = 10,
@@ -137,6 +141,14 @@ Fish <- R6::R6Class(
       if (length(resolution) == 1 & all(!is.na(resolution))){
         resolution <- rep(resolution,2)
       }
+
+      if (!is.na(b0) & is.na(ssb0)){
+        popsize_measure <- "b0"
+      } else if (!is.na(ssb0) & is.na(b0)){
+        popsize_measure <- "ssb0"
+      }
+
+      popsize_target <- ifelse(popsize_measure == "ssb0", ssb0, b0) # assign target population size based on either ssb or b
 
       self$resolution <- resolution
 
@@ -577,10 +589,10 @@ Fish <- R6::R6Class(
 
 
 
-      if (!is.na(ssb0)) {
-        tune_ssb0 <-
+      if (!is.na(popsize_target)) {
+        tune_popsize <-
           function(r0,
-                   ssb0_target,
+                   popsize_target,
                    rec_habitat,
                    m_at_age,
                    max_age,
@@ -588,7 +600,8 @@ Fish <- R6::R6Class(
                    patches,
                    length_at_age,
                    weight_at_age,
-                   maturity_at_age) {
+                   maturity_at_age,
+                   popsize_measure) {
 
             tmp_r0s <- r0 * rec_habitat
 
@@ -605,17 +618,22 @@ Fish <- R6::R6Class(
 
             n_at_a[,length(m_at_age)] <- n_at_a[,length(m_at_age)] / (1 - exp(-m_at_age[length(m_at_age)] * time_step))
 
-            ssb0 <-
+            if (popsize_measure == "ssb0"){
+            popsize_level <-
               sum(colSums(n_at_a) * fec_at_age * maturity_at_age)
+            } else if (popsize_measure == "b0"){
+              popsize_level <-
+                sum(colSums(n_at_a) * weight_at_age)
+            }
 
-            delta <- ((ssb0) - (ssb0_target)) ^ 2
+            delta <- ((popsize_level) - (popsize_target)) ^ 2
 
           }
         tuned_r0 <- nlminb(
           r0,
-          tune_ssb0,
+          tune_popsize,
           lower = 1e-3,
-          ssb0_target = ssb0,
+          popsize_target = popsize_target,
           rec_habitat = r0s$rec_habitat,
           m_at_age = m_at_age,
           max_age = max_age,
@@ -623,7 +641,8 @@ Fish <- R6::R6Class(
           patches = patches,
           length_at_age = length_at_age,
           weight_at_age = weight_at_age,
-          maturity_at_age = maturity_at_age
+          maturity_at_age = maturity_at_age,
+          popsize_measure = popsize_measure
         )
 
         local_r0s <- tuned_r0$par * r0s$rec_habitat

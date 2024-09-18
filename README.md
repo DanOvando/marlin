@@ -290,7 +290,7 @@ example_sim <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - start_time
-#> Time difference of 0.05447006 secs
+#> Time difference of 0.04194999 secs
 ```
 
 we can then use `process_marlin` and `plot_marlin` to examine the
@@ -398,7 +398,7 @@ fauna <-
     )
   )
 Sys.time() - a
-#> Time difference of 8.186546 secs
+#> Time difference of 2.428056 secs
 
 # create a fleets object, which is a list of lists (of lists). Each fleet has one element, 
 # with lists for each species inside there. Price specifies the price per unit weight of that 
@@ -466,7 +466,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets) 
 
 Sys.time() - a
-#> Time difference of 0.9411669 secs
+#> Time difference of 0.637068 secs
 
 
 # run simulations
@@ -479,7 +479,7 @@ sim3 <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.2756908 secs
+#> Time difference of 0.1835952 secs
 # a <- Sys.time()
 
 processed_marlin <- process_marlin(sim = sim3, time_step = time_step, keep_age = TRUE)
@@ -534,6 +534,10 @@ mako_depletion <- 0.4
 
 mako_diffusion <- 5
 
+yft_b0 <- 1000
+
+mako_b0 <- 42
+
 # for now make up some habitat
 
 yft_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
@@ -562,7 +566,8 @@ fauna <-
       adult_diffusion = yft_diffusion, # cells per year
       fished_depletion = yft_depletion, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
       density_dependence = "global_habitat", # recruitment form, where 1 implies local recruitment
-      seasons = seasons
+      seasons = seasons,
+      b0 = yft_b0
       ),
     "Shortfin Mako" = create_critter(
       scientific_name = "Isurus oxyrinchus",
@@ -574,8 +579,9 @@ fauna <-
       burn_years = 200,
       seasons = seasons,
       fec_form = "pups",
-      pups = 2,
-      lorenzen_m = FALSE
+      pups = 6,
+      b0 = mako_b0,
+      lorenzen_m = TRUE
     )
   )
 
@@ -619,7 +625,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
-#> Time difference of 5.04263 secs
+#> Time difference of 5.003083 secs
 
 # run simulations
 
@@ -630,14 +636,20 @@ nearshore <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.1450989 secs
+#> Time difference of 0.08955097 secs
   
 proc_nearshore <- process_marlin(nearshore, time_step =  fauna[[1]]$time_step)
 
-plot_marlin(proc_nearshore, max_scale = FALSE)
+plot_marlin(proc_nearshore, max_scale = FALSE, plot_var = "b")
 ```
 
 <img src="man/figures/README-unnamed-chunk-8-2.png" width="100%" />
+
+``` r
+plot_marlin(proc_nearshore, max_scale = FALSE, plot_var = "ssb")
+```
+
+<img src="man/figures/README-unnamed-chunk-8-3.png" width="100%" />
 
 We will now design and implement an MPA network by specifying a data
 frame with columns x,y, and mpa denoting the coordinates of MPA patches.
@@ -673,7 +685,7 @@ nearshore_mpa <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.2067111 secs
+#> Time difference of 0.154846 secs
 
 proc_nearshore_mpa <- process_marlin(nearshore_mpa, time_step =  fauna[[1]]$time_step)
 
@@ -710,7 +722,8 @@ fauna <-
       adult_diffusion = yft_diffusion, # cells per year
       fished_depletion = yft_depletion, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
       density_dependence = "global_habitat", # recruitment form, where 1 implies local recruitment
-      seasons = seasons
+      seasons = seasons,
+      b0 = yft_b0
       ),
     "Shortfin Mako" = create_critter(
       scientific_name = "Isurus oxyrinchus",
@@ -722,8 +735,9 @@ fauna <-
       burn_years = 200,
       seasons = seasons,
       fec_form = "pups",
-      pups = 2,
-      lorenzen_m = FALSE
+      pups = 6,
+      b0 = mako_b0,
+      lorenzen_m = TRUE
     )
   )
 
@@ -746,7 +760,7 @@ offshore <- simmar(fauna = fauna,
                   years = years)
 
 Sys.time() - a
-#> Time difference of 0.169327 secs
+#> Time difference of 0.1088121 secs
   
 proc_offshore <- process_marlin(offshore, time_step =  fauna[[1]]$time_step)
 
@@ -761,7 +775,7 @@ offshore_mpa_sim <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.224664 secs
+#> Time difference of 0.1492879 secs
 
 
 proc_offshore_mpa <- process_marlin(offshore_mpa_sim, time_step =  fauna[[1]]$time_step)
@@ -889,7 +903,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
-#> Time difference of 0.2899392 secs
+#> Time difference of 0.2201869 secs
 
 # run simulations
 
