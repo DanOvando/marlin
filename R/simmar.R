@@ -803,7 +803,7 @@ simmar <- function(fauna = list(),
           quota <- manager$quotas[[names(fauna)[f]]]
 
           fmulter <-
-            nlminb(
+            optim(
               0.9,
               marlin::quota_finder,
               quota = quota,

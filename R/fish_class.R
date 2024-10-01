@@ -629,7 +629,7 @@ Fish <- R6::R6Class(
             delta <- ((popsize_level) - (popsize_target)) ^ 2
 
           }
-        tuned_r0 <- nlminb(
+        tuned_r0 <- optim(
           r0,
           tune_popsize,
           lower = 1e-3,
