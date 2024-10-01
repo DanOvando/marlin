@@ -82,7 +82,7 @@ assign_ssbmsy <- function(fauna, sel_start = 0.01, years = 50){
   
   
   inner_inner_find_ssbmsy <- function(fauni,  sel_start, years){
-    emsy <- nlminb(0.1, inner_find_ssbmsy, fauni = fauni, lower = 0, upper = 1, use = "optim", sel_start = sel_start, years = years)
+    emsy <- optim(0.1, inner_find_ssbmsy, fauni = fauni, lower = 0, upper = 1, use = "optim", sel_start = sel_start, years = years)
     
     baseline_ssbmsy <- inner_find_ssbmsy(emsy$par, fauni = fauni,sel_start = sel_start, years = years)$ssb
     

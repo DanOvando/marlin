@@ -10,7 +10,7 @@ assign_ref_points <- function(fauna, fleets){
   
   for (f in seq_along(fauna)){
     
-    msy_mult <- nlminb(1e-3,find_msy, lower = 0, upper = 10, fauna = fauna, fleets = fleets, opt = TRUE,target_critter = names(fauna)[f])
+    msy_mult <- optim(1e-3,find_msy, lower = 0, upper = 10, fauna = fauna, fleets = fleets, opt = TRUE,target_critter = names(fauna)[f])
     
     msy_state <- find_msy(msy_mult$par, fauna = fauna, fleets = fleets, opt = FALSE, target_critter =  names(fauna)[f])
     

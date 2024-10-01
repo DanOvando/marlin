@@ -29,6 +29,8 @@ Parameters for specific metier of a given fleet
   sel_unit = "p_of_mat",
   sel_start = 1,
   sel_delta = 0.1,
+  sel05_anchor = NULL,
+  sel_at_linf = NULL,
   catchability = 0.2,
   spatial_catchability = NA,
   p_explt = 1,
@@ -51,11 +53,15 @@ Parameters for specific metier of a given fleet
 
 \item{\code{sel_delta}}{the delta parameter in the selectivity function}
 
+\item{\code{sel05_anchor}}{lower anchor at which (contact) selectivity is 0.05, either length or p_of_mat}
+
+\item{\code{sel_at_linf}}{contact selectivity at linf}
+
 \item{\code{catchability}}{the catchability per uni effort pararmeter, generally overwritten by tune_fleet}
 
 \item{\code{spatial_catchability}}{a matrix of spatial q}
 
-\item{\code{p_explt}}{the proportion of total exploitation for a given critter coming from this metier. This value is relaive to all other p_explt values for the critter in question. Set to 0 to have metier not catch critter at all}
+\item{\code{p_explt}}{the proportion of total exploitation for a given critter coming from this metier. This value is relative to all other p_explt values for the critter in question. Set to 0 to have metier not catch critter at all}
 
 \item{\code{sel_at_age}}{a manual vector of gear (contact) selectivity at age, where values are between 0 and 1}
 }
