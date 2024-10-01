@@ -51,7 +51,7 @@ Used to store parameters describing the behavior of an object of class Fish
   r0 = 10000,
   ssb0 = NA,
   b0 = NA,
-  popsize_measure = "ssb0",
+  popsize_measure = "b0",
   density_dependence = "global_habitat",
   adult_diffusion = 4,
   recruit_diffusion = 10,
@@ -132,6 +132,10 @@ Used to store parameters describing the behavior of an object of class Fish
 \item{\code{r0}}{asymptotic number of recruits under unfished conditions}
 
 \item{\code{ssb0}}{asymptotic spawning stock biomass of recruits under unfished conditions. Tunnes r0 to achieve}
+
+\item{\code{b0}}{desired level of unfished biomass}
+
+\item{\code{popsize_measure}}{whether unfished population size should be set based on biomass or spawning stock biomass}
 
 \item{\code{density_dependence}}{timing and nature of density dependence in the Beverton-Holt spawner recruit function, one of one of 'global_habitat','local_habitat','pre_dispersal','post_dispersal','global_ssb'}
 

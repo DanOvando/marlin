@@ -803,9 +803,9 @@ simmar <- function(fauna = list(),
           quota <- manager$quotas[[names(fauna)[f]]]
 
           fmulter <-
-            nlminb(
-              0.9,
-              marlin::quota_finder,
+            optim(
+              par = 0.9,
+              fn = marlin::quota_finder,
               quota = quota,
               fauna = fauna,
               current_season = current_season,
@@ -819,7 +819,8 @@ simmar <- function(fauna = list(),
               fleets = fleets,
               rec_devs = fauna_rec_devs,
               lower = 0,
-              upper = 1
+              upper = 1,
+              method = "L-BFGS-B"
             )
 
           fmult <- fmulter$par

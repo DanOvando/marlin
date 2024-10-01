@@ -129,16 +129,16 @@ tune_fleets <- function(fauna,
     }
 
     qs <-
-      nlminb(
-        start = qs,
+      optim(
+        par = qs,
         fleet_tuner,
         fleets = fleets,
         fauna = fauna,
         years = years,
         lower = rep(0, length(fauna) * length(fleets)),
-        upper = rep(20, length(fauna) * length(fleets))
+        upper = rep(20, length(fauna) * length(fleets)),
+        method = "L-BFGS-B"
       )
-
     cc <- 1
 
     for (f in seq_along(fleets)) {
