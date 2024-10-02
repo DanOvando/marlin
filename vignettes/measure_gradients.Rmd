@@ -425,7 +425,15 @@ fishery_indicators <- fishery_outcomes |>
   ungroup() 
 
 
-test <- optim(rep(0,4),lower = c(-Inf,0,-Inf,0),halpern_foo, y = survey_indicators$biomass, distance_to_mpa = survey_indicators$distance_to_mpa_edge, control = list(eval.max = 1000, iter.max = 1000))
+test <- optim(
+  rep(0, 4),
+  lower = c(-Inf, 0, -Inf, 0),
+  halpern_foo,
+  y = survey_indicators$biomass,
+  distance_to_mpa = survey_indicators$distance_to_mpa_edge,
+  method = "L-BFGS-B",
+  control = list(eval.max = 1000, iter.max = 1000)
+)
 
 out <- halpern_foo(
   test$par,

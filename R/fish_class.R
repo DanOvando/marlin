@@ -642,7 +642,8 @@ Fish <- R6::R6Class(
           length_at_age = length_at_age,
           weight_at_age = weight_at_age,
           maturity_at_age = maturity_at_age,
-          popsize_measure = popsize_measure
+          popsize_measure = popsize_measure,
+          method = "L-BFGS-B"
         )
 
         local_r0s <- tuned_r0$par * r0s$rec_habitat
