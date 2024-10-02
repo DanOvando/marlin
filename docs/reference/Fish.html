@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">marlin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -32,6 +32,8 @@
     <a class="dropdown-item" href="../articles/MSE.html">Management Strategy Evaluation (sort of)</a>
     <a class="dropdown-item" href="../articles/port-distance.html">Setting and Using Distance from Port</a>
     <a class="dropdown-item" href="../articles/rectifier.html">Don't Be a Square</a>
+    <a class="dropdown-item" href="../articles/Setting-Selectivity.html">Setting Selectivity</a>
+    <a class="dropdown-item" href="../articles/Working-with-Recruitment-Deviates.html">Working with Recruitment Deviates</a>
   </div>
 </li>
 <li class="nav-item">
@@ -107,12 +109,14 @@
 <span>  steepness <span class="op">=</span> <span class="fl">0.8</span>,</span>
 <span>  r0 <span class="op">=</span> <span class="fl">10000</span>,</span>
 <span>  ssb0 <span class="op">=</span> <span class="cn">NA</span>,</span>
+<span>  b0 <span class="op">=</span> <span class="cn">NA</span>,</span>
+<span>  popsize_measure <span class="op">=</span> <span class="st">"b0"</span>,</span>
 <span>  density_dependence <span class="op">=</span> <span class="st">"global_habitat"</span>,</span>
 <span>  adult_diffusion <span class="op">=</span> <span class="fl">4</span>,</span>
 <span>  recruit_diffusion <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  query_fishlife <span class="op">=</span> <span class="cn">T</span>,</span>
-<span>  sigma_r <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  rec_ac <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  sigma_rec <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  ac_rec <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  cores <span class="op">=</span> <span class="fl">4</span>,</span>
 <span>  mat_mode <span class="op">=</span> <span class="st">"age"</span>,</span>
 <span>  default_wb <span class="op">=</span> <span class="fl">2.8</span>,</span>
@@ -237,6 +241,14 @@
 <dd><p>asymptotic spawning stock biomass of recruits under unfished conditions. Tunnes r0 to achieve</p></dd>
 
 
+<dt><code>b0</code></dt>
+<dd><p>desired level of unfished biomass</p></dd>
+
+
+<dt><code>popsize_measure</code></dt>
+<dd><p>whether unfished population size should be set based on biomass or spawning stock biomass</p></dd>
+
+
 <dt><code>density_dependence</code></dt>
 <dd><p>timing and nature of density dependence in the Beverton-Holt spawner recruit function, one of one of 'global_habitat','local_habitat','pre_dispersal','post_dispersal','global_ssb'</p></dd>
 
@@ -253,11 +265,11 @@
 <dd><p>TRUE or FALSE to query <code>Fishlife</code> for missing life history values. When set to FALSE all required life history values must be supplied by the user</p></dd>
 
 
-<dt><code>sigma_r</code></dt>
+<dt><code>sigma_rec</code></dt>
 <dd><p>the standard deviation of recruitment deviates in log-normal space</p></dd>
 
 
-<dt><code>rec_ac</code></dt>
+<dt><code>ac_rec</code></dt>
 <dd><p>the autocorrelation of recruitment deviates</p></dd>
 
 

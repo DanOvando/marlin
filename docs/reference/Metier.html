@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">marlin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -32,6 +32,8 @@
     <a class="dropdown-item" href="../articles/MSE.html">Management Strategy Evaluation (sort of)</a>
     <a class="dropdown-item" href="../articles/port-distance.html">Setting and Using Distance from Port</a>
     <a class="dropdown-item" href="../articles/rectifier.html">Don't Be a Square</a>
+    <a class="dropdown-item" href="../articles/Setting-Selectivity.html">Setting Selectivity</a>
+    <a class="dropdown-item" href="../articles/Working-with-Recruitment-Deviates.html">Working with Recruitment Deviates</a>
   </div>
 </li>
 <li class="nav-item">
@@ -86,6 +88,8 @@
 <span>  sel_unit <span class="op">=</span> <span class="st">"p_of_mat"</span>,</span>
 <span>  sel_start <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  sel_delta <span class="op">=</span> <span class="fl">0.1</span>,</span>
+<span>  sel05_anchor <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  sel_at_linf <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  catchability <span class="op">=</span> <span class="fl">0.2</span>,</span>
 <span>  spatial_catchability <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  p_explt <span class="op">=</span> <span class="fl">1</span>,</span>
@@ -104,7 +108,7 @@
 
 
 <dt><code>sel_form</code></dt>
-<dd><p>the selectivity form, one of "logistic" or "dome"</p></dd>
+<dd><p>the selectivity form, one of "logistic", "dome", or "manual"</p></dd>
 
 
 <dt><code>sel_unit</code></dt>
@@ -119,6 +123,14 @@
 <dd><p>the delta parameter in the selectivity function</p></dd>
 
 
+<dt><code>sel05_anchor</code></dt>
+<dd><p>lower anchor at which (contact) selectivity is 0.05, either length or p_of_mat</p></dd>
+
+
+<dt><code>sel_at_linf</code></dt>
+<dd><p>contact selectivity at linf</p></dd>
+
+
 <dt><code>catchability</code></dt>
 <dd><p>the catchability per uni effort pararmeter, generally overwritten by tune_fleet</p></dd>
 
@@ -128,7 +140,7 @@
 
 
 <dt><code>p_explt</code></dt>
-<dd><p>the proportion of total exploitation for a given critter coming from this metier. This value is relaive to all other p_explt values for the critter in question. Set to 0 to have metier not catch critter at all</p></dd>
+<dd><p>the proportion of total exploitation for a given critter coming from this metier. This value is relative to all other p_explt values for the critter in question. Set to 0 to have metier not catch critter at all</p></dd>
 
 
 <dt><code>sel_at_age</code></dt>

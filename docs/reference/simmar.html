@@ -12,7 +12,7 @@ the population for a number of steps"><!-- mathjax --><script src="https://cdnjs
     
     <a class="navbar-brand me-2" href="../index.html">marlin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,6 +34,8 @@ the population for a number of steps"><!-- mathjax --><script src="https://cdnjs
     <a class="dropdown-item" href="../articles/MSE.html">Management Strategy Evaluation (sort of)</a>
     <a class="dropdown-item" href="../articles/port-distance.html">Setting and Using Distance from Port</a>
     <a class="dropdown-item" href="../articles/rectifier.html">Don't Be a Square</a>
+    <a class="dropdown-item" href="../articles/Setting-Selectivity.html">Setting Selectivity</a>
+    <a class="dropdown-item" href="../articles/Working-with-Recruitment-Deviates.html">Working with Recruitment Deviates</a>
   </div>
 </li>
 <li class="nav-item">
@@ -77,7 +79,9 @@ the population for a number of steps</p>
 <span>  starting_season <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  initial_conditions <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  starting_step <span class="op">=</span> <span class="cn">NA</span>,</span>
-<span>  keep_starting_step <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  keep_starting_step <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  log_rec_devs <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  cor_rec <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">fauna</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -103,6 +107,14 @@ the population for a number of steps</p>
 <dd><p>the number of years to run the simulation</p></dd>
 
 
+<dt>steps</dt>
+<dd><p>the number of steps to run, as an alternative to years</p></dd>
+
+
+<dt>starting_season</dt>
+<dd><p>the starting season for the simulation</p></dd>
+
+
 <dt>initial_conditions</dt>
 <dd><p>initial conditions for the simulation, in the form simmar()[final step]</p></dd>
 
@@ -113,6 +125,14 @@ the population for a number of steps</p>
 
 <dt>keep_starting_step</dt>
 <dd><p>should the starting step by kept (TRUE) or dropped (FALSE)</p></dd>
+
+
+<dt>log_rec_devs</dt>
+<dd><p>externally supplied log recruitment deviates</p></dd>
+
+
+<dt>cor_rec</dt>
+<dd><p>correlation matrix in recruitment deviates across species</p></dd>
 
 </dl></div>
     <div class="section level2">

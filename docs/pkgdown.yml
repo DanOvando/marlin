@@ -1,4 +1,4 @@
-pandoc: 3.1.11
+pandoc: '3.2'
 pkgdown: 2.0.9
 pkgdown_sha: ~
 articles:
@@ -10,7 +10,9 @@ articles:
   MSE: MSE.html
   port-distance: port-distance.html
   rectifier: rectifier.html
-last_built: 2024-07-11T20:39Z
+  Setting-Selectivity: Setting-Selectivity.html
+  Working-with-Recruitment-Deviates: Working-with-Recruitment-Deviates.html
+last_built: 2024-10-02T18:09Z
 urls:
   reference: https://danovando.github.io/marlin/reference
   article: https://danovando.github.io/marlin/articles

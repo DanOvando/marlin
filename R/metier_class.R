@@ -163,7 +163,14 @@ Metier <- R6::R6Class("metier",
                         if (length_at_sel05 >= l_95_sel){
                           stop("length at sel05 must by less than length at peak selectivity")
                         }
-                        tuned_sigmas <- optim(log(c(10,10)),tune_double_normal, l_95_sel = l_95_sel,len_sel05 = length_at_sel05,linf_sel = sel_at_linf, ls = length_bins)
+                        tuned_sigmas <- optim(
+                          log(c(10, 10)),
+                          tune_double_normal,
+                          l_95_sel = l_95_sel,
+                          len_sel05 = length_at_sel05,
+                          linf_sel = sel_at_linf,
+                          ls = length_bins
+                        )
                         
                         sel_at_bin <- tune_double_normal(tuned_sigmas$par, l_95_sel = l_95_sel,len_sel05 = length_at_sel05,linf_sel = sel_at_linf, ls = length_bins, output = "sels" )
                         
