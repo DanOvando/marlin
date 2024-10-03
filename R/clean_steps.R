@@ -10,7 +10,7 @@
 #'
 clean_steps <- function(step){
 
-  step <- gsub("step_","", step)
+  step <- stringr::str_remove_all(step,"step_")
 
     # as.numeric(gsub("^\\D*","",step))
 

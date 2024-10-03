@@ -30,7 +30,7 @@ create_fleet <-
            base_effort = NULL,
            fishing_grounds = NULL) {
 
-    fleet_model <- gsub(" ","_", fleet_model) # in case someone used spaces accidentally (like dumbass old dan)
+    fleet_model <- stringr::str_replace_all(fleet_model," ","_") # in case someone used spaces accidentally (like dumbass old dan)
 
     if (length(resolution) == 1){
       resolution <- rep(resolution,2)

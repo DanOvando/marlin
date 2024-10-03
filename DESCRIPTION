@@ -34,7 +34,8 @@ Imports:
     tidyr,
     R6,
     ranger,
-    expm
+    expm,
+    stringr
 VignetteBuilder: knitr
 URL: https://danovando.github.io/marlin/,
     https://github.com/danovando/marlin

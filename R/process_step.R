@@ -11,10 +11,10 @@ process_step <- function(step){
   year_season <- marlin::clean_steps(step)
 
   year <-
-    as.integer(gsub("_.*$", "", year_season))
+    as.integer(stringr::str_remove_all(year_season,"_.*$"))
 
   season <-
-    as.integer(gsub("^.*_", "", year_season))
+    as.integer(stringr::str_remove_all(year_season,"^.*_"))
 
   season_length <- 1 / max(season)
 

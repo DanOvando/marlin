@@ -89,10 +89,10 @@ simmar <- function(fauna = list(),
     year_season <- marlin::clean_steps(starting_step)
 
     starting_year <-
-      as.integer(gsub("_.*$", "", year_season)) - 1 # -1 to account for years being 1 indexed
+      as.integer(stringr::str_remove_all(year_season,"_.*$")) - 1 # -1 to account for years being 1 indexed
 
     starting_season <-
-      as.integer(gsub("^.*_", "", year_season)) - 1 # -1 to account for it would be starting in the third season
+      as.integer(stringr::str_remove_all(year_season,"^.*_", "")) - 1 # -1 to account for it would be starting in the third season
 
     offset <- (starting_year * steps_per_year) + starting_season
 
@@ -183,12 +183,12 @@ simmar <- function(fauna = list(),
           supplied_years <- length(habitat[[f]])
           if (!is.na(starting_step)) {
             years_in <-
-              as.integer(gsub("_.*$", "", step_names[i])) -  as.integer(gsub("_.*$", "", starting_step)) + 1
+              as.integer(stringr::str_remove_all(step_names[i],"_.*$")) -  as.integer(stringr::str_remove_all(starting_step,"_.*$")) + 1
             # put year in index form not named form
 
           } else {
             years_in <-
-              as.integer(gsub("_.*$", "", step_names[i]))
+              as.integer(stringr::str_remove_all(step_names[i],"_.*$"))
           }
           years_in <- min(years_in, supplied_years)
 
@@ -260,11 +260,11 @@ simmar <- function(fauna = list(),
 
   # loop over steps
   for (s in 2:steps) {
-    last_season <- as.integer(gsub("^.*_", "", step_names[s - 1]))
+    last_season <- as.integer(stringr::str_remove_all(step_names[s - 1],"^.*_"))
 
-    year <-  as.integer(gsub("_.*$", "", step_names[s]))
+    year <-  as.integer(stringr::str_remove_all(step_names[s],"_.*$"))
 
-    current_season <- as.integer(gsub("^.*_", "", step_names[s]))
+    current_season <- as.integer(stringr::str_remove_all( step_names[s],"^.*_"))
 
     if (length(manager$mpas) > 0) {
       manager$mpas$locations <- manager$mpas$locations |>

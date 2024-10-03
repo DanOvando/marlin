@@ -45,9 +45,9 @@ theme_set(theme_marlin(base_size = 14) + theme(legend.position = "top"))
 
 resolution <- 10 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
 
-years <- 50
+years <- 10
 
-seasons <- 4
+seasons <- 52
 
 time_step <- 1 / seasons
 

@@ -23,7 +23,7 @@ process_marlin <- function(sim,
                            keep_age = TRUE) {
   # names(sim) <- marlin::clean_steps(names(sim))
 
-  names(sim) <- gsub("step_", "", names(sim))
+  names(sim) <- stringr::str_remove_all(names(sim),"step_")
 
 
   if (all(is.na(steps_to_keep))) {
@@ -31,7 +31,7 @@ process_marlin <- function(sim,
 
   }
 
-  seasons <- as.integer(unique(gsub("^.*_", "", names(sim))))
+  seasons <- as.integer(unique(stringr::str_remove_all(names(sim),"^.*_")))
 
   if (is.na(time_step)) {
     if (length(sim) > 1) {
@@ -87,7 +87,7 @@ process_marlin <- function(sim,
           names_prefix = "V",
           names_ptypes = list(value = integer())
         ) %>%
-        dplyr::mutate(metric = gsub("_p_a", "", metric),
+        dplyr::mutate(metric = stringr::str_remove_all(metric,"_p_a"),
                       critter = z) %>%
         tidyr::pivot_wider(names_from = metric, values_from = value) %>%  # spread out metrics
         dplyr::select(critter, dplyr::everything()) %>% {
@@ -112,8 +112,8 @@ process_marlin <- function(sim,
   tidy_sim <-  purrr::imap(sim, ~ stepper(.x, grid = grid), .id = "step") %>%
     purrr::list_rbind(names_to = "step") |>
     dplyr::mutate(
-      year = (as.integer(gsub("_.*$", "", step))),
-      season =  (as.integer(gsub("^.*_", "", step))),
+      year = (as.integer(stringr::str_remove_all(step,"_.*$"))),
+      season =  (as.integer(stringr::str_remove_all(step,"^.*_"))),
       step = year + (season * time_step - time_step)
     )
 
@@ -181,7 +181,7 @@ process_marlin <- function(sim,
           names_to = "fleet",
           values_to = "effort"
         ) |>
-        dplyr::mutate(fleet = gsub("_effort", "", fleet))
+        dplyr::mutate(fleet = stringr::str_remove_all(fleet,"_effort"))
 
       # hello? is it me you're looking for?
       tidy_fleet <- tidy_catch %>%
@@ -203,8 +203,8 @@ process_marlin <- function(sim,
     purrr::imap(sim, ~ fleet_stepper(.x, grid = grid)) %>%
     purrr::list_rbind(names_to = "step") |>
     dplyr::mutate(
-      year = (as.integer(gsub("_.*$", "", step))),
-      season =  (as.integer(gsub("^.*_", "", step))),
+      year = (as.integer(stringr::str_remove_all(step,"_.*$"))),
+      season =  (as.integer(stringr::str_remove_all(step,"^.*_"))),
       step = year + (season * time_step - time_step)
     ) |>
     dplyr::as_tibble()
