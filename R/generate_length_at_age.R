@@ -16,20 +16,29 @@
 #'
 generate_length_at_age_key <- function(min_age,
                                        max_age,
+                                       growth_params = list(),
+                                       growth_model = "von_bertalanffy",
                                        cv,
-                                       k,
-                                       linf,
-                                       t0,
                                        time_step = 1,
                                        linf_buffer = 10) {
 
-
-
-  mean_length_at_age <-
-    linf * (1 - exp(-k * (seq(
-      min_age, max_age, by = time_step
-    ) - t0)))
-
+  if (growth_model == "von_bertalanffy") {
+    mean_length_at_age <-
+      growth_params$linf * (1 - exp(-growth_params$vbk * (
+        seq(min_age, max_age, by = time_step) - growth_params$t0
+      )))
+  } else if (growth_model == "power") {
+    mean_length_at_age <-
+      growth_params$length_a *  (seq(min_age, max_age, by = time_step) - growth_params$t0)^growth_params$length_b
+    
+  }
+  
+  if (is.null(growth_params$linf)) {
+    linf <- max(mean_length_at_age)
+  } else {
+    linf <- growth_params$linf
+  }
+  
   length_at_age_vars <- dplyr::tibble(
     age = seq(min_age, max_age, by = time_step),
     mean_length_at_age = mean_length_at_age,

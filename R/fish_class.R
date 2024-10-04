@@ -64,6 +64,10 @@ Fish <- R6::R6Class(
     #' @param lorenzen_m TRUE or FALSE to use the Lorenzen function to calculate natural mortality at age
     #' @param b0 desired level of unfished biomass
     #' @param popsize_measure whether unfished population size should be set based on biomass or spawning stock biomass
+    #' @param length_a a coefficient in power function growth
+    #' @param length_b b power coefficient in power function growth
+    #' @param m_at_age a vector of natural mortality age at age in case manually specified
+    #' @param growth_model one of "von_bertalanddy" or "power"
     #' @param explt_type deprecated
     initialize = function(common_name = NA,
                           scientific_name = NA,
@@ -71,7 +75,10 @@ Fish <- R6::R6Class(
                           vbk = NA,
                           t0 = -0.5,
                           cv_len = 0.1,
+                          length_a = .1,
+                          length_b = 3,
                           length_units = 'cm',
+                          growth_model = "von_bertalanffy",
                           min_age = 0,
                           max_age = NA,
                           weight_a = NA,
@@ -87,6 +94,7 @@ Fish <- R6::R6Class(
                           age_95_mature = NA,
                           age_mature = NA,
                           m = NA,
+                          m_at_age = NULL,
                           steepness = 0.8,
                           r0 = 10000,
                           ssb0 = NA,
@@ -116,7 +124,8 @@ Fish <- R6::R6Class(
                           get_common_name = FALSE,
                           spawning_seasons = NA,
                           max_hab_mult = 2,
-                          lorenzen_m = TRUE) {
+                          lorenzen_m = TRUE,
+                          lorenzen_c = -1) {
       seasons <- as.integer(seasons)
 
       # if only one resolution dimension provided, assume square
@@ -376,31 +385,47 @@ Fish <- R6::R6Class(
       ages <- seq(min_age, max_age, by = time_step)
 
       self$ages <- ages
+      
+      self$growth_model <-  growth_model
 
+      if (self$growth_model == "von_bertalanffy") {
+      
       length_at_age <-
         linf * (1 - exp(-vbk * (ages - t0)))
+      
+      growth_params <- list(linf = linf,vbk = vbk, t0 = t0)
+      
+      } else if (self$growth_model == "power"){
+        # for right now, just 
+        length_at_age <-
+          length_a * (ages - t0) ^ length_b
+        
+        growth_params <- list(length_a = length_a,length_b = length_b, t0 = t0)
+        
+      }
 
       # process weight
 
       weight_at_age <-
         weight_a * length_at_age ^ weight_b
 
-
-
       lmat_to_linf_ratio <- length_50_mature / linf
-
-      if (lorenzen_m){
-
-        m_at_age <- (length_at_age / max(length_at_age)) ^ -1
-
-        m_at_age <- (m_at_age / mean(m_at_age)) * m
-
-      } else {
-        m_at_age <-
-          rep(m, length(weight_at_age)) # place holder to allow for different m at age
-
+      
+      if (is.null(m_at_age)) {
+        # if m_at_age was not externally provided
+        if (lorenzen_m) {
+          
+          m_at_age <- m * (length_at_age / max(length_at_age))^lorenzen_c
+          
+          # m_at_age <- (m_at_age / mean(m_at_age)) * m
+          
+        } else {
+          m_at_age <-
+            rep(m, length(weight_at_age)) # place holder to allow for different m at age
+          
+        }
+        
       }
-
       #
 
       length_at_age_key <-
@@ -408,9 +433,8 @@ Fish <- R6::R6Class(
           min_age = min_age,
           max_age = max_age,
           cv = cv_len,
-          linf = linf,
-          k = vbk,
-          t0 = t0,
+          growth_params = growth_params,
+          growth_model = growth_model,
           time_step = time_step,
           linf_buffer = linf_buffer
         ) %>%
@@ -586,8 +610,6 @@ Fish <- R6::R6Class(
         dplyr::mutate(rec_habitat = rec_habitat / sum(rec_habitat))
 
       local_r0s <- r0 * r0s$rec_habitat
-
-
 
       if (!is.na(popsize_target)) {
         tune_popsize <-
