@@ -45,9 +45,9 @@ theme_set(theme_marlin(base_size = 14) + theme(legend.position = "top"))
 
 resolution <- 10 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
 
-years <- 10
+years <- 50
 
-seasons <- 52
+seasons <- 4
 
 time_step <- 1 / seasons
 
@@ -208,7 +208,7 @@ We can also layer quotas onto the fleet model. Here, we will impose a total quot
 sim_quota <- simmar(fauna = fauna,
                   fleets = fleets,
                   years = years,
-                  manager = list(quotas = list(bigeye = 15)))
+                  manager = list(quotas = list(bigeye = 10)))
 
 proc_sim_quota <- process_marlin(sim_quota)
 

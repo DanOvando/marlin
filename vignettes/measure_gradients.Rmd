@@ -39,7 +39,7 @@ resolution <- c(10,10) # resolution is in squared patches, so 20 implies a 20X20
 
 patch_area <- 10
 
-<- <- 2
+seasons <- 2
 
 years <- 20
 

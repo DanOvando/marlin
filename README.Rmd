@@ -473,7 +473,8 @@ fauna <-
       fec_form = "pups",
       pups = 6,
       b0 = mako_b0,
-      lorenzen_m = TRUE
+      lorenzen_m = TRUE,
+      lorenzen_c = -0.25
     )
   )
 
@@ -611,7 +612,8 @@ fauna <-
       fec_form = "pups",
       pups = 6,
       b0 = mako_b0,
-      lorenzen_m = TRUE
+      lorenzen_m = TRUE,
+      lorenzen_c = -0.25
     )
   )
 
