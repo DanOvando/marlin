@@ -14,7 +14,7 @@ Metier <- R6::R6Class("metier",
                   #'
                   #' @param critter the name of the critter in the fauna object this metier applies to
                   #' @param price the price per unit weight of the critter in question
-                  #' @param sel_form the selectivity form, one of "logistic", "dome", or "manual"
+                  #' @param sel_form the selectivity form, one of "logistic", "dome","uniform", or "manual"
                   #' @param sel_unit the unit of selectivity, one of "p_of_mat" which means selectivity is in proportion of age at maturity, or "length" where selectivity is in units of length
                   #' @param sel_start the value of sel_unit at which selectivity "starts"
                   #' @param sel_delta the delta parameter in the selectivity function
@@ -59,6 +59,8 @@ Metier <- R6::R6Class("metier",
 
                       length_bins <-
                         as.numeric(colnames(critter$length_at_age_key))
+                      
+                      ages <- length(critter$ages)
 
                       if (sel_unit == "p_of_mat"){
                       l_50_sel <-
@@ -192,6 +194,12 @@ Metier <- R6::R6Class("metier",
 
                         self$sel_at_age <- sel_at_age
 
+                      } else if (sel_form == "uniform"){
+                        self$sel_at_age <- rep(1,ages)
+                        
+                        self$sel_at_length <- rep(1,length(length_bins))
+                        
+                        
                       } # close sel_form things
                       
                       if (all(is.na(spatial_catchability))){

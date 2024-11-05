@@ -92,7 +92,7 @@ simmar <- function(fauna = list(),
       as.integer(stringr::str_remove_all(year_season,"_.*$")) - 1 # -1 to account for years being 1 indexed
 
     starting_season <-
-      as.integer(stringr::str_remove_all(year_season,"^.*_", "")) - 1 # -1 to account for it would be starting in the third season
+      as.integer(stringr::str_remove_all(year_season,"^.*_")) - 1 # -1 to account for it would be starting in the third season
 
     offset <- (starting_year * steps_per_year) + starting_season
 

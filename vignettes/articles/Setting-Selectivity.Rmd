@@ -116,7 +116,7 @@ In this case, the artisinal fleet will be specified with `sel_unit = "p_of_mat"`
 
 The smallest length at full selectivity is then a function of `sel_start + sel_delta`
 
-The smallest length at 0.05 selectivity is set based on `sel05_anchor` (in this case units of proportions of the length at 50% maturity)
+The smallest length at 0.05 selectivity is set based on `sel05_anchor` (in this case units of proportions of the length at 50% maturity). Note that this must be less than the size at full selectivity
 
 The selectivity at linf is set to 0, meaning that largest fish are no longer captured by the gear. 
 
@@ -151,7 +151,6 @@ fleets <- list(
     )
   ), resolution = resolution)
 )
-
 
 sels <- data.frame(
   artisinal = fleets$artisanal$metiers$snapper$sel_at_length
