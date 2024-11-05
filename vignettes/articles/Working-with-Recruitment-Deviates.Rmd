@@ -217,10 +217,12 @@ Sys.time() - a
 
 a <- Sys.time()
 
-recruitment_sim <- simmar(fauna = fauna,
-                  fleets = fleets,
-                  steps = steps,
-                  cor_rec = critter_correlations)
+recruitment_sim <- simmar(
+  fauna = fauna,
+  fleets = fleets,
+  steps = steps,
+  cor_rec = critter_correlations
+)
 
 Sys.time() - a
 
