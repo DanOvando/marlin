@@ -16,6 +16,7 @@
 #'
 generate_length_at_age_key <- function(min_age,
                                        max_age,
+                                       length_bin_width = 1,
                                        growth_params = list(),
                                        growth_model = "von_bertalanffy",
                                        cv,
@@ -49,7 +50,7 @@ generate_length_at_age_key <- function(min_age,
   p_length_at_age <-
     expand.grid(
       age = seq(min_age, max_age, by = time_step),
-      length_bin = 0:(linf_buffer * linf)
+      length_bin = seq(0,(linf_buffer * linf), by = length_bin_width)
     ) %>%
     dplyr::as_tibble() %>%
     dplyr::left_join(length_at_age_vars, by = 'age') %>%

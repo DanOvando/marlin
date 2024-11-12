@@ -68,6 +68,8 @@ Fish <- R6::R6Class(
     #' @param length_b b power coefficient in power function growth
     #' @param m_at_age a vector of natural mortality age at age in case manually specified
     #' @param growth_model one of "von_bertalanddy" or "power"
+    #' @param length_bin_width the width of the length bins in the length-at-age key, defaults to 1cm
+    #' @param lorenzen_c 
     #' @param explt_type deprecated
     initialize = function(common_name = NA,
                           scientific_name = NA,
@@ -78,6 +80,7 @@ Fish <- R6::R6Class(
                           length_a = .1,
                           length_b = 3,
                           length_units = 'cm',
+                          length_bin_width = 1,
                           growth_model = "von_bertalanffy",
                           min_age = 0,
                           max_age = NA,
@@ -432,6 +435,7 @@ Fish <- R6::R6Class(
         generate_length_at_age_key(
           min_age = min_age,
           max_age = max_age,
+          length_bin_width = length_bin_width,
           cv = cv_len,
           growth_params = growth_params,
           growth_model = growth_model,
