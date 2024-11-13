@@ -16,7 +16,7 @@ Suggests:
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
 LinkingTo: 
     Rcpp,
     RcppEigen,
@@ -26,7 +26,6 @@ Imports:
     foreach,
     iterators,
     parallel,
-    taxize,
     ggplot2,
     purrr (>= 1.0.1),
     dplyr,
@@ -35,9 +34,13 @@ Imports:
     R6,
     ranger,
     expm,
-    stringr
+    stringr,
+    glue,
+    taxize (>= 0.9.100.1)
 VignetteBuilder: knitr
 URL: https://danovando.github.io/marlin/,
     https://github.com/danovando/marlin
 Depends: 
     R (>= 4.0)
+Remotes: 
+    ropensci/taxize

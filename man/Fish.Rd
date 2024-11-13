@@ -31,7 +31,11 @@ Used to store parameters describing the behavior of an object of class Fish
   vbk = NA,
   t0 = -0.5,
   cv_len = 0.1,
+  length_a = 0.1,
+  length_b = 3,
   length_units = "cm",
+  length_bin_width = 1,
+  growth_model = "von_bertalanffy",
   min_age = 0,
   max_age = NA,
   weight_a = NA,
@@ -47,6 +51,7 @@ Used to store parameters describing the behavior of an object of class Fish
   age_95_mature = NA,
   age_mature = NA,
   m = NA,
+  m_at_age = NULL,
   steepness = 0.8,
   r0 = 10000,
   ssb0 = NA,
@@ -76,7 +81,8 @@ Used to store parameters describing the behavior of an object of class Fish
   get_common_name = FALSE,
   spawning_seasons = NA,
   max_hab_mult = 2,
-  lorenzen_m = TRUE
+  lorenzen_m = TRUE,
+  lorenzen_c = -1
 )}\if{html}{\out{</div>}}
 }
 
@@ -95,7 +101,15 @@ Used to store parameters describing the behavior of an object of class Fish
 
 \item{\code{cv_len}}{coefficient of variation around the length at age relationship (in log space)}
 
+\item{\code{length_a}}{a coefficient in power function growth}
+
+\item{\code{length_b}}{b power coefficient in power function growth}
+
 \item{\code{length_units}}{units of the length at age function (arbitrary)}
+
+\item{\code{length_bin_width}}{the width of the length bins in the length-at-age key, defaults to 1cm}
+
+\item{\code{growth_model}}{one of "von_bertalanddy" or "power"}
 
 \item{\code{min_age}}{minimum age tracked in the model. Best to leave at 0, as the model does not explicitly track delays for recruitment}
 
@@ -126,6 +140,8 @@ Used to store parameters describing the behavior of an object of class Fish
 \item{\code{age_mature}}{an alternative option to just set one age mature, which ends up as the age_50_mature}
 
 \item{\code{m}}{instantaneous natural mortality rate. When \code{lorenzen_m = TRUE}, this is the average natural mortality across all ages}
+
+\item{\code{m_at_age}}{a vector of natural mortality age at age in case manually specified}
 
 \item{\code{steepness}}{steepness parameter (h) in a Beverton-Holt spawner-recruit function}
 
@@ -187,6 +203,8 @@ plot object of class fish}
 \item{\code{max_hab_mult}}{maximum value of that habitat matrix multiplier (to prevent some habitats from being >>> good, defaults to 2)}
 
 \item{\code{lorenzen_m}}{TRUE or FALSE to use the Lorenzen function to calculate natural mortality at age}
+
+\item{\code{lorenzen_c}}{}
 }
 \if{html}{\out{</div>}}
 }
