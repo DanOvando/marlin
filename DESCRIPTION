@@ -37,7 +37,8 @@ Imports:
     stringr,
     glue,
     bold,
-    taxize (>= 0.9.100.1)
+    taxize (>= 0.9.100.1),
+    mvtnorm
 VignetteBuilder: knitr
 URL: https://danovando.github.io/marlin/,
     https://github.com/danovando/marlin
