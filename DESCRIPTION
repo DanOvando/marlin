@@ -44,3 +44,4 @@ Depends:
     R (>= 4.0)
 Remotes: 
     ropensci/taxize
+    ropensci/bold
