@@ -390,6 +390,12 @@ Fish <- R6::R6Class(
       self$ages <- ages
       
       self$growth_model <-  growth_model
+      
+      self$vbk = vbk
+      
+      self$linf = linf
+      
+      self$t0 = t0
 
       if (self$growth_model == "von_bertalanffy") {
       
@@ -408,7 +414,11 @@ Fish <- R6::R6Class(
       }
 
       # process weight
-
+      
+      self$weight_a = weight_a
+      
+      self$weight_b = weight_b
+      
       weight_at_age <-
         weight_a * length_at_age ^ weight_b
 
@@ -511,7 +521,8 @@ Fish <- R6::R6Class(
         maturity_at_age <-
           mat_at_age$mean_mat_at_age
       }
-
+      
+      self$age_mature = age_mature
 
       # if (is.na(length_50_mature)) {
       #
