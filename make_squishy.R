@@ -5,7 +5,11 @@ library(marlin)
 library(ggridges)
 
 library(tictoc)
-
+# check on plus group issues
+# add in basically mortality as mirror to fraction mature 
+# tweek selecitivy or q to allow for it to be time specific
+# check if max maturity can be less than 1
+# add effort as a management group
 resolution <- 5
 
 patch_area <- 1
@@ -14,7 +18,7 @@ kp <- .01
 
 years <- 20
 
-seasons <- 52
+seasons <- 52 # weekly time step
 
 time_step <- 1 / seasons
 
@@ -62,7 +66,7 @@ fauna <-
       cv_len = 0.6,
       m_at_age = m_at_age,
       max_age = max_age,
-      age_mature = max_age / 2,
+      age_mature = max_age -.1,
       delta_mature = .1,
       weight_a = 2,
       weight_b = 1,
@@ -76,7 +80,7 @@ fauna <-
       seasons = seasons
     ),
     "squashy" = create_critter(
-      spawning_seasons = c(15:30),
+      spawning_seasons = c(21:40),
       habitat = species_distributions$critter_distributions$squashy,
       common_name =  "squashy",
       growth_model = "power",
@@ -85,7 +89,7 @@ fauna <-
       length_bin_width = length_bin_width,
       t0 = t0,
       cv_len = 0.6,
-      m_at_age = m_at_age / 2,
+      m_at_age = m_at_age,
       max_age = max_age,
       age_mature = max_age  / 2,
       delta_mature = .1,
@@ -162,6 +166,9 @@ squishy_sim <- simmar(fauna, fleets, years = years, cor_rec = critter_correlatio
 toc()
 processed_squishy <- process_marlin(sim = squishy_sim, time_step = time_step)
 
+a = processed_squishy$fauna |> 
+  filter(step == max(step))
+
 processed_squishy$fauna |> 
   group_by(step, age, mean_length) |> 
   summarise(number = sum(n)) |> 
@@ -198,6 +205,10 @@ processed_squishy$fauna |>
   scale_fill_viridis_c()
 
 plot_marlin(processed_squishy,fauna = fauna, plot_var = "n", max_scale = FALSE)
+
+plot_marlin(processed_squishy,fauna = fauna, plot_var = "c", max_scale = FALSE)
+
+plot_marlin(processed_squishy,fauna = fauna, plot_var = "b", max_scale = FALSE)
 
 plot_marlin(processed_squishy,fauna = fauna, plot_var = "n", max_scale = FALSE, plot_type = "length")
 

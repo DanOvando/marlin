@@ -17,7 +17,7 @@ cpp_seq <- function(steps, step_size) {
     .Call(`_marlin_cpp_seq`, steps, step_size)
 }
 
-sim_fish <- function(length_at_age, weight_at_age, fec_at_age, maturity_at_age, f_p_a, movement_matrix, movement_seasons, recruit_movement_matrix, last_n_p_a, patches, burn_steps, time_step, season, steepness, r0s, ssb0, ssb0_p, m_at_age, tune_unfished, rec_form, spawning_seasons, rec_devs) {
-    .Call(`_marlin_sim_fish`, length_at_age, weight_at_age, fec_at_age, maturity_at_age, f_p_a, movement_matrix, movement_seasons, recruit_movement_matrix, last_n_p_a, patches, burn_steps, time_step, season, steepness, r0s, ssb0, ssb0_p, m_at_age, tune_unfished, rec_form, spawning_seasons, rec_devs)
+sim_fish <- function(length_at_age, weight_at_age, fec_at_age, maturity_at_age, f_p_a, semelparous, movement_matrix, movement_seasons, recruit_movement_matrix, last_n_p_a, patches, burn_steps, time_step, season, steepness, r0s, ssb0, ssb0_p, m_at_age, tune_unfished, rec_form, spawning_seasons, rec_devs) {
+    .Call(`_marlin_sim_fish`, length_at_age, weight_at_age, fec_at_age, maturity_at_age, f_p_a, semelparous, movement_matrix, movement_seasons, recruit_movement_matrix, last_n_p_a, patches, burn_steps, time_step, season, steepness, r0s, ssb0, ssb0_p, m_at_age, tune_unfished, rec_form, spawning_seasons, rec_devs)
 }
 

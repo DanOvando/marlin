@@ -26,6 +26,7 @@ List sim_fish(
     const NumericVector fec_at_age,
     const NumericVector maturity_at_age,
     const NumericMatrix f_p_a, // fishing mortality by patch and age
+    bool semelparous, // introduce semelparous behavior
     const List movement_matrix,
     const List movement_seasons,
     Eigen::MatrixXd recruit_movement_matrix,
@@ -121,6 +122,7 @@ List sim_fish(
         weight_at_age,
         fec_at_age,
         maturity_at_age,
+        semelparous,
         f_p_a,
         movement_matrix,
         movement_seasons,
@@ -200,8 +202,6 @@ List sim_fish(
     c_p_a(p,_) = c_p_a(p,_) * weight_at_age;
 
     b_p_a(p,_) =  n_p_a(p,_) * weight_at_age;
-
-    // ssb_p_a(p,_) =  b_p_a(p,_) * maturity_at_age;
 
     ssb_p_a(p,_) = n_p_a(p,_) * fec_at_age * maturity_at_age;
 
@@ -283,8 +283,23 @@ List sim_fish(
 
     b_p_a(_,0) =   n_p_a(_,0) * weight_at_age(0);
 
-    ssb_p_a(_,0) =   b_p_a(_,0) * maturity_at_age(0);
+    ssb_p_a(_,0) =   b_p_a(_,0) * fec_at_age(0);
 
+    // add in senesence here for semelparous species XX
+
+    if (semelparous == 1){
+
+      // for (int p = 0;p < patches; p++){
+      //
+      //   n_p_a(p,_) = n_p_a(p,_) * (1 - maturity_at_age);
+      //
+      //   b_p_a(p,_) =  n_p_a(p,_) * weight_at_age;
+      //
+      //   ssb_p_a(p,_) = n_p_a(p,_) * fec_at_age * maturity_at_age;
+      //
+      // }
+
+    }
 
   //////////////////// process results ////////////////////////
 

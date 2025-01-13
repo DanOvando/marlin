@@ -69,7 +69,7 @@ Fish <- R6::R6Class(
     #' @param m_at_age a vector of natural mortality age at age in case manually specified
     #' @param growth_model one of "von_bertalanddy" or "power"
     #' @param length_bin_width the width of the length bins in the length-at-age key, defaults to 1cm
-    #' @param lorenzen_c 
+    #' @param lorenzen_c
     #' @param explt_type deprecated
     initialize = function(common_name = NA,
                           scientific_name = NA,
@@ -96,6 +96,7 @@ Fish <- R6::R6Class(
                           age_50_mature = NA,
                           age_95_mature = NA,
                           age_mature = NA,
+                          semelparous = FALSE,
                           m = NA,
                           m_at_age = NULL,
                           steepness = 0.8,
@@ -388,56 +389,56 @@ Fish <- R6::R6Class(
       ages <- seq(min_age, max_age, by = time_step)
 
       self$ages <- ages
-      
+
       self$growth_model <-  growth_model
-      
+
       self$vbk = vbk
-      
+
       self$linf = linf
-      
+
       self$t0 = t0
 
       if (self$growth_model == "von_bertalanffy") {
-      
+
       length_at_age <-
         linf * (1 - exp(-vbk * (ages - t0)))
-      
+
       growth_params <- list(linf = linf,vbk = vbk, t0 = t0)
-      
+
       } else if (self$growth_model == "power"){
-        # for right now, just 
+        # for right now, just
         length_at_age <-
           length_a * (ages - t0) ^ length_b
-        
+
         growth_params <- list(length_a = length_a,length_b = length_b, t0 = t0)
-        
+
       }
 
       # process weight
-      
+
       self$weight_a = weight_a
-      
+
       self$weight_b = weight_b
-      
+
       weight_at_age <-
         weight_a * length_at_age ^ weight_b
 
       lmat_to_linf_ratio <- length_50_mature / linf
-      
+
       if (is.null(m_at_age)) {
         # if m_at_age was not externally provided
         if (lorenzen_m) {
-          
+
           m_at_age <- m * (length_at_age / max(length_at_age))^lorenzen_c
-          
+
           # m_at_age <- (m_at_age / mean(m_at_age)) * m
-          
+
         } else {
           m_at_age <-
             rep(m, length(weight_at_age)) # place holder to allow for different m at age
-          
+
         }
-        
+
       }
       #
 
@@ -521,7 +522,9 @@ Fish <- R6::R6Class(
         maturity_at_age <-
           mat_at_age$mean_mat_at_age
       }
-      
+
+      self$semelparous = semelparous
+
       self$age_mature = age_mature
 
       # if (is.na(length_50_mature)) {
@@ -760,6 +763,7 @@ Fish <- R6::R6Class(
         weight_at_age = weight_at_age,
         fec_at_age = fec_at_age,
         maturity_at_age = maturity_at_age,
+        semelparous = semelparous,
         steepness = steepness,
         m_at_age = m_at_age,
         patches = prod(resolution),
@@ -787,6 +791,8 @@ Fish <- R6::R6Class(
       unfished$tmppop$resolution <- self$resolution
 
       self$b0 <- sum(unfished$tmppop$b_p_a)
+
+      self$b0_p <- rowSums(unfished$tmppop$b_p_a)
 
       self$ssb0 <- unfished$ssb0
 
