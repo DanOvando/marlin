@@ -1,42 +1,66 @@
-library(tidyverse)
+---
+title: "Invertebrates"
+---
 
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
 library(marlin)
 
-library(ggridges)
+library(tidyverse)
 
 library(tictoc)
 
-library(gganimate)
-# check on plus group issues
-# add in basically mortality as mirror to fraction mature
-# tweek selecitivy or q to allow for it to be time specific
-# check if max maturity can be less than 1
-# add effort as a management group
-resolution <- 5
+library(ggridges)
 
-patch_area <- 1
+theme_set(theme_marlin())
+```
 
-kp <- .01
+Invertebrates have some slightly different life history than finfish. `marlin` has some capabilities to simulate some of these dynamics, but be warned that the less like a finfish, the less appropriate `marlin` may be. 
 
-years <- 10
+First, let's set up parameters. Since invertebrates are not included in `FishLife`, all required life history values must be supplied manually. 
+
+For invertebrates, we are going to implement a couple of features. 
+
+- We are going to run the simulation on a weekly timestep, to better approximate a fast growing species
+
+- We are going to use a power function to model size at age, to approximate a critter that simply expands in volume as it ages, rather than reaching an asymptotic size
+
+- We will make the species semelparous, meaning that individuals die after spawning. This is implemented by introducing a mortality term in which `1 - (proportion_mature_at_age)` individuals in each age group die **after** spawning
+
+
+```{r}
+
+resolution <- 5 # the resolution of the system 
+
+patch_area <- 1 # the area of each patch
+
+kp <- .5 # the patchiness of habitat
+
+years <- 10 # number of years to run simualtion
 
 seasons <- 52 # weekly time step
 
 time_step <- 1 / seasons
 
-max_age <- 1.5
+max_age <- 1.5 # the maximum age of the animal (in years)
 
-length_bin_width = 0.1
+length_bin_width = 0.1 # the width of each length bin in centimeters
 
-length_a <- 0.1
+length_a <- 0.1 # scale for growth power function
 
-length_b <- 3
+length_b <- 3 # exponent for growth power function. Consider a spherical octopus. 
 
-lorenzen_c <- -1
+lorenzen_c <- -1 # the rate of the lorenzen natural mortality curve. More negative values increase natural mortality at age 0 relative to max age. 
 
-m <- 0.4
+m <- 0.4 # asymptotic natural mortality
 
-t0 <- -.5
+t0 <- -.5 # size at age 0
 
 ages <- seq(0,max_age, by = time_step)
 
@@ -46,12 +70,43 @@ max_length <- max(length_at_age)
 
 m_at_age <- m * (length_at_age / max(length_at_age))^lorenzen_c
 
-critter_correlations <- matrix(c(1, -.8, -.8, 1), nrow = 2, byrow = TRUE)
+critter_correlations <- matrix(c(1, -.5, -.5, 1), nrow = 2, byrow = TRUE) # simulate spatial correlation between species
 
-species_distributions <- sim_habitat(critters = c("squishy", "squashy"), resolution = resolution, patch_area = patch_area, kp = kp, output = "list")
+species_distributions <- sim_habitat(
+  critters = c("squishy", "squashy"),
+  resolution = resolution,
+  patch_area = patch_area,
+  kp = kp,
+  output = "list",
+  critter_correlations = critter_correlations
+)
 
-# m_at_age <- rep(0.2, length(ages))
 
+
+```
+
+
+```{r}
+
+species_distributions$critter_distributions |> 
+  map(as.data.frame) |> 
+  list_rbind(names_to =  "critter") |> 
+  group_by(critter) |> 
+  mutate(x = 1:n()) |> 
+  ungroup() |> 
+  pivot_longer(-c(critter, x), names_to = "y", values_to = "habitat") |> 
+  group_by(critter) |> 
+  mutate(habitat = habitat / max(habitat)) |> 
+  ungroup() |> 
+  ggplot(aes(x,y,fill = habitat)) + 
+  geom_tile() + 
+  facet_wrap(~critter) + 
+  scale_fill_viridis_c()
+```
+
+Next, we'll set up the fauna and fleet objects
+
+```{r}
 fauna <-
   list(
     "squishy" = create_critter(
@@ -108,64 +163,6 @@ fauna <-
     )
   )
 
-fauna <-
-  list(
-    "squishy" = create_critter(
-      spawning_seasons = c(1:20),
-      habitat = species_distributions$critter_distributions$squishy,
-      common_name =  "squishy",
-      growth_model = "power",
-      length_a = length_a,
-      length_b = length_b,
-      length_bin_width = length_bin_width,
-      t0 = t0,
-      cv_len = 0.6,
-      m_at_age = m_at_age,
-      max_age = max_age,
-      age_mature = max_age - .5,
-      semelparous = TRUE,
-      delta_mature = .1,
-      weight_a = 2,
-      weight_b = 1,
-      adult_diffusion = .1,
-      recruit_diffusion = 10,
-      init_explt = 1.2,
-      resolution = resolution,
-      sigma_rec = 0,
-      ac_rec = .3,
-      query_fishlife = FALSE,
-      seasons = seasons
-    ),
-    "squashy" = create_critter(
-      spawning_seasons = c(1:20),
-      habitat = species_distributions$critter_distributions$squishy,
-      common_name =  "squishy",
-      growth_model = "power",
-      length_a = length_a,
-      length_b = length_b,
-      length_bin_width = length_bin_width,
-      t0 = t0,
-      cv_len = 0.6,
-      m_at_age = m_at_age,
-      max_age = max_age,
-      age_mature = max_age - .5,
-      semelparous = FALSE,
-      delta_mature = .1,
-      weight_a = 2,
-      weight_b = 1,
-      adult_diffusion = .1,
-      recruit_diffusion = 10,
-      init_explt = 1.2,
-      resolution = resolution,
-      sigma_rec = 0,
-      ac_rec = .3,
-      query_fishlife = FALSE,
-      seasons = seasons
-    )
-  )
-
-
-
 fleets <- list(
   "artisanal" = create_fleet(list(
     "squishy" = Metier$new(
@@ -201,12 +198,22 @@ fleets <- list(
   ), resolution = resolution)
 )
 
+fleets <- tune_fleets(fauna, fleets, tune_type = "explt", years = 20)
 
+
+```
+
+```{r}
 fauna$squishy$plot()
+```
 
+```{r}
 fauna$squashy$plot()
 
+```
 
+
+```{r}
 sels <- data.frame(
   artisinal = fleets$artisanal$metiers$squishy$sel_at_length,
   commercial = fleets$commercial$metiers$squishy$sel_at_length,
@@ -218,13 +225,19 @@ sels |>
   ggplot(aes(length, selectivity, color = fleet)) +
   geom_line()
 
-fleets <- tune_fleets(fauna, fleets, tune_type = "explt", years = 20)
+```
+
+```{r}
 
 tic()
 squishy_sim <- simmar(fauna, fleets, years = years, cor_rec = critter_correlations)
 toc()
 processed_squishy <- process_marlin(sim = squishy_sim, time_step = time_step)
 
+```
+
+
+```{r}
 processed_squishy$fauna |>
   group_by(step, age, mean_length) |>
   summarise(number = sum(n)) |>
@@ -236,40 +249,24 @@ processed_squishy$fauna |>
   theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
 
 
+```
+
+
+```{r fig-rec,fig.cap="Number of recruits over time per species."}
 processed_squishy$fauna |>
   filter(age == min(age)) |>
   ggplot(aes(step, n, color = critter)) +
   geom_line()
 
-processed_squishy$fauna |>
-  filter(step == max(step)) |>
-  group_by(x,y,critter) |>
-  summarise(n = sum(n)) |>
-  group_by(critter) |>
-  mutate(sn = as.numeric(scale(n))) |>
-  ggplot(aes(x,y,fill = sn)) +
-  geom_tile() +
-  facet_wrap(~critter) +
-  scale_fill_viridis_c()
+```
 
-plot_marlin(processed_squishy,fauna = fauna, plot_var = "n", max_scale = FALSE)
-
-plot_marlin(processed_squishy,fauna = fauna, plot_var = "c", max_scale = FALSE)
+```{r fig-b,fig.cap="Biomass per species over time."}
 
 plot_marlin(processed_squishy,fauna = fauna, plot_var = "b", max_scale = FALSE)
 
-plot_marlin(processed_squishy,fauna = fauna, plot_var = "n", max_scale = FALSE, plot_type = "age", steps_to_plot = max(processed_squishy$fauna$step))
+```
 
-
-a = processed_squishy$fauna |>
-  group_by(year, step, age, critter) |>
-  summarise(n = sum(n)) |>
-  ungroup() |>
-  group_by(critter, year, step) |>
-  mutate(sn = n / max(n)) |>
-  group_by(critter, year) |>
-  mutate(n = n / max(n)) |>
-  ungroup()
+```{r, fig.cap="Example age composition over the course of a year, along with maturity ogive. Note one species is semelparous, the other is not."}
 
 b = processed_squishy$fauna |>
   group_by(year, age, critter) |>
@@ -287,9 +284,21 @@ b |>
   geom_col(aes(age, yn, fill = "Age Composition")) +
   geom_line(data = mogive,aes(age, maturity, linetype = semelparous,color = "Maturity At Age")) +
   facet_wrap(~critter) +
-  scale_fill_manual(values = "blue") +
-  scale_y_continuous()
+  scale_fill_manual(name = "",values = "blue") +
+  scale_color_discrete(name = "") +
+  scale_y_continuous(name = "Annual Age Composition")
+```
 
+```{r, fig.cap="Age composition over time"}
+a = processed_squishy$fauna |>
+  group_by(year, step, age, critter) |>
+  summarise(n = sum(n)) |>
+  ungroup() |>
+  group_by(critter, year, step) |>
+  mutate(sn = n / max(n)) |>
+  group_by(critter, year) |>
+  mutate(n = n / max(n)) |>
+  ungroup()
 
 a |>
   filter(year < 4) |>
@@ -300,7 +309,10 @@ a |>
                       scale = 4,
                       alpha = 0.5) +
   facet_wrap( ~ critter, scales = "free_x") +
-  scale_fill_viridis_c()
+  scale_fill_viridis_c() + 
+  scale_y_continuous(name = "Time Step")
 
+
+```
 
 

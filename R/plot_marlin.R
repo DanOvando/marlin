@@ -194,6 +194,37 @@ plot_marlin <- function(...,
 
   } else if (plot_type == "age") {
 
+    tmp <- fit_frame %>%
+      dplyr::ungroup() %>%
+      dplyr::filter(step %in% steps_to_plot)
+
+    if (drop_recruits) {
+      message("dropping recruits from plot since drop_recruits = TRUE")
+      tmp <- tmp %>%
+        dplyr::group_by(critter) %>%
+        dplyr::filter(age != min(age))
+    }
+
+    tmp$thing <- tmp[plot_var]
+
+    tmp <- tmp |>
+      dplyr::filter(step == max(steps_to_plot)) |>
+      dplyr::group_by(age, thing, step, critter,fit) |>
+      dplyr::summarise(thing = sum(thing, na.rm = TRUE)) |>
+      dplyr::ungroup()
+
+    out <- tmp %>%
+      ggplot(aes(age, thing, fill = fit)) +
+      ggplot2::geom_density(stat = "identity", color = "transparent") +
+      ggplot2::facet_grid(step ~ critter, scales = "free_x") +
+      ggplot2::scale_y_continuous(name = plot_var) +
+      ggplot2::scale_x_continuous(name = "Age") +
+      ggplot2::scale_fill_manual(
+        name = "Fit",
+        values = marlin::marlin_pal(palette = "diverging_fish")(dplyr::n_distinct(fit_frame$fit))
+      ) +
+      marlin::theme_marlin()
+
   } else if (plot_type == "space") {
     if (dplyr::n_distinct(steps_to_plot) > 1) {
       warning(
