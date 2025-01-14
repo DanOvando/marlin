@@ -284,8 +284,9 @@ b |>
   geom_col(aes(age, yn, fill = "Age Composition")) +
   geom_line(data = mogive,aes(age, maturity, linetype = semelparous,color = "Maturity At Age")) +
   facet_wrap(~critter) +
-  scale_fill_manual(values = "blue") +
-  scale_y_continuous()
+  scale_fill_manual(name = "",values = "blue") +
+  scale_color_discrete(name = "") +
+  scale_y_continuous(name = "Annual Age Composition")
 ```
 
 ```{r, fig.cap="Age composition over time"}
@@ -308,7 +309,8 @@ a |>
                       scale = 4,
                       alpha = 0.5) +
   facet_wrap( ~ critter, scales = "free_x") +
-  scale_fill_viridis_c()
+  scale_fill_viridis_c() + 
+  scale_y_continuous(name = "Time Step")
 
 
 ```
