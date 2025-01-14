@@ -4,6 +4,7 @@ pkgdown_sha: ~
 articles:
   dynamic-habitat: dynamic-habitat.html
   fleet-management: fleet-management.html
+  articles/Invertebrates: Invertebrates.html
   articles/manual_fleets: manual_fleets.html
   measure_gradients: measure_gradients.html
   movement-rates: movement-rates.html
@@ -12,7 +13,7 @@ articles:
   rectifier: rectifier.html
   articles/Setting-Selectivity: Setting-Selectivity.html
   articles/Working-with-Recruitment-Deviates: Working-with-Recruitment-Deviates.html
-last_built: 2024-11-13T19:05Z
+last_built: 2025-01-14T01:52Z
 urls:
   reference: https://danovando.github.io/marlin/reference
   article: https://danovando.github.io/marlin/articles
