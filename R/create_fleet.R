@@ -8,7 +8,7 @@
 #' @param cr_ratio cost to revenue ratio at initial conditions (1 implies OA equilibrium, total profits = 0)
 #' @param spatial_allocation spatial effort allocation strategy ('revenue','rpue','profit','ppue')
 #' @param metiers a list of metiers
-#' @param fleet_model which fleet model to use, one of "constant_effort" or "open_access"
+#' @param fleet_model which fleet model to use, one of "constant_effort" or "open_access" or constant catch
 #' @param profit_sensitivity the profit sensitivity of the open access model
 #' @param cost_per_unit_effortt the cost per unit effort in the open access model
 #'

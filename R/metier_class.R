@@ -53,13 +53,13 @@ Metier <- R6::R6Class("metier",
                       self$p_explt <- p_explt
 
                       self$port_distance <- NA
-                      
+
                       self$sel_at_length <- NULL
-                      
+
 
                       length_bins <-
                         as.numeric(colnames(critter$length_at_age_key))
-                      
+
                       ages <- length(critter$ages)
 
                       if (sel_unit == "p_of_mat"){
@@ -68,7 +68,7 @@ Metier <- R6::R6Class("metier",
 
                       l_95_sel <-
                         critter$length_50_mature * (sel_start + sel_delta)
-                      
+
                       length_at_sel05 <- critter$length_50_mature * sel05_anchor
 
 
@@ -79,7 +79,7 @@ Metier <- R6::R6Class("metier",
                         l_95_sel <- sel_start + sel_delta
 
                         length_at_sel05 <- sel05_anchor
-                        
+
                       }
 
                       if (sel_form == "logistic") {
@@ -94,7 +94,7 @@ Metier <- R6::R6Class("metier",
                         sel_at_age <- p_sel_at_age
 
                         self$sel_at_age <- as.numeric(sel_at_age)
-                        
+
                         self$sel_at_length <- sel_at_bin
 
                       } else if (sel_form == "dome"){ # close logistic form if
@@ -107,85 +107,85 @@ Metier <- R6::R6Class("metier",
                         sel_at_age <- p_sel_at_age / max(p_sel_at_age)
 
                         self$sel_at_age <- as.numeric(sel_at_age)
-                        
+
                         self$sel_at_length <- sel_at_bin / max(sel_at_bin)
-                        
+
 
                       } else if (sel_form == "double_normal"){
                         # Based on carruthers et al. 2014
-                        
-                        
+
+
                         tune_double_normal <- function(log_sigmas,
                                                        l_95_sel,
                                                        ls,
                                                        len_sel05 = 1,
-                                                       linf_sel = 0, 
+                                                       linf_sel = 0,
                                                        output = "sigmas") {
-                          
+
                           # sigma_asc = 0.2
-                          # 
+                          #
                           # sigma_dsc = 10
-                          # 
+                          #
                           # ls <- seq(0,100)
-                          # 
+                          #
                           # len_sel05 = 1
-                          # 
+                          #
                           # linf_sel = 0
-                          # 
+                          #
                           # l_95_sel <- 42
-                          
+
                           sigma_asc <- exp(log_sigmas[1])
-                          
+
                           sigma_dsc <- exp(log_sigmas[2])
-                   
+
                           asc <- dnorm(ls, l_95_sel, sigma_asc)
-                          
+
                           asc <- asc / max(asc)
-                          
+
                           dsc <- dnorm(ls, l_95_sel, sigma_dsc)
-                          
+
                           dsc <- dsc / max(dsc)
-                          
+
                           sel <- ifelse(ls <=l_95_sel, asc, dsc)
-                          
+
                           out <- data.frame(length = ls, selectivity = sel)
-                          
+
                           sel05_hat <- sel[which.min((ls - len_sel05)^2)]
-                          
+
                           linf_sel_hat <- sel[length(sel)]
-                          
+
                           if (output == "sigmas"){
+
                             out <- (sel05_hat - 0.05)^2 + (linf_sel_hat - linf_sel)^2
-                          } 
-                          
+                          }
+
                           return(out)
-                          
+
                         }
-                        
+
                         if (length_at_sel05 >= l_95_sel){
                           stop("length at sel05 must by less than length at peak selectivity")
                         }
                         tuned_sigmas <- optim(
-                          log(c(10, 10)),
+                          log(c(100, 100)),
                           tune_double_normal,
                           l_95_sel = l_95_sel,
                           len_sel05 = length_at_sel05,
                           linf_sel = sel_at_linf,
                           ls = length_bins
                         )
-                        
+
                         sel_at_bin <- tune_double_normal(tuned_sigmas$par, l_95_sel = l_95_sel,len_sel05 = length_at_sel05,linf_sel = sel_at_linf, ls = length_bins, output = "sels" )
-                        
+
                         p_sel_at_age <-
                           (as.matrix(critter$length_at_age_key) %*% sel_at_bin$selectivity)
-                        
+
                         sel_at_age <- p_sel_at_age / max(p_sel_at_age)
-                        
+
                         self$sel_at_age <- as.numeric(sel_at_age)
-                        
+
                         self$sel_at_length <- sel_at_bin$selectivity
-                        
-                        
+
                       } else if (sel_form == "manual") {
 
                         if (is.null(sel_at_age)){
@@ -196,12 +196,12 @@ Metier <- R6::R6Class("metier",
 
                       } else if (sel_form == "uniform"){
                         self$sel_at_age <- rep(1,ages)
-                        
+
                         self$sel_at_length <- rep(1,length(length_bins))
-                        
-                        
+
+
                       } # close sel_form things
-                      
+
                       if (all(is.na(spatial_catchability))){
 
                         self$spatial_catchability <- rep(catchability, critter$patches)
