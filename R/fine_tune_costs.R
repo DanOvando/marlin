@@ -17,7 +17,6 @@ fine_tune_costs <-
            fleets,
            years = 25,
            tune_type) {
-
     fleet_models <- purrr::map_chr(fleets, "fleet_model")
 
     oa_fleets <- names(fleet_models)[fleet_models == "open_access"]
@@ -27,52 +26,50 @@ fine_tune_costs <-
     for (f in seq_along(oa_fleets)) {
       tmp_fleets[[oa_fleets[f]]]$cost_per_unit_effort <-
         exp(log_cost_mult[f])
-
     }
 
-    sim <- simmar(fauna = fauna,
-                  fleets = tmp_fleets,
-                  years = years)
+    sim <- simmar(
+      fauna = fauna,
+      fleets = tmp_fleets,
+      years = years
+    )
 
     if (tune_type == "depletion") {
       depletion <-
-        purrr::map_df(sim[[length(sim)]], ~ sum(.x$ssb_p_a) / .x$ssb0) %>%  # depletion of each species
+        purrr::map_df(sim[[length(sim)]], ~ sum(.x$ssb_p_a) / .x$ssb0) %>% # depletion of each species
         tidyr::pivot_longer(tidyselect::everything(),
-                            names_to = "critter",
-                            values_to = "depletion")
+          names_to = "critter",
+          values_to = "depletion"
+        )
 
       ss_frame <- depletion %>%
         dplyr::left_join(target, by = "critter")
 
-      out <- sum((ss_frame$depletion - ss_frame$target) ^ 2)
-
+      out <- sum((ss_frame$depletion - ss_frame$target)^2)
     } else if (tune_type == "explt") {
       for (s in names(fauna)) {
         e_p_fl <- sim[[length(sim)]][[1]]$e_p_fl
 
-        b_p = rowSums(sim[[length(sim)]][[s]]$b_p_a)
+        b_p <- rowSums(sim[[length(sim)]][[s]]$b_p_a)
 
         weights <- b_p / max(b_p)
 
         e_fl <-
-          colSums((e_p_fl * weights)) / sum(weights)  # calculate the total effort weighted by biomass of that species in patches.
+          colSums((e_p_fl * weights)) / sum(weights) # calculate the total effort weighted by biomass of that species in patches.
 
         p_explt <-
           purrr::map_dbl(fleets, c("metiers", s, "p_explt"))[names(e_p_fl)]
 
-        explt_by_fleet <-  (fauna[[s]]$init_explt)  * p_explt
+        explt_by_fleet <- (fauna[[s]]$init_explt) * p_explt
 
         # catchability <-  log(1 - explt_by_fleet) / -e_fl
 
-        catchability <-  explt_by_fleet / e_fl
-
+        catchability <- explt_by_fleet / e_fl
       }
     }
 
 
     return(out)
-
-
   }
 
 # target <- data.frame(critter = "bigeye", target = 0.2)

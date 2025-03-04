@@ -22,7 +22,6 @@ generate_length_at_age_key <- function(min_age,
                                        cv,
                                        time_step = 1,
                                        linf_buffer = 10) {
-
   if (growth_model == "von_bertalanffy") {
     mean_length_at_age <-
       growth_params$linf * (1 - exp(-growth_params$vbk * (
@@ -30,30 +29,29 @@ generate_length_at_age_key <- function(min_age,
       )))
   } else if (growth_model == "power") {
     mean_length_at_age <-
-      growth_params$length_a *  (seq(min_age, max_age, by = time_step) - growth_params$t0)^growth_params$length_b
-    
+      growth_params$length_a * (seq(min_age, max_age, by = time_step) - growth_params$t0)^growth_params$length_b
   }
-  
+
   if (is.null(growth_params$linf)) {
     linf <- max(mean_length_at_age)
   } else {
     linf <- growth_params$linf
   }
-  
+
   length_at_age_vars <- dplyr::tibble(
     age = seq(min_age, max_age, by = time_step),
     mean_length_at_age = mean_length_at_age,
     sigma_at_age = cv * mean_length_at_age
-  ) #calculate standard deviation of length at age for each age bin
+  ) # calculate standard deviation of length at age for each age bin
 
   # now calculate the probability of being in each length bin at each age
   p_length_at_age <-
     expand.grid(
       age = seq(min_age, max_age, by = time_step),
-      length_bin = seq(0,(linf_buffer * linf), by = length_bin_width)
+      length_bin = seq(0, (linf_buffer * linf), by = length_bin_width)
     ) %>%
     dplyr::as_tibble() %>%
-    dplyr::left_join(length_at_age_vars, by = 'age') %>%
+    dplyr::left_join(length_at_age_vars, by = "age") %>%
     dplyr::arrange(age, length_bin)
 
   p_length_at_age <- p_length_at_age %>%
@@ -65,5 +63,4 @@ generate_length_at_age_key <- function(min_age,
       1
     ) -
       pnorm(length_bin, mean_length_at_age, sigma_at_age))
-
 }

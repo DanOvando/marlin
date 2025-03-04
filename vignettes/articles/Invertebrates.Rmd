@@ -35,8 +35,7 @@ For invertebrates, we are going to implement a couple of features.
 
 
 ```{r}
-
-resolution <- 5 # the resolution of the system 
+resolution <- 5 # the resolution of the system
 
 patch_area <- 1 # the area of each patch
 
@@ -50,19 +49,19 @@ time_step <- 1 / seasons
 
 max_age <- 1.5 # the maximum age of the animal (in years)
 
-length_bin_width = 0.1 # the width of each length bin in centimeters
+length_bin_width <- 0.1 # the width of each length bin in centimeters
 
 length_a <- 0.1 # scale for growth power function
 
-length_b <- 3 # exponent for growth power function. Consider a spherical octopus. 
+length_b <- 3 # exponent for growth power function. Consider a spherical octopus.
 
-lorenzen_c <- -1 # the rate of the lorenzen natural mortality curve. More negative values increase natural mortality at age 0 relative to max age. 
+lorenzen_c <- -1 # the rate of the lorenzen natural mortality curve. More negative values increase natural mortality at age 0 relative to max age.
 
 m <- 0.4 # asymptotic natural mortality
 
 t0 <- -.5 # size at age 0
 
-ages <- seq(0,max_age, by = time_step)
+ages <- seq(0, max_age, by = time_step)
 
 length_at_age <- length_a * (ages - t0)^length_b
 
@@ -80,27 +79,23 @@ species_distributions <- sim_habitat(
   output = "list",
   critter_correlations = critter_correlations
 )
-
-
-
 ```
 
 
 ```{r}
-
-species_distributions$critter_distributions |> 
-  map(as.data.frame) |> 
-  list_rbind(names_to =  "critter") |> 
-  group_by(critter) |> 
-  mutate(x = 1:n()) |> 
-  ungroup() |> 
-  pivot_longer(-c(critter, x), names_to = "y", values_to = "habitat") |> 
-  group_by(critter) |> 
-  mutate(habitat = habitat / max(habitat)) |> 
-  ungroup() |> 
-  ggplot(aes(x,y,fill = habitat)) + 
-  geom_tile() + 
-  facet_wrap(~critter) + 
+species_distributions$critter_distributions |>
+  map(as.data.frame) |>
+  list_rbind(names_to = "critter") |>
+  group_by(critter) |>
+  mutate(x = 1:n()) |>
+  ungroup() |>
+  pivot_longer(-c(critter, x), names_to = "y", values_to = "habitat") |>
+  group_by(critter) |>
+  mutate(habitat = habitat / max(habitat)) |>
+  ungroup() |>
+  ggplot(aes(x, y, fill = habitat)) +
+  geom_tile() +
+  facet_wrap(~critter) +
   scale_fill_viridis_c()
 ```
 
@@ -112,7 +107,7 @@ fauna <-
     "squishy" = create_critter(
       spawning_seasons = c(1:20),
       habitat = species_distributions$critter_distributions$squishy,
-      common_name =  "squishy",
+      common_name = "squishy",
       growth_model = "power",
       length_a = length_a,
       length_b = length_b,
@@ -138,7 +133,7 @@ fauna <-
     "squashy" = create_critter(
       spawning_seasons = c(21:40),
       habitat = species_distributions$critter_distributions$squashy,
-      common_name =  "squashy",
+      common_name = "squashy",
       growth_model = "power",
       length_a = length_a,
       length_b = 2,
@@ -147,7 +142,7 @@ fauna <-
       cv_len = 0.6,
       m_at_age = m_at_age,
       max_age = max_age,
-      age_mature = max_age  / 2,
+      age_mature = max_age / 2,
       semelparous = FALSE,
       delta_mature = .1,
       weight_a = 2,
@@ -199,8 +194,6 @@ fleets <- list(
 )
 
 fleets <- tune_fleets(fauna, fleets, tune_type = "explt", years = 20)
-
-
 ```
 
 ```{r}
@@ -209,7 +202,6 @@ fauna$squishy$plot()
 
 ```{r}
 fauna$squashy$plot()
-
 ```
 
 
@@ -221,19 +213,16 @@ sels <- data.frame(
 )
 
 sels |>
-  pivot_longer(-length, names_to = "fleet", values_to = "selectivity")  |>
+  pivot_longer(-length, names_to = "fleet", values_to = "selectivity") |>
   ggplot(aes(length, selectivity, color = fleet)) +
   geom_line()
-
 ```
 
 ```{r}
-
 tic()
 squishy_sim <- simmar(fauna, fleets, years = years, cor_rec = critter_correlations)
 toc()
 processed_squishy <- process_marlin(sim = squishy_sim, time_step = time_step)
-
 ```
 
 
@@ -244,11 +233,9 @@ processed_squishy$fauna |>
   group_by(step) |>
   mutate(pn = number / sum(number)) |>
   ungroup() |>
-  ggplot(aes(mean_length,factor(step),height = pn)) +
+  ggplot(aes(mean_length, factor(step), height = pn)) +
   geom_ridgeline(stat = "identity", color = "transparent", fill = "red", scale = 10) +
   theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
-
-
 ```
 
 
@@ -257,18 +244,14 @@ processed_squishy$fauna |>
   filter(age == min(age)) |>
   ggplot(aes(step, n, color = critter)) +
   geom_line()
-
 ```
 
 ```{r fig-b,fig.cap="Biomass per species over time."}
-
-plot_marlin(processed_squishy,fauna = fauna, plot_var = "b", max_scale = FALSE)
-
+plot_marlin(processed_squishy, fauna = fauna, plot_var = "b", max_scale = FALSE)
 ```
 
 ```{r, fig.cap="Example age composition over the course of a year, along with maturity ogive. Note one species is semelparous, the other is not."}
-
-b = processed_squishy$fauna |>
+b <- processed_squishy$fauna |>
   group_by(year, age, critter) |>
   summarise(n = sum(n)) |>
   group_by(critter, year) |>
@@ -282,15 +265,15 @@ b |>
   filter(year == max(year)) |>
   ggplot() +
   geom_col(aes(age, yn, fill = "Age Composition")) +
-  geom_line(data = mogive,aes(age, maturity, linetype = semelparous,color = "Maturity At Age")) +
+  geom_line(data = mogive, aes(age, maturity, linetype = semelparous, color = "Maturity At Age")) +
   facet_wrap(~critter) +
-  scale_fill_manual(name = "",values = "blue") +
+  scale_fill_manual(name = "", values = "blue") +
   scale_color_discrete(name = "") +
   scale_y_continuous(name = "Annual Age Composition")
 ```
 
 ```{r, fig.cap="Age composition over time"}
-a = processed_squishy$fauna |>
+a <- processed_squishy$fauna |>
   group_by(year, step, age, critter) |>
   summarise(n = sum(n)) |>
   ungroup() |>
@@ -304,14 +287,13 @@ a |>
   filter(year < 4) |>
   ggplot() +
   geom_density_ridges(aes(age, step, height = sn, group = step, fill = step),
-                      stat = "identity",
-                      color = "transparent",
-                      scale = 4,
-                      alpha = 0.5) +
-  facet_wrap( ~ critter, scales = "free_x") +
-  scale_fill_viridis_c() + 
+    stat = "identity",
+    color = "transparent",
+    scale = 4,
+    alpha = 0.5
+  ) +
+  facet_wrap(~critter, scales = "free_x") +
+  scale_fill_viridis_c() +
   scale_y_continuous(name = "Time Step")
-
-
 ```
 

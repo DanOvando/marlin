@@ -14,13 +14,12 @@
 #' \dontrun{
 #'
 #' plot_marlin(
-#' `MPA: Sharks Offshore` = proc_offshore_mpa,
-#' `No MPA` = proc_nearshore,
-#' `MPA: Sharks Nearshore` = proc_nearshore_mpa,
-# 'steps_to_plot = NA,
-# 'plot_var = "b"
+#'   `MPA: Sharks Offshore` = proc_offshore_mpa,
+#'   `No MPA` = proc_nearshore,
+#'   `MPA: Sharks Nearshore` = proc_nearshore_mpa,
+#'   # 'steps_to_plot = NA,
+#'   # 'plot_var = "b"
 #' )
-#'
 #' }
 #'
 plot_marlin <- function(...,
@@ -35,77 +34,69 @@ plot_marlin <- function(...,
     names(list(...)) # allows users to pass and plot arbitrary numbers of objects from `process_marlin`
   if (is.null(fit_names)) {
     fit_names <- letters[seq_along(list(...))]
-
   }
 
-  fit_names[fit_names == ''] <-
-    letters[!letters %in% fit_names][seq_along(fit_names[fit_names == ''])] # add in names if only some are named for some reason
+  fit_names[fit_names == ""] <-
+    letters[!letters %in% fit_names][seq_along(fit_names[fit_names == ""])] # add in names if only some are named for some reason
 
-  fits <- list(...)  %>%
+  fits <- list(...) %>%
     purrr::set_names(fit_names)
 
 
   if (plots == "fauna") {
     fits <- purrr::map(fits, "fauna")
-
   }
 
-  fit_frame <- dplyr::tibble(fit = fit_names,
-                             temp = fits) %>%
+  fit_frame <- dplyr::tibble(
+    fit = fit_names,
+    temp = fits
+  ) %>%
     tidyr::unnest(cols = temp)
   if (all(is.na(steps_to_plot))) {
     steps_to_plot <- unique(fit_frame$step)
   }
 
   if (plot_type == "time") {
-    out  <-  fit_frame %>%
+    out <- fit_frame %>%
       dplyr::group_by(step, critter, fit) %>%
-      dplyr::summarise(across({
-        {
-          plot_var
-        }
-      }, ~ sum(., na.rm = TRUE))) %>%
+      dplyr::summarise(across({{ plot_var }}, ~ sum(., na.rm = TRUE))) %>%
       # ssb = sum(.data[[plot_var]])) %>%
       # dplyr::summarise(ssb = sum(.data[[plot_var]])) %>%
-      dplyr::group_by(critter, fit) %>% {
+      dplyr::group_by(critter, fit) %>%
+      {
         if (max_scale == TRUE) {
-          dplyr::mutate(., dplyr::across({
-            {
-              plot_var
-            }
-          }, ~ (. / max(., na.rm = TRUE))))
-
+          dplyr::mutate(., dplyr::across({{ plot_var }}, ~ (. / max(., na.rm = TRUE))))
         } else {
           .
         }
-
       } %>%
       dplyr::ungroup() %>%
       dplyr::filter(step %in% steps_to_plot) %>%
       ggplot(aes(step, .data[[plot_var]], color = fit)) +
       ggplot2::geom_hline(aes(yintercept = 0)) +
       ggplot2::geom_line(size = 3) +
-      ggplot2::facet_wrap(~ critter, scales = "free_y") + {
+      ggplot2::facet_wrap(~critter, scales = "free_y") +
+      {
         if (max_scale) {
           ggplot2::scale_y_continuous(
             limits = c(0, NA),
             labels = scales::percent,
             expand = ggplot2::expansion(mult = c(0, .1))
           )
+        } else {
+          ggplot2::scale_y_continuous(
+            limits = c(0, NA),
+            expand = ggplot2::expansion(mult = c(0, .1))
+          )
         }
-        else {
-          ggplot2::scale_y_continuous(limits = c(0, NA),
-                                      expand = ggplot2::expansion(mult = c(0, .1)))
-
-        }
-      } + ggplot2::scale_x_continuous(name = "Year") +
+      } +
+      ggplot2::scale_x_continuous(name = "Year") +
       ggplot2::scale_color_manual(
         name = "Fit",
         values = marlin::marlin_pal(palette = "diverging_fish")(dplyr::n_distinct(fit_frame$fit))
       ) +
       marlin::theme_marlin() +
       ggplot2::theme(legend.position = "top")
-
   } else if (plot_type == "length") {
     if (is.null(fauna)) {
       stop("plotting length compositions requires a supplied fauna object")
@@ -116,7 +107,6 @@ plot_marlin <- function(...,
 
       steps_to_plot <-
         floor(seq(min(steps_to_plot), max(steps_to_plot), length.out = 10))
-
     }
 
 
@@ -125,11 +115,7 @@ plot_marlin <- function(...,
 
       tallies <- x %>%
         dplyr::group_by(step, age) %>%
-        dplyr::summarise(across({
-          {
-            plot_var
-          }
-        }, ~ sum(., na.rm = TRUE))) %>%
+        dplyr::summarise(across({{ plot_var }}, ~ sum(., na.rm = TRUE))) %>%
         dplyr::group_by(step) %>%
         tidyr::nest()
 
@@ -138,9 +124,10 @@ plot_marlin <- function(...,
         thing_at_l <- z[[plot_var]] %*% as.matrix(lkey)
 
         out <-
-          data.frame(length = as.numeric(colnames(lkey)),
-                     thing = as.numeric(thing_at_l))
-
+          data.frame(
+            length = as.numeric(colnames(lkey)),
+            thing = as.numeric(thing_at_l)
+          )
       }
 
       tallies <- tallies %>%
@@ -153,7 +140,6 @@ plot_marlin <- function(...,
         )) %>%
         dplyr::select(step, tally) %>%
         tidyr::unnest(cols = tally)
-
     }
 
     tmp <- fit_frame %>%
@@ -191,9 +177,7 @@ plot_marlin <- function(...,
         values = marlin::marlin_pal(palette = "diverging_fish")(dplyr::n_distinct(fit_frame$fit))
       ) +
       marlin::theme_marlin()
-
   } else if (plot_type == "age") {
-
     tmp <- fit_frame %>%
       dplyr::ungroup() %>%
       dplyr::filter(step %in% steps_to_plot)
@@ -209,7 +193,7 @@ plot_marlin <- function(...,
 
     tmp <- tmp |>
       dplyr::filter(step == max(steps_to_plot)) |>
-      dplyr::group_by(age, thing, step, critter,fit) |>
+      dplyr::group_by(age, thing, step, critter, fit) |>
       dplyr::summarise(thing = sum(thing, na.rm = TRUE)) |>
       dplyr::ungroup()
 
@@ -224,7 +208,6 @@ plot_marlin <- function(...,
         values = marlin::marlin_pal(palette = "diverging_fish")(dplyr::n_distinct(fit_frame$fit))
       ) +
       marlin::theme_marlin()
-
   } else if (plot_type == "space") {
     if (dplyr::n_distinct(steps_to_plot) > 1) {
       warning(
@@ -240,22 +223,14 @@ plot_marlin <- function(...,
     if (max_scale) {
       out <- out %>%
         dplyr::group_by(x, y, critter, fit) %>%
-        dplyr::summarise(across({
-          {
-            plot_var
-          }
-        }, ~ sum(., na.rm = TRUE))) %>%
+        dplyr::summarise(across({{ plot_var }}, ~ sum(., na.rm = TRUE))) %>%
         dplyr::group_by(critter) %>%
-        dplyr::mutate(across({
-          {
-            plot_var
-          }
-        }, ~ (. / max(., na.rm = TRUE)))) %>%
+        dplyr::mutate(across({{ plot_var }}, ~ (. / max(., na.rm = TRUE)))) %>%
         dplyr::ungroup()
     }
 
     out <- out %>%
-      ggplot2::ggplot(aes(x, y, fill = round(.data[[plot_var]],2))) +
+      ggplot2::ggplot(aes(x, y, fill = round(.data[[plot_var]], 2))) +
       ggplot2::geom_tile() +
       ggplot2::scale_fill_viridis_c(
         name = plot_var,
@@ -271,11 +246,6 @@ plot_marlin <- function(...,
       ggplot2::facet_grid(critter ~ fit) +
       marlin::theme_marlin() +
       ggplot2::theme(legend.position = "top")
-
-
-
   }
   return(out)
-
-
 }

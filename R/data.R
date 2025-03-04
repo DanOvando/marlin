@@ -1,6 +1,6 @@
 #' Database of stock-recruit, population-dynamics, size, growth, maturity, and mortality parameters. Pull
 #' Pulled from Thorson's FishLife package on 2022/03/06, as loading FishLife itself generated far too many dependencies. Will consider fix at later date
-#' 
+#'
 #'
 #' Output from `Fit_model` applied to database scraped from www.FishBase.org
 #' using `rfishbase` as well as RAM Legacy stock-recruit database

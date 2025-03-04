@@ -23,7 +23,6 @@ library(ggplot2)
 library(ggforce)
 
 theme_set(theme_marlin(base_size = 8))
-
 ```
 
 
@@ -141,23 +140,19 @@ Let's set
 While we could run this through `marlin`, we're going to actually step through the calculations here so readers can get a sense for what is actually happening in the model. 
 
 ```{r}
-
 resolution <- 20 # cells per side
 
 patches <- resolution^2 # number of patches
 
 delta_d <- sqrt(5) # length of a cell side in km
 
-patch_area = delta_d^2 # in units of km^2/patch
+patch_area <- delta_d^2 # in units of km^2/patch
 
 simulation_area <- patch_area * patches
 
-delta_t = 1 # length of one time step in the simulation in units of years 
+delta_t <- 1 # length of one time step in the simulation in units of years
 
-D <- (4*patch_area) # km^2  / year
-
-
-
+D <- (4 * patch_area) # km^2  / year
 ```
 
 
@@ -166,8 +161,8 @@ We're now going to set up an "adjacency matrix". This is a patches x patches dim
 ```{r}
 grid <- tidyr::expand_grid(x = 1:resolution, y = 1:resolution)
 
-adjacent <- grid |> 
-  dist() |> 
+adjacent <- grid |>
+  dist() |>
   as.matrix()
 
 
@@ -175,7 +170,6 @@ adjacent <- grid |>
 adjacent[adjacent != 1] <- 0
 
 image(adjacent)
-
 ```
 
 We'll now fill in the diffusion matrix, using $D$, $\delta_t$ and $\delta_d$ to translate the diffusion parameter into the correct units. 
@@ -189,13 +183,12 @@ The net result of this step is we create an *instantaneous diffusion matrix* tha
 diffusion_matrix <- adjacent * D * (delta_t / delta_d^2) # adjacent times diffusion rate times simulation units
 
 # fill in diagonal
-diag(diffusion_matrix) <-  -1 * colSums(diffusion_matrix)
+diag(diffusion_matrix) <- -1 * colSums(diffusion_matrix)
 
 # ensure matrix class
 diffusion_matrix <- as.matrix(diffusion_matrix)
 
 image(diffusion_matrix)
-
 ```
 
 
@@ -209,16 +202,16 @@ D_patches <- D / patch_area # translate diffusion into units of patches / year
 
 D_patches_side <- sqrt(D_patches) # side of the diffusion box
 
-n <- rep(0, patches) 
+n <- rep(0, patches)
 
 n[grid$x == resolution / 2 & grid$y == resolution / 2] <- 100 # add 100 critters to the rough center
 
-ytmp <- as.matrix(expm::expm(diffusion_matrix)) 
+ytmp <- as.matrix(expm::expm(diffusion_matrix))
 
 ytmp[ytmp < 1e-3] <- 0
 
 
-radius <- sqrt( D / pi)
+radius <- sqrt(D / pi)
 
 n_next <- n %*% as.matrix(expm::expm(diffusion_matrix)) # calculate the realized diffusion over one time step of the model
 
@@ -229,90 +222,84 @@ grid |>
   geom_tile(aes(x * delta_d, y * delta_d, fill = n)) +
   ggforce::geom_circle(aes(
     x0 = resolution / 2 * delta_d,
-    y0 = resolution / 2 * delta_d, 
+    y0 = resolution / 2 * delta_d,
     r = radius
   )) +
-  scale_fill_viridis_c(limits = c(0, NA)) + 
-  scale_x_continuous(name = "Distance from Bottom Left Corned in KM", expand = c(0,0)) + 
-  scale_y_continuous(name = "Distance from Bottom Left Corned in KM", expand = c(0,0)) + 
+  scale_fill_viridis_c(limits = c(0, NA)) +
+  scale_x_continuous(name = "Distance from Bottom Left Corned in KM", expand = c(0, 0)) +
+  scale_y_continuous(name = "Distance from Bottom Left Corned in KM", expand = c(0, 0)) +
   coord_fixed()
-
-
-
-
 ```
 
 We visualize effect of the the diffusion rate $D$ by simulating dispersal of organisms initially seeded in one central patch after one year across a range of diffusion rates $D$. 
 
 ```{r}
-diffusion_frame <- data.frame(D = c(1,20,200))
+diffusion_frame <- data.frame(D = c(1, 20, 200))
 
-sim_diffusion <- function(D, resolution, delta_d = 5,delta_t = 1){
+sim_diffusion <- function(D, resolution, delta_d = 5, delta_t = 1) {
+  patches <- resolution^2 # number of patches
 
-patches <- resolution^2 # number of patches
+  delta_d <- delta_d # length of a cell side in km
 
-delta_d <- delta_d # length of a cell side in km
+  patch_area <- delta_d^2 # in units of km^2/patch
 
-patch_area = delta_d^2 # in units of km^2/patch
+  simulation_area <- patch_area * patches
 
-simulation_area <- patch_area * patches
+  grid <- tidyr::expand_grid(x = 1:resolution, y = 1:resolution)
 
-grid <- tidyr::expand_grid(x = 1:resolution, y = 1:resolution)
+  adjacent <- grid |>
+    dist() |>
+    as.matrix()
 
-adjacent <- grid |> 
-  dist() |> 
-  as.matrix()
+  # Mark adjacent cells
+  adjacent[adjacent != 1] <- 0
 
-# Mark adjacent cells
-adjacent[adjacent != 1] <- 0
+  diffusion_matrix <- adjacent * D * (delta_t / delta_d^2) # adjacent times diffusion rate times simulation units
 
-diffusion_matrix <- adjacent * D * (delta_t / delta_d^2) # adjacent times diffusion rate times simulation units
+  # fill in diagonal
+  diag(diffusion_matrix) <- -1 * colSums(diffusion_matrix)
 
-# fill in diagonal
-diag(diffusion_matrix) <-  -1 * colSums(diffusion_matrix)
+  # ensure matrix class
+  diffusion_matrix <- as.matrix(diffusion_matrix)
 
-# ensure matrix class
-diffusion_matrix <- as.matrix(diffusion_matrix)
+  D_patches <- D / patch_area # translate diffusion into units of patches / year
 
-D_patches <- D / patch_area # translate diffusion into units of patches / year
+  D_patches_side <- sqrt(D_patches) # side of the diffusion box
 
-D_patches_side <- sqrt(D_patches) # side of the diffusion box
+  n <- rep(0, patches)
 
-n <- rep(0, patches) 
+  n[grid$x == resolution / 2 & grid$y == resolution / 2] <- 100 # add 100 critters to the rough center
 
-n[grid$x == resolution / 2 & grid$y == resolution / 2] <- 100 # add 100 critters to the rough center
+  ytmp <- as.matrix(expm::expm(diffusion_matrix))
 
-ytmp <- as.matrix(expm::expm(diffusion_matrix)) 
-
-ytmp[ytmp < 1e-3] <- 0
+  ytmp[ytmp < 1e-3] <- 0
 
 
-radius <- sqrt( D / pi)
+  radius <- sqrt(D / pi)
 
-n_next <- n %*% as.matrix(expm::expm(diffusion_matrix)) # calculate the realized diffusion over one time step of the model
+  n_next <- n %*% as.matrix(expm::expm(diffusion_matrix)) # calculate the realized diffusion over one time step of the model
 
-grid$n <- as.numeric(n_next)
+  grid$n <- as.numeric(n_next)
 
-return(grid)
+  return(grid)
 }
 
-diffusion_frame <- diffusion_frame |> 
+diffusion_frame <- diffusion_frame |>
   dplyr::mutate(tmp = purrr::map(D, sim_diffusion, resolution = resolution, delta_d = delta_d))
 ```
 
 ```{r fig-disp, fig.cap="Diffusion from one central patch after one year for a range of diffusion rates."}
 diffusion_frame |>
-  tidyr::unnest(cols = tmp) |> 
-  dplyr::group_by(D) |> 
-  dplyr::mutate(n = n / max(n)) |> 
+  tidyr::unnest(cols = tmp) |>
+  dplyr::group_by(D) |>
+  dplyr::mutate(n = n / max(n)) |>
   ggplot() +
   geom_tile(aes(x * delta_d, y * delta_d, fill = n)) +
-  scale_fill_viridis_c("N/max(N)",limits = c(0, NA)) + 
-  scale_x_continuous(name = "Distance from Bottom Left Corned in KM", expand = c(0,0)) + 
-  scale_y_continuous(name = "Distance from Bottom Left Corned in KM", expand = c(0,0)) + 
-  coord_fixed() + 
-  facet_wrap(~round(D), labeller = label_both)
-
+  scale_fill_viridis_c("N/max(N)", limits = c(0, NA)) +
+  scale_x_continuous(name = "Distance from Bottom Left Corned in KM", expand = c(0, 0)) +
+  scale_y_continuous(name = "Distance from Bottom Left Corned in KM", expand = c(0, 0)) +
+  coord_fixed() +
+  facet_wrap(~ round(D), labeller = label_both)
 ```
 
 
@@ -340,22 +327,19 @@ Suppose that I think that the most a critter could move towards desirable habita
 First, let's just set up some arbitrary habitat
 
 ```{r}
-
 habitat <- rep(0, patches)
 
-reefs <- sample(1:patches,10)
+reefs <- sample(1:patches, 10)
 
-habitat[sample(1:patches,10)] <- rnorm(10,D,5)
+habitat[sample(1:patches, 10)] <- rnorm(10, D, 5)
 
 
 
 # calculate difference in habitat
 
-habitat_difference = outer(habitat, habitat, "-")
+habitat_difference <- outer(habitat, habitat, "-")
 
 hist(habitat_difference)
-
-
 ```
 
 The resulting habitat gradient has values as high as 100, which would produce illogical results. 
@@ -363,14 +347,11 @@ The resulting habitat gradient has values as high as 100, which would produce il
 We can use the `rescale` function in R to get things into a more reasonable space, where the largest differences in habitat would produce a taxis multiplier of three
 
 ```{r}
-
 new_habitat <- scales::rescale(habitat, to = c(0, log(3)))
 
-habitat_difference = exp(outer(new_habitat, new_habitat, "-"))
+habitat_difference <- exp(outer(new_habitat, new_habitat, "-"))
 
 hist(habitat_difference)
-
-
 ```
 
 Rescaling like this is clearly distoring the ratios of the habitat gradient, and so should only be done if you're making up habitats for simulation and want something that makes sense; you should **not** do this to habitat gradients estimated as part of an empircal CTMC model!
@@ -382,23 +363,18 @@ Putting it all together then, we'll now use both the diffusion and taxis data to
 
 
 ```{r}
-
-
 movement_matrix <- adjacent * ((D * delta_t / delta_d^2) * exp((delta_t * habitat_difference) / delta_d))
 
-diag(movement_matrix) <-  -1 * colSums(movement_matrix)
+diag(movement_matrix) <- -1 * colSums(movement_matrix)
 
-grid$n <-  as.numeric(as.matrix(expm::expm(movement_matrix)) %*% n)
+grid$n <- as.numeric(as.matrix(expm::expm(movement_matrix)) %*% n)
 
-grid |> 
-  ggplot() + 
-  geom_tile(aes(x * delta_d,y * delta_d,fill = n)) + 
-  scale_fill_viridis_c(name = "Number of Fish", limits = c(0, NA)) + 
-  scale_x_continuous(name = "Distance from Bottom Left Corned in KM", expand = c(0,0)) + 
-  scale_y_continuous(name = "Distance from Bottom Left Corned in KM", expand = c(0,0))
-
-
-
+grid |>
+  ggplot() +
+  geom_tile(aes(x * delta_d, y * delta_d, fill = n)) +
+  scale_fill_viridis_c(name = "Number of Fish", limits = c(0, NA)) +
+  scale_x_continuous(name = "Distance from Bottom Left Corned in KM", expand = c(0, 0)) +
+  scale_y_continuous(name = "Distance from Bottom Left Corned in KM", expand = c(0, 0))
 ```
 
 

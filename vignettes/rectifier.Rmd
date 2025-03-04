@@ -34,13 +34,13 @@ options(dplyr.summarise.inform = FALSE)
 
 theme_set(marlin::theme_marlin(base_size = 14))
 
-resolution <- c(10,40) #specify a 10 wide by 40 tall grid
+resolution <- c(10, 40) # specify a 10 wide by 40 tall grid
 
 patch_area <- 10 # 10km2
 
 years <- 10
 
-rockfish_diffusion <- 2 #KM2 / year
+rockfish_diffusion <- 2 # KM2 / year
 ```
 
 
@@ -48,18 +48,19 @@ We'll now make up a habitat layer in which the species prefers to live closter t
 
 ```{r}
 coastal_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
-  dplyr::mutate(habitat =  -.2 + .2 *x,
-  habitat = habitat / max(habitat) * rockfish_diffusion) |> 
-  pivot_wider(names_from = x, values_from = habitat) %>% 
-  select(-y) %>% 
+  dplyr::mutate(
+    habitat = -.2 + .2 * x,
+    habitat = habitat / max(habitat) * rockfish_diffusion
+  ) |>
+  pivot_wider(names_from = x, values_from = habitat) %>%
+  select(-y) %>%
   as.matrix()
-
 ```
 
 And from there we pass things to the usual sets of functions
 
 ```{r}
-fauna <- 
+fauna <-
   list(
     "rockfish" = create_critter(
       common_name = "blue rockfish",
@@ -74,7 +75,7 @@ fauna <-
       ssb0 = 42,
       m = 0.4
     ),
-      "lingcod" = create_critter(
+    "lingcod" = create_critter(
       common_name = "lingcod",
       adult_diffusion = 10,
       density_dependence = "post_dispersal",
@@ -92,7 +93,8 @@ fauna <-
 
 fleets <- list(
   "dayboats" = create_fleet(
-    list("rockfish" = Metier$new(
+    list(
+      "rockfish" = Metier$new(
         critter = fauna$rockfish,
         price = 10,
         sel_form = "logistic",
@@ -117,22 +119,22 @@ fleets <- list(
 )
 
 
-fleets <- tune_fleets(fauna, fleets, tune_type = "depletion") 
+fleets <- tune_fleets(fauna, fleets, tune_type = "depletion")
 
 start_time <- Sys.time()
 
-coastline_sim <- simmar(fauna = fauna,
-                  fleets = fleets,
-                  years = years)
+coastline_sim <- simmar(
+  fauna = fauna,
+  fleets = fleets,
+  years = years
+)
 
 Sys.time() - start_time
-  
+
 
 processed_coastline <- process_marlin(coastline_sim, keep_age = FALSE)
 ```
 
 ```{r, fig.cap="Rectangular simulation of a coastal rockfish species", fig.height=8, fig.width=3}
-
 plot_marlin(`Coastline Simulation` = processed_coastline, plot_type = "space")
-
 ```
