@@ -82,13 +82,6 @@ bigeye_habitat2 <- h2 %>%
   select(-y) %>% 
   as.matrix()
 
-bigeye_q <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  dplyr::mutate(habitat = rlnorm(resolution^2)) %>% 
-  pivot_wider(names_from = x, values_from = habitat) %>% 
-  select(-y) %>% 
-  as.matrix()
-
-
 recruit_habitat <- bigeye_habitat
 
 recruit_habitat[!is.na(recruit_habitat)] <-  1
@@ -191,7 +184,7 @@ shifting_habitat <- vector(mode = "list", length = years)
 for (i in 1:years){
   
   shifting_habitat[[i]] <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-    mutate(habitat =  -((x - (1 + i))^2) / 10) %>% 
+    mutate(habitat =  -((y - (1 + i))^2) / 10) %>% 
     left_join(land, by =c("x","y")) %>% 
     mutate(habitat = ifelse(is.na(land), habitat, NA)) %>% 
     select(-land) %>% 
@@ -214,6 +207,10 @@ sim_climate <- simmar(fauna = fauna,
 
 processed_marlin <- process_marlin(sim = sim_climate, time_step = time_step, keep_age = FALSE)
 
+
+patches <- expand_grid(x = 1:resolution, y= 1:resolution) |> 
+  mutate(r0 = fauna$bigeye$r0s) |> 
+  left_join(land)
 
 range_shift <- processed_marlin$fauna %>% 
   group_by(step) %>% 

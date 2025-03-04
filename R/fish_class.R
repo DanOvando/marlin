@@ -627,7 +627,7 @@ Fish <- R6::R6Class(
           names_to = "x",
           values_to = "rec_habitat",
           names_prefix = "V",
-          names_ptypes = list(rec_habitat = integer())
+          names_transform = list(x = as.integer)
         ) %>%
         dplyr::mutate(rec_habitat = rec_habitat / sum(rec_habitat)) |>
         dplyr::select(x,y,rec_habitat) |>

@@ -741,7 +741,10 @@ simmar <- function(fauna = list(),
         current_habitat <- habitat[[names(fauna)[[f]]]][[s - 1]]
 
         current_habitat <-
-          tidyr::pivot_longer(as.data.frame(current_habitat), tidyr::everything()) # need to use pivot_longer to match patch order from expand_grid
+          tidyr::pivot_longer(as.data.frame(current_habitat), tidyr::everything(),
+                              names_to = "x",
+                              names_transform = list(x = as.integer)) |>
+          dplyr::arrange(x)# need to use pivot_longer to match patch order from expand_grid
 
         current_habitat <-
           pmin(exp((
@@ -902,7 +905,7 @@ simmar <- function(fauna = list(),
       }
 
       storage[[s]][[f]] <- pop
-      
+
       storage[[s]][[f]]$b0 <- fauna[[f]]$b0
 
     } # close fauni, much faster this way than dopar, who knew
