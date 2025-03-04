@@ -68,8 +68,8 @@ h2 <-  expand_grid(x = 1:resolution, y = 1:resolution) %>%
   
 
 bigeye_habitat <- h1 %>% 
-  pivot_wider(names_from = y, values_from = habitat) %>% 
-  select(-x) %>% 
+  pivot_wider(names_from = x, values_from = habitat) %>% 
+  select(-y) %>% 
   as.matrix()
 
 
@@ -78,14 +78,14 @@ bigeye_habitat <- h1 %>%
 # h1$habitat2 <- as.numeric(huh$value)
 
 bigeye_habitat2 <- h2 %>% 
-  pivot_wider(names_from = y, values_from = habitat) %>% 
-  select(-x) %>% 
+  pivot_wider(names_from = x, values_from = habitat) %>% 
+  select(-y) %>% 
   as.matrix()
 
 bigeye_q <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
   dplyr::mutate(habitat = rlnorm(resolution^2)) %>% 
-  pivot_wider(names_from = y, values_from = habitat) %>% 
-  select(-x) %>% 
+  pivot_wider(names_from = x, values_from = habitat) %>% 
+  select(-y) %>% 
   as.matrix()
 
 
@@ -191,12 +191,12 @@ shifting_habitat <- vector(mode = "list", length = years)
 for (i in 1:years){
   
   shifting_habitat[[i]] <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-    mutate(habitat =  -((y - (1 + i))^2) / 10) %>% 
+    mutate(habitat =  -((x - (1 + i))^2) / 10) %>% 
     left_join(land, by =c("x","y")) %>% 
     mutate(habitat = ifelse(is.na(land), habitat, NA)) %>% 
     select(-land) %>% 
-    pivot_wider(names_from = y, values_from = habitat) %>% 
-    select(-x) %>% 
+    pivot_wider(names_from = x, values_from = habitat) %>% 
+    select(-y) %>% 
     as.matrix()
   
   

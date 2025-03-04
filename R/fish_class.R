@@ -145,9 +145,9 @@ Fish <- R6::R6Class(
 
       # spawning_seasons <- (spawning_seasons / seasons) - 1 / seasons
       if (length(habitat)>0 && class(habitat) == "list") {
-        resolution <- c(nrow(habitat[[1]]), ncol(habitat[[1]]))
+        resolution <- c(ncol(habitat[[1]]), nrow(habitat[[1]]))
       } else if (any(class(habitat) == "matrix")){
-        resolution <- c(nrow(habitat), ncol(habitat))
+        resolution <- c(ncol(habitat), nrow(habitat))
       }
 
       # if habitat is an empty list
@@ -174,7 +174,7 @@ Fish <- R6::R6Class(
       if (purrr::is_empty(habitat)) {
         habitat <-
           purrr::map(1:seq_along(seasons), function(x, res)
-            matrix(0, nrow = res[1], ncol = res[2]), res = self$resolution)
+            matrix(0, nrow = res[2], ncol = res[1]), res = self$resolution)
 
       }
 
@@ -559,8 +559,12 @@ Fish <- R6::R6Class(
       taxis_matrix <- habitat
       # reshape to vector, for some reason doesn't work inside function
       for (i in seq_along(taxis_matrix)) {
-        taxis_matrix[[i]] <-
-          tidyr::pivot_longer(as.data.frame(taxis_matrix[[i]]), tidyr::everything()) # need to use pivot_longer to match patch order from expand_grid
+
+        taxis_matrix[[i]] <- as.data.frame(taxis_matrix[[i]]) |>
+          dplyr::mutate(y = 1:n()) |>
+          tidyr::pivot_longer(-y, names_to = "x", names_transform = list(x = as.integer)) |>
+          dplyr::arrange(x, y)
+
 
         taxis_matrix[[i]] <- as.numeric(taxis_matrix[[i]]$value)
 
@@ -609,7 +613,7 @@ Fish <- R6::R6Class(
 
       # set up unfished recruitment by patch
       if (is.null(dim(recruit_habitat))) {
-        recruit_habitat <- matrix(1, nrow = resolution[1], ncol = resolution[2])
+        recruit_habitat <- matrix(1, ncol = resolution[1], nrow = resolution[2])
 
       }
 
@@ -617,15 +621,17 @@ Fish <- R6::R6Class(
 
       r0s <- recruit_habitat %>%
         as.data.frame() %>%
-        dplyr::mutate(x = 1:nrow(.)) %>%
+        dplyr::mutate(y = 1:nrow(.)) %>%
         tidyr::pivot_longer(
-          -x,
-          names_to = "y",
+          -y,
+          names_to = "x",
           values_to = "rec_habitat",
           names_prefix = "V",
           names_ptypes = list(rec_habitat = integer())
         ) %>%
-        dplyr::mutate(rec_habitat = rec_habitat / sum(rec_habitat))
+        dplyr::mutate(rec_habitat = rec_habitat / sum(rec_habitat)) |>
+        dplyr::select(x,y,rec_habitat) |>
+        dplyr::arrange(x,y)
 
       local_r0s <- r0 * r0s$rec_habitat
 

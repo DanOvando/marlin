@@ -255,24 +255,24 @@ bigeye_diffusion <- 5
 skipjack_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   dplyr::mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 20, 200),
   habitat = habitat / max(habitat) * skipjack_diffusion) |> 
-  pivot_wider(names_from = y, values_from = habitat) %>% 
-  select(-x) %>% 
+  pivot_wider(names_from = x, values_from = habitat) %>% 
+  select(-y) %>% 
   as.matrix()
 
 
 bigeye_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   mutate(habitat =  dnorm((x ^ 2 + y ^ 2), 300, 100),
          habitat = habitat / max(habitat) * bigeye_diffusion) %>% 
-  pivot_wider(names_from = y, values_from = habitat) %>% 
-  select(-x) %>% 
+  pivot_wider(names_from = x, values_from = habitat) %>% 
+  select(-y) %>% 
   as.matrix()
 
 
 bigeye_habitat2 <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   mutate(habitat =  dnorm((x ^ .2 + y ^ .2), 100, 100),
          habitat = habitat / max(habitat) * bigeye_diffusion) %>% 
-  pivot_wider(names_from = y, values_from = habitat) %>% 
-  select(-x) %>% 
+  pivot_wider(names_from = x, values_from = habitat) %>% 
+  select(-y) %>% 
   as.matrix()
 
 a <- Sys.time()
@@ -435,16 +435,16 @@ mako_b0 <- 42
 yft_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   mutate(habitat =  .05 * x,
          habitat = habitat / max(habitat) * yft_diffusion) %>% 
-  pivot_wider(names_from = y, values_from = habitat) %>% 
-  select(-x) %>% 
+  pivot_wider(names_from = x, values_from = habitat) %>% 
+  select(-y) %>% 
   as.matrix()
  
 
 mako_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   mutate(habitat =  dnorm(x,resolution, 8),
          habitat = habitat / max(habitat) * mako_diffusion) %>% 
-  pivot_wider(names_from = y, values_from = habitat) %>% 
-  select(-x) %>% 
+  pivot_wider(names_from = x, values_from = habitat) %>% 
+  select(-y) %>% 
   as.matrix()
 
 
@@ -581,8 +581,8 @@ Now though, consider a different scenario. Here the tunas still slightly prefer 
 mako_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   mutate(habitat =  dnorm(x,.3 * resolution, 8),
          habitat = habitat / max(habitat) * mako_diffusion) %>% 
-  pivot_wider(names_from = y, values_from = habitat) %>% 
-  select(-x) %>% 
+  pivot_wider(names_from = x, values_from = habitat) %>% 
+  select(-y) %>% 
   as.matrix()
 
 
@@ -699,16 +699,16 @@ tune_type <- "explt"
 yft_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   mutate(habitat =  .05 * x,
          habitat = habitat / max(habitat) * yft_diffusion) %>% 
-  pivot_wider(names_from = y, values_from = habitat) %>% 
-  select(-x) %>% 
+  pivot_wider(names_from = x, values_from = habitat) %>% 
+  select(-y) %>% 
   as.matrix()
 
 
 mako_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   mutate(habitat =  x > 12 & y >12,
          habitat = habitat / max(habitat) * mako_diffusion) %>% 
-  pivot_wider(names_from = y, values_from = habitat) %>% 
-  select(-x) %>% 
+  pivot_wider(names_from = x, values_from = habitat) %>% 
+  select(-y) %>% 
   as.matrix()
 
 

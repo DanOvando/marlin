@@ -65,14 +65,14 @@ sim_habitat <-
     # set up the spatial correlation matrix
     spatial_correlations <- matrix(0, nrow = (patches), ncol = (patches))
 
-    for (x in 1:nrow(distances)) {
-      for (y in 1:ncol(distances)) {
-        if (distances[x, y] != 0) {
-          spatial_correlations[x, y] <-
-            sigma ^ 2 / (2 ^ (n - 1) * gamma(n)) * (kp * abs(distances[x, y] * H)) ^
-            n * besselK(kp * abs(distances[x, y] * H), 1)
+    for (x in 1:ncol(distances)) {
+      for (y in 1:nrow(distances)) {
+        if (distances[y, x] != 0) {
+          spatial_correlations[y, x] <-
+            sigma ^ 2 / (2 ^ (n - 1) * gamma(n)) * (kp * abs(distances[y, x] * H)) ^
+            n * besselK(kp * abs(distances[y, x] * H), 1)
         } else {
-          spatial_correlations[x, y] <- 1
+          spatial_correlations[y, x] <- 1
         }
 
       }

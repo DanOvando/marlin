@@ -34,7 +34,7 @@ options(dplyr.summarise.inform = FALSE)
 
 theme_set(marlin::theme_marlin(base_size = 14))
 
-resolution <- c(10,40) #specify a 10 wide by 100 tall grid
+resolution <- c(10,40) #specify a 10 wide by 40 tall grid
 
 patch_area <- 10 # 10km2
 
@@ -50,8 +50,8 @@ We'll now make up a habitat layer in which the species prefers to live closter t
 coastal_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   dplyr::mutate(habitat =  -.2 + .2 *x,
   habitat = habitat / max(habitat) * rockfish_diffusion) |> 
-  pivot_wider(names_from = y, values_from = habitat) %>% 
-  select(-x) %>% 
+  pivot_wider(names_from = x, values_from = habitat) %>% 
+  select(-y) %>% 
   as.matrix()
 
 ```
