@@ -67,9 +67,10 @@ Fish <- R6::R6Class(
     #' @param length_a a coefficient in power function growth
     #' @param length_b b power coefficient in power function growth
     #' @param m_at_age a vector of natural mortality age at age in case manually specified
-    #' @param growth_model one of "von_bertalanddy" or "power"
+    #' @param growth_model one of "von_bertalanffy" or "power"
     #' @param length_bin_width the width of the length bins in the length-at-age key, defaults to 1cm
-    #' @param lorenzen_c
+    #' @param lorenzen_c the rate of the Lorenzen curve. Defaults to -1, larger values will make the difference between natural mortality at young vs old ages less pronounced
+    #' @param semelparous TRUE or FALSE. When FALSE (default), individuals can reproduce multiple times. When TRUE, individuals can only spawn once, so mortality at increase increases as a function of maturity at age
     #' @param explt_type deprecated
     initialize = function(common_name = NA,
                           scientific_name = NA,
@@ -561,9 +562,8 @@ Fish <- R6::R6Class(
       for (i in seq_along(taxis_matrix)) {
 
         taxis_matrix[[i]] <- as.data.frame(taxis_matrix[[i]]) |>
-          dplyr::mutate(y = 1:n()) |>
-          tidyr::pivot_longer(-y, names_to = "x", names_transform = list(x = as.integer)) |>
-          dplyr::arrange(x, y)
+          tidyr::pivot_longer(dplyr::everything(), names_to = "x", names_transform = list(x = as.integer)) |>
+          dplyr::arrange(x)
 
 
         taxis_matrix[[i]] <- as.numeric(taxis_matrix[[i]]$value)

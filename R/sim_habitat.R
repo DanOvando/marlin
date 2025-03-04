@@ -135,8 +135,8 @@ sim_habitat <-
         dplyr::mutate(
           habitat = purrr::map(
             data,
-            \(x) x |> dplyr::select(-patch) |> tidyr::pivot_wider(names_from = y, values_from = habitat) |>
-              dplyr::select(-x) %>%
+            \(x) x |> dplyr::select(-patch) |> tidyr::pivot_wider(names_from = x, values_from = habitat) |>
+              dplyr::select(-y) %>%
               as.matrix()
           )
         )

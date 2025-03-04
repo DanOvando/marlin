@@ -80,8 +80,8 @@ critter_habitats <- habitats$critter_distributions |>
   nest() |>
   mutate(habitat = map(
     data,
-    \(x) x |> select(-patch) |> pivot_wider(names_from = y, values_from = habitat) |>
-      select(-x) %>%
+    \(x) x |> select(-patch) |> pivot_wider(names_from = x, values_from = habitat) |>
+      select(-y) %>%
       as.matrix()
   ))
   

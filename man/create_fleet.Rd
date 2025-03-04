@@ -25,7 +25,7 @@ create_fleet(
 
 \item{mpa_response}{one of "stay" or "leave" indicating response of vessels that used to fish in MPA to MPA}
 
-\item{fleet_model}{which fleet model to use, one of "constant_effort" or "open_access"}
+\item{fleet_model}{which fleet model to use, one of "constant_effort" or "open_access" or constant catch}
 
 \item{spatial_allocation}{spatial effort allocation strategy ('revenue','rpue','profit','ppue')}
 

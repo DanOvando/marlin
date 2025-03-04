@@ -358,6 +358,8 @@ simmar <- function(fauna = list(),
 
       }
 
+browser()
+
       total_effort <- sum(fleets[[l]]$e_p_s[, s - 1] * concentrator)
 
       if (sum(last_r_p, na.rm = TRUE) > 0) {
