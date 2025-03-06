@@ -43,8 +43,6 @@ fauna <-
       resolution = resolution
     )
   )
-
-
 ```
 
 We'll then create two fleets, one of which is only allowed to fish in a few specific areas. Note that when there is only one fleet, fishing grounds function identically to no-take MPAs. The distinction is that fishing grounds can be made fleet specific, whereas no-take MPAs apply to all fleets, so in cases where multiple fleets are simulated specific fleets can be excluded from specific fishing grounds but not others. 
@@ -52,7 +50,6 @@ We'll then create two fleets, one of which is only allowed to fish in a few spec
 To illustrate, we'll create two fleets that are identical except in their fishing grounds. 
 
 ```{r}
-
 fishing_grounds <- expand.grid(x = 1:resolution, y = 1:resolution) |>
   mutate(fishing_ground = TRUE)
 
@@ -63,30 +60,24 @@ fleets <- list(
     list("snapper" = Metier$new(
       critter = fauna$snapper,
       p_explt = 1
-    )
-    ),
-    base_effort = resolution ^ 2,
+    )),
+    base_effort = resolution^2,
     resolution = resolution,
     fishing_grounds = fishing_grounds,
     spatial_allocation = "rpue"
   ),
-    "commercial" = create_fleet(
+  "commercial" = create_fleet(
     list("snapper" = Metier$new(
       critter = fauna$snapper,
       p_explt = 1
-    )
-    ),
-    base_effort = resolution ^ 2,
+    )),
+    base_effort = resolution^2,
     resolution = resolution,
     spatial_allocation = "rpue"
-
   )
 )
 
 fleets <- tune_fleets(fauna, fleets, tune_type = "depletion")
-
-
-
 ```
 
 
@@ -94,28 +85,30 @@ We'll then run the simulation forward and examine the results, noting that the a
 
 
 ```{r}
-
-fishing_ground_sim <- simmar(fauna = fauna,
-                      fleets = fleets,
-                      years = years)
+fishing_ground_sim <- simmar(
+  fauna = fauna,
+  fleets = fleets,
+  years = years
+)
 
 
 proc_sim <- process_marlin(fishing_ground_sim)
 
 
-fleet_summary <- proc_sim$fleets |> 
-  filter(step == max(step)) |> 
-  group_by(fleet,x,y) |> 
-  summarise(catch = sum(catch),
-            effort = sum(effort)) |> 
-  mutate(cpue = catch / effort) 
+fleet_summary <- proc_sim$fleets |>
+  filter(step == max(step)) |>
+  group_by(fleet, x, y) |>
+  summarise(
+    catch = sum(catch),
+    effort = sum(effort)
+  ) |>
+  mutate(cpue = catch / effort)
 
-fleet_summary |> 
-  ggplot(aes(x,y,fill = effort)) + 
-  geom_tile() + 
-  facet_wrap(~fleet) + 
+fleet_summary |>
+  ggplot(aes(x, y, fill = effort)) +
+  geom_tile() +
+  facet_wrap(~fleet) +
   scale_fill_viridis_c()
-
 ```
 
 
@@ -128,7 +121,6 @@ The key distinction between this `manual` approach and simply defining fishing g
 In this example, we'll leave the commercial fleet as is, but now specify a random distribution of effort for the artisanal fleet. Note that the commercial fleet's behavior also changes as a result through due to the manual distribution of the artisanal fleet changing the distribution of revenues in space available to the commercial fleet. 
 
 ```{r}
-
 fishing_grounds <- expand.grid(x = 1:resolution, y = 1:resolution) |>
   mutate(fishing_ground = runif(length(x)))
 
@@ -139,51 +131,50 @@ fleets <- list(
     list("snapper" = Metier$new(
       critter = fauna$snapper,
       p_explt = 1
-    )
-    ),
-    base_effort = resolution ^ 2,
+    )),
+    base_effort = resolution^2,
     resolution = resolution,
     fishing_grounds = fishing_grounds,
     spatial_allocation = "manual"
   ),
-    "commercial" = create_fleet(
+  "commercial" = create_fleet(
     list("snapper" = Metier$new(
       critter = fauna$snapper,
       p_explt = 1
-    )
-    ),
-    base_effort = resolution ^ 2,
+    )),
+    base_effort = resolution^2,
     resolution = resolution,
-        spatial_allocation = "rpue"
+    spatial_allocation = "rpue"
   )
 )
 
 fleets <- tune_fleets(fauna, fleets, tune_type = "depletion")
 
-manual_fishing_ground_sim <- simmar(fauna = fauna,
-                      fleets = fleets,
-                      years = years)
+manual_fishing_ground_sim <- simmar(
+  fauna = fauna,
+  fleets = fleets,
+  years = years
+)
 
 
 proc_sim <- process_marlin(manual_fishing_ground_sim)
 
 
-fleet_summary <- proc_sim$fleets |> 
-  filter(step == max(step)) |> 
-  group_by(fleet,x,y) |> 
-  summarise(catch = sum(catch),
-            effort = sum(effort)) |> 
-  mutate(cpue = catch / effort) 
+fleet_summary <- proc_sim$fleets |>
+  filter(step == max(step)) |>
+  group_by(fleet, x, y) |>
+  summarise(
+    catch = sum(catch),
+    effort = sum(effort)
+  ) |>
+  mutate(cpue = catch / effort)
 
 
 
-fleet_summary |> 
-  ggplot(aes(x,y,fill = effort)) + 
-  geom_tile() + 
-  facet_wrap(~fleet) + 
+fleet_summary |>
+  ggplot(aes(x, y, fill = effort)) +
+  geom_tile() +
+  facet_wrap(~fleet) +
   scale_fill_viridis_c()
-
-
-
 ```
 

@@ -20,7 +20,6 @@ MPA performance is often attempted to be measured by empirical indicators, such 
 We'll first simulate a system with some heterogeneous habitat.  
 
 ```{r, message=FALSE, warning=FALSE}
-
 library(marlin)
 
 library(tidyverse)
@@ -35,7 +34,7 @@ library(bayesplot)
 
 theme_set(marlin::theme_marlin())
 
-resolution <- c(10,10) # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
+resolution <- c(10, 10) # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches
 
 patch_area <- 10
 
@@ -48,7 +47,7 @@ tune_type <- "depletion"
 steps <- years * seasons
 
 yft_diffusion <- 2
-  
+
 yft_depletion <- .2
 
 rec_factor <- 10
@@ -63,8 +62,8 @@ critters <- c("yellowfin", "mako")
 
 critter_correlation <- -0.4
 
-corr_mat <- matrix( c(1,critter_correlation,critter_correlation,1) , nrow=2 ) # correlation matrix
-    
+corr_mat <- matrix(c(1, critter_correlation, critter_correlation, 1), nrow = 2) # correlation matrix
+
 
 habitats <- sim_habitat(
   critters,
@@ -74,27 +73,26 @@ habitats <- sim_habitat(
   patch_area = patch_area
 )
 
-    
+
 critter_habitats <- habitats$critter_distributions |>
   group_by(critter) |>
   nest() |>
   mutate(habitat = map(
     data,
-    \(x) x |> select(-patch) |> pivot_wider(names_from = y, values_from = habitat) |>
-      select(-x) %>%
+    \(x) x |>
+      select(-patch) |>
+      pivot_wider(names_from = x, values_from = habitat) |>
+      select(-y) %>%
       as.matrix()
   ))
-  
-
-
 ```
 
 
 ```{r, fig.cap="Simulated Species Habitat"}
-habitats$critter_distributions |> 
-  ggplot(aes(x,y,fill = habitat)) + 
-  geom_tile() + 
-  facet_wrap(~critter) + 
+habitats$critter_distributions |>
+  ggplot(aes(x, y, fill = habitat)) +
+  geom_tile() +
+  facet_wrap(~critter) +
   scale_fill_viridis_c()
 ```
 
@@ -106,7 +104,7 @@ yft_habitat <- critter_habitats$habitat[[which(critter_habitats$critter == "yell
 
 mako_habitat <- critter_habitats$habitat[[which(critter_habitats$critter == "mako")]]
 
-fauna <- 
+fauna <-
   list(
     "yellowfin" = create_critter(
       scientific_name = "Thunnus albacares",
@@ -118,10 +116,10 @@ fauna <-
       density_dependence = "pre_dispersal", # recruitment form, where 1 implies local recruitment
       seasons = seasons,
       ssb0 = 5000,
-      ),
+    ),
     "mako" = create_critter(
       scientific_name = "Isurus oxyrinchus",
-    habitat = mako_habitat, 
+      habitat = mako_habitat,
       recruit_habitat = mako_habitat,
       adult_diffusion = mako_diffusion,
       recruit_diffusion = rec_factor * .1,
@@ -137,25 +135,27 @@ fauna <-
   )
 
 
-fleets <- list("longline" = create_fleet(list(
-  `yellowfin` = Metier$new(
-    critter = fauna$`yellowfin`,
-    price = 100, # price per unit weight
-    sel_form = "logistic", # selectivity form, one of logistic or dome
-    sel_start = .3, # percentage of length at maturity that selectivity starts
-    sel_delta = .1, # additional percentage of sel_start where selectivity asymptotes
-    catchability = .01, # overwritten by tune_fleet but can be set manually here
-    p_explt = 1
+fleets <- list("longline" = create_fleet(
+  list(
+    `yellowfin` = Metier$new(
+      critter = fauna$`yellowfin`,
+      price = 100, # price per unit weight
+      sel_form = "logistic", # selectivity form, one of logistic or dome
+      sel_start = .3, # percentage of length at maturity that selectivity starts
+      sel_delta = .1, # additional percentage of sel_start where selectivity asymptotes
+      catchability = .01, # overwritten by tune_fleet but can be set manually here
+      p_explt = 1
     ),
-  `mako` = Metier$new(
-    critter = fauna$`mako`,
-    price = 10,
-    sel_form = "logistic",
-    sel_start = .1,
-    sel_delta = .01,
-    catchability = 0,
-    p_explt = 1
-  )),
+    `mako` = Metier$new(
+      critter = fauna$`mako`,
+      price = 10,
+      sel_form = "logistic",
+      sel_start = .1,
+      sel_delta = .01,
+      catchability = 0,
+      p_explt = 1
+    )
+  ),
   mpa_response = "stay",
   base_effort = 1000 * prod(resolution),
   spatial_allocation = "rpue",
@@ -172,15 +172,17 @@ Sys.time() - a
 
 a <- Sys.time()
 
-spillover_sim <- simmar(fauna = fauna,
-                  fleets = fleets,
-                  years = years)
+spillover_sim <- simmar(
+  fauna = fauna,
+  fleets = fleets,
+  years = years
+)
 
 Sys.time() - a
 
 
-  
-proc_spillover <- process_marlin(spillover_sim, time_step =  fauna[[1]]$time_step, keep_age = TRUE)
+
+proc_spillover <- process_marlin(spillover_sim, time_step = fauna[[1]]$time_step, keep_age = TRUE)
 
 plot_marlin(
   proc_spillover,
@@ -191,56 +193,53 @@ plot_marlin(
 
 plot_marlin(proc_spillover, max_scale = FALSE)
 
-mpa_locations <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) |> 
-  arrange(x) |> 
-  mutate(patch_name = paste(x,y, sep = "_"))
+mpa_locations <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) |>
+  arrange(x) |>
+  mutate(patch_name = paste(x, y, sep = "_"))
 
 mpas <- mpa_locations$patch_name[1:round(nrow(mpa_locations) * .3)]
 
 # mpas <- sample(mpa_locations$patch_name, round(nrow(mpa_locations) * 0.2), replace = FALSE, prob = mpa_locations$x)
 
 mpa_locations$mpa <- mpa_locations$patch_name %in% mpas
-  
+
 a <- Sys.time()
 
 mpa_spillover <- simmar(
   fauna = fauna,
   fleets = fleets,
   years = years,
-  manager = list(mpas = list(locations = mpa_locations,
-              mpa_year = floor(years * .5)))
+  manager = list(mpas = list(
+    locations = mpa_locations,
+    mpa_year = floor(years * .5)
+  ))
 )
 
 Sys.time() - a
 
-proc_mpa_spillover <- process_marlin(mpa_spillover, time_step =  fauna[[1]]$time_step)
-
-
+proc_mpa_spillover <- process_marlin(mpa_spillover, time_step = fauna[[1]]$time_step)
 ```
 
 We can use `marlin::get_distance_to_mpas` to measure the euclidian distance between the centroid of each cell and the nearest MPA cell centroid. 
 
 ```{r fig-mpa-dist, fig.cap="Distance of each cell to the nearest MPA edge."}
-
 mpa_distances <- get_distance_to_mpas(mpa_locations = mpa_locations, resolution = resolution, patch_area = patch_area)
 
-  mpa_distances |>
-    ggplot(aes(x,y,fill = distance_to_mpa_edge)) +
-    geom_tile() +
-    geom_tile(aes(x,y, color = mpa), size = 1.5) +
-    scale_fill_gradient2(low = "darkblue", high = "green", mid = "white", midpoint = 0)
+mpa_distances |>
+  ggplot(aes(x, y, fill = distance_to_mpa_edge)) +
+  geom_tile() +
+  geom_tile(aes(x, y, color = mpa), size = 1.5) +
+  scale_fill_gradient2(low = "darkblue", high = "green", mid = "white", midpoint = 0)
 ```
 
 We can also calculate an "MPA gravity", measured as the sum of all the distances from the current cell to all MPA cells. So, a single MPA patch far from any other MPAs might actually have a lower MPA gravity than a fished patch right next to a very large number of MPA cells. 
 
 ```{r fig-dist2, fig.cap="MPA gravity per cell."}
-
-  mpa_distances |>
-    ggplot(aes(x,y,fill = -total_mpa_distance)) +
-    geom_tile() +
-    geom_tile(aes(x,y, color = mpa), size = 1.5) + 
-  scale_fill_viridis_c(name = "MPA gravity",option = "magma", direction = -1)
-
+mpa_distances |>
+  ggplot(aes(x, y, fill = -total_mpa_distance)) +
+  geom_tile() +
+  geom_tile(aes(x, y, color = mpa), size = 1.5) +
+  scale_fill_viridis_c(name = "MPA gravity", option = "magma", direction = -1)
 ```
 ### Indicators
 
@@ -255,22 +254,21 @@ The complex interactions of the life history and fishing fleet strategies mean t
 
 
 ```{r fig-line, fig.cap="Distribution of fishing effort in space post-MPA."}
+conservation_outcomes <- proc_mpa_spillover$fauna
 
-conservation_outcomes <- proc_mpa_spillover$fauna 
-  
-fishery_outcomes <- proc_mpa_spillover$fleets 
+fishery_outcomes <- proc_mpa_spillover$fleets
 
 
-a = fishery_outcomes |> 
-  filter(step == max(step), effort > 0) |> 
-    left_join(mpa_distances, by = c("x","y","patch")) |> 
-  ggplot(aes(distance_to_mpa_edge, effort, color = factor(step))) + 
+a <- fishery_outcomes |>
+  filter(step == max(step), effort > 0) |>
+  left_join(mpa_distances, by = c("x", "y", "patch")) |>
+  ggplot(aes(distance_to_mpa_edge, effort, color = factor(step))) +
   geom_point() +
   facet_wrap(~critter, scales = "free_y")
 
 
-b = fishery_outcomes |>
-  mutate(effort = if_else(effort == 0, NA, effort)) |> 
+b <- fishery_outcomes |>
+  mutate(effort = if_else(effort == 0, NA, effort)) |>
   filter(step == max(step)) |>
   ggplot(aes(x, y, fill = effort)) +
   geom_tile()
@@ -300,66 +298,59 @@ We can use this equation then to calculate response ratios in various metrics, s
 rr_data <- conservation_outcomes |>
   filter(step == max(step) | year == floor(years * .5)) |>
   group_by(step, x, y, patch, critter) |>
-  summarise(biomass = sum(b),
-            mean_length = weighted.mean(mean_length, n)) |>
+  summarise(
+    biomass = sum(b),
+    mean_length = weighted.mean(mean_length, n)
+  ) |>
   left_join(mpa_distances, by = c("x", "y", "patch"))
-
-
-
-
 ```
 
 
 
 ```{r fig-bgradient, fig.cap="Biomass of each species as a function of distance from MPA border. Negative distance means inside the MPA."}
-
-rr_data|>
+rr_data |>
   ggplot(aes(distance_to_mpa_edge, biomass, color = factor(step))) +
   geom_vline(xintercept = 0) +
   geom_jitter() +
-  facet_wrap( ~ critter, scales = "free_y")
-
-
+  facet_wrap(~critter, scales = "free_y")
 ```
 
 
 ```{r fig-mlgradient, fig.cap="Biomass of each species as a function of distance from MPA border. Negative distance means inside the MPA."}
-
-rr_data|>
+rr_data |>
   ggplot(aes(distance_to_mpa_edge, mean_length, color = factor(step))) +
   geom_vline(xintercept = 0) +
   geom_jitter() +
-  facet_wrap( ~ critter, scales = "free_y") + 
+  facet_wrap(~critter, scales = "free_y") +
   scale_y_continuous(name = "Mean Length")
-
-
 ```
 
 ## Quantifying Gradients
 
 
 ```{r}
-
 model_critter <- "yellowfin"
 
 
 baseline <- data.frame(ssb0_p = fauna[[model_critter]]$ssb0_p) |>
-  mutate(patch = 1:n()) |> 
+  mutate(patch = 1:n()) |>
   mutate(scaled_ssb0_p = as.numeric(scale(ssb0_p)))
 
 
 mpa_and_ssb <- mpa_distances |>
   left_join(baseline, by = "patch")
 
-survey_indicators = conservation_outcomes |>
+survey_indicators <- conservation_outcomes |>
   filter(step == max(step), critter == model_critter) |>
   group_by(step, x, y, patch, critter) |>
-  summarise(biomass = sum(b),
-            mean_length = weighted.mean(mean_length, n)) |>
+  summarise(
+    biomass = sum(b),
+    mean_length = weighted.mean(mean_length, n)
+  ) |>
   left_join(mpa_and_ssb, by = c("x", "y", "patch")) |>
-  ungroup() 
+  ungroup()
 
-response_ratio_model = stan_glm(
+response_ratio_model <- stan_glm(
   biomass ~ mpa + scaled_ssb0_p - 1,
   data = survey_indicators,
   chains = 1,
@@ -374,43 +365,42 @@ response_ratio |>
   ggplot(aes(response_ratio)) +
   geom_histogram() +
   scale_x_continuous(labels = scales::percent, name = "Response Ratio")
-
 ```
 
 
 ### Gradients
 
 ```{r}
-
 model_critter <- "mako"
 
 
 halpern_foo <- function(pars, y, distance_to_mpa, use = "fit") {
-  yhat = pars[1] / (1 + pars[2] * exp(pars[3] * distance_to_mpa)) + pars[4]
-  
+  yhat <- pars[1] / (1 + pars[2] * exp(pars[3] * distance_to_mpa)) + pars[4]
+
   if (use == "fit") {
-    out <- sum(((yhat) - (y)) ^ 2)
+    out <- sum(((yhat) - (y))^2)
   } else {
     out <- yhat
   }
-  
 }
 
 
 baseline <- data.frame(ssb0_p = fauna[[model_critter]]$ssb0_p) |>
-  mutate(patch = 1:n()) |> 
+  mutate(patch = 1:n()) |>
   mutate(scaled_ssb0_p = as.numeric(scale(ssb0_p)))
 
 
 
 
-survey_indicators = conservation_outcomes |>
+survey_indicators <- conservation_outcomes |>
   filter(step == max(step), critter == model_critter) |>
   group_by(step, x, y, patch, critter) |>
-  summarise(biomass = sum(b),
-            mean_length = weighted.mean(mean_length, n)) |>
+  summarise(
+    biomass = sum(b),
+    mean_length = weighted.mean(mean_length, n)
+  ) |>
   left_join(mpa_and_ssb, by = c("x", "y", "patch")) |>
-  ungroup() 
+  ungroup()
 
 fishery_indicators <- fishery_outcomes |>
   filter(step == max(step), critter == model_critter) |>
@@ -422,7 +412,7 @@ fishery_indicators <- fishery_outcomes |>
     cpue = sum(catch) / sum(effort)
   ) |>
   left_join(mpa_and_ssb, by = c("x", "y", "patch")) |>
-  ungroup() 
+  ungroup()
 
 
 test <- optim(
@@ -449,7 +439,7 @@ spillpars <- test$par
 
 spillpars[4] <- 0
 
-dists <- seq(0,1000)
+dists <- seq(0, 1000)
 spillover <- halpern_foo(
   spillpars,
   y = survey_indicators$biomass,
@@ -458,18 +448,16 @@ spillover <- halpern_foo(
 )
 
 zerotol <- 0.05
-spillplot <- data.frame(distance_to_mpa_edge =dists, spillover = spillover) 
+spillplot <- data.frame(distance_to_mpa_edge = dists, spillover = spillover)
 
-spillover_distance <- spillplot |> 
-  filter(spillover < (1 + zerotol) * min(spillover)) |> 
+spillover_distance <- spillplot |>
+  filter(spillover < (1 + zerotol) * min(spillover)) |>
   slice(1)
 
-spillplot |> 
-  ggplot(aes(distance_to_mpa_edge, spillover)) + 
-  geom_point() + 
+spillplot |>
+  ggplot(aes(distance_to_mpa_edge, spillover)) +
+  geom_point() +
   geom_vline(xintercept = spillover_distance$distance_to_mpa_edge)
-
-
 ```
 
 
@@ -477,8 +465,7 @@ spillplot |>
 Aha, so use the model, then calculate the distance at which the predicted 
 
 ```{r}
-
-b_gradient_model = stan_glm(
+b_gradient_model <- stan_glm(
   biomass ~ distance_to_mpa_edge,
   data = survey_indicators |> filter(!mpa),
   family = Gamma(link = "log"),
@@ -489,7 +476,7 @@ b_gradient_model = stan_glm(
 
 plot(b_gradient_model)
 
-cpue_gradient_model = stan_glm(
+cpue_gradient_model <- stan_glm(
   cpue ~ distance_to_mpa_edge,
   data = fishery_indicators |> filter(!mpa),
   family = Gamma(link = "log"),
@@ -497,7 +484,7 @@ cpue_gradient_model = stan_glm(
   cores = 1
 )
 
-effort_gradient_model = stan_glm(
+effort_gradient_model <- stan_glm(
   effort ~ distance_to_mpa_edge + scaled_ssb0_p,
   data = fishery_indicators |> filter(!mpa),
   family = Gamma(link = "log"),
@@ -512,18 +499,18 @@ mcmc_hist(effort_gradient_model, pars = "distance_to_mpa_edge")
 predictions <- posterior_predict(b_gradient_model, newdata = survey_indicators |> mutate(scaled_ssb0_p = 0), type = "response") |>
   as.data.frame() |>
   mutate(iteration = 1:n()) |>
-  pivot_longer(-iteration, names_to = "patch", values_to = "biomass_hat", 
-               names_transform = list(patch = as.integer)) |> 
+  pivot_longer(-iteration,
+    names_to = "patch", values_to = "biomass_hat",
+    names_transform = list(patch = as.integer)
+  ) |>
   left_join(mpa_and_ssb, by = "patch")
 
-survey_indicators |> 
-  ggplot(aes(distance_to_mpa_edge, biomass)) + 
-  geom_point() + 
-  stat_lineribbon(data = predictions, aes(distance_to_mpa_edge, biomass_hat), alpha = 0.5) + 
-  scale_fill_brewer() + 
+survey_indicators |>
+  ggplot(aes(distance_to_mpa_edge, biomass)) +
+  geom_point() +
+  stat_lineribbon(data = predictions, aes(distance_to_mpa_edge, biomass_hat), alpha = 0.5) +
+  scale_fill_brewer() +
   scale_y_continuous(limits = c(0, NA))
-
-
 ```
 
 

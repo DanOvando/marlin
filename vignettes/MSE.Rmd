@@ -37,7 +37,7 @@ library(tidyverse)
 
 theme_set(theme_marlin(base_size = 14))
 
-resolution <- 10 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
+resolution <- 10 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches
 
 burn_years <- 20
 
@@ -48,7 +48,7 @@ sim_steps <- 20 * seasons
 
 time_step <- 1 / seasons
 
-fauna <- 
+fauna <-
   list(
     "striped marlin" = create_critter(
       scientific_name = "Kajikia audax",
@@ -65,38 +65,37 @@ fauna <-
 fleets <- list(
   "longline" = create_fleet(
     list("striped marlin" = Metier$new(
-        critter = fauna$`striped marlin`,
-        price = 10,
-        sel_form = "logistic",
-        sel_start = 1,
-        sel_delta = .01,
-        catchability = 0,
-        p_explt = 2
-      )
-    ),
-    base_effort = resolution ^ 2,
+      critter = fauna$`striped marlin`,
+      price = 10,
+      sel_form = "logistic",
+      sel_start = 1,
+      sel_delta = .01,
+      catchability = 0,
+      p_explt = 2
+    )),
+    base_effort = resolution^2,
     resolution = resolution,
     responsiveness = .5,
     cost_per_unit_effort = 1,
-    fleet_model = "open access")
-,
-"handline" = create_fleet(
-  list("striped marlin" = Metier$new(
-    critter = fauna$`striped marlin`,
-    price = 10,
-    sel_form = "logistic",
-    sel_start = 1,
-    sel_delta = .01,
-    catchability = 0,
-    p_explt = 1
-  )
+    fleet_model = "open access"
   ),
-  base_effort = resolution ^ 2,
-  resolution = resolution,
-  fleet_model = "constant effort"
-))
+  "handline" = create_fleet(
+    list("striped marlin" = Metier$new(
+      critter = fauna$`striped marlin`,
+      price = 10,
+      sel_form = "logistic",
+      sel_start = 1,
+      sel_delta = .01,
+      catchability = 0,
+      p_explt = 1
+    )),
+    base_effort = resolution^2,
+    resolution = resolution,
+    fleet_model = "constant effort"
+  )
+)
 
-fleets <- tune_fleets(fauna, fleets, tune_type = "depletion") 
+fleets <- tune_fleets(fauna, fleets, tune_type = "depletion")
 
 
 hcr_cutoff <- 0.2
@@ -105,77 +104,74 @@ hcr_target <- 0.5
 
 max_u <- 0.2
 
-depletion <- seq(0,1, by= 0.1)
+depletion <- seq(0, 1, by = 0.1)
 
 hcr_slope <- max_u / (hcr_target - hcr_cutoff)
 
 hcr_intercept <- -hcr_slope * hcr_cutoff
 
-hcr <- pmin(max_u,pmax(.01,hcr_slope * depletion + hcr_intercept))
+hcr <- pmin(max_u, pmax(.01, hcr_slope * depletion + hcr_intercept))
 
 hcr_frame <- data.frame(depletion = depletion, hcr = hcr)
 
-hcr_frame %>% 
-  ggplot(aes(depletion, hcr)) + 
-  geom_line() + 
-  scale_x_continuous(name = "B/B0") + 
+hcr_frame %>%
+  ggplot(aes(depletion, hcr)) +
+  geom_line() +
+  scale_x_continuous(name = "B/B0") +
   scale_y_continuous(name = "Fishing Mortality Rate")
-
 ```
 
 
 ```{r}
-mse_sim <- simmar(fauna = fauna,
-                  fleets = fleets,
-                  years = burn_years)
+mse_sim <- simmar(
+  fauna = fauna,
+  fleets = fleets,
+  years = burn_years
+)
 
 test <- process_marlin(mse_sim, keep_age = FALSE)
 
 initial_conditions <- mse_sim[[length(mse_sim)]]
 
-starting_step = marlin::clean_steps(last(names(mse_sim)))
-  
-for (y in 2:sim_steps){
-  
+starting_step <- marlin::clean_steps(last(names(mse_sim)))
+
+for (y in 2:sim_steps) {
   depletion <- purrr::map(mse_sim[[length(mse_sim)]], ~ sum(.x$ssb_p_a) / .x$ssb0)
-  
-  u <- map(depletion, ~  pmin(max_u,pmax(0.01,hcr_slope * .x + hcr_intercept)))
-  
+
+  u <- map(depletion, ~ pmin(max_u, pmax(0.01, hcr_slope * .x + hcr_intercept)))
+
   quotas <- purrr::map2(mse_sim[[length(mse_sim)]], u, ~ sum(.x$ssb_p_a) * .y)
-  
+
   next_step <- simmar(
-  fauna = fauna,
-  fleets = fleets,
-  steps = 1,
-  initial_conditions = initial_conditions,
-  manager = list(quotas = quotas),
-  starting_step = starting_step,
-  keep_starting_step = FALSE
-)
+    fauna = fauna,
+    fleets = fleets,
+    steps = 1,
+    initial_conditions = initial_conditions,
+    manager = list(quotas = quotas),
+    starting_step = starting_step,
+    keep_starting_step = FALSE
+  )
 
   initial_conditions <- next_step[[length(next_step)]]
-  
-  starting_step = marlin::clean_steps(last(names(next_step)))
+
+  starting_step <- marlin::clean_steps(last(names(next_step)))
 
   mse_sim <- append(mse_sim, next_step)
-  
 }
 
 
 processed_mse_sim <- process_marlin(mse_sim)
 
-a = processed_mse_sim$fauna |> 
-  group_by(step, critter) |> 
+a <- processed_mse_sim$fauna |>
+  group_by(step, critter) |>
   summarise(ssb = sum(ssb))
 
-b = processed_mse_sim$fauna |> 
-  group_by(step, critter) |> 
+b <- processed_mse_sim$fauna |>
+  group_by(step, critter) |>
   summarise(c = sum(c))
 
 
 plot_marlin(processed_mse_sim, plot_var = "c", max_scale = FALSE)
 
 plot_marlin(processed_mse_sim, plot_var = "b", max_scale = FALSE)
-
-
 ```

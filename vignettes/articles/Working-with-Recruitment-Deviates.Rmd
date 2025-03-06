@@ -29,7 +29,7 @@ library(marlin)
 
 theme_set(marlin::theme_marlin())
 
-resolution <- c(10,10) # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
+resolution <- c(10, 10) # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches
 
 patch_area <- 10
 
@@ -42,7 +42,7 @@ tune_type <- "depletion"
 steps <- years * seasons
 
 yft_diffusion <- 2
-  
+
 yft_depletion <- .2
 
 rec_factor <- 10
@@ -52,14 +52,10 @@ mako_depletion <- 0.3
 mako_diffusion <- 100
 
 critters <- c("yellowfin", "mako")
-
-
 ```
 
 ```{r}
-
-
-fauna <- 
+fauna <-
   list(
     "yellowfin" = create_critter(
       scientific_name = "Thunnus albacares",
@@ -71,7 +67,7 @@ fauna <-
       ssb0 = 5000,
       sigma_rec = 0.42,
       ac_rec = 0.42
-      ),
+    ),
     "mako" = create_critter(
       scientific_name = "Isurus oxyrinchus",
       adult_diffusion = mako_diffusion,
@@ -88,25 +84,27 @@ fauna <-
     )
   )
 
-fleets <- list("longline" = create_fleet(list(
-  `yellowfin` = Metier$new(
-    critter = fauna$`yellowfin`,
-    price = 100, # price per unit weight
-    sel_form = "logistic", # selectivity form, one of logistic or dome
-    sel_start = .3, # percentage of length at maturity that selectivity starts
-    sel_delta = .1, # additional percentage of sel_start where selectivity asymptotes
-    catchability = .01, # overwritten by tune_fleet but can be set manually here
-    p_explt = 1
+fleets <- list("longline" = create_fleet(
+  list(
+    `yellowfin` = Metier$new(
+      critter = fauna$`yellowfin`,
+      price = 100, # price per unit weight
+      sel_form = "logistic", # selectivity form, one of logistic or dome
+      sel_start = .3, # percentage of length at maturity that selectivity starts
+      sel_delta = .1, # additional percentage of sel_start where selectivity asymptotes
+      catchability = .01, # overwritten by tune_fleet but can be set manually here
+      p_explt = 1
     ),
-  `mako` = Metier$new(
-    critter = fauna$`mako`,
-    price = 10,
-    sel_form = "logistic",
-    sel_start = .1,
-    sel_delta = .01,
-    catchability = 0,
-    p_explt = 1
-  )),
+    `mako` = Metier$new(
+      critter = fauna$`mako`,
+      price = 10,
+      sel_form = "logistic",
+      sel_start = .1,
+      sel_delta = .01,
+      catchability = 0,
+      p_explt = 1
+    )
+  ),
   mpa_response = "stay",
   base_effort = 1000 * prod(resolution),
   spatial_allocation = "rpue",
@@ -123,25 +121,24 @@ Sys.time() - a
 
 a <- Sys.time()
 
-recruitment_sim <- simmar(fauna = fauna,
-                  fleets = fleets,
-                  steps = steps)
+recruitment_sim <- simmar(
+  fauna = fauna,
+  fleets = fleets,
+  steps = steps
+)
 
 Sys.time() - a
 
 sim <- process_marlin(recruitment_sim)
-
-
 ```
 
 
 ```{r, fig.cap="Timeline of recruits (age 0 fish) into the population over time given degrees of variation and autocorrelation in the recruitment process."}
-
-sim$fauna |> 
-  filter(age == min(age)) |> 
-  ggplot(aes(step, n)) + 
-  geom_line() + 
-  geom_point() + 
+sim$fauna |>
+  filter(age == min(age)) |>
+  ggplot(aes(step, n)) +
+  geom_line() +
+  geom_point() +
   facet_wrap(~critter, scales = "free_y")
 ```
 
@@ -149,11 +146,10 @@ We can expand on this simple analysis by adding in a new feature, a correlation 
 
 
 ```{r}
-
 critter_correlations <- matrix(c(1, -.8, -.8, 1), nrow = 2, byrow = TRUE)
 
 
-fauna <- 
+fauna <-
   list(
     "yellowfin" = create_critter(
       scientific_name = "Thunnus albacares",
@@ -165,7 +161,7 @@ fauna <-
       ssb0 = 5000,
       sigma_rec = 0.42,
       ac_rec = 0
-      ),
+    ),
     "mako" = create_critter(
       scientific_name = "Isurus oxyrinchus",
       adult_diffusion = mako_diffusion,
@@ -182,25 +178,27 @@ fauna <-
     )
   )
 
-fleets <- list("longline" = create_fleet(list(
-  `yellowfin` = Metier$new(
-    critter = fauna$`yellowfin`,
-    price = 100, # price per unit weight
-    sel_form = "logistic", # selectivity form, one of logistic or dome
-    sel_start = .3, # percentage of length at maturity that selectivity starts
-    sel_delta = .1, # additional percentage of sel_start where selectivity asymptotes
-    catchability = .01, # overwritten by tune_fleet but can be set manually here
-    p_explt = 1
+fleets <- list("longline" = create_fleet(
+  list(
+    `yellowfin` = Metier$new(
+      critter = fauna$`yellowfin`,
+      price = 100, # price per unit weight
+      sel_form = "logistic", # selectivity form, one of logistic or dome
+      sel_start = .3, # percentage of length at maturity that selectivity starts
+      sel_delta = .1, # additional percentage of sel_start where selectivity asymptotes
+      catchability = .01, # overwritten by tune_fleet but can be set manually here
+      p_explt = 1
     ),
-  `mako` = Metier$new(
-    critter = fauna$`mako`,
-    price = 10,
-    sel_form = "logistic",
-    sel_start = .1,
-    sel_delta = .01,
-    catchability = 0,
-    p_explt = 1
-  )),
+    `mako` = Metier$new(
+      critter = fauna$`mako`,
+      price = 10,
+      sel_form = "logistic",
+      sel_start = .1,
+      sel_delta = .01,
+      catchability = 0,
+      p_explt = 1
+    )
+  ),
   mpa_response = "stay",
   base_effort = 1000 * prod(resolution),
   spatial_allocation = "rpue",
@@ -232,60 +230,55 @@ sim <- process_marlin(recruitment_sim)
 
 
 ```{r, fig.cap="Scatter plot of negatively correlated recruitment between the two simulated species."}
-
-sim$fauna |> 
-  filter(age == min(age)) |> 
-  select(step,patch,critter, n) |> 
-  pivot_wider(names_from = critter, values_from = n) |> 
-  ggplot(aes(mako, yellowfin)) + 
-  geom_point() 
+sim$fauna |>
+  filter(age == min(age)) |>
+  select(step, patch, critter, n) |>
+  pivot_wider(names_from = critter, values_from = n) |>
+  ggplot(aes(mako, yellowfin)) +
+  geom_point()
 ```
 
 Users can also supply their own matrix of recruitment deviates. This matrix has number of columns equal to the number of critters, and rows equal to the number of years to be simulated plus one additional number of seasons per year (a required buffer). This step can be useful if for example the user wants to share the same vector of recruitment deviates across multiple simulations, or generate more complex recruitment deviates driven by for example environmental covariates. 
 
 ```{r}
+sigma_recs <- purrr::map_dbl(fauna, "sigma_rec") # gather recruitment standard deviations
 
+ac_recs <- purrr::map_dbl(fauna, "ac_rec") # gather autocorrelation in recruitment standard deviations
 
-  sigma_recs <- purrr::map_dbl(fauna, "sigma_rec") # gather recruitment standard deviations
+n_critters <- length(fauna)
 
-  ac_recs <- purrr::map_dbl(fauna, "ac_rec") # gather autocorrelation in recruitment standard deviations
+covariance_rec <- critter_correlations * (sigma_recs %o% sigma_recs)
 
-  n_critters <-  length(fauna)
-  
-  covariance_rec <- critter_correlations * (sigma_recs %o% sigma_recs)
+rec_steps <- steps + seasons
 
-  rec_steps <- steps + seasons
-  
-  log_rec_devs <- matrix(NA, nrow = rec_steps, ncol = n_critters, dimnames = list(1:(rec_steps), names(fauna)))
+log_rec_devs <- matrix(NA, nrow = rec_steps, ncol = n_critters, dimnames = list(1:(rec_steps), names(fauna)))
 
-  log_rec_devs[1,] <- mvtnorm::rmvnorm(1,rep(0, n_critters),sigma = covariance_rec)
+log_rec_devs[1, ] <- mvtnorm::rmvnorm(1, rep(0, n_critters), sigma = covariance_rec)
 
-  for (i in 2:rec_steps){
+for (i in 2:rec_steps) {
+  log_rec_devs[i, ] <- ac_recs * log_rec_devs[i - 1, ] + sqrt(1 - ac_recs^2) * mvtnorm::rmvnorm(1, rep(0, n_critters), sigma = covariance_rec)
+}
 
-    log_rec_devs[i, ] <- ac_recs *  log_rec_devs[i - 1, ] + sqrt(1 - ac_recs ^ 2) * mvtnorm::rmvnorm(1, rep(0,n_critters), sigma = covariance_rec)
+a <- Sys.time()
 
-  }
-  
-  a <- Sys.time()
-
-recruitment_sim <- simmar(fauna = fauna,
-                  fleets = fleets,
-                  steps = steps,
-                  log_rec_devs = log_rec_devs)
+recruitment_sim <- simmar(
+  fauna = fauna,
+  fleets = fleets,
+  steps = steps,
+  log_rec_devs = log_rec_devs
+)
 
 Sys.time() - a
 
 sim <- process_marlin(recruitment_sim)
-
 ```
 
 ```{r, fig.cap="Scatter plot of externally supplied negatively correlated recruitment between the two simulated species."}
-
-sim$fauna |> 
-  filter(age == min(age)) |> 
-  select(step,patch,critter, n) |> 
-  pivot_wider(names_from = critter, values_from = n) |> 
-  ggplot(aes(mako, yellowfin)) + 
-  geom_point() 
+sim$fauna |>
+  filter(age == min(age)) |>
+  select(step, patch, critter, n) |>
+  pivot_wider(names_from = critter, values_from = n) |>
+  ggplot(aes(mako, yellowfin)) +
+  geom_point()
 ```
 

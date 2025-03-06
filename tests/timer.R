@@ -42,9 +42,8 @@ fleets <- list(
       sel_delta = .01,
       catchability = 0,
       p_explt = 1
-    )
-    ),
-    base_effort = resolution ^ 2,
+    )),
+    base_effort = resolution^2,
     resolution = resolution,
     fishing_grounds = fishing_grounds
   )
@@ -56,11 +55,12 @@ fleets <- tune_fleets(fauna, fleets, tune_type = "depletion")
 
 start_time <- Sys.time()
 
-for (i in 1:(1)){
-
-example_sim <- simmar(fauna = fauna,
-                      fleets = fleets,
-                      years = years)
+for (i in 1:(1)) {
+  example_sim <- simmar(
+    fauna = fauna,
+    fleets = fleets,
+    years = years
+  )
 }
 Sys.time() - start_time
 

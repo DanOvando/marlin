@@ -11,8 +11,7 @@
 #'
 #' @return sum of squares of catch relative to quota
 
-quota_finder <- function(fmult, quota, fauna, current_season, movement,f_p_a,last_n_p_a,f_p_a_fl,f, rec_devs, patches, ages, fleets){
-
+quota_finder <- function(fmult, quota, fauna, current_season, movement, f_p_a, last_n_p_a, f_p_a_fl, f, rec_devs, patches, ages, fleets) {
   tmp_pop <-
     fauna[[f]]$swim(
       season = current_season,
@@ -30,6 +29,4 @@ quota_finder <- function(fmult, quota, fauna, current_season, movement,f_p_a,las
     )
 
   log_ss <- (sum(tmp_catch, na.rm = TRUE) - quota)^2
-
-
 }

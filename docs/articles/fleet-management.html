@@ -125,6 +125,7 @@ this case a simple example of one bigeye tuna population.</p>
 <span>      ssb0 <span class="op">=</span> <span class="fl">1000</span></span>
 <span>    <span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
+<span><span class="co">#&gt; Warning in f(names[[col]]): NAs introduced by coercion</span></span>
 <span></span>
 <span><span class="va">fauna</span><span class="op">$</span><span class="va">bigeye</span><span class="op">$</span><span class="va">m_at_age</span></span>
 <span><span class="co">#&gt;  [1] 3.6234693 2.4692787 1.8927609 1.5473114 1.3173955 1.1534981 1.0308614</span></span>
@@ -364,6 +365,77 @@ effort will never expand beyond the supplied cap for that fleet.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"Year"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="fleet-management_files/figure-html/unnamed-chunk-6-3.png" width="700"></p>
+<!-- ## Seasons -->
+<!-- We can also impose closed or reduced fishing seasons that apply to one or more targeted species. This is specified by a vector containing values between 0 and 1 with length equal to the number of seasons in the simulation.  When a season has a value of 1, that implies that fishing continues as normal in that season. When that value is 0, that means that the fishery is closed in that season. Setting intermediate values, like say 0.5, is akin to simulating a closed seasons with a 50% discard mortality rate -->
+<!-- So one option would be to specify a discard mortality rate, and a discard rate, with the discard rate being potentially seasonal.  -->
+<!-- The problem is the need to separate out the accounting between how many fish actually die and how many the fleet is allowed to retain. Suppose you set a discard rate of 50%, and a discard mortality rate of 0%. That is equivalent to just cutting effort in half.  -->
+<!-- But, suppose you set a discard rate of 100% and a discard mortality rate of 100%. That would mean that the same amount of fish are dying, but you can't keep them. So that would be easy since again effort doesn't change, you'd just need a multiplier on converting dead fish to catch.  -->
+<!-- But, now suppose that discard rate is 100% and discard mortality is 50%. Now, you need to both reduce effort by 50%, but allow zero retention.  -->
+<!-- So, you'd need to adjust fishing mortality rate by a function of discard rate + discard mortality -->
+<!-- That will get the correct amount of fish dead -->
+<!-- Then you'd adjust the catch by just the discard rate -->
+<!-- This gets pretty complicated pretty quickly though, since it means that you need to adjust the actual amount killed. So that would come in on a multiplier of the fishing mortality rate in the manner you have now, where say if you  -->
+<!-- ```{r} -->
+<!-- sim <- simmar(fauna = fauna, -->
+<!--                   fleets = fleets, -->
+<!--                   years = years, -->
+<!--               manager = list(seasonal_effort_mult = list(bigeye = c(1,2)))) -->
+<!-- proc_sim <- process_marlin(sim) -->
+<!-- plot_marlin(proc_sim, plot_var = "c") -->
+<!-- proc_sim$fleets %>%  -->
+<!--   group_by(step, fleet) %>% -->
+<!--   summarise(effort = sum(effort)) %>%  -->
+<!--   ggplot(aes(step * time_step, effort, color = fleet)) +  -->
+<!--   geom_line() +  -->
+<!--   scale_x_continuous(name = "Year") +  -->
+<!--   scale_y_continuous(limits = c(0, NA)) -->
+<!-- ``` -->
+</div>
+<div class="section level2">
+<h2 id="manual-effort">Manual Effort<a class="anchor" aria-label="anchor" href="#manual-effort"></a>
+</h2>
+<p>As another option, you can manually specify the effort in each time
+step for each fleet. Inside the <code>fleet</code> object, set
+<code>fleet_model = "manual"</code>, and then provide a timeseries of
+effort in each time step.</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">time_steps</span> <span class="op">&lt;-</span> <span class="va">years</span> <span class="op">*</span> <span class="va">seasons</span></span>
+<span></span>
+<span><span class="va">fleets</span><span class="op">$</span><span class="va">longline</span><span class="op">$</span><span class="va">fleet_model</span> <span class="op">&lt;-</span> <span class="st">"manual"</span></span>
+<span></span>
+<span><span class="va">fleets</span><span class="op">$</span><span class="va">longline</span><span class="op">$</span><span class="va">effort</span> <span class="op">&lt;-</span> <span class="va">fleets</span><span class="op">$</span><span class="va">longline</span><span class="op">$</span><span class="va">base_effort</span> <span class="op">*</span>  <span class="fu"><a href="https://rdrr.io/r/stats/Lognormal.html" class="external-link">rlnorm</a></span><span class="op">(</span><span class="va">time_steps</span>,<span class="fl">0</span>,<span class="fl">.2</span><span class="op">)</span></span>
+<span>  </span>
+<span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span>, tune_type <span class="op">=</span> <span class="st">"depletion"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">sim_effort</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simmar.html">simmar</a></span><span class="op">(</span></span>
+<span>  fauna <span class="op">=</span> <span class="va">fauna</span>,</span>
+<span>  fleets <span class="op">=</span> <span class="va">fleets</span>,</span>
+<span>  years <span class="op">=</span> <span class="va">years</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">proc_sim_effort</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">sim_effort</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/plot_marlin.html">plot_marlin</a></span><span class="op">(</span><span class="va">proc_sim_effort</span>, plot_var <span class="op">=</span> <span class="st">"c"</span>, max_scale <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<p><img src="fleet-management_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="va">proc_sim_effort</span><span class="op">$</span><span class="va">fleets</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">step</span>, <span class="va">fleet</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span>catch <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">catch</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">step</span> <span class="op">*</span> <span class="va">time_step</span>, <span class="va">catch</span>, color <span class="op">=</span> <span class="va">fleet</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"Year"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="fleet-management_files/figure-html/unnamed-chunk-7-2.png" width="700"></p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span></span>
+<span><span class="va">proc_sim_effort</span><span class="op">$</span><span class="va">fleets</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">step</span>, <span class="va">fleet</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span>effort <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">effort</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">step</span> <span class="op">*</span> <span class="va">time_step</span>, <span class="va">effort</span>, color <span class="op">=</span> <span class="va">fleet</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"Year"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="fleet-management_files/figure-html/unnamed-chunk-7-3.png" width="700"></p>
 <!-- ## Seasons -->
 <!-- We can also impose closed or reduced fishing seasons that apply to one or more targeted species. This is specified by a vector containing values between 0 and 1 with length equal to the number of seasons in the simulation.  When a season has a value of 1, that implies that fishing continues as normal in that season. When that value is 0, that means that the fishery is closed in that season. Setting intermediate values, like say 0.5, is akin to simulating a closed seasons with a 50% discard mortality rate -->
 <!-- So one option would be to specify a discard mortality rate, and a discard rate, with the discard rate being potentially seasonal.  -->

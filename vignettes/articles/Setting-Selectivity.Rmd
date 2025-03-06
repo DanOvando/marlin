@@ -15,7 +15,6 @@ library(marlin)
 library(tidyverse)
 
 theme_set(marlin::theme_marlin())
-
 ```
 
 In the fisheries literature, "selectivity" generally refers to the vulnerability of different lengths or ages of fish to fishing mortality. The form of selectivity can have a big impact, depending on for example whether fish become vulnerable to the fishery before the age at maturity, or whether market pressures produce "dome shaped" selectivity in which larger fish are avoided. 
@@ -41,7 +40,6 @@ For more individual simulations, setting `sel_unit = "length` can be more intuit
 So, in the commercial case shown below, the length at 50% selectivity is set to `sel_start = 22` and the length at 95% selectivity is `sel_start + sel_delta`. 
 
 ```{r}
-
 resolution <- 10
 
 years <- 50
@@ -82,18 +80,15 @@ fleets <- list(
 
 
 sels <- data.frame(
-  artisinal = fleets$artisanal$metiers$snapper$sel_at_length
-  ,
+  artisinal = fleets$artisanal$metiers$snapper$sel_at_length,
   commercial = fleets$commercial$metiers$snapper$sel_at_length,
   length = as.numeric(colnames(fauna$snapper$length_at_age_key))
 )
- 
-sels |> 
-  pivot_longer(-length, names_to = "fleet", values_to = "selectivity")  |> 
-  ggplot(aes(length, selectivity, color = fleet)) + 
+
+sels |>
+  pivot_longer(-length, names_to = "fleet", values_to = "selectivity") |>
+  ggplot(aes(length, selectivity, color = fleet)) +
   geom_line()
-
-
 ```
 
 ## Double Normal
@@ -123,8 +118,6 @@ The selectivity at linf is set to 0, meaning that largest fish are no longer cap
 For the commerical fleet, we set `sel_unit = "length"` and so the values of the parameters are adjusted accordingly. For the commercial fleet, selectivity at Linf is 0.5, meaning lower than the peak, but not zero. 
 
 ```{r}
-
-
 fleets <- list(
   "artisanal" = create_fleet(list(
     "snapper" = Metier$new(
@@ -153,18 +146,15 @@ fleets <- list(
 )
 
 sels <- data.frame(
-  artisinal = fleets$artisanal$metiers$snapper$sel_at_length
-  ,
+  artisinal = fleets$artisanal$metiers$snapper$sel_at_length,
   commercial = fleets$commercial$metiers$snapper$sel_at_length,
   length = as.numeric(colnames(fauna$snapper$length_at_age_key))
 )
- 
-sels |> 
-  pivot_longer(-length, names_to = "fleet", values_to = "selectivity")  |> 
-  ggplot(aes(length, selectivity, color = fleet)) + 
+
+sels |>
+  pivot_longer(-length, names_to = "fleet", values_to = "selectivity") |>
+  ggplot(aes(length, selectivity, color = fleet)) +
   geom_line()
-
-
 ```
 
 ## Manual Selectivity
@@ -172,7 +162,6 @@ sels |>
 Selectivity can also be manually supplied. In this case we'll pretend we have a separately estimated selectivity for the commercial fleet by setting `sel_form = "manual"` and passing `sel_at_age` values to the commercial fleet. 
 
 ```{r}
-
 commercial_selectivity <- rlnorm(length(fauna$snapper$ages))
 
 commercial_selectivity <- commercial_selectivity / max(commercial_selectivity)
@@ -201,18 +190,15 @@ fleets <- list(
 
 
 sels <- data.frame(
-  artisinal = fleets$artisanal$metiers$snapper$sel_at_age
-  ,
+  artisinal = fleets$artisanal$metiers$snapper$sel_at_age,
   commercial = fleets$commercial$metiers$snapper$sel_at_age,
   age = fauna$snapper$ages
 )
- 
-sels |> 
-  pivot_longer(-age, names_to = "fleet", values_to = "selectivity")  |> 
-  ggplot(aes(age, selectivity, color = fleet)) + 
+
+sels |>
+  pivot_longer(-age, names_to = "fleet", values_to = "selectivity") |>
+  ggplot(aes(age, selectivity, color = fleet)) +
   geom_line()
-
-
 ```
 
 

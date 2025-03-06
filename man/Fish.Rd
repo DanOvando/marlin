@@ -50,6 +50,7 @@ Used to store parameters describing the behavior of an object of class Fish
   age_50_mature = NA,
   age_95_mature = NA,
   age_mature = NA,
+  semelparous = FALSE,
   m = NA,
   m_at_age = NULL,
   steepness = 0.8,
@@ -203,8 +204,6 @@ plot object of class fish}
 \item{\code{max_hab_mult}}{maximum value of that habitat matrix multiplier (to prevent some habitats from being >>> good, defaults to 2)}
 
 \item{\code{lorenzen_m}}{TRUE or FALSE to use the Lorenzen function to calculate natural mortality at age}
-
-\item{\code{lorenzen_c}}{}
 }
 \if{html}{\out{</div>}}
 }

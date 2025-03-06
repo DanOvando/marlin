@@ -8,10 +8,8 @@
 #' @examples
 #' clean_steps("step_1_2")
 #'
-clean_steps <- function(step){
+clean_steps <- function(step) {
+  step <- stringr::str_remove_all(step, "step_")
 
-  step <- stringr::str_remove_all(step,"step_")
-
-    # as.numeric(gsub("^\\D*","",step))
-
+  # as.numeric(gsub("^\\D*","",step))
 }

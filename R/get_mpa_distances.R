@@ -14,12 +14,12 @@ get_distance_to_mpas <-
     if (length(resolution) == 1) {
       resolution <- rep(resolution, 2)
     }
-    
+
     # prepare MPA locations
     mpa_locations <- mpa_locations |>
       filter(mpa) |>
       dplyr::mutate(patch_name = paste(x, y, sep = "_"))
-    
+
     # set up patch grid in case MPA locations just has MPAs in it
     patch_grid <-
       tidyr::expand_grid(x = 1:resolution[1], y = 1:resolution[2]) |>
@@ -29,9 +29,9 @@ get_distance_to_mpas <-
         patch = 1:length(x),
         mpa = patch_name %in% mpa_locations$patch_name
       )
-    
+
     out <- patch_grid
-    
+
     # measure distance to nearest MPA border, or return Inf if there are no MPAs
     if (any(patch_grid$mpa) & any(!patch_grid$mpa)) {
       # calculate the euclidean distance between each patch
@@ -39,36 +39,34 @@ get_distance_to_mpas <-
         select(x, y) |>
         dist(diag = TRUE) |>
         as.matrix()
-      
+
       patch_distances <-
         patch_distances * sqrt(patch_area) # convert distances into the units of the system
-      
+
       total_mpa_distance <-
         rowSums(patch_distances[, patch_grid$patch[patch_grid$mpa]]) # find the total distance to every MPA patch
-      
+
       nearest_mpa <-
         apply(patch_distances[, patch_grid$patch[patch_grid$mpa]], 1, min) # find the distance to the nearest MPA edge
-      
+
       nearest_fished <-
         apply(patch_distances[, patch_grid$patch[!patch_grid$mpa]], 1, min) # find the distance to the nearest fished edge
-      
+
       distance_to_edge <-
         nearest_mpa - nearest_fished # calculate distance to nearest MPA edge, negative being inside MPA
-      
+
       out$distance_to_mpa_edge <- distance_to_edge
-      
+
       out$total_mpa_distance <- total_mpa_distance
-    } else if (all(!patch_grid$mpa)){
+    } else if (all(!patch_grid$mpa)) {
       out$distance_to_mpa_edge <- Inf
-      
+
       out$total_mpa_distance <- Inf
     } else {
       out$distance_to_mpa_edge <- 0
-      
+
       out$total_mpa_distance <- 0
     }
-    
+
     return(out)
-    
-    
   }

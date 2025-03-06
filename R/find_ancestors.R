@@ -7,15 +7,14 @@
 #' @return vector of row numbers of \code{ParentChild_gz} for ancestors (including \code{child_num})
 
 #' @export
-find_ancestors = function( child_num, Database=marlin::FishBase_and_RAM, ParentChild_gz=Database$ParentChild_gz ){
-  
+find_ancestors <- function(child_num, Database = marlin::FishBase_and_RAM, ParentChild_gz = Database$ParentChild_gz) {
   # Search for all ancestors in the taxonomic tree
-  family_nums = child_num
-  while(TRUE){
-    if( is.na(ParentChild_gz[rev(family_nums)[1],'ParentRowNumber'])==TRUE ) break()
-    family_nums = c(family_nums, ParentChild_gz[rev(family_nums)[1],'ParentRowNumber'])
+  family_nums <- child_num
+  while (TRUE) {
+    if (is.na(ParentChild_gz[rev(family_nums)[1], "ParentRowNumber"]) == TRUE) break()
+    family_nums <- c(family_nums, ParentChild_gz[rev(family_nums)[1], "ParentRowNumber"])
   }
-  
+
   # Return vector of ancestors
-  return( family_nums )
+  return(family_nums)
 }

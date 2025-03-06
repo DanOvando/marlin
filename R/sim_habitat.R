@@ -13,13 +13,13 @@
 #'
 #' n_species <- 6
 #'
-#' critters <- paste0(fruit[1:n_species],"_fish")
+#' critters <- paste0(fruit[1:n_species], "_fish")
 #'
-#' resolution <- c(4,20)
+#' resolution <- c(4, 20)
 #'
-#' patch_area =  4
+#' patch_area <- 4
 #'
-#' kp = .1
+#' kp <- .1
 #'
 #'
 #' species_distributions <- sim_habitat(critters = critters, resolution = resolution, patch_area = patch_area, kp = kp)
@@ -35,7 +35,6 @@ sim_habitat <-
            output = "df") {
     if (length(resolution) == 1) {
       resolution <- rep(resolution, 2)
-
     }
 
     n_species <- length(critters)
@@ -56,27 +55,25 @@ sim_habitat <-
     # following Thorson & Barnett 2017 doi:10.1093/icesjms/fsw193
     # kp = 1e-1 # the rate parameter; closer to 0, the farther correlation among patches persists
 
-    n = 1 # set N to 1 per paper
+    n <- 1 # set N to 1 per paper
 
-    H = 1 #matrix(rep(1,4), ncol = 2) # placeholder for now since I can't figure out how to implement anisotropy uet
+    H <- 1 # matrix(rep(1,4), ncol = 2) # placeholder for now since I can't figure out how to implement anisotropy uet
 
     sigma <- 1 # placeholder which I believe should be left at 1
 
     # set up the spatial correlation matrix
     spatial_correlations <- matrix(0, nrow = (patches), ncol = (patches))
 
-    for (x in 1:nrow(distances)) {
-      for (y in 1:ncol(distances)) {
-        if (distances[x, y] != 0) {
-          spatial_correlations[x, y] <-
-            sigma ^ 2 / (2 ^ (n - 1) * gamma(n)) * (kp * abs(distances[x, y] * H)) ^
-            n * besselK(kp * abs(distances[x, y] * H), 1)
+    for (x in 1:ncol(distances)) {
+      for (y in 1:nrow(distances)) {
+        if (distances[y, x] != 0) {
+          spatial_correlations[y, x] <-
+            sigma^2 / (2^(n - 1) * gamma(n)) * (kp * abs(distances[y, x] * H))^
+              n * besselK(kp * abs(distances[y, x] * H), 1)
         } else {
-          spatial_correlations[x, y] <- 1
+          spatial_correlations[y, x] <- 1
         }
-
       }
-
     }
 
     # create species correlation matrix
@@ -89,8 +86,9 @@ sim_habitat <-
 
       species_cores <-
         runif(n_species_cores,
-              min = -max_abs_cor,
-              max = max_abs_cor) # randomly generate correlations among species
+          min = -max_abs_cor,
+          max = max_abs_cor
+        ) # randomly generate correlations among species
       # Fill in the upper triangle of the matrix
       core_matrix[upper.tri(core_matrix)] <- species_cores
 
@@ -99,7 +97,6 @@ sim_habitat <-
       critter_correlations <- core_matrix + lower_triangle
 
       diag(critter_correlations) <- 1
-
     }
 
     species_x_space <-
@@ -135,8 +132,10 @@ sim_habitat <-
         dplyr::mutate(
           habitat = purrr::map(
             data,
-            \(x) x |> dplyr::select(-patch) |> tidyr::pivot_wider(names_from = y, values_from = habitat) |>
-              dplyr::select(-x) %>%
+            \(x) x |>
+              dplyr::select(-patch) |>
+              tidyr::pivot_wider(names_from = x, values_from = habitat) |>
+              dplyr::select(-y) %>%
               as.matrix()
           )
         )
@@ -151,5 +150,4 @@ sim_habitat <-
       critter_correlations = final_species_cores,
       wtf = critter_correlations
     )
-
   }

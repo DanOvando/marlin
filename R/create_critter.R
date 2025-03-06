@@ -49,18 +49,16 @@ create_critter <- function(common_name = NA,
                            burn_years = 50,
                            weight_a = NA,
                            fec_expo = 1,
-                           resolution = c(10,10),
+                           resolution = c(10, 10),
                            patch_area = 1,
                            spawning_seasons = NA,
                            density_dependence = "global_habitat",
                            ...) {
-
-
-  if (!is.list(habitat)){
-    habitat <-  list(habitat)
+  if (!is.list(habitat)) {
+    habitat <- list(habitat)
   }
 
-  if (critter_type == "fish"){
+  if (critter_type == "fish") {
     critter <-
       marlin::Fish$new(
         common_name = common_name,
@@ -84,7 +82,6 @@ create_critter <- function(common_name = NA,
         spawning_seasons = spawning_seasons,
         ...
       )
-
   }
 
   return(critter)
