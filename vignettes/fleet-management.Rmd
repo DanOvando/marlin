@@ -43,7 +43,7 @@ library(tidyverse)
 
 theme_set(theme_marlin(base_size = 14) + theme(legend.position = "top"))
 
-resolution <- 10 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches
+resolution <- 10 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
 
 years <- 50
 
@@ -53,12 +53,12 @@ time_step <- 1 / seasons
 
 steps <- years * seasons
 
-fauna <-
+fauna <- 
   list(
     "bigeye" = create_critter(
       scientific_name = "Thunnus obesus",
       adult_diffusion = 10,
-      density_dependence = "post_dispersal",
+      density_dependence = "post_dispersal", 
       seasons = seasons,
       fished_depletion = 0.8,
       resolution = resolution,
@@ -102,63 +102,67 @@ The function `tune_fleets` then takes these parameters and finds the cost parame
 
 
 ```{r}
+
 fleets <- list(
   "longline" = create_fleet(
     list("bigeye" = Metier$new(
-      critter = fauna$bigeye,
-      price = 10,
-      sel_form = "logistic",
-      sel_start = 1,
-      sel_delta = .01,
-      catchability = 0,
-      p_explt = 2
-    )),
-    base_effort = resolution^2,
+        critter = fauna$bigeye,
+        price = 10,
+        sel_form = "logistic",
+        sel_start = 1,
+        sel_delta = .01,
+        catchability = 0,
+        p_explt = 2
+      )
+    ),
+    base_effort = resolution ^ 2,
     resolution = resolution,
     responsiveness = .5,
     cr_ratio = 1,
     cost_per_distance = 1,
-    fleet_model = "open access"
-  ),
-  "handline" = create_fleet(
-    list("bigeye" = Metier$new(
-      critter = fauna$bigeye,
-      price = 10,
-      sel_form = "logistic",
-      sel_start = 1,
-      sel_delta = .01,
-      catchability = 0,
-      p_explt = 1
-    )),
-    base_effort = resolution^2,
-    resolution = resolution,
-    fleet_model = "constant effort",
-    cost_per_unit_effort = 2
+    fleet_model = "open access")
+,
+"handline" = create_fleet(
+  list("bigeye" = Metier$new(
+    critter = fauna$bigeye,
+    price = 10,
+    sel_form = "logistic",
+    sel_start = 1,
+    sel_delta = .01,
+    catchability = 0,
+    p_explt = 1
   )
-)
+  ),
+  base_effort = resolution ^ 2,
+  resolution = resolution,
+  fleet_model = "constant effort",
+  cost_per_unit_effort = 2
+))
 
-fleets <- tune_fleets(fauna, fleets, tune_type = "depletion")
+fleets <- tune_fleets(fauna, fleets, tune_type = "depletion") 
 ```
 
 
 We can now run our simulation and examine the resulting fleet dynamics
 
 ```{r}
-sim <- simmar(
-  fauna = fauna,
-  fleets = fleets,
-  years = years
-)
+
+sim <- simmar(fauna = fauna,
+                  fleets = fleets,
+                  years = years)
 proc_sim <- process_marlin(sim)
 
 plot_marlin(proc_sim)
 
-proc_sim$fleets %>%
+proc_sim$fleets %>% 
   group_by(step, fleet) %>%
-  summarise(effort = sum(effort)) %>%
-  ggplot(aes(step * time_step, effort, color = fleet)) +
-  geom_line() +
-  scale_x_continuous(name = "Year")
+  summarise(effort = sum(effort)) %>% 
+  ggplot(aes(step * time_step, effort, color = fleet)) + 
+  geom_line() + 
+    scale_x_continuous(name = "Year")
+
+
+
 ```
 
 
@@ -171,30 +175,29 @@ To see the effect of the fleet model choices, let's examine the trajectory of ea
 As a result, when the MPA is put in place effort decreases rapidly, until profits increase some due to spillover from the MPA, at which time effort increases until a new open access equilibrium of zero profits with the MPAs is achieved. 
 
 ```{r}
-set.seed(42)
-# specify some MPA locations
-mpa_locations <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
-  mutate(mpa = x > 4 & y < 6)
 
-with_mpa <- simmar(
-  fauna = fauna,
-  fleets = fleets,
-  years = years,
-  manager = list(mpas = list(
-    locations = mpa_locations,
-    mpa_year = floor(years * .5)
-  ))
-)
+set.seed(42)
+#specify some MPA locations
+mpa_locations <- expand_grid(x = 1:resolution, y = 1:resolution) %>%
+mutate(mpa = x > 4 & y < 6)
+
+with_mpa <- simmar(fauna = fauna,
+                  fleets = fleets,
+                  years = years,
+                  manager = list(mpas = list(locations = mpa_locations,
+              mpa_year = floor(years * .5))))
 
 proc_mpa_sim <- process_marlin(with_mpa)
 
 
-proc_mpa_sim$fleets %>%
+proc_mpa_sim$fleets %>% 
   group_by(step, fleet) %>%
-  summarise(effort = sum(effort)) %>%
-  ggplot(aes(step * time_step, effort, color = fleet)) +
-  geom_line() +
+  summarise(effort = sum(effort)) %>% 
+  ggplot(aes(step * time_step, effort, color = fleet)) + 
+  geom_line() + 
   scale_x_continuous(name = "year")
+
+
 ```
 
 ## Quotas
@@ -202,69 +205,31 @@ proc_mpa_sim$fleets %>%
 We can also layer quotas onto the fleet model. Here, we will impose a total quota of 100 tons of bigeye caught across all fleets. Notice that quotas impose a *cap*, not a requirement, on catch. So, in the early days of the fishery when catches would have been high, the quota is in effect. However, in the later days of the fishery, the fleets have no incentive to catch up to the quota, and so catch less than the allowable amount. 
 
 ```{r}
-
-
-
-fleets <- list(
-  "longline" = create_fleet(
-    list("bigeye" = Metier$new(
-      critter = fauna$bigeye,
-      price = 10,
-      sel_form = "logistic",
-      sel_start = 1,
-      sel_delta = .01,
-      catchability = 0,
-      p_explt = 2
-    )),
-    base_effort = resolution^2,
-    resolution = resolution,
-    responsiveness = .5,
-    cr_ratio = 1,
-    cost_per_distance = 1,
-    fleet_model = "open access"
-  ),
-  "handline" = create_fleet(
-    list("bigeye" = Metier$new(
-      critter = fauna$bigeye,
-      price = 10,
-      sel_form = "logistic",
-      sel_start = 1,
-      sel_delta = .01,
-      catchability = 0,
-      p_explt = 1
-    )),
-    base_effort = resolution^2,
-    resolution = resolution,
-    fleet_model = "constant effort",
-    cost_per_unit_effort = 2
-  )
-)
-
-sim_quota <- simmar(
-  fauna = fauna,
-  fleets = fleets,
-  years = years,
-  manager = list(quotas = list(bigeye = 10))
-)
+sim_quota <- simmar(fauna = fauna,
+                  fleets = fleets,
+                  years = years,
+                  manager = list(quotas = list(bigeye = 10)))
 
 proc_sim_quota <- process_marlin(sim_quota)
 
 plot_marlin(proc_sim_quota, plot_var = "c", max_scale = FALSE)
 
-proc_sim_quota$fleets %>%
-  group_by(step, fleet) %>%
-  summarise(catch = sum(catch)) %>%
-  ggplot(aes(step * time_step, catch, color = fleet)) +
-  geom_line() +
-  scale_x_continuous(name = "Year")
+proc_sim_quota$fleets %>% 
+  group_by(step, fleet) %>% 
+  summarise(catch = sum(catch)) %>% 
+  ggplot(aes(step * time_step, catch, color = fleet)) + 
+  geom_line()+
+    scale_x_continuous(name = "Year")
 
 
-proc_sim_quota$fleets %>%
+proc_sim_quota$fleets %>% 
   group_by(step, fleet) %>%
-  summarise(effort = sum(effort)) %>%
-  ggplot(aes(step * time_step, effort, color = fleet)) +
-  geom_line() +
-  scale_x_continuous(name = "Year")
+  summarise(effort = sum(effort)) %>% 
+  ggplot(aes(step * time_step, effort, color = fleet)) + 
+  geom_line() + 
+    scale_x_continuous(name = "Year")
+
+
 ```
 
 ## Effort Caps
@@ -276,41 +241,93 @@ Users set this by ` manager = list(effort_cap = list(FLEET_NAME = EFFORT_CAP))`,
 Note that effort caps only really apply when `fleet_model == "open access`; when `fleet_model == "constant effort"` effort it already capped. Under open access though, the effort cap ensures that while open access dynamics might **reduce** the total amount of effort, effort will never expand beyond the supplied cap for that fleet. 
 
 ```{r}
-sim_effort <- simmar(
-  fauna = fauna,
-  fleets = fleets,
-  years = years,
-  manager = list(effort_cap = list(longline = 1.5 * fleets$longline$base_effort))
-)
+
+sim_effort <- simmar(fauna = fauna,
+                  fleets = fleets,
+                  years = years,
+                  manager = list(effort_cap = list(longline = 1.5 *fleets$longline$base_effort)))
 
 proc_sim_effort <- process_marlin(sim_effort)
 
 plot_marlin(proc_sim_effort, plot_var = "c", max_scale = FALSE)
 
-proc_sim_effort$fleets %>%
-  group_by(step, fleet) %>%
-  summarise(catch = sum(catch)) %>%
-  ggplot(aes(step * time_step, catch, color = fleet)) +
-  geom_line() +
-  scale_x_continuous(name = "Year")
+proc_sim_effort$fleets %>% 
+  group_by(step, fleet) %>% 
+  summarise(catch = sum(catch)) %>% 
+  ggplot(aes(step * time_step, catch, color = fleet)) + 
+  geom_line()+
+    scale_x_continuous(name = "Year")
 
 
-proc_sim_effort$fleets %>%
+proc_sim_effort$fleets %>% 
   group_by(step, fleet) %>%
-  summarise(effort = sum(effort)) %>%
-  ggplot(aes(step * time_step, effort, color = fleet)) +
-  geom_line() +
-  scale_x_continuous(name = "Year")
+  summarise(effort = sum(effort)) %>% 
+  ggplot(aes(step * time_step, effort, color = fleet)) + 
+  geom_line() + 
+    scale_x_continuous(name = "Year")
+
+
 ```
 
+
+
+<!-- ## Seasons -->
+
+<!-- We can also impose closed or reduced fishing seasons that apply to one or more targeted species. This is specified by a vector containing values between 0 and 1 with length equal to the number of seasons in the simulation.  When a season has a value of 1, that implies that fishing continues as normal in that season. When that value is 0, that means that the fishery is closed in that season. Setting intermediate values, like say 0.5, is akin to simulating a closed seasons with a 50% discard mortality rate -->
+
+<!-- So one option would be to specify a discard mortality rate, and a discard rate, with the discard rate being potentially seasonal.  -->
+
+<!-- The problem is the need to separate out the accounting between how many fish actually die and how many the fleet is allowed to retain. Suppose you set a discard rate of 50%, and a discard mortality rate of 0%. That is equivalent to just cutting effort in half.  -->
+
+<!-- But, suppose you set a discard rate of 100% and a discard mortality rate of 100%. That would mean that the same amount of fish are dying, but you can't keep them. So that would be easy since again effort doesn't change, you'd just need a multiplier on converting dead fish to catch.  -->
+
+<!-- But, now suppose that discard rate is 100% and discard mortality is 50%. Now, you need to both reduce effort by 50%, but allow zero retention.  -->
+
+<!-- So, you'd need to adjust fishing mortality rate by a function of discard rate + discard mortality -->
+
+<!-- That will get the correct amount of fish dead -->
+
+<!-- Then you'd adjust the catch by just the discard rate -->
+
+<!-- This gets pretty complicated pretty quickly though, since it means that you need to adjust the actual amount killed. So that would come in on a multiplier of the fishing mortality rate in the manner you have now, where say if you  -->
+
+
+<!-- ```{r} -->
+
+<!-- sim <- simmar(fauna = fauna, -->
+<!--                   fleets = fleets, -->
+<!--                   years = years, -->
+<!--               manager = list(seasonal_effort_mult = list(bigeye = c(1,2)))) -->
+
+<!-- proc_sim <- process_marlin(sim) -->
+
+<!-- plot_marlin(proc_sim, plot_var = "c") -->
+
+<!-- proc_sim$fleets %>%  -->
+<!--   group_by(step, fleet) %>% -->
+<!--   summarise(effort = sum(effort)) %>%  -->
+<!--   ggplot(aes(step * time_step, effort, color = fleet)) +  -->
+<!--   geom_line() +  -->
+<!--   scale_x_continuous(name = "Year") +  -->
+<!--   scale_y_continuous(limits = c(0, NA)) -->
+
+
+<!-- ``` -->
+
+
+
+
+
 ## Manual Effort
+
+As another option, you can manually specify the effort in each time step for each fleet. Inside the `fleet` object,  set `fleet_model = "manual"`, and then provide a timeseries of effort in each time step. 
 
 ```{r}
 time_steps <- years * seasons
 
 fleets$longline$fleet_model <- "manual"
 
-fleets$longline$effort <- fleets$longline$base_effort *  rlnorm(time_steps,log(100),.2)
+fleets$longline$effort <- fleets$longline$base_effort *  rlnorm(time_steps,0,.2)
   
 fleets <- tune_fleets(fauna, fleets, tune_type = "depletion")
 

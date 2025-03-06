@@ -84,7 +84,7 @@
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">forcats  </span> 1.0.0     <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">stringr  </span> 1.5.1</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">ggplot2  </span> 3.5.1     <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">tibble   </span> 3.2.1</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">lubridate</span> 1.9.4     <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">tidyr    </span> 1.3.1</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">purrr    </span> 1.0.2     </span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">purrr    </span> 1.0.4     </span></span>
 <span><span class="co">#&gt; ── <span style="font-weight: bold;">Conflicts</span> ────────────────────────────────────────── tidyverse_conflicts() ──</span></span>
 <span><span class="co">#&gt; <span style="color: #BB0000;">✖</span> <span style="color: #0000BB;">dplyr</span>::<span style="color: #00BB00;">filter()</span> masks <span style="color: #0000BB;">stats</span>::filter()</span></span>
 <span><span class="co">#&gt; <span style="color: #BB0000;">✖</span> <span style="color: #0000BB;">dplyr</span>::<span style="color: #00BB00;">lag()</span>    masks <span style="color: #0000BB;">stats</span>::lag()</span></span>
@@ -139,8 +139,7 @@ fleets can be excluded from specific fishing grounds but not others.</p>
 <p>To illustrate, we’ll create two fleets that are identical except in
 their fishing grounds.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="va">fishing_grounds</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">resolution</span>, y <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">resolution</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<code class="sourceCode R"><span><span class="va">fishing_grounds</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">resolution</span>, y <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">resolution</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>fishing_ground <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">fishing_grounds</span><span class="op">$</span><span class="va">fishing_ground</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">20</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="cn">FALSE</span></span>
@@ -150,23 +149,20 @@ their fishing grounds.</p>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"snapper"</span> <span class="op">=</span> <span class="va"><a href="../reference/Metier.html">Metier</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>      critter <span class="op">=</span> <span class="va">fauna</span><span class="op">$</span><span class="va">snapper</span>,</span>
 <span>      p_explt <span class="op">=</span> <span class="fl">1</span></span>
-<span>    <span class="op">)</span></span>
-<span>    <span class="op">)</span>,</span>
-<span>    base_effort <span class="op">=</span> <span class="va">resolution</span> <span class="op">^</span> <span class="fl">2</span>,</span>
+<span>    <span class="op">)</span><span class="op">)</span>,</span>
+<span>    base_effort <span class="op">=</span> <span class="va">resolution</span><span class="op">^</span><span class="fl">2</span>,</span>
 <span>    resolution <span class="op">=</span> <span class="va">resolution</span>,</span>
 <span>    fishing_grounds <span class="op">=</span> <span class="va">fishing_grounds</span>,</span>
 <span>    spatial_allocation <span class="op">=</span> <span class="st">"rpue"</span></span>
 <span>  <span class="op">)</span>,</span>
-<span>    <span class="st">"commercial"</span> <span class="op">=</span> <span class="fu"><a href="../reference/create_fleet.html">create_fleet</a></span><span class="op">(</span></span>
+<span>  <span class="st">"commercial"</span> <span class="op">=</span> <span class="fu"><a href="../reference/create_fleet.html">create_fleet</a></span><span class="op">(</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"snapper"</span> <span class="op">=</span> <span class="va"><a href="../reference/Metier.html">Metier</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>      critter <span class="op">=</span> <span class="va">fauna</span><span class="op">$</span><span class="va">snapper</span>,</span>
 <span>      p_explt <span class="op">=</span> <span class="fl">1</span></span>
-<span>    <span class="op">)</span></span>
-<span>    <span class="op">)</span>,</span>
-<span>    base_effort <span class="op">=</span> <span class="va">resolution</span> <span class="op">^</span> <span class="fl">2</span>,</span>
+<span>    <span class="op">)</span><span class="op">)</span>,</span>
+<span>    base_effort <span class="op">=</span> <span class="va">resolution</span><span class="op">^</span><span class="fl">2</span>,</span>
 <span>    resolution <span class="op">=</span> <span class="va">resolution</span>,</span>
 <span>    spatial_allocation <span class="op">=</span> <span class="st">"rpue"</span></span>
-<span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -175,28 +171,31 @@ their fishing grounds.</p>
 that the artisinal fleet only applies fishing effort in its defined
 fishing grounds.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="va">fishing_ground_sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simmar.html">simmar</a></span><span class="op">(</span>fauna <span class="op">=</span> <span class="va">fauna</span>,</span>
-<span>                      fleets <span class="op">=</span> <span class="va">fleets</span>,</span>
-<span>                      years <span class="op">=</span> <span class="va">years</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">fishing_ground_sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simmar.html">simmar</a></span><span class="op">(</span></span>
+<span>  fauna <span class="op">=</span> <span class="va">fauna</span>,</span>
+<span>  fleets <span class="op">=</span> <span class="va">fleets</span>,</span>
+<span>  years <span class="op">=</span> <span class="va">years</span></span>
+<span><span class="op">)</span></span>
 <span></span>
 <span></span>
 <span><span class="va">proc_sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">fishing_ground_sim</span><span class="op">)</span></span>
 <span></span>
 <span></span>
-<span><span class="va">fleet_summary</span> <span class="op">&lt;-</span> <span class="va">proc_sim</span><span class="op">$</span><span class="va">fleets</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">step</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">step</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">fleet</span>,<span class="va">x</span>,<span class="va">y</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span>catch <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">catch</span><span class="op">)</span>,</span>
-<span>            effort <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">effort</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>cpue <span class="op">=</span> <span class="va">catch</span> <span class="op">/</span> <span class="va">effort</span><span class="op">)</span> </span>
+<span><span class="va">fleet_summary</span> <span class="op">&lt;-</span> <span class="va">proc_sim</span><span class="op">$</span><span class="va">fleets</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">step</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">step</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">fleet</span>, <span class="va">x</span>, <span class="va">y</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span></span>
+<span>    catch <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">catch</span><span class="op">)</span>,</span>
+<span>    effort <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">effort</span><span class="op">)</span></span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>cpue <span class="op">=</span> <span class="va">catch</span> <span class="op">/</span> <span class="va">effort</span><span class="op">)</span></span>
 <span><span class="co">#&gt; `summarise()` has grouped output by 'fleet', 'x'. You can override using the</span></span>
 <span><span class="co">#&gt; `.groups` argument.</span></span>
 <span></span>
-<span><span class="va">fleet_summary</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">x</span>,<span class="va">y</span>,fill <span class="op">=</span> <span class="va">effort</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_tile</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">fleet</span><span class="op">)</span> <span class="op">+</span> </span>
+<span><span class="va">fleet_summary</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, fill <span class="op">=</span> <span class="va">effort</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_tile</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">fleet</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_viridis.html" class="external-link">scale_fill_viridis_c</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><img src="manual_fleets_files/figure-html/unnamed-chunk-4-1.png" width="700"></p>
 </div>
@@ -220,8 +219,7 @@ that the commercial fleet’s behavior also changes as a result through
 due to the manual distribution of the artisanal fleet changing the
 distribution of revenues in space available to the commercial fleet.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="va">fishing_grounds</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">resolution</span>, y <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">resolution</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<code class="sourceCode R"><span><span class="va">fishing_grounds</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">resolution</span>, y <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">resolution</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>fishing_ground <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span></span>
@@ -231,50 +229,52 @@ distribution of revenues in space available to the commercial fleet.</p>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"snapper"</span> <span class="op">=</span> <span class="va"><a href="../reference/Metier.html">Metier</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>      critter <span class="op">=</span> <span class="va">fauna</span><span class="op">$</span><span class="va">snapper</span>,</span>
 <span>      p_explt <span class="op">=</span> <span class="fl">1</span></span>
-<span>    <span class="op">)</span></span>
-<span>    <span class="op">)</span>,</span>
-<span>    base_effort <span class="op">=</span> <span class="va">resolution</span> <span class="op">^</span> <span class="fl">2</span>,</span>
+<span>    <span class="op">)</span><span class="op">)</span>,</span>
+<span>    base_effort <span class="op">=</span> <span class="va">resolution</span><span class="op">^</span><span class="fl">2</span>,</span>
 <span>    resolution <span class="op">=</span> <span class="va">resolution</span>,</span>
 <span>    fishing_grounds <span class="op">=</span> <span class="va">fishing_grounds</span>,</span>
 <span>    spatial_allocation <span class="op">=</span> <span class="st">"manual"</span></span>
 <span>  <span class="op">)</span>,</span>
-<span>    <span class="st">"commercial"</span> <span class="op">=</span> <span class="fu"><a href="../reference/create_fleet.html">create_fleet</a></span><span class="op">(</span></span>
+<span>  <span class="st">"commercial"</span> <span class="op">=</span> <span class="fu"><a href="../reference/create_fleet.html">create_fleet</a></span><span class="op">(</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"snapper"</span> <span class="op">=</span> <span class="va"><a href="../reference/Metier.html">Metier</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>      critter <span class="op">=</span> <span class="va">fauna</span><span class="op">$</span><span class="va">snapper</span>,</span>
 <span>      p_explt <span class="op">=</span> <span class="fl">1</span></span>
-<span>    <span class="op">)</span></span>
-<span>    <span class="op">)</span>,</span>
-<span>    base_effort <span class="op">=</span> <span class="va">resolution</span> <span class="op">^</span> <span class="fl">2</span>,</span>
+<span>    <span class="op">)</span><span class="op">)</span>,</span>
+<span>    base_effort <span class="op">=</span> <span class="va">resolution</span><span class="op">^</span><span class="fl">2</span>,</span>
 <span>    resolution <span class="op">=</span> <span class="va">resolution</span>,</span>
-<span>        spatial_allocation <span class="op">=</span> <span class="st">"rpue"</span></span>
+<span>    spatial_allocation <span class="op">=</span> <span class="st">"rpue"</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span>, tune_type <span class="op">=</span> <span class="st">"depletion"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">manual_fishing_ground_sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simmar.html">simmar</a></span><span class="op">(</span>fauna <span class="op">=</span> <span class="va">fauna</span>,</span>
-<span>                      fleets <span class="op">=</span> <span class="va">fleets</span>,</span>
-<span>                      years <span class="op">=</span> <span class="va">years</span><span class="op">)</span></span>
+<span><span class="va">manual_fishing_ground_sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simmar.html">simmar</a></span><span class="op">(</span></span>
+<span>  fauna <span class="op">=</span> <span class="va">fauna</span>,</span>
+<span>  fleets <span class="op">=</span> <span class="va">fleets</span>,</span>
+<span>  years <span class="op">=</span> <span class="va">years</span></span>
+<span><span class="op">)</span></span>
 <span></span>
 <span></span>
 <span><span class="va">proc_sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">manual_fishing_ground_sim</span><span class="op">)</span></span>
 <span></span>
 <span></span>
-<span><span class="va">fleet_summary</span> <span class="op">&lt;-</span> <span class="va">proc_sim</span><span class="op">$</span><span class="va">fleets</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">step</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">step</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">fleet</span>,<span class="va">x</span>,<span class="va">y</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span>catch <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">catch</span><span class="op">)</span>,</span>
-<span>            effort <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">effort</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>cpue <span class="op">=</span> <span class="va">catch</span> <span class="op">/</span> <span class="va">effort</span><span class="op">)</span> </span>
+<span><span class="va">fleet_summary</span> <span class="op">&lt;-</span> <span class="va">proc_sim</span><span class="op">$</span><span class="va">fleets</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">step</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">step</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">fleet</span>, <span class="va">x</span>, <span class="va">y</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span></span>
+<span>    catch <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">catch</span><span class="op">)</span>,</span>
+<span>    effort <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">effort</span><span class="op">)</span></span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>cpue <span class="op">=</span> <span class="va">catch</span> <span class="op">/</span> <span class="va">effort</span><span class="op">)</span></span>
 <span><span class="co">#&gt; `summarise()` has grouped output by 'fleet', 'x'. You can override using the</span></span>
 <span><span class="co">#&gt; `.groups` argument.</span></span>
 <span></span>
 <span></span>
 <span></span>
-<span><span class="va">fleet_summary</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">x</span>,<span class="va">y</span>,fill <span class="op">=</span> <span class="va">effort</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_tile</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">fleet</span><span class="op">)</span> <span class="op">+</span> </span>
+<span><span class="va">fleet_summary</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, fill <span class="op">=</span> <span class="va">effort</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_tile</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">fleet</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_viridis.html" class="external-link">scale_fill_viridis_c</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><img src="manual_fleets_files/figure-html/unnamed-chunk-5-1.png" width="700"></p>
 </div>

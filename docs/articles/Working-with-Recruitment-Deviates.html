@@ -101,7 +101,7 @@ autocorrelation in recruitment variation (<code>ac_rec</code>)</p>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">forcats  </span> 1.0.0     <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">stringr  </span> 1.5.1</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">ggplot2  </span> 3.5.1     <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">tibble   </span> 3.2.1</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">lubridate</span> 1.9.4     <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">tidyr    </span> 1.3.1</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">purrr    </span> 1.0.2     </span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">purrr    </span> 1.0.4     </span></span>
 <span><span class="co">#&gt; ── <span style="font-weight: bold;">Conflicts</span> ────────────────────────────────────────── tidyverse_conflicts() ──</span></span>
 <span><span class="co">#&gt; <span style="color: #BB0000;">✖</span> <span style="color: #0000BB;">dplyr</span>::<span style="color: #00BB00;">filter()</span> masks <span style="color: #0000BB;">stats</span>::filter()</span></span>
 <span><span class="co">#&gt; <span style="color: #BB0000;">✖</span> <span style="color: #0000BB;">dplyr</span>::<span style="color: #00BB00;">lag()</span>    masks <span style="color: #0000BB;">stats</span>::lag()</span></span>
@@ -111,7 +111,7 @@ autocorrelation in recruitment variation (<code>ac_rec</code>)</p>
 <span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme_get.html" class="external-link">theme_set</a></span><span class="op">(</span><span class="fu">marlin</span><span class="fu">::</span><span class="fu"><a href="../reference/theme_marlin.html">theme_marlin</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">resolution</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>,<span class="fl">10</span><span class="op">)</span> <span class="co"># resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches </span></span>
+<span><span class="va">resolution</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">10</span><span class="op">)</span> <span class="co"># resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches</span></span>
 <span></span>
 <span><span class="va">patch_area</span> <span class="op">&lt;-</span> <span class="fl">10</span></span>
 <span></span>
@@ -124,7 +124,7 @@ autocorrelation in recruitment variation (<code>ac_rec</code>)</p>
 <span><span class="va">steps</span> <span class="op">&lt;-</span> <span class="va">years</span> <span class="op">*</span> <span class="va">seasons</span></span>
 <span></span>
 <span><span class="va">yft_diffusion</span> <span class="op">&lt;-</span> <span class="fl">2</span></span>
-<span>  </span>
+<span></span>
 <span><span class="va">yft_depletion</span> <span class="op">&lt;-</span> <span class="fl">.2</span></span>
 <span></span>
 <span><span class="va">rec_factor</span> <span class="op">&lt;-</span> <span class="fl">10</span></span>
@@ -135,9 +135,7 @@ autocorrelation in recruitment variation (<code>ac_rec</code>)</p>
 <span></span>
 <span><span class="va">critters</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"yellowfin"</span>, <span class="st">"mako"</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span></span>
-<span><span class="va">fauna</span> <span class="op">&lt;-</span> </span>
+<code class="sourceCode R"><span><span class="va">fauna</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>    <span class="st">"yellowfin"</span> <span class="op">=</span> <span class="fu"><a href="../reference/create_critter.html">create_critter</a></span><span class="op">(</span></span>
 <span>      scientific_name <span class="op">=</span> <span class="st">"Thunnus albacares"</span>,</span>
@@ -149,7 +147,7 @@ autocorrelation in recruitment variation (<code>ac_rec</code>)</p>
 <span>      ssb0 <span class="op">=</span> <span class="fl">5000</span>,</span>
 <span>      sigma_rec <span class="op">=</span> <span class="fl">0.42</span>,</span>
 <span>      ac_rec <span class="op">=</span> <span class="fl">0.42</span></span>
-<span>      <span class="op">)</span>,</span>
+<span>    <span class="op">)</span>,</span>
 <span>    <span class="st">"mako"</span> <span class="op">=</span> <span class="fu"><a href="../reference/create_critter.html">create_critter</a></span><span class="op">(</span></span>
 <span>      scientific_name <span class="op">=</span> <span class="st">"Isurus oxyrinchus"</span>,</span>
 <span>      adult_diffusion <span class="op">=</span> <span class="va">mako_diffusion</span>,</span>
@@ -168,25 +166,27 @@ autocorrelation in recruitment variation (<code>ac_rec</code>)</p>
 <span><span class="co">#&gt; Warning in f(names[[col]]): NAs introduced by coercion</span></span>
 <span><span class="co">#&gt; Warning in f(names[[col]]): NAs introduced by coercion</span></span>
 <span></span>
-<span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"longline"</span> <span class="op">=</span> <span class="fu"><a href="../reference/create_fleet.html">create_fleet</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>  `yellowfin` <span class="op">=</span> <span class="va"><a href="../reference/Metier.html">Metier</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>    critter <span class="op">=</span> <span class="va">fauna</span><span class="op">$</span><span class="va">`yellowfin`</span>,</span>
-<span>    price <span class="op">=</span> <span class="fl">100</span>, <span class="co"># price per unit weight</span></span>
-<span>    sel_form <span class="op">=</span> <span class="st">"logistic"</span>, <span class="co"># selectivity form, one of logistic or dome</span></span>
-<span>    sel_start <span class="op">=</span> <span class="fl">.3</span>, <span class="co"># percentage of length at maturity that selectivity starts</span></span>
-<span>    sel_delta <span class="op">=</span> <span class="fl">.1</span>, <span class="co"># additional percentage of sel_start where selectivity asymptotes</span></span>
-<span>    catchability <span class="op">=</span> <span class="fl">.01</span>, <span class="co"># overwritten by tune_fleet but can be set manually here</span></span>
-<span>    p_explt <span class="op">=</span> <span class="fl">1</span></span>
+<span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"longline"</span> <span class="op">=</span> <span class="fu"><a href="../reference/create_fleet.html">create_fleet</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>    `yellowfin` <span class="op">=</span> <span class="va"><a href="../reference/Metier.html">Metier</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>      critter <span class="op">=</span> <span class="va">fauna</span><span class="op">$</span><span class="va">`yellowfin`</span>,</span>
+<span>      price <span class="op">=</span> <span class="fl">100</span>, <span class="co"># price per unit weight</span></span>
+<span>      sel_form <span class="op">=</span> <span class="st">"logistic"</span>, <span class="co"># selectivity form, one of logistic or dome</span></span>
+<span>      sel_start <span class="op">=</span> <span class="fl">.3</span>, <span class="co"># percentage of length at maturity that selectivity starts</span></span>
+<span>      sel_delta <span class="op">=</span> <span class="fl">.1</span>, <span class="co"># additional percentage of sel_start where selectivity asymptotes</span></span>
+<span>      catchability <span class="op">=</span> <span class="fl">.01</span>, <span class="co"># overwritten by tune_fleet but can be set manually here</span></span>
+<span>      p_explt <span class="op">=</span> <span class="fl">1</span></span>
 <span>    <span class="op">)</span>,</span>
-<span>  `mako` <span class="op">=</span> <span class="va"><a href="../reference/Metier.html">Metier</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>    critter <span class="op">=</span> <span class="va">fauna</span><span class="op">$</span><span class="va">`mako`</span>,</span>
-<span>    price <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>    sel_form <span class="op">=</span> <span class="st">"logistic"</span>,</span>
-<span>    sel_start <span class="op">=</span> <span class="fl">.1</span>,</span>
-<span>    sel_delta <span class="op">=</span> <span class="fl">.01</span>,</span>
-<span>    catchability <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>    p_explt <span class="op">=</span> <span class="fl">1</span></span>
-<span>  <span class="op">)</span><span class="op">)</span>,</span>
+<span>    `mako` <span class="op">=</span> <span class="va"><a href="../reference/Metier.html">Metier</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>      critter <span class="op">=</span> <span class="va">fauna</span><span class="op">$</span><span class="va">`mako`</span>,</span>
+<span>      price <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>      sel_form <span class="op">=</span> <span class="st">"logistic"</span>,</span>
+<span>      sel_start <span class="op">=</span> <span class="fl">.1</span>,</span>
+<span>      sel_delta <span class="op">=</span> <span class="fl">.01</span>,</span>
+<span>      catchability <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>      p_explt <span class="op">=</span> <span class="fl">1</span></span>
+<span>    <span class="op">)</span></span>
+<span>  <span class="op">)</span>,</span>
 <span>  mpa_response <span class="op">=</span> <span class="st">"stay"</span>,</span>
 <span>  base_effort <span class="op">=</span> <span class="fl">1000</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/prod.html" class="external-link">prod</a></span><span class="op">(</span><span class="va">resolution</span><span class="op">)</span>,</span>
 <span>  spatial_allocation <span class="op">=</span> <span class="st">"rpue"</span>,</span>
@@ -198,27 +198,28 @@ autocorrelation in recruitment variation (<code>ac_rec</code>)</p>
 <span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span>, tune_type <span class="op">=</span> <span class="va">tune_type</span><span class="op">)</span> <span class="co"># tunes the catchability by fleet to achieve target depletion</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 1.843779 secs</span></span>
+<span><span class="co">#&gt; Time difference of 1.770501 secs</span></span>
 <span></span>
 <span><span class="co"># run simulations</span></span>
 <span></span>
 <span><span class="va">a</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">recruitment_sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simmar.html">simmar</a></span><span class="op">(</span>fauna <span class="op">=</span> <span class="va">fauna</span>,</span>
-<span>                  fleets <span class="op">=</span> <span class="va">fleets</span>,</span>
-<span>                  steps <span class="op">=</span> <span class="va">steps</span><span class="op">)</span></span>
+<span><span class="va">recruitment_sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simmar.html">simmar</a></span><span class="op">(</span></span>
+<span>  fauna <span class="op">=</span> <span class="va">fauna</span>,</span>
+<span>  fleets <span class="op">=</span> <span class="va">fleets</span>,</span>
+<span>  steps <span class="op">=</span> <span class="va">steps</span></span>
+<span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.13677 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.13621 secs</span></span>
 <span></span>
 <span><span class="va">sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">recruitment_sim</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="va">sim</span><span class="op">$</span><span class="va">fauna</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">age</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">age</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">step</span>, <span class="va">n</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> </span>
+<code class="sourceCode R"><span><span class="va">sim</span><span class="op">$</span><span class="va">fauna</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">age</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">age</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">step</span>, <span class="va">n</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">critter</span>, scales <span class="op">=</span> <span class="st">"free_y"</span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
 <img src="Working-with-Recruitment-Deviates_files/figure-html/unnamed-chunk-3-1.png" alt="Timeline of recruits (age 0 fish) into the population over time given degrees of variation and autocorrelation in the recruitment process." width="700"><p class="caption">
@@ -233,11 +234,10 @@ a two x two matrix with the off-diagonal elements indicating the
 correlation between the recruitment deviates of the two species. We will
 then pass this matrix to the <code>simmar</code> function.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="va">critter_correlations</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="op">-</span><span class="fl">.8</span>, <span class="op">-</span><span class="fl">.8</span>, <span class="fl">1</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="fl">2</span>, byrow <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">critter_correlations</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="op">-</span><span class="fl">.8</span>, <span class="op">-</span><span class="fl">.8</span>, <span class="fl">1</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="fl">2</span>, byrow <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
 <span></span>
-<span><span class="va">fauna</span> <span class="op">&lt;-</span> </span>
+<span><span class="va">fauna</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>    <span class="st">"yellowfin"</span> <span class="op">=</span> <span class="fu"><a href="../reference/create_critter.html">create_critter</a></span><span class="op">(</span></span>
 <span>      scientific_name <span class="op">=</span> <span class="st">"Thunnus albacares"</span>,</span>
@@ -249,7 +249,7 @@ then pass this matrix to the <code>simmar</code> function.</p>
 <span>      ssb0 <span class="op">=</span> <span class="fl">5000</span>,</span>
 <span>      sigma_rec <span class="op">=</span> <span class="fl">0.42</span>,</span>
 <span>      ac_rec <span class="op">=</span> <span class="fl">0</span></span>
-<span>      <span class="op">)</span>,</span>
+<span>    <span class="op">)</span>,</span>
 <span>    <span class="st">"mako"</span> <span class="op">=</span> <span class="fu"><a href="../reference/create_critter.html">create_critter</a></span><span class="op">(</span></span>
 <span>      scientific_name <span class="op">=</span> <span class="st">"Isurus oxyrinchus"</span>,</span>
 <span>      adult_diffusion <span class="op">=</span> <span class="va">mako_diffusion</span>,</span>
@@ -268,25 +268,27 @@ then pass this matrix to the <code>simmar</code> function.</p>
 <span><span class="co">#&gt; Warning in f(names[[col]]): NAs introduced by coercion</span></span>
 <span><span class="co">#&gt; Warning in f(names[[col]]): NAs introduced by coercion</span></span>
 <span></span>
-<span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"longline"</span> <span class="op">=</span> <span class="fu"><a href="../reference/create_fleet.html">create_fleet</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>  `yellowfin` <span class="op">=</span> <span class="va"><a href="../reference/Metier.html">Metier</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>    critter <span class="op">=</span> <span class="va">fauna</span><span class="op">$</span><span class="va">`yellowfin`</span>,</span>
-<span>    price <span class="op">=</span> <span class="fl">100</span>, <span class="co"># price per unit weight</span></span>
-<span>    sel_form <span class="op">=</span> <span class="st">"logistic"</span>, <span class="co"># selectivity form, one of logistic or dome</span></span>
-<span>    sel_start <span class="op">=</span> <span class="fl">.3</span>, <span class="co"># percentage of length at maturity that selectivity starts</span></span>
-<span>    sel_delta <span class="op">=</span> <span class="fl">.1</span>, <span class="co"># additional percentage of sel_start where selectivity asymptotes</span></span>
-<span>    catchability <span class="op">=</span> <span class="fl">.01</span>, <span class="co"># overwritten by tune_fleet but can be set manually here</span></span>
-<span>    p_explt <span class="op">=</span> <span class="fl">1</span></span>
+<span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"longline"</span> <span class="op">=</span> <span class="fu"><a href="../reference/create_fleet.html">create_fleet</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>    `yellowfin` <span class="op">=</span> <span class="va"><a href="../reference/Metier.html">Metier</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>      critter <span class="op">=</span> <span class="va">fauna</span><span class="op">$</span><span class="va">`yellowfin`</span>,</span>
+<span>      price <span class="op">=</span> <span class="fl">100</span>, <span class="co"># price per unit weight</span></span>
+<span>      sel_form <span class="op">=</span> <span class="st">"logistic"</span>, <span class="co"># selectivity form, one of logistic or dome</span></span>
+<span>      sel_start <span class="op">=</span> <span class="fl">.3</span>, <span class="co"># percentage of length at maturity that selectivity starts</span></span>
+<span>      sel_delta <span class="op">=</span> <span class="fl">.1</span>, <span class="co"># additional percentage of sel_start where selectivity asymptotes</span></span>
+<span>      catchability <span class="op">=</span> <span class="fl">.01</span>, <span class="co"># overwritten by tune_fleet but can be set manually here</span></span>
+<span>      p_explt <span class="op">=</span> <span class="fl">1</span></span>
 <span>    <span class="op">)</span>,</span>
-<span>  `mako` <span class="op">=</span> <span class="va"><a href="../reference/Metier.html">Metier</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>    critter <span class="op">=</span> <span class="va">fauna</span><span class="op">$</span><span class="va">`mako`</span>,</span>
-<span>    price <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>    sel_form <span class="op">=</span> <span class="st">"logistic"</span>,</span>
-<span>    sel_start <span class="op">=</span> <span class="fl">.1</span>,</span>
-<span>    sel_delta <span class="op">=</span> <span class="fl">.01</span>,</span>
-<span>    catchability <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>    p_explt <span class="op">=</span> <span class="fl">1</span></span>
-<span>  <span class="op">)</span><span class="op">)</span>,</span>
+<span>    `mako` <span class="op">=</span> <span class="va"><a href="../reference/Metier.html">Metier</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>      critter <span class="op">=</span> <span class="va">fauna</span><span class="op">$</span><span class="va">`mako`</span>,</span>
+<span>      price <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>      sel_form <span class="op">=</span> <span class="st">"logistic"</span>,</span>
+<span>      sel_start <span class="op">=</span> <span class="fl">.1</span>,</span>
+<span>      sel_delta <span class="op">=</span> <span class="fl">.01</span>,</span>
+<span>      catchability <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>      p_explt <span class="op">=</span> <span class="fl">1</span></span>
+<span>    <span class="op">)</span></span>
+<span>  <span class="op">)</span>,</span>
 <span>  mpa_response <span class="op">=</span> <span class="st">"stay"</span>,</span>
 <span>  base_effort <span class="op">=</span> <span class="fl">1000</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/prod.html" class="external-link">prod</a></span><span class="op">(</span><span class="va">resolution</span><span class="op">)</span>,</span>
 <span>  spatial_allocation <span class="op">=</span> <span class="st">"rpue"</span>,</span>
@@ -298,7 +300,7 @@ then pass this matrix to the <code>simmar</code> function.</p>
 <span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span>, tune_type <span class="op">=</span> <span class="va">tune_type</span><span class="op">)</span> <span class="co"># tunes the catchability by fleet to achieve target depletion</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 1.855123 secs</span></span>
+<span><span class="co">#&gt; Time difference of 1.738853 secs</span></span>
 <span></span>
 <span><span class="co"># run simulations</span></span>
 <span></span>
@@ -312,17 +314,16 @@ then pass this matrix to the <code>simmar</code> function.</p>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.05070877 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.05675197 secs</span></span>
 <span></span>
 <span><span class="va">sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">recruitment_sim</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="va">sim</span><span class="op">$</span><span class="va">fauna</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">age</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">age</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">step</span>,<span class="va">patch</span>,<span class="va">critter</span>, <span class="va">n</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_wider.html" class="external-link">pivot_wider</a></span><span class="op">(</span>names_from <span class="op">=</span> <span class="va">critter</span>, values_from <span class="op">=</span> <span class="va">n</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">mako</span>, <span class="va">yellowfin</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span> </span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">sim</span><span class="op">$</span><span class="va">fauna</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">age</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">age</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">step</span>, <span class="va">patch</span>, <span class="va">critter</span>, <span class="va">n</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_wider.html" class="external-link">pivot_wider</a></span><span class="op">(</span>names_from <span class="op">=</span> <span class="va">critter</span>, values_from <span class="op">=</span> <span class="va">n</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">mako</span>, <span class="va">yellowfin</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
 <img src="Working-with-Recruitment-Deviates_files/figure-html/unnamed-chunk-5-1.png" alt="Scatter plot of negatively correlated recruitment between the two simulated species." width="700"><p class="caption">
 Scatter plot of negatively correlated recruitment between the two
@@ -337,47 +338,44 @@ example the user wants to share the same vector of recruitment deviates
 across multiple simulations, or generate more complex recruitment
 deviates driven by for example environmental covariates.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
+<code class="sourceCode R"><span><span class="va">sigma_recs</span> <span class="op">&lt;-</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">map_dbl</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="st">"sigma_rec"</span><span class="op">)</span> <span class="co"># gather recruitment standard deviations</span></span>
 <span></span>
-<span>  <span class="va">sigma_recs</span> <span class="op">&lt;-</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">map_dbl</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="st">"sigma_rec"</span><span class="op">)</span> <span class="co"># gather recruitment standard deviations</span></span>
+<span><span class="va">ac_recs</span> <span class="op">&lt;-</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">map_dbl</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="st">"ac_rec"</span><span class="op">)</span> <span class="co"># gather autocorrelation in recruitment standard deviations</span></span>
 <span></span>
-<span>  <span class="va">ac_recs</span> <span class="op">&lt;-</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">map_dbl</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="st">"ac_rec"</span><span class="op">)</span> <span class="co"># gather autocorrelation in recruitment standard deviations</span></span>
+<span><span class="va">n_critters</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">fauna</span><span class="op">)</span></span>
 <span></span>
-<span>  <span class="va">n_critters</span> <span class="op">&lt;-</span>  <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">fauna</span><span class="op">)</span></span>
-<span>  </span>
-<span>  <span class="va">covariance_rec</span> <span class="op">&lt;-</span> <span class="va">critter_correlations</span> <span class="op">*</span> <span class="op">(</span><span class="va">sigma_recs</span> <span class="op"><a href="https://rdrr.io/r/base/outer.html" class="external-link">%o%</a></span> <span class="va">sigma_recs</span><span class="op">)</span></span>
+<span><span class="va">covariance_rec</span> <span class="op">&lt;-</span> <span class="va">critter_correlations</span> <span class="op">*</span> <span class="op">(</span><span class="va">sigma_recs</span> <span class="op"><a href="https://rdrr.io/r/base/outer.html" class="external-link">%o%</a></span> <span class="va">sigma_recs</span><span class="op">)</span></span>
 <span></span>
-<span>  <span class="va">rec_steps</span> <span class="op">&lt;-</span> <span class="va">steps</span> <span class="op">+</span> <span class="va">seasons</span></span>
-<span>  </span>
-<span>  <span class="va">log_rec_devs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="cn">NA</span>, nrow <span class="op">=</span> <span class="va">rec_steps</span>, ncol <span class="op">=</span> <span class="va">n_critters</span>, dimnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="op">(</span><span class="va">rec_steps</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">fauna</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">rec_steps</span> <span class="op">&lt;-</span> <span class="va">steps</span> <span class="op">+</span> <span class="va">seasons</span></span>
 <span></span>
-<span>  <span class="va">log_rec_devs</span><span class="op">[</span><span class="fl">1</span>,<span class="op">]</span> <span class="op">&lt;-</span> <span class="fu">mvtnorm</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/mvtnorm/man/Mvnorm.html" class="external-link">rmvnorm</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="va">n_critters</span><span class="op">)</span>,sigma <span class="op">=</span> <span class="va">covariance_rec</span><span class="op">)</span></span>
+<span><span class="va">log_rec_devs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="cn">NA</span>, nrow <span class="op">=</span> <span class="va">rec_steps</span>, ncol <span class="op">=</span> <span class="va">n_critters</span>, dimnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="op">(</span><span class="va">rec_steps</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">fauna</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span>  <span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">2</span><span class="op">:</span><span class="va">rec_steps</span><span class="op">)</span><span class="op">{</span></span>
+<span><span class="va">log_rec_devs</span><span class="op">[</span><span class="fl">1</span>, <span class="op">]</span> <span class="op">&lt;-</span> <span class="fu">mvtnorm</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/mvtnorm/man/Mvnorm.html" class="external-link">rmvnorm</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="va">n_critters</span><span class="op">)</span>, sigma <span class="op">=</span> <span class="va">covariance_rec</span><span class="op">)</span></span>
 <span></span>
-<span>    <span class="va">log_rec_devs</span><span class="op">[</span><span class="va">i</span>, <span class="op">]</span> <span class="op">&lt;-</span> <span class="va">ac_recs</span> <span class="op">*</span>  <span class="va">log_rec_devs</span><span class="op">[</span><span class="va">i</span> <span class="op">-</span> <span class="fl">1</span>, <span class="op">]</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="va">ac_recs</span> <span class="op">^</span> <span class="fl">2</span><span class="op">)</span> <span class="op">*</span> <span class="fu">mvtnorm</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/mvtnorm/man/Mvnorm.html" class="external-link">rmvnorm</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>,<span class="va">n_critters</span><span class="op">)</span>, sigma <span class="op">=</span> <span class="va">covariance_rec</span><span class="op">)</span></span>
+<span><span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">2</span><span class="op">:</span><span class="va">rec_steps</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">log_rec_devs</span><span class="op">[</span><span class="va">i</span>, <span class="op">]</span> <span class="op">&lt;-</span> <span class="va">ac_recs</span> <span class="op">*</span> <span class="va">log_rec_devs</span><span class="op">[</span><span class="va">i</span> <span class="op">-</span> <span class="fl">1</span>, <span class="op">]</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="va">ac_recs</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span> <span class="op">*</span> <span class="fu">mvtnorm</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/mvtnorm/man/Mvnorm.html" class="external-link">rmvnorm</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="va">n_critters</span><span class="op">)</span>, sigma <span class="op">=</span> <span class="va">covariance_rec</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
 <span></span>
-<span>  <span class="op">}</span></span>
-<span>  </span>
-<span>  <span class="va">a</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">a</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">recruitment_sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simmar.html">simmar</a></span><span class="op">(</span>fauna <span class="op">=</span> <span class="va">fauna</span>,</span>
-<span>                  fleets <span class="op">=</span> <span class="va">fleets</span>,</span>
-<span>                  steps <span class="op">=</span> <span class="va">steps</span>,</span>
-<span>                  log_rec_devs <span class="op">=</span> <span class="va">log_rec_devs</span><span class="op">)</span></span>
+<span><span class="va">recruitment_sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simmar.html">simmar</a></span><span class="op">(</span></span>
+<span>  fauna <span class="op">=</span> <span class="va">fauna</span>,</span>
+<span>  fleets <span class="op">=</span> <span class="va">fleets</span>,</span>
+<span>  steps <span class="op">=</span> <span class="va">steps</span>,</span>
+<span>  log_rec_devs <span class="op">=</span> <span class="va">log_rec_devs</span></span>
+<span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.152571 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.04308605 secs</span></span>
 <span></span>
 <span><span class="va">sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">recruitment_sim</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="va">sim</span><span class="op">$</span><span class="va">fauna</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">age</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">age</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">step</span>,<span class="va">patch</span>,<span class="va">critter</span>, <span class="va">n</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_wider.html" class="external-link">pivot_wider</a></span><span class="op">(</span>names_from <span class="op">=</span> <span class="va">critter</span>, values_from <span class="op">=</span> <span class="va">n</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">mako</span>, <span class="va">yellowfin</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span> </span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">sim</span><span class="op">$</span><span class="va">fauna</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">age</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">age</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">step</span>, <span class="va">patch</span>, <span class="va">critter</span>, <span class="va">n</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_wider.html" class="external-link">pivot_wider</a></span><span class="op">(</span>names_from <span class="op">=</span> <span class="va">critter</span>, values_from <span class="op">=</span> <span class="va">n</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">mako</span>, <span class="va">yellowfin</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
 <img src="Working-with-Recruitment-Deviates_files/figure-html/unnamed-chunk-7-1.png" alt="Scatter plot of externally supplied negatively correlated recruitment between the two simulated species." width="700"><p class="caption">
 Scatter plot of externally supplied negatively correlated recruitment

@@ -341,13 +341,13 @@ simmar <- function(fauna = list(),
           rowSums(r_p_f, na.rm = TRUE) # pull out total revenue for fleet l
       }
 
-      # if (fleets[[l]]$fleet_model == "manual"){
-      #
-      #   total_effort <- manager$effort[[current_fleet]][s-1]
-      #
-      # } else {
+      if (fleets[[l]]$fleet_model == "manual"){
+
+        total_effort <- fleets[[current_fleet]]$effort[s-1]
+
+      } else {
         total_effort <- sum(fleets[[l]]$e_p_s[, s - 1] * concentrator)
-      #}
+      }
 
 
       if (sum(last_r_p, na.rm = TRUE) > 0) {
