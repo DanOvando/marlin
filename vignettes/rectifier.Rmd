@@ -49,12 +49,14 @@ We'll now make up a habitat layer in which the species prefers to live closter t
 ```{r}
 coastal_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   dplyr::mutate(
-    habitat = -.2 + .2 * x,
+    habitat = -.2 + .2 * x * y,
     habitat = habitat / max(habitat) * rockfish_diffusion
   ) |>
   pivot_wider(names_from = x, values_from = habitat) %>%
   select(-y) %>%
   as.matrix()
+
+image(coastal_habitat)
 ```
 
 And from there we pass things to the usual sets of functions

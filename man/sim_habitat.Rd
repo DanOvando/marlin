@@ -37,13 +37,13 @@ Simulate species habitats with correlations across space and among species
 
 n_species <- 6
 
-critters <- paste0(fruit[1:n_species],"_fish")
+critters <- paste0(fruit[1:n_species], "_fish")
 
-resolution <- c(4,20)
+resolution <- c(4, 20)
 
-patch_area =  4
+patch_area <- 4
 
-kp = .1
+kp <- .1
 
 
 species_distributions <- sim_habitat(critters = critters, resolution = resolution, patch_area = patch_area, kp = kp)

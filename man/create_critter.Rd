@@ -13,6 +13,7 @@ create_critter(
   season_blocks = list(),
   recruit_habitat = NA,
   seasons = 1,
+  lorenzen_c = -1,
   fec_form = "weight",
   adult_diffusion = 2,
   recruit_diffusion = 10,
@@ -45,6 +46,8 @@ create_critter(
 \item{recruit_habitat}{habitat for recruitment}
 
 \item{seasons}{number of seasons per year (integer)}
+
+\item{lorenzen_c}{rate of the lorenzen curve, defaults to -1}
 
 \item{fec_form}{one of "weight" or "pups"}
 

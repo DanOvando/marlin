@@ -47,3 +47,4 @@ Depends:
 Remotes: 
     ropensci/bold,
     ropensci/taxize
+Config/Needs/website: rmarkdown

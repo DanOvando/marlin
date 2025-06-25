@@ -17,6 +17,8 @@ ggplot2 theme for marlin
 }
 \examples{
 
-ggplot(mtcars, aes(mpg)) + geom_histogram() + marlin::theme_marlin()
+ggplot(mtcars, aes(mpg)) +
+  geom_histogram() +
+  marlin::theme_marlin()
 
 }

@@ -71,6 +71,8 @@ Fish <- R6::R6Class(
     #' @param length_bin_width the width of the length bins in the length-at-age key, defaults to 1cm
     #' @param lorenzen_c the rate of the Lorenzen curve. Defaults to -1, larger values will make the difference between natural mortality at young vs old ages less pronounced
     #' @param semelparous TRUE or FALSE. When FALSE (default), individuals can reproduce multiple times. When TRUE, individuals can only spawn once, so mortality at increase increases as a function of maturity at age
+    #' @param adult_home_range the desired home range of adults. Overrides adult_diffusion if set
+    #' @param recruit_home_range the desired home range of recruits Overrides recruit_diffusion if set
     #' @param explt_type deprecated
     initialize = function(common_name = NA,
                           scientific_name = NA,
@@ -108,6 +110,8 @@ Fish <- R6::R6Class(
                           density_dependence = "global_habitat",
                           adult_diffusion = 4,
                           recruit_diffusion = 10,
+                          adult_home_range = NULL,
+                          recruit_home_range = NULL,
                           query_fishlife = T,
                           sigma_rec = 0,
                           ac_rec = 0,
@@ -207,12 +211,27 @@ Fish <- R6::R6Class(
         stop("As of now adult movement and seasonal habitat lists but be same length")
       }
 
+      if (length(adult_home_range) > 1 &
+          length(adult_home_range) != length(habitat)) {
+        stop("As of now adult_home_range and seasonal habitat lists but be same length")
+      }
+
+      # override diffusion parameters with those based on home range
+      if (!is.null(adult_home_range)) {
+        adult_diffusion <- tune_diffusion(adult_home_range)
+      }
+
+      if (!is.null(recruit_home_range)) {
+        recruit_diffusion <- tune_diffusion(recruit_home_range)
+      }
+
       # if adult movement is constant, make it same shape as seasonal habitat
       if (length(season_blocks) != length(adult_diffusion) &
         length(adult_diffusion) == 1) {
         adult_diffusion <-
           as.list(rep(adult_diffusion, length(season_blocks)))
       }
+
 
       time_step <- 1 / seasons
 
@@ -544,7 +563,7 @@ Fish <- R6::R6Class(
       # reshape to vector, for some reason doesn't work inside function
       for (i in seq_along(taxis_matrix)) {
         taxis_matrix[[i]] <- as.data.frame(taxis_matrix[[i]]) |>
-          tidyr::pivot_longer(dplyr::everything(), names_to = "x", names_transform = list(x = as.integer)) |>
+          tidyr::pivot_longer(dplyr::everything(), names_to = "x", names_prefix = "V",names_transform = list(x = as.integer)) |>
           dplyr::arrange(x)
 
 
@@ -643,7 +662,6 @@ Fish <- R6::R6Class(
             } # fill in numbers at age
 
             n_at_a[, length(m_at_age)] <- n_at_a[, length(m_at_age)] / (1 - exp(-m_at_age[length(m_at_age)] * time_step))
-
             if (popsize_measure == "ssb0") {
               popsize_level <-
                 sum(colSums(n_at_a) * fec_at_age * maturity_at_age)
@@ -653,11 +671,11 @@ Fish <- R6::R6Class(
             }
 
             delta <- ((popsize_level) - (popsize_target))^2
-          }
+          } # close tune_popsize
         tuned_r0 <- optim(
           r0,
           tune_popsize,
-          lower = 1e-3,
+          lower = 1e-6,
           popsize_target = popsize_target,
           rec_habitat = r0s$rec_habitat,
           m_at_age = m_at_age,

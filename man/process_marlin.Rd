@@ -25,7 +25,6 @@ tidy arrays of outputs from marlin::simmar
 \dontrun{
 
 processed_marlin <- process_marlin(sim, steps_to_keep = 100, time_step = 0.25)
-
 }
 
 }

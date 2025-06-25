@@ -45,6 +45,7 @@
     <li><a class="dropdown-item" href="articles/port-distance.html">Setting and Using Distance from Port</a></li>
     <li><a class="dropdown-item" href="articles/rectifier.html">Don't Be a Square</a></li>
     <li><a class="dropdown-item" href="articles/Setting-Selectivity.html">Setting Selectivity</a></li>
+    <li><a class="dropdown-item" href="articles/tune_home_range.html">Tune Home Range</a></li>
     <li><a class="dropdown-item" href="articles/Working-with-Recruitment-Deviates.html">Working with Recruitment Deviates</a></li>
   </ul>
 </li>
@@ -138,7 +139,7 @@
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>dplyr.summarise.inform <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme_get.html" class="external-link">theme_set</a></span><span class="op">(</span><span class="fu">marlin</span><span class="fu">::</span><span class="fu"><a href="reference/theme_marlin.html">theme_marlin</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">42</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">resolution</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">5</span>,<span class="fl">10</span><span class="op">)</span> <span class="co"># resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches </span></span>
+<span><span class="va">resolution</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">10</span><span class="op">)</span> <span class="co"># resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches</span></span>
 <span><span class="va">years</span> <span class="op">&lt;-</span> <span class="fl">20</span></span>
 <span></span>
 <span><span class="va">seasons</span> <span class="op">&lt;-</span> <span class="fl">4</span></span>
@@ -164,12 +165,12 @@
 <h3 id="creating-a-basic-simulation">Creating a basic simulation<a class="anchor" aria-label="anchor" href="#creating-a-basic-simulation"></a>
 </h3>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">fauna</span> <span class="op">&lt;-</span> </span>
+<code class="sourceCode R"><span><span class="va">fauna</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>    <span class="st">"bigeye"</span> <span class="op">=</span> <span class="fu"><a href="reference/create_critter.html">create_critter</a></span><span class="op">(</span></span>
 <span>      common_name <span class="op">=</span> <span class="st">"bigeye tuna"</span>,</span>
 <span>      adult_diffusion <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>      density_dependence <span class="op">=</span> <span class="st">"post_dispersal"</span>,</span>
+<span>      density_dependence <span class="op">=</span> <span class="st">"local_habitat"</span>,</span>
 <span>      seasons <span class="op">=</span> <span class="va">seasons</span>,</span>
 <span>      fished_depletion <span class="op">=</span> <span class="fl">.25</span>,</span>
 <span>      resolution <span class="op">=</span> <span class="va">resolution</span>,</span>
@@ -186,38 +187,36 @@
 <span><span class="va">resolution</span> <span class="op">&lt;-</span> <span class="va">fauna</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">resolution</span></span></code></pre></div>
 <p>The <code>fleets</code> object is a list of individual fishing fleets created by the <code>create_fleet</code> function. Importantly, each fleet is broken up into metiers specifying the dynamics of a fishing fleet with regards to a matching critter in the <code>fauna</code> object. So, in this case we have a longline fleet, with a metier for bigeye tuna specifying things like the price per unit weight, selectivity, and p_explt. <code>p_explt</code> tracks the relative exploitation of each metier in the total exploitation of each species. So, if one metier has a <code>p_explt</code> of 1 for species X, and another a <code>p_explt</code> of 2 for the same species, 50% of the mortality for species X comes from the first metier (p_explt values are relative, not absolute).</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<code class="sourceCode R"><span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  <span class="st">"longline"</span> <span class="op">=</span> <span class="fu"><a href="reference/create_fleet.html">create_fleet</a></span><span class="op">(</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"bigeye"</span> <span class="op">=</span> <span class="va"><a href="reference/Metier.html">Metier</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>        critter <span class="op">=</span> <span class="va">fauna</span><span class="op">$</span><span class="va">bigeye</span>,</span>
-<span>        price <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>        sel_form <span class="op">=</span> <span class="st">"logistic"</span>,</span>
-<span>        sel_start <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>        sel_delta <span class="op">=</span> <span class="fl">.01</span>,</span>
-<span>        catchability <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>        p_explt <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>      <span class="op">)</span></span>
-<span>    <span class="op">)</span>,</span>
+<span>      critter <span class="op">=</span> <span class="va">fauna</span><span class="op">$</span><span class="va">bigeye</span>,</span>
+<span>      price <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>      sel_form <span class="op">=</span> <span class="st">"logistic"</span>,</span>
+<span>      sel_start <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>      sel_delta <span class="op">=</span> <span class="fl">.01</span>,</span>
+<span>      catchability <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>      p_explt <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>    <span class="op">)</span><span class="op">)</span>,</span>
 <span>    base_effort <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/prod.html" class="external-link">prod</a></span><span class="op">(</span><span class="va">resolution</span><span class="op">)</span>,</span>
 <span>    resolution <span class="op">=</span> <span class="va">resolution</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>We then use the <code>tune_fleets</code> function as needed to tune the dynamics of the fleet to achieve specific objectives. In this case, we specified a target equilibrium fished depletion of 25% (meaning biomass at equilibrium is 25% of unfished biomass). <code>tune_fleets</code> adjusts the catchability coefficients by fleet to achieve the desired depletion level, taking into account the dynamics and <code>p_explt</code> values per metier.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span>, tune_type <span class="op">=</span> <span class="st">"depletion"</span><span class="op">)</span> </span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span>, tune_type <span class="op">=</span> <span class="st">"depletion"</span><span class="op">)</span></span></code></pre></div>
 <p>From there, we run the simulation by passing the <code>fauna</code> and <code>fleet</code> options to the <code>simmar</code> function</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="va">start_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">start_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">example_sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/simmar.html">simmar</a></span><span class="op">(</span>fauna <span class="op">=</span> <span class="va">fauna</span>,</span>
-<span>                  fleets <span class="op">=</span> <span class="va">fleets</span>,</span>
-<span>                  years <span class="op">=</span> <span class="va">years</span><span class="op">)</span></span>
+<span><span class="va">example_sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/simmar.html">simmar</a></span><span class="op">(</span></span>
+<span>  fauna <span class="op">=</span> <span class="va">fauna</span>,</span>
+<span>  fleets <span class="op">=</span> <span class="va">fleets</span>,</span>
+<span>  years <span class="op">=</span> <span class="va">years</span></span>
+<span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">start_time</span></span>
-<span><span class="co">#&gt; Time difference of 0.055969 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 0.1321201 secs</span></span></code></pre></div>
 <p>we can then use <code>process_marlin</code> and <code>plot_marlin</code> to examine the simulation</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">processed_marlin</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_marlin.html">process_marlin</a></span><span class="op">(</span>sim <span class="op">=</span> <span class="va">example_sim</span>, time_step <span class="op">=</span> <span class="va">time_step</span><span class="op">)</span></span>
@@ -243,8 +242,7 @@
 </h2>
 <p>Now, let’s make this a two species and two fleet example with some seasonal dynamics, where the species have different habitats in different seasons.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="va">seasons</span> <span class="op">&lt;-</span> <span class="fl">4</span></span>
+<code class="sourceCode R"><span><span class="va">seasons</span> <span class="op">&lt;-</span> <span class="fl">4</span></span>
 <span></span>
 <span><span class="va">steps</span> <span class="op">&lt;-</span> <span class="va">years</span> <span class="op">*</span> <span class="va">seasons</span></span>
 <span></span>
@@ -257,31 +255,37 @@
 <span><span class="co"># for now make up some habitat</span></span>
 <span></span>
 <span><span class="va">skipjack_habitat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tidyr.tidyverse.org/reference/expand_grid.html" class="external-link">expand_grid</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">resolution</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, y <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">resolution</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>habitat <span class="op">=</span>  <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="op">(</span><span class="va">x</span> <span class="op">^</span> <span class="fl">2</span> <span class="op">+</span> <span class="va">y</span> <span class="op">^</span> <span class="fl">2</span><span class="op">)</span>, <span class="fl">20</span>, <span class="fl">200</span><span class="op">)</span>,</span>
-<span>  habitat <span class="op">=</span> <span class="va">habitat</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">habitat</span><span class="op">)</span> <span class="op">*</span> <span class="va">skipjack_diffusion</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_wider.html" class="external-link">pivot_wider</a></span><span class="op">(</span>names_from <span class="op">=</span> <span class="va">y</span>, values_from <span class="op">=</span> <span class="va">habitat</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">x</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> </span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span></span>
+<span>    habitat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="op">(</span><span class="va">x</span><span class="op">^</span><span class="fl">2</span> <span class="op">+</span> <span class="va">y</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span>, <span class="fl">20</span>, <span class="fl">200</span><span class="op">)</span>,</span>
+<span>    habitat <span class="op">=</span> <span class="va">habitat</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">habitat</span><span class="op">)</span> <span class="op">*</span> <span class="va">skipjack_diffusion</span></span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_wider.html" class="external-link">pivot_wider</a></span><span class="op">(</span>names_from <span class="op">=</span> <span class="va">x</span>, values_from <span class="op">=</span> <span class="va">habitat</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">y</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span></span>
 <span><span class="va">bigeye_habitat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tidyr.tidyverse.org/reference/expand_grid.html" class="external-link">expand_grid</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">resolution</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, y <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">resolution</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>habitat <span class="op">=</span>  <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="op">(</span><span class="va">x</span> <span class="op">^</span> <span class="fl">2</span> <span class="op">+</span> <span class="va">y</span> <span class="op">^</span> <span class="fl">2</span><span class="op">)</span>, <span class="fl">300</span>, <span class="fl">100</span><span class="op">)</span>,</span>
-<span>         habitat <span class="op">=</span> <span class="va">habitat</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">habitat</span><span class="op">)</span> <span class="op">*</span> <span class="va">bigeye_diffusion</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> </span>
-<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_wider.html" class="external-link">pivot_wider</a></span><span class="op">(</span>names_from <span class="op">=</span> <span class="va">y</span>, values_from <span class="op">=</span> <span class="va">habitat</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">x</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span></span>
+<span>    habitat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="op">(</span><span class="va">x</span><span class="op">^</span><span class="fl">2</span> <span class="op">+</span> <span class="va">y</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span>, <span class="fl">300</span>, <span class="fl">100</span><span class="op">)</span>,</span>
+<span>    habitat <span class="op">=</span> <span class="va">habitat</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">habitat</span><span class="op">)</span> <span class="op">*</span> <span class="va">bigeye_diffusion</span></span>
+<span>  <span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_wider.html" class="external-link">pivot_wider</a></span><span class="op">(</span>names_from <span class="op">=</span> <span class="va">x</span>, values_from <span class="op">=</span> <span class="va">habitat</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">y</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span></span>
 <span><span class="va">bigeye_habitat2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tidyr.tidyverse.org/reference/expand_grid.html" class="external-link">expand_grid</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">resolution</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, y <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">resolution</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>habitat <span class="op">=</span>  <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="op">(</span><span class="va">x</span> <span class="op">^</span> <span class="fl">.2</span> <span class="op">+</span> <span class="va">y</span> <span class="op">^</span> <span class="fl">.2</span><span class="op">)</span>, <span class="fl">100</span>, <span class="fl">100</span><span class="op">)</span>,</span>
-<span>         habitat <span class="op">=</span> <span class="va">habitat</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">habitat</span><span class="op">)</span> <span class="op">*</span> <span class="va">bigeye_diffusion</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> </span>
-<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_wider.html" class="external-link">pivot_wider</a></span><span class="op">(</span>names_from <span class="op">=</span> <span class="va">y</span>, values_from <span class="op">=</span> <span class="va">habitat</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">x</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span></span>
+<span>    habitat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="op">(</span><span class="va">x</span><span class="op">^</span><span class="fl">.2</span> <span class="op">+</span> <span class="va">y</span><span class="op">^</span><span class="fl">.2</span><span class="op">)</span>, <span class="fl">100</span>, <span class="fl">100</span><span class="op">)</span>,</span>
+<span>    habitat <span class="op">=</span> <span class="va">habitat</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">habitat</span><span class="op">)</span> <span class="op">*</span> <span class="va">bigeye_diffusion</span></span>
+<span>  <span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_wider.html" class="external-link">pivot_wider</a></span><span class="op">(</span>names_from <span class="op">=</span> <span class="va">x</span>, values_from <span class="op">=</span> <span class="va">habitat</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">y</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">a</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">fauna</span> <span class="op">&lt;-</span> </span>
+<span><span class="va">fauna</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>    <span class="st">"skipjack"</span> <span class="op">=</span> <span class="fu"><a href="reference/create_critter.html">create_critter</a></span><span class="op">(</span></span>
 <span>      scientific_name <span class="op">=</span> <span class="st">"Katsuwonus pelamis"</span>,</span>
@@ -292,9 +296,9 @@
 <span>      fished_depletion <span class="op">=</span> <span class="fl">.6</span>, <span class="co"># desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),</span></span>
 <span>      density_dependence <span class="op">=</span> <span class="st">"global_habitat"</span>, <span class="co"># recruitment form, where 1 implies local recruitment</span></span>
 <span>      seasons <span class="op">=</span> <span class="va">seasons</span>,</span>
-<span>      init_explt <span class="op">=</span> <span class="fl">0.2</span>, </span>
+<span>      init_explt <span class="op">=</span> <span class="fl">0.2</span>,</span>
 <span>      explt_type <span class="op">=</span> <span class="st">"f"</span></span>
-<span>      <span class="op">)</span>,</span>
+<span>    <span class="op">)</span>,</span>
 <span>    <span class="st">"bigeye"</span> <span class="op">=</span> <span class="fu"><a href="reference/create_critter.html">create_critter</a></span><span class="op">(</span></span>
 <span>      common_name <span class="op">=</span> <span class="st">"bigeye tuna"</span>,</span>
 <span>      habitat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">bigeye_habitat</span>, <span class="va">bigeye_habitat2</span><span class="op">)</span>, <span class="co"># pass habitat as lists</span></span>
@@ -304,15 +308,15 @@
 <span>      fished_depletion <span class="op">=</span> <span class="fl">.1</span>,</span>
 <span>      density_dependence <span class="op">=</span> <span class="st">"local_habitat"</span>,</span>
 <span>      seasons <span class="op">=</span> <span class="va">seasons</span>,</span>
-<span>      init_explt <span class="op">=</span> <span class="fl">0.3</span>, </span>
+<span>      init_explt <span class="op">=</span> <span class="fl">0.3</span>,</span>
 <span>      explt_type <span class="op">=</span> <span class="st">"f"</span></span>
 <span>    <span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 1.819066 secs</span></span>
+<span><span class="co">#&gt; Time difference of 1.942027 secs</span></span>
 <span></span>
-<span><span class="co"># create a fleets object, which is a list of lists (of lists). Each fleet has one element, </span></span>
-<span><span class="co"># with lists for each species inside there. Price specifies the price per unit weight of that </span></span>
+<span><span class="co"># create a fleets object, which is a list of lists (of lists). Each fleet has one element,</span></span>
+<span><span class="co"># with lists for each species inside there. Price specifies the price per unit weight of that</span></span>
 <span><span class="co"># species for that fleet</span></span>
 <span><span class="co"># sel_form can be one of logistic or dome</span></span>
 <span></span>
@@ -320,7 +324,7 @@
 <span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  <span class="st">"longline"</span> <span class="op">=</span> <span class="fu"><a href="reference/create_fleet.html">create_fleet</a></span><span class="op">(</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>       <span class="st">"skipjack"</span> <span class="op">=</span> <span class="va"><a href="reference/Metier.html">Metier</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>      <span class="st">"skipjack"</span> <span class="op">=</span> <span class="va"><a href="reference/Metier.html">Metier</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>        critter <span class="op">=</span> <span class="va">fauna</span><span class="op">$</span><span class="va">skipjack</span>,</span>
 <span>        price <span class="op">=</span> <span class="fl">100</span>,</span>
 <span>        <span class="co"># price per unit weight</span></span>
@@ -334,7 +338,7 @@
 <span>        <span class="co"># overwritten by tune_fleet but can be set manually here</span></span>
 <span>        p_explt <span class="op">=</span> <span class="fl">1</span></span>
 <span>      <span class="op">)</span>,</span>
-<span>       <span class="st">"bigeye"</span> <span class="op">=</span> <span class="va"><a href="reference/Metier.html">Metier</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>      <span class="st">"bigeye"</span> <span class="op">=</span> <span class="va"><a href="reference/Metier.html">Metier</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>        critter <span class="op">=</span> <span class="va">fauna</span><span class="op">$</span><span class="va">bigeye</span>,</span>
 <span>        price <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>        sel_form <span class="op">=</span> <span class="st">"logistic"</span>,</span>
@@ -345,39 +349,39 @@
 <span>      <span class="op">)</span></span>
 <span>    <span class="op">)</span>,</span>
 <span>    base_effort <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/prod.html" class="external-link">prod</a></span><span class="op">(</span><span class="va">resolution</span><span class="op">)</span>,</span>
-<span>        resolution <span class="op">=</span> <span class="va">resolution</span></span>
-<span></span>
+<span>    resolution <span class="op">=</span> <span class="va">resolution</span></span>
 <span>  <span class="op">)</span>,</span>
-<span>  <span class="st">"purseseine"</span> <span class="op">=</span> <span class="fu"><a href="reference/create_fleet.html">create_fleet</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>    skipjack <span class="op">=</span> <span class="va"><a href="reference/Metier.html">Metier</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>      critter <span class="op">=</span> <span class="va">fauna</span><span class="op">$</span><span class="va">skipjack</span>,</span>
-<span>      price <span class="op">=</span> <span class="fl">100</span>,</span>
-<span>      sel_form <span class="op">=</span> <span class="st">"logistic"</span>,</span>
-<span>      sel_start <span class="op">=</span> <span class="fl">0.25</span>,</span>
-<span>      sel_delta <span class="op">=</span> <span class="fl">.1</span>,</span>
-<span>      catchability <span class="op">=</span> <span class="fl">.01</span>,</span>
-<span>      p_explt <span class="op">=</span> <span class="fl">0.9</span></span>
+<span>  <span class="st">"purseseine"</span> <span class="op">=</span> <span class="fu"><a href="reference/create_fleet.html">create_fleet</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>      skipjack <span class="op">=</span> <span class="va"><a href="reference/Metier.html">Metier</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>        critter <span class="op">=</span> <span class="va">fauna</span><span class="op">$</span><span class="va">skipjack</span>,</span>
+<span>        price <span class="op">=</span> <span class="fl">100</span>,</span>
+<span>        sel_form <span class="op">=</span> <span class="st">"logistic"</span>,</span>
+<span>        sel_start <span class="op">=</span> <span class="fl">0.25</span>,</span>
+<span>        sel_delta <span class="op">=</span> <span class="fl">.1</span>,</span>
+<span>        catchability <span class="op">=</span> <span class="fl">.01</span>,</span>
+<span>        p_explt <span class="op">=</span> <span class="fl">0.9</span></span>
+<span>      <span class="op">)</span>,</span>
+<span>      bigeye <span class="op">=</span> <span class="va"><a href="reference/Metier.html">Metier</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>        critter <span class="op">=</span> <span class="va">fauna</span><span class="op">$</span><span class="va">bigeye</span>,</span>
+<span>        price <span class="op">=</span> <span class="fl">100</span>,</span>
+<span>        sel_form <span class="op">=</span> <span class="st">"logistic"</span>,</span>
+<span>        sel_start <span class="op">=</span> <span class="fl">.25</span>,</span>
+<span>        sel_delta <span class="op">=</span> <span class="fl">.5</span>,</span>
+<span>        catchability <span class="op">=</span> <span class="fl">.01</span>,</span>
+<span>        p_explt <span class="op">=</span> <span class="fl">1</span></span>
+<span>      <span class="op">)</span></span>
 <span>    <span class="op">)</span>,</span>
-<span>    bigeye <span class="op">=</span> <span class="va"><a href="reference/Metier.html">Metier</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>      critter <span class="op">=</span> <span class="va">fauna</span><span class="op">$</span><span class="va">bigeye</span>,</span>
-<span>      price <span class="op">=</span> <span class="fl">100</span>,</span>
-<span>      sel_form <span class="op">=</span> <span class="st">"logistic"</span>,</span>
-<span>      sel_start <span class="op">=</span> <span class="fl">.25</span>,</span>
-<span>      sel_delta <span class="op">=</span> <span class="fl">.5</span>,</span>
-<span>      catchability <span class="op">=</span> <span class="fl">.01</span>,</span>
-<span>      p_explt <span class="op">=</span> <span class="fl">1</span></span>
-<span>    <span class="op">)</span></span>
-<span>  <span class="op">)</span>,</span>
-<span>  base_effort <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/prod.html" class="external-link">prod</a></span><span class="op">(</span><span class="va">resolution</span><span class="op">)</span>,    resolution <span class="op">=</span> <span class="va">resolution</span></span>
-<span><span class="op">)</span></span>
+<span>    base_effort <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/prod.html" class="external-link">prod</a></span><span class="op">(</span><span class="va">resolution</span><span class="op">)</span>, resolution <span class="op">=</span> <span class="va">resolution</span></span>
+<span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">a</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span><span class="op">)</span> </span>
+<span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.7938628 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.72086 secs</span></span>
 <span></span>
 <span></span>
 <span><span class="co"># run simulations</span></span>
@@ -385,12 +389,14 @@
 <span><span class="co"># run the simulation using marlin::simmar</span></span>
 <span><span class="va">a</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">sim3</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/simmar.html">simmar</a></span><span class="op">(</span>fauna <span class="op">=</span> <span class="va">fauna</span>,</span>
-<span>                  fleets <span class="op">=</span> <span class="va">fleets</span>,</span>
-<span>                  years <span class="op">=</span> <span class="va">years</span><span class="op">)</span></span>
+<span><span class="va">sim3</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/simmar.html">simmar</a></span><span class="op">(</span></span>
+<span>  fauna <span class="op">=</span> <span class="va">fauna</span>,</span>
+<span>  fleets <span class="op">=</span> <span class="va">fleets</span>,</span>
+<span>  years <span class="op">=</span> <span class="va">years</span></span>
+<span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.2029431 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.1030359 secs</span></span>
 <span><span class="co"># a &lt;- Sys.time()</span></span>
 <span></span>
 <span><span class="va">processed_marlin</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_marlin.html">process_marlin</a></span><span class="op">(</span>sim <span class="op">=</span> <span class="va">sim3</span>, time_step <span class="op">=</span> <span class="va">time_step</span>, keep_age <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
@@ -412,9 +418,7 @@
 </h2>
 <p>Now let’s compare the effect of an MPA on two species: a shark population and a yellowfin tuna population. In one simulation, the sharks and the tuna will share the same nearshore habitat to the “east” of the simulated area. In the second, the tunas life onshore in the eastern habitat, but the sharks live further offshore. In both, we will design an MPA based on the distribution of tunas.</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span></span>
-<span><span class="va">resolution</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>,<span class="fl">20</span><span class="op">)</span> <span class="co"># resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches </span></span>
+<code class="sourceCode R"><span><span class="va">resolution</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">20</span><span class="op">)</span> <span class="co"># resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches</span></span>
 <span></span>
 <span><span class="va">seasons</span> <span class="op">&lt;-</span> <span class="fl">1</span></span>
 <span></span>
@@ -425,7 +429,7 @@
 <span><span class="va">steps</span> <span class="op">&lt;-</span> <span class="va">years</span> <span class="op">*</span> <span class="va">seasons</span></span>
 <span></span>
 <span><span class="va">yft_diffusion</span> <span class="op">&lt;-</span> <span class="fl">6</span></span>
-<span>  </span>
+<span></span>
 <span><span class="va">yft_depletion</span> <span class="op">&lt;-</span> <span class="fl">0.5</span></span>
 <span></span>
 <span><span class="va">mako_depletion</span> <span class="op">&lt;-</span> <span class="fl">0.4</span></span>
@@ -439,23 +443,27 @@
 <span><span class="co"># for now make up some habitat</span></span>
 <span></span>
 <span><span class="va">yft_habitat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tidyr.tidyverse.org/reference/expand_grid.html" class="external-link">expand_grid</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">resolution</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, y <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">resolution</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>habitat <span class="op">=</span>  <span class="fl">.05</span> <span class="op">*</span> <span class="va">x</span>,</span>
-<span>         habitat <span class="op">=</span> <span class="va">habitat</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">habitat</span><span class="op">)</span> <span class="op">*</span> <span class="va">yft_diffusion</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> </span>
-<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_wider.html" class="external-link">pivot_wider</a></span><span class="op">(</span>names_from <span class="op">=</span> <span class="va">y</span>, values_from <span class="op">=</span> <span class="va">habitat</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">x</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span></span>
+<span>    habitat <span class="op">=</span> <span class="fl">.05</span> <span class="op">*</span> <span class="va">x</span>,</span>
+<span>    habitat <span class="op">=</span> <span class="va">habitat</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">habitat</span><span class="op">)</span> <span class="op">*</span> <span class="va">yft_diffusion</span></span>
+<span>  <span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_wider.html" class="external-link">pivot_wider</a></span><span class="op">(</span>names_from <span class="op">=</span> <span class="va">x</span>, values_from <span class="op">=</span> <span class="va">habitat</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">y</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="op">)</span></span>
-<span> </span>
+<span></span>
 <span></span>
 <span><span class="va">mako_habitat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tidyr.tidyverse.org/reference/expand_grid.html" class="external-link">expand_grid</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">resolution</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, y <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">resolution</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>habitat <span class="op">=</span>  <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="va">x</span>,<span class="va">resolution</span>, <span class="fl">8</span><span class="op">)</span>,</span>
-<span>         habitat <span class="op">=</span> <span class="va">habitat</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">habitat</span><span class="op">)</span> <span class="op">*</span> <span class="va">mako_diffusion</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> </span>
-<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_wider.html" class="external-link">pivot_wider</a></span><span class="op">(</span>names_from <span class="op">=</span> <span class="va">y</span>, values_from <span class="op">=</span> <span class="va">habitat</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">x</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span></span>
+<span>    habitat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">resolution</span>, <span class="fl">8</span><span class="op">)</span>,</span>
+<span>    habitat <span class="op">=</span> <span class="va">habitat</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">habitat</span><span class="op">)</span> <span class="op">*</span> <span class="va">mako_diffusion</span></span>
+<span>  <span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_wider.html" class="external-link">pivot_wider</a></span><span class="op">(</span>names_from <span class="op">=</span> <span class="va">x</span>, values_from <span class="op">=</span> <span class="va">habitat</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">y</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span></span>
 <span><span class="co"># create a fauna object, which is a list of lists</span></span>
-<span><span class="va">fauna</span> <span class="op">&lt;-</span> </span>
+<span><span class="va">fauna</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>    <span class="st">"Yellowfin Tuna"</span> <span class="op">=</span> <span class="fu"><a href="reference/create_critter.html">create_critter</a></span><span class="op">(</span></span>
 <span>      scientific_name <span class="op">=</span> <span class="st">"Thunnus albacares"</span>,</span>
@@ -466,7 +474,7 @@
 <span>      density_dependence <span class="op">=</span> <span class="st">"global_habitat"</span>, <span class="co"># recruitment form, where 1 implies local recruitment</span></span>
 <span>      seasons <span class="op">=</span> <span class="va">seasons</span>,</span>
 <span>      b0 <span class="op">=</span> <span class="va">yft_b0</span></span>
-<span>      <span class="op">)</span>,</span>
+<span>    <span class="op">)</span>,</span>
 <span>    <span class="st">"Shortfin Mako"</span> <span class="op">=</span> <span class="fu"><a href="reference/create_critter.html">create_critter</a></span><span class="op">(</span></span>
 <span>      scientific_name <span class="op">=</span> <span class="st">"Isurus oxyrinchus"</span>,</span>
 <span>      habitat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">mako_habitat</span><span class="op">)</span>, <span class="co"># pass habitat as lists</span></span>
@@ -487,30 +495,32 @@
 <span><span class="va">fauna</span><span class="op">$</span><span class="va">`Shortfin Mako`</span><span class="op">$</span><span class="fu">plot</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-8-1.png" width="100%"></p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># create a fleets object, which is a list of lists (of lists). Each fleet has one element, </span></span>
-<span><span class="co"># with lists for each species inside there. Price specifies the price per unit weight of that </span></span>
+<code class="sourceCode R"><span><span class="co"># create a fleets object, which is a list of lists (of lists). Each fleet has one element,</span></span>
+<span><span class="co"># with lists for each species inside there. Price specifies the price per unit weight of that</span></span>
 <span><span class="co"># species for that fleet</span></span>
 <span><span class="co"># sel_form can be one of logistic or dome</span></span>
 <span></span>
-<span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"longline"</span> <span class="op">=</span> <span class="fu"><a href="reference/create_fleet.html">create_fleet</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>  `Yellowfin Tuna` <span class="op">=</span> <span class="va"><a href="reference/Metier.html">Metier</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>    critter <span class="op">=</span> <span class="va">fauna</span><span class="op">$</span><span class="va">`Yellowfin Tuna`</span>,</span>
-<span>    price <span class="op">=</span> <span class="fl">100</span>, <span class="co"># price per unit weight</span></span>
-<span>    sel_form <span class="op">=</span> <span class="st">"logistic"</span>, <span class="co"># selectivity form, one of logistic or dome</span></span>
-<span>    sel_start <span class="op">=</span> <span class="fl">.3</span>, <span class="co"># percentage of length at maturity that selectivity starts</span></span>
-<span>    sel_delta <span class="op">=</span> <span class="fl">.1</span>, <span class="co"># additional percentage of sel_start where selectivity asymptotes</span></span>
-<span>    catchability <span class="op">=</span> <span class="fl">.01</span>, <span class="co"># overwritten by tune_fleet but can be set manually here</span></span>
-<span>    p_explt <span class="op">=</span> <span class="fl">1</span></span>
+<span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"longline"</span> <span class="op">=</span> <span class="fu"><a href="reference/create_fleet.html">create_fleet</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>    `Yellowfin Tuna` <span class="op">=</span> <span class="va"><a href="reference/Metier.html">Metier</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>      critter <span class="op">=</span> <span class="va">fauna</span><span class="op">$</span><span class="va">`Yellowfin Tuna`</span>,</span>
+<span>      price <span class="op">=</span> <span class="fl">100</span>, <span class="co"># price per unit weight</span></span>
+<span>      sel_form <span class="op">=</span> <span class="st">"logistic"</span>, <span class="co"># selectivity form, one of logistic or dome</span></span>
+<span>      sel_start <span class="op">=</span> <span class="fl">.3</span>, <span class="co"># percentage of length at maturity that selectivity starts</span></span>
+<span>      sel_delta <span class="op">=</span> <span class="fl">.1</span>, <span class="co"># additional percentage of sel_start where selectivity asymptotes</span></span>
+<span>      catchability <span class="op">=</span> <span class="fl">.01</span>, <span class="co"># overwritten by tune_fleet but can be set manually here</span></span>
+<span>      p_explt <span class="op">=</span> <span class="fl">1</span></span>
 <span>    <span class="op">)</span>,</span>
-<span>  `Shortfin Mako` <span class="op">=</span> <span class="va"><a href="reference/Metier.html">Metier</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>    critter <span class="op">=</span> <span class="va">fauna</span><span class="op">$</span><span class="va">`Shortfin Mako`</span>,</span>
-<span>    price <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>    sel_form <span class="op">=</span> <span class="st">"logistic"</span>,</span>
-<span>    sel_start <span class="op">=</span> <span class="fl">.1</span>,</span>
-<span>    sel_delta <span class="op">=</span> <span class="fl">.01</span>,</span>
-<span>    catchability <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>    p_explt <span class="op">=</span> <span class="fl">1</span></span>
-<span>  <span class="op">)</span><span class="op">)</span>,</span>
+<span>    `Shortfin Mako` <span class="op">=</span> <span class="va"><a href="reference/Metier.html">Metier</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>      critter <span class="op">=</span> <span class="va">fauna</span><span class="op">$</span><span class="va">`Shortfin Mako`</span>,</span>
+<span>      price <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>      sel_form <span class="op">=</span> <span class="st">"logistic"</span>,</span>
+<span>      sel_start <span class="op">=</span> <span class="fl">.1</span>,</span>
+<span>      sel_delta <span class="op">=</span> <span class="fl">.01</span>,</span>
+<span>      catchability <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>      p_explt <span class="op">=</span> <span class="fl">1</span></span>
+<span>    <span class="op">)</span></span>
+<span>  <span class="op">)</span>,</span>
 <span>  mpa_response <span class="op">=</span> <span class="st">"stay"</span>,</span>
 <span>  base_effort <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/prod.html" class="external-link">prod</a></span><span class="op">(</span><span class="va">resolution</span><span class="op">)</span>,</span>
 <span>  resolution <span class="op">=</span> <span class="va">resolution</span></span>
@@ -521,20 +531,22 @@
 <span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span>, tune_type <span class="op">=</span> <span class="va">tune_type</span><span class="op">)</span> <span class="co"># tunes the catchability by fleet to achieve target depletion</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 6.786071 secs</span></span>
+<span><span class="co">#&gt; Time difference of 25.41526 secs</span></span>
 <span></span>
 <span><span class="co"># run simulations</span></span>
 <span></span>
 <span><span class="va">a</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">nearshore</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/simmar.html">simmar</a></span><span class="op">(</span>fauna <span class="op">=</span> <span class="va">fauna</span>,</span>
-<span>                  fleets <span class="op">=</span> <span class="va">fleets</span>,</span>
-<span>                  years <span class="op">=</span> <span class="va">years</span><span class="op">)</span></span>
+<span><span class="va">nearshore</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/simmar.html">simmar</a></span><span class="op">(</span></span>
+<span>  fauna <span class="op">=</span> <span class="va">fauna</span>,</span>
+<span>  fleets <span class="op">=</span> <span class="va">fleets</span>,</span>
+<span>  years <span class="op">=</span> <span class="va">years</span></span>
+<span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.110708 secs</span></span>
-<span>  </span>
-<span><span class="va">proc_nearshore</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">nearshore</span>, time_step <span class="op">=</span>  <span class="va">fauna</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">time_step</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Time difference of 0.1068521 secs</span></span>
+<span></span>
+<span><span class="va">proc_nearshore</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">nearshore</span>, time_step <span class="op">=</span> <span class="va">fauna</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">time_step</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="reference/plot_marlin.html">plot_marlin</a></span><span class="op">(</span><span class="va">proc_nearshore</span>, max_scale <span class="op">=</span> <span class="cn">FALSE</span>, plot_var <span class="op">=</span> <span class="st">"b"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-8-2.png" width="100%"></p>
@@ -544,15 +556,15 @@
 <p>We will now design and implement an MPA network by specifying a data frame with columns x,y, and mpa denoting the coordinates of MPA patches.</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span>
-<span><span class="co">#specify some MPA locations</span></span>
+<span><span class="co"># specify some MPA locations</span></span>
 <span><span class="va">mpa_locations</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tidyr.tidyverse.org/reference/expand_grid.html" class="external-link">expand_grid</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">resolution</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, y <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">resolution</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
-<span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>mpa <span class="op">=</span> <span class="va">x</span> <span class="op">&gt;</span> <span class="fl">15</span> <span class="op">&amp;</span> <span class="va">y</span> <span class="op">&lt;</span> <span class="fl">15</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>mpa <span class="op">=</span> <span class="va">x</span> <span class="op">&gt;</span> <span class="fl">15</span> <span class="op">&amp;</span> <span class="va">y</span> <span class="op">&lt;</span> <span class="fl">15</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">mpa_locations</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> </span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">x</span>,<span class="va">y</span>, fill <span class="op">=</span> <span class="va">mpa</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_tile</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_brewer.html" class="external-link">scale_fill_brewer</a></span><span class="op">(</span>palette <span class="op">=</span> <span class="st">"Accent"</span>, direction  <span class="op">=</span> <span class="op">-</span><span class="fl">1</span>, name <span class="op">=</span> <span class="st">"MPA"</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"Lon"</span><span class="op">)</span> <span class="op">+</span> </span>
+<span><span class="va">mpa_locations</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, fill <span class="op">=</span> <span class="va">mpa</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_tile</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_brewer.html" class="external-link">scale_fill_brewer</a></span><span class="op">(</span>palette <span class="op">=</span> <span class="st">"Accent"</span>, direction <span class="op">=</span> <span class="op">-</span><span class="fl">1</span>, name <span class="op">=</span> <span class="st">"MPA"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"Lon"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_continuous</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"Lat"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-9-1.png" width="100%"></p>
 <p>We will now simulate the impacts of those MPAs by passing them to the manager slot.</p>
@@ -563,32 +575,34 @@
 <span>  fauna <span class="op">=</span> <span class="va">fauna</span>,</span>
 <span>  fleets <span class="op">=</span> <span class="va">fleets</span>,</span>
 <span>  years <span class="op">=</span> <span class="va">years</span>,</span>
-<span>  manager <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>mpas <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>locations <span class="op">=</span> <span class="va">mpa_locations</span>,</span>
-<span>              mpa_year <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">floor</a></span><span class="op">(</span><span class="va">years</span> <span class="op">*</span> <span class="fl">.5</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span>  manager <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>mpas <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>    locations <span class="op">=</span> <span class="va">mpa_locations</span>,</span>
+<span>    mpa_year <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">floor</a></span><span class="op">(</span><span class="va">years</span> <span class="op">*</span> <span class="fl">.5</span><span class="op">)</span></span>
+<span>  <span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.167891 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.1760669 secs</span></span>
 <span></span>
-<span><span class="va">proc_nearshore_mpa</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">nearshore_mpa</span>, time_step <span class="op">=</span>  <span class="va">fauna</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">time_step</span><span class="op">)</span></span>
+<span><span class="va">proc_nearshore_mpa</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">nearshore_mpa</span>, time_step <span class="op">=</span> <span class="va">fauna</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">time_step</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="reference/plot_marlin.html">plot_marlin</a></span><span class="op">(</span><span class="va">proc_nearshore_mpa</span>, max_scale <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-10-1.png" width="100%"></p>
 <p>Now though, consider a different scenario. Here the tunas still slightly prefer their same nearshore habitat, but now the shortfin mako population primarily lives farther offshore. We will first simulate that population without the MPA, and then assess the effects of the exact same MPA on this new scenario.</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span></span>
-<span><span class="va">mako_habitat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tidyr.tidyverse.org/reference/expand_grid.html" class="external-link">expand_grid</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">resolution</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, y <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">resolution</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>habitat <span class="op">=</span>  <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="va">x</span>,<span class="fl">.3</span> <span class="op">*</span> <span class="va">resolution</span>, <span class="fl">8</span><span class="op">)</span>,</span>
-<span>         habitat <span class="op">=</span> <span class="va">habitat</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">habitat</span><span class="op">)</span> <span class="op">*</span> <span class="va">mako_diffusion</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> </span>
-<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_wider.html" class="external-link">pivot_wider</a></span><span class="op">(</span>names_from <span class="op">=</span> <span class="va">y</span>, values_from <span class="op">=</span> <span class="va">habitat</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">x</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> </span>
+<code class="sourceCode R"><span><span class="va">mako_habitat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tidyr.tidyverse.org/reference/expand_grid.html" class="external-link">expand_grid</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">resolution</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, y <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">resolution</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span></span>
+<span>    habitat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="va">x</span>, <span class="fl">.3</span> <span class="op">*</span> <span class="va">resolution</span>, <span class="fl">8</span><span class="op">)</span>,</span>
+<span>    habitat <span class="op">=</span> <span class="va">habitat</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">habitat</span><span class="op">)</span> <span class="op">*</span> <span class="va">mako_diffusion</span></span>
+<span>  <span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_wider.html" class="external-link">pivot_wider</a></span><span class="op">(</span>names_from <span class="op">=</span> <span class="va">x</span>, values_from <span class="op">=</span> <span class="va">habitat</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">y</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span></span>
 <span><span class="co"># create a fauna object, which is a list of lists</span></span>
 <span></span>
-<span><span class="va">fauna</span> <span class="op">&lt;-</span> </span>
+<span><span class="va">fauna</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>    <span class="st">"Yellowfin Tuna"</span> <span class="op">=</span> <span class="fu"><a href="reference/create_critter.html">create_critter</a></span><span class="op">(</span></span>
 <span>      scientific_name <span class="op">=</span> <span class="st">"Thunnus albacares"</span>,</span>
@@ -599,7 +613,7 @@
 <span>      density_dependence <span class="op">=</span> <span class="st">"global_habitat"</span>, <span class="co"># recruitment form, where 1 implies local recruitment</span></span>
 <span>      seasons <span class="op">=</span> <span class="va">seasons</span>,</span>
 <span>      b0 <span class="op">=</span> <span class="va">yft_b0</span></span>
-<span>      <span class="op">)</span>,</span>
+<span>    <span class="op">)</span>,</span>
 <span>    <span class="st">"Shortfin Mako"</span> <span class="op">=</span> <span class="fu"><a href="reference/create_critter.html">create_critter</a></span><span class="op">(</span></span>
 <span>      scientific_name <span class="op">=</span> <span class="st">"Isurus oxyrinchus"</span>,</span>
 <span>      habitat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">mako_habitat</span><span class="op">)</span>, <span class="co"># pass habitat as lists</span></span>
@@ -628,14 +642,16 @@
 <span><span class="co"># run the simulation using marlin::simmar</span></span>
 <span><span class="va">a</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">offshore</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/simmar.html">simmar</a></span><span class="op">(</span>fauna <span class="op">=</span> <span class="va">fauna</span>,</span>
-<span>                  fleets <span class="op">=</span> <span class="va">fleets</span>,</span>
-<span>                  years <span class="op">=</span> <span class="va">years</span><span class="op">)</span></span>
+<span><span class="va">offshore</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/simmar.html">simmar</a></span><span class="op">(</span></span>
+<span>  fauna <span class="op">=</span> <span class="va">fauna</span>,</span>
+<span>  fleets <span class="op">=</span> <span class="va">fleets</span>,</span>
+<span>  years <span class="op">=</span> <span class="va">years</span></span>
+<span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.1008539 secs</span></span>
-<span>  </span>
-<span><span class="va">proc_offshore</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">offshore</span>, time_step <span class="op">=</span>  <span class="va">fauna</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">time_step</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Time difference of 0.1002061 secs</span></span>
+<span></span>
+<span><span class="va">proc_offshore</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">offshore</span>, time_step <span class="op">=</span> <span class="va">fauna</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">time_step</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">a</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
@@ -643,15 +659,17 @@
 <span>  fauna <span class="op">=</span> <span class="va">fauna</span>,</span>
 <span>  fleets <span class="op">=</span> <span class="va">fleets</span>,</span>
 <span>  years <span class="op">=</span> <span class="va">years</span>,</span>
-<span>  manager <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>mpas <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>locations <span class="op">=</span> <span class="va">mpa_locations</span>,</span>
-<span>              mpa_year <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">floor</a></span><span class="op">(</span><span class="va">years</span> <span class="op">*</span> <span class="fl">.5</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span>  manager <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>mpas <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>    locations <span class="op">=</span> <span class="va">mpa_locations</span>,</span>
+<span>    mpa_year <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">floor</a></span><span class="op">(</span><span class="va">years</span> <span class="op">*</span> <span class="fl">.5</span><span class="op">)</span></span>
+<span>  <span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.2796581 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.1593502 secs</span></span>
 <span></span>
 <span></span>
-<span><span class="va">proc_offshore_mpa</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">offshore_mpa_sim</span>, time_step <span class="op">=</span>  <span class="va">fauna</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">time_step</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">proc_offshore_mpa</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">offshore_mpa_sim</span>, time_step <span class="op">=</span> <span class="va">fauna</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">time_step</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/plot_marlin.html">plot_marlin</a></span><span class="op">(</span></span>
 <span>  `MPA: Sharks Offshore` <span class="op">=</span> <span class="va">proc_offshore_mpa</span>,</span>
@@ -670,14 +688,17 @@
 <span>  `MPA: Sharks Nearshore` <span class="op">=</span> <span class="va">proc_nearshore_mpa</span>,</span>
 <span>  plot_var <span class="op">=</span> <span class="st">"ssb"</span>,</span>
 <span>  plot_type <span class="op">=</span> <span class="st">"space"</span>,</span>
-<span>  steps_to_plot <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">years</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_viridis.html" class="external-link">scale_fill_viridis_c</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"Spawning Biomass"</span>, guide <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guide_colourbar.html" class="external-link">guide_colorbar</a></span><span class="op">(</span>barwidth <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html" class="external-link">unit</a></span><span class="op">(</span><span class="fl">13</span>, <span class="st">"lines"</span><span class="op">)</span>, frame.colour <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>axis.text.x <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>        axis.text.y <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>        axis.title.x <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>        axis.title.y <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>        axis.ticks <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>        strip.text <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">9</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span>  steps_to_plot <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">years</span> <span class="op">-</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_viridis.html" class="external-link">scale_fill_viridis_c</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"Spawning Biomass"</span>, guide <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guide_colourbar.html" class="external-link">guide_colorbar</a></span><span class="op">(</span>barwidth <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grid/unit.html" class="external-link">unit</a></span><span class="op">(</span><span class="fl">13</span>, <span class="st">"lines"</span><span class="op">)</span>, frame.colour <span class="op">=</span> <span class="st">"black"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span></span>
+<span>    axis.text.x <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>    axis.text.y <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>    axis.title.x <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>    axis.title.y <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>    axis.ticks <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>    strip.text <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">9</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-13-1.png" width="100%"></p>
 </div>
 <div class="section level2">
@@ -692,74 +713,80 @@
 <span><span class="co"># make up some habitat</span></span>
 <span></span>
 <span><span class="va">yft_habitat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tidyr.tidyverse.org/reference/expand_grid.html" class="external-link">expand_grid</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">resolution</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, y <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">resolution</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>habitat <span class="op">=</span>  <span class="fl">.05</span> <span class="op">*</span> <span class="va">x</span>,</span>
-<span>         habitat <span class="op">=</span> <span class="va">habitat</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">habitat</span><span class="op">)</span> <span class="op">*</span> <span class="va">yft_diffusion</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> </span>
-<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_wider.html" class="external-link">pivot_wider</a></span><span class="op">(</span>names_from <span class="op">=</span> <span class="va">y</span>, values_from <span class="op">=</span> <span class="va">habitat</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">x</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span></span>
+<span>    habitat <span class="op">=</span> <span class="fl">.05</span> <span class="op">*</span> <span class="va">x</span>,</span>
+<span>    habitat <span class="op">=</span> <span class="va">habitat</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">habitat</span><span class="op">)</span> <span class="op">*</span> <span class="va">yft_diffusion</span></span>
+<span>  <span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_wider.html" class="external-link">pivot_wider</a></span><span class="op">(</span>names_from <span class="op">=</span> <span class="va">x</span>, values_from <span class="op">=</span> <span class="va">habitat</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">y</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span></span>
 <span><span class="va">mako_habitat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tidyr.tidyverse.org/reference/expand_grid.html" class="external-link">expand_grid</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">resolution</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, y <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">resolution</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>habitat <span class="op">=</span>  <span class="va">x</span> <span class="op">&gt;</span> <span class="fl">12</span> <span class="op">&amp;</span> <span class="va">y</span> <span class="op">&gt;</span><span class="fl">12</span>,</span>
-<span>         habitat <span class="op">=</span> <span class="va">habitat</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">habitat</span><span class="op">)</span> <span class="op">*</span> <span class="va">mako_diffusion</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> </span>
-<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_wider.html" class="external-link">pivot_wider</a></span><span class="op">(</span>names_from <span class="op">=</span> <span class="va">y</span>, values_from <span class="op">=</span> <span class="va">habitat</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">x</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span></span>
+<span>    habitat <span class="op">=</span> <span class="va">x</span> <span class="op">&gt;</span> <span class="fl">12</span> <span class="op">&amp;</span> <span class="va">y</span> <span class="op">&gt;</span> <span class="fl">12</span>,</span>
+<span>    habitat <span class="op">=</span> <span class="va">habitat</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">habitat</span><span class="op">)</span> <span class="op">*</span> <span class="va">mako_diffusion</span></span>
+<span>  <span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_wider.html" class="external-link">pivot_wider</a></span><span class="op">(</span>names_from <span class="op">=</span> <span class="va">x</span>, values_from <span class="op">=</span> <span class="va">habitat</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">y</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span></span>
 <span><span class="co"># create a fauna object, which is a list of lists</span></span>
 <span></span>
-<span><span class="va">fauna</span> <span class="op">&lt;-</span> </span>
+<span><span class="va">fauna</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>    <span class="st">"Yellowfin Tuna"</span> <span class="op">=</span> <span class="fu"><a href="reference/create_critter.html">create_critter</a></span><span class="op">(</span></span>
 <span>      scientific_name <span class="op">=</span> <span class="st">"Thunnus albacares"</span>,</span>
-<span>      habitat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">yft_habitat</span><span class="op">)</span>, </span>
+<span>      habitat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">yft_habitat</span><span class="op">)</span>,</span>
 <span>      recruit_habitat <span class="op">=</span> <span class="va">yft_habitat</span>,</span>
-<span>      adult_diffusion <span class="op">=</span> <span class="va">yft_diffusion</span>, </span>
-<span>      fished_depletion <span class="op">=</span> <span class="fl">.4</span>, </span>
+<span>      adult_diffusion <span class="op">=</span> <span class="va">yft_diffusion</span>,</span>
+<span>      fished_depletion <span class="op">=</span> <span class="fl">.4</span>,</span>
 <span>      density_dependence <span class="op">=</span> <span class="st">"local_habitat"</span>, <span class="co"># recruitment form, where 1 implies local recruitment</span></span>
 <span>      seasons <span class="op">=</span> <span class="va">seasons</span>,</span>
-<span>      init_explt <span class="op">=</span> <span class="fl">0.12</span>, </span>
+<span>      init_explt <span class="op">=</span> <span class="fl">0.12</span>,</span>
 <span>      explt_type <span class="op">=</span> <span class="st">"f"</span></span>
 <span>    <span class="op">)</span>,</span>
 <span>    <span class="st">"Shortfin Mako"</span> <span class="op">=</span> <span class="fu"><a href="reference/create_critter.html">create_critter</a></span><span class="op">(</span></span>
 <span>      scientific_name <span class="op">=</span> <span class="st">"Isurus oxyrinchus"</span>,</span>
-<span>      habitat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">mako_habitat</span><span class="op">)</span>, </span>
+<span>      habitat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">mako_habitat</span><span class="op">)</span>,</span>
 <span>      recruit_habitat <span class="op">=</span> <span class="va">mako_habitat</span>,</span>
 <span>      adult_diffusion <span class="op">=</span> <span class="va">mako_diffusion</span>,</span>
 <span>      fished_depletion <span class="op">=</span> <span class="fl">.3</span>,</span>
 <span>      density_dependence <span class="op">=</span> <span class="st">"local_habitat"</span>, <span class="co"># recruitment form, where 1 implies local recruitment</span></span>
 <span>      burn_years <span class="op">=</span> <span class="fl">200</span>,</span>
 <span>      seasons <span class="op">=</span> <span class="va">seasons</span>,</span>
-<span>      init_explt <span class="op">=</span> <span class="fl">0.1</span>, </span>
+<span>      init_explt <span class="op">=</span> <span class="fl">0.1</span>,</span>
 <span>      explt_type <span class="op">=</span> <span class="st">"f"</span></span>
 <span>    <span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
 <span></span>
 <span><span class="co"># create a fleets object, accounting a negative price to shortfin makos</span></span>
 <span></span>
-<span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"longline"</span> <span class="op">=</span> <span class="fu"><a href="reference/create_fleet.html">create_fleet</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>  `Yellowfin Tuna` <span class="op">=</span> <span class="va"><a href="reference/Metier.html">Metier</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>    critter <span class="op">=</span> <span class="va">fauna</span><span class="op">$</span><span class="va">`Yellowfin Tuna`</span>,</span>
-<span>    price <span class="op">=</span> <span class="fl">100</span>, <span class="co"># price per unit weight</span></span>
-<span>    sel_form <span class="op">=</span> <span class="st">"logistic"</span>, <span class="co"># selectivity form, one of logistic or dome</span></span>
-<span>    sel_start <span class="op">=</span> <span class="fl">.3</span>, <span class="co"># percentage of length at maturity that selectivity starts</span></span>
-<span>    sel_delta <span class="op">=</span> <span class="fl">.1</span>, <span class="co"># additional percentage of sel_start where selectivity asymptotes</span></span>
-<span>    catchability <span class="op">=</span> <span class="fl">.01</span>, <span class="co"># overwritten by tune_fleet but can be set manually here</span></span>
-<span>    p_explt <span class="op">=</span> <span class="fl">1</span></span>
+<span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"longline"</span> <span class="op">=</span> <span class="fu"><a href="reference/create_fleet.html">create_fleet</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>    `Yellowfin Tuna` <span class="op">=</span> <span class="va"><a href="reference/Metier.html">Metier</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>      critter <span class="op">=</span> <span class="va">fauna</span><span class="op">$</span><span class="va">`Yellowfin Tuna`</span>,</span>
+<span>      price <span class="op">=</span> <span class="fl">100</span>, <span class="co"># price per unit weight</span></span>
+<span>      sel_form <span class="op">=</span> <span class="st">"logistic"</span>, <span class="co"># selectivity form, one of logistic or dome</span></span>
+<span>      sel_start <span class="op">=</span> <span class="fl">.3</span>, <span class="co"># percentage of length at maturity that selectivity starts</span></span>
+<span>      sel_delta <span class="op">=</span> <span class="fl">.1</span>, <span class="co"># additional percentage of sel_start where selectivity asymptotes</span></span>
+<span>      catchability <span class="op">=</span> <span class="fl">.01</span>, <span class="co"># overwritten by tune_fleet but can be set manually here</span></span>
+<span>      p_explt <span class="op">=</span> <span class="fl">1</span></span>
+<span>    <span class="op">)</span>,</span>
+<span>    `Shortfin Mako` <span class="op">=</span> <span class="va"><a href="reference/Metier.html">Metier</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>      critter <span class="op">=</span> <span class="va">fauna</span><span class="op">$</span><span class="va">`Shortfin Mako`</span>,</span>
+<span>      price <span class="op">=</span> <span class="op">-</span><span class="fl">20000</span>,</span>
+<span>      sel_form <span class="op">=</span> <span class="st">"logistic"</span>,</span>
+<span>      sel_start <span class="op">=</span> <span class="fl">.1</span>,</span>
+<span>      sel_delta <span class="op">=</span> <span class="fl">.01</span>,</span>
+<span>      catchability <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>      p_explt <span class="op">=</span> <span class="fl">1</span></span>
+<span>    <span class="op">)</span></span>
 <span>  <span class="op">)</span>,</span>
-<span>  `Shortfin Mako` <span class="op">=</span> <span class="va"><a href="reference/Metier.html">Metier</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>    critter <span class="op">=</span> <span class="va">fauna</span><span class="op">$</span><span class="va">`Shortfin Mako`</span>,</span>
-<span>    price <span class="op">=</span> <span class="op">-</span><span class="fl">20000</span>,</span>
-<span>    sel_form <span class="op">=</span> <span class="st">"logistic"</span>,</span>
-<span>    sel_start <span class="op">=</span> <span class="fl">.1</span>,</span>
-<span>    sel_delta <span class="op">=</span> <span class="fl">.01</span>,</span>
-<span>    catchability <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>    p_explt <span class="op">=</span> <span class="fl">1</span></span>
-<span>  <span class="op">)</span><span class="op">)</span>,</span>
 <span>  mpa_response <span class="op">=</span> <span class="st">"stay"</span>,</span>
 <span>  base_effort <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/prod.html" class="external-link">prod</a></span><span class="op">(</span><span class="va">resolution</span><span class="op">)</span>,</span>
-<span>  resolution  <span class="op">=</span> <span class="va">resolution</span></span>
+<span>  resolution <span class="op">=</span> <span class="va">resolution</span></span>
 <span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">a</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
@@ -767,21 +794,24 @@
 <span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span>, tune_type <span class="op">=</span> <span class="va">tune_type</span><span class="op">)</span> <span class="co"># tunes the catchability by fleet to achieve target depletion</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.224654 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.234087 secs</span></span>
 <span></span>
 <span><span class="co"># run simulations</span></span>
 <span></span>
 <span><span class="co"># run the simulation using marlin::simmar</span></span>
-<span><span class="va">negative_prices</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/simmar.html">simmar</a></span><span class="op">(</span>fauna <span class="op">=</span> <span class="va">fauna</span>,</span>
-<span>                          fleets <span class="op">=</span> <span class="va">fleets</span>,</span>
-<span>                          years <span class="op">=</span> <span class="va">years</span><span class="op">)</span></span>
+<span><span class="va">negative_prices</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/simmar.html">simmar</a></span><span class="op">(</span></span>
+<span>  fauna <span class="op">=</span> <span class="va">fauna</span>,</span>
+<span>  fleets <span class="op">=</span> <span class="va">fleets</span>,</span>
+<span>  years <span class="op">=</span> <span class="va">years</span></span>
+<span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">proc_negative_prices</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">negative_prices</span>, time_step <span class="op">=</span>  <span class="va">fauna</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">time_step</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">proc_negative_prices</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">negative_prices</span>, time_step <span class="op">=</span> <span class="va">fauna</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">time_step</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/plot_marlin.html">plot_marlin</a></span><span class="op">(</span></span>
 <span>  `De-Facto MPA` <span class="op">=</span> <span class="va">proc_negative_prices</span>,</span>
 <span>  plot_var <span class="op">=</span> <span class="st">"ssb"</span>,</span>
-<span>  plot_type <span class="op">=</span> <span class="st">"space"</span><span class="op">)</span></span></code></pre></div>
+<span>  plot_type <span class="op">=</span> <span class="st">"space"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-15-1.png" width="100%"></p>
 </div>
 <div class="section level2">
@@ -817,7 +847,7 @@
 <div class="developers">
 <h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
-<li>Dan Ovando <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0000-0003-2120-7345" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
+<li>Dan Ovando <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0000-0003-2120-7345" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
 </ul>
 </div>
 
@@ -832,7 +862,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
 </div>
 
     </footer>

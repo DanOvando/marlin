@@ -61,6 +61,8 @@ Used to store parameters describing the behavior of an object of class Fish
   density_dependence = "global_habitat",
   adult_diffusion = 4,
   recruit_diffusion = 10,
+  adult_home_range = NULL,
+  recruit_home_range = NULL,
   query_fishlife = T,
   sigma_rec = 0,
   ac_rec = 0,
@@ -110,7 +112,7 @@ Used to store parameters describing the behavior of an object of class Fish
 
 \item{\code{length_bin_width}}{the width of the length bins in the length-at-age key, defaults to 1cm}
 
-\item{\code{growth_model}}{one of "von_bertalanddy" or "power"}
+\item{\code{growth_model}}{one of "von_bertalanffy" or "power"}
 
 \item{\code{min_age}}{minimum age tracked in the model. Best to leave at 0, as the model does not explicitly track delays for recruitment}
 
@@ -140,6 +142,8 @@ Used to store parameters describing the behavior of an object of class Fish
 
 \item{\code{age_mature}}{an alternative option to just set one age mature, which ends up as the age_50_mature}
 
+\item{\code{semelparous}}{TRUE or FALSE. When FALSE (default), individuals can reproduce multiple times. When TRUE, individuals can only spawn once, so mortality at increase increases as a function of maturity at age}
+
 \item{\code{m}}{instantaneous natural mortality rate. When \code{lorenzen_m = TRUE}, this is the average natural mortality across all ages}
 
 \item{\code{m_at_age}}{a vector of natural mortality age at age in case manually specified}
@@ -159,6 +163,10 @@ Used to store parameters describing the behavior of an object of class Fish
 \item{\code{adult_diffusion}}{diffusion parameter \emph{D} in the CTMC movement function for "adults" (not recruits)}
 
 \item{\code{recruit_diffusion}}{diffusion parameter \emph{D} in the CTMC movement function for recruits}
+
+\item{\code{adult_home_range}}{the desired home range of adults. Overrides adult_diffusion if set}
+
+\item{\code{recruit_home_range}}{the desired home range of recruits Overrides recruit_diffusion if set}
 
 \item{\code{query_fishlife}}{TRUE or FALSE to query \code{Fishlife} for missing life history values. When set to FALSE all required life history values must be supplied by the user}
 
@@ -204,6 +212,8 @@ plot object of class fish}
 \item{\code{max_hab_mult}}{maximum value of that habitat matrix multiplier (to prevent some habitats from being >>> good, defaults to 2)}
 
 \item{\code{lorenzen_m}}{TRUE or FALSE to use the Lorenzen function to calculate natural mortality at age}
+
+\item{\code{lorenzen_c}}{the rate of the Lorenzen curve. Defaults to -1, larger values will make the difference between natural mortality at young vs old ages less pronounced}
 }
 \if{html}{\out{</div>}}
 }

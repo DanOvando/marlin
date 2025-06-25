@@ -40,11 +40,12 @@ generates time series, spatial, or length composition plots from marlin run
 \dontrun{
 
 plot_marlin(
-`MPA: Sharks Offshore` = proc_offshore_mpa,
-`No MPA` = proc_nearshore,
-`MPA: Sharks Nearshore` = proc_nearshore_mpa,
+  `MPA: Sharks Offshore` = proc_offshore_mpa,
+  `No MPA` = proc_nearshore,
+  `MPA: Sharks Nearshore` = proc_nearshore_mpa,
+  # 'steps_to_plot = NA,
+  # 'plot_var = "b"
 )
-
 }
 
 }

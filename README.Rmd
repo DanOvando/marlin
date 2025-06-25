@@ -152,7 +152,7 @@ fauna <-
     "bigeye" = create_critter(
       common_name = "bigeye tuna",
       adult_diffusion = 10,
-      density_dependence = "post_dispersal",
+      density_dependence = "local_habitat",
       seasons = seasons,
       fished_depletion = .25,
       resolution = resolution,
@@ -196,6 +196,7 @@ fleets <- tune_fleets(fauna, fleets, tune_type = "depletion")
 
 
 From there, we run the simulation by passing the `fauna` and `fleet` options to the `simmar` function
+
 
 ```{r}
 start_time <- Sys.time()

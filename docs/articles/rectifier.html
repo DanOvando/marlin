@@ -43,6 +43,7 @@
     <li><a class="dropdown-item" href="../articles/port-distance.html">Setting and Using Distance from Port</a></li>
     <li><a class="dropdown-item" href="../articles/rectifier.html">Don't Be a Square</a></li>
     <li><a class="dropdown-item" href="../articles/Setting-Selectivity.html">Setting Selectivity</a></li>
+    <li><a class="dropdown-item" href="../articles/tune_home_range.html">Tune Home Range</a></li>
     <li><a class="dropdown-item" href="../articles/Working-with-Recruitment-Deviates.html">Working with Recruitment Deviates</a></li>
   </ul>
 </li>
@@ -110,12 +111,15 @@ simulation space)</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">coastal_habitat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tidyr.tidyverse.org/reference/expand_grid.html" class="external-link">expand_grid</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">resolution</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, y <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">resolution</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span></span>
-<span>    habitat <span class="op">=</span> <span class="op">-</span><span class="fl">.2</span> <span class="op">+</span> <span class="fl">.2</span> <span class="op">*</span> <span class="va">x</span>,</span>
+<span>    habitat <span class="op">=</span> <span class="op">-</span><span class="fl">.2</span> <span class="op">+</span> <span class="fl">.2</span> <span class="op">*</span> <span class="va">x</span> <span class="op">*</span> <span class="va">y</span>,</span>
 <span>    habitat <span class="op">=</span> <span class="va">habitat</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">habitat</span><span class="op">)</span> <span class="op">*</span> <span class="va">rockfish_diffusion</span></span>
 <span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_wider.html" class="external-link">pivot_wider</a></span><span class="op">(</span>names_from <span class="op">=</span> <span class="va">x</span>, values_from <span class="op">=</span> <span class="va">habitat</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">y</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/image.html" class="external-link">image</a></span><span class="op">(</span><span class="va">coastal_habitat</span><span class="op">)</span></span></code></pre></div>
+<p><img src="rectifier_files/figure-html/unnamed-chunk-2-1.png" width="700"></p>
 <p>And from there we pass things to the usual sets of functions</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fauna</span> <span class="op">&lt;-</span></span>
@@ -188,7 +192,7 @@ simulation space)</p>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">start_time</span></span>
-<span><span class="co">#&gt; Time difference of 0.428648 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.5991502 secs</span></span>
 <span></span>
 <span></span>
 <span><span class="va">processed_coastline</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">coastline_sim</span>, keep_age <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
@@ -212,7 +216,7 @@ Rectangular simulation of a coastal rockfish species
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
 </div>
 
     </footer>

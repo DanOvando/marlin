@@ -24,28 +24,26 @@ results of simulation
 And assigns it to each critter in fauna object
 }
 \examples{
-
 \dontrun{
-years = 50
+years <- 50
 
-seasons = 4
+seasons <- 4
 
-fauna <- 
-list(
- "bigeye" = create_critter(
-   scientific_name =  "thunnus obesus",
-   adult_diffusion = 10,
-   density_dependence = "post_dispersal",
-   seasons = seasons,
-   resolution = resolution,
-   age_mature = 1,
-   steepness = 0.9,
-   ssb0 = 1000
- )
-)
+fauna <-
+  list(
+    "bigeye" = create_critter(
+      scientific_name = "thunnus obesus",
+      adult_diffusion = 10,
+      density_dependence = "post_dispersal",
+      seasons = seasons,
+      resolution = resolution,
+      age_mature = 1,
+      steepness = 0.9,
+      ssb0 = 1000
+    )
+  )
 
 baseline_ssbmsy <- find_ssbmsy(fauna = fauna)
-
 }
 
 }

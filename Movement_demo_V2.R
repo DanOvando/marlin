@@ -57,6 +57,8 @@ for (y in 1:1000){
  n <-  mfraction_gg %*% n
 
 }
+test <- rep(NA, 1000)
+test[1] <- 100
 
 # Stationary distribution
 

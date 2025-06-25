@@ -19,6 +19,7 @@
 #' @param explt_type f or fmsy
 #' @param recruit_habitat habitat for recruitment
 #' @param fec_form one of "weight" or "pups"
+#' @param lorenzen_c rate of the lorenzen curve, defaults to -1
 #' @param adult_diffusion adult diffusion rate
 #' @param recruit_diffusion recruit diffusion rate
 #' @param burn_years number of years to burn in the simulation prior to starting things
@@ -40,6 +41,7 @@ create_critter <- function(common_name = NA,
                            season_blocks = list(),
                            recruit_habitat = NA,
                            seasons = 1,
+                           lorenzen_c = -1,
                            fec_form = "weight",
                            adult_diffusion = 2,
                            recruit_diffusion = 10,
@@ -68,6 +70,7 @@ create_critter <- function(common_name = NA,
         recruit_habitat = recruit_habitat,
         seasons = seasons,
         density_dependence = density_dependence,
+        lorenzen_c = lorenzen_c,
         fec_form = fec_form,
         fec_expo = fec_expo,
         weight_a = weight_a,
