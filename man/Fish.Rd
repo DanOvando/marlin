@@ -31,6 +31,10 @@ Used to store parameters describing the behavior of an object of class Fish
   vbk = NA,
   t0 = -0.5,
   cv_len = 0.1,
+  l0 = 18.85,
+  rmax = 37.24,
+  k = 0.89,
+  t50 = 4.57,
   length_a = 0.1,
   length_b = 3,
   length_units = "cm",
@@ -44,6 +48,7 @@ Used to store parameters describing the behavior of an object of class Fish
   weight_units = "kg",
   fec_form = "weight",
   fec_expo = 1,
+  fec_at_age = NULL,
   length_50_mature = NA,
   length_95_mature = NA,
   delta_mature = 0.1,
@@ -104,6 +109,14 @@ Used to store parameters describing the behavior of an object of class Fish
 
 \item{\code{cv_len}}{coefficient of variation around the length at age relationship (in log space)}
 
+\item{\code{l0}}{length at age 0 in growth cessation model}
+
+\item{\code{rmax}}{related to maximum growth rate in growth cessation model}
+
+\item{\code{k}}{steepness of the logistic function in the growth cessation model >=0}
+
+\item{\code{t50}}{age at the logistic function midpoint in the growth cessation model}
+
 \item{\code{length_a}}{a coefficient in power function growth}
 
 \item{\code{length_b}}{b power coefficient in power function growth}
@@ -129,6 +142,8 @@ Used to store parameters describing the behavior of an object of class Fish
 \item{\code{fec_form}}{one of of  "weight" (default) or "pups". When "weight", fecundity is a function of weight. When "pups", constant number of pups per individual produced}
 
 \item{\code{fec_expo}}{exponent for fecundity at weight relationship, 1 = isometric > 1 hyperallometric}
+
+\item{\code{fec_at_age}}{manual vector of fecundity at age}
 
 \item{\code{length_50_mature}}{length at 50\% maturity in a logistic maturity ogive}
 

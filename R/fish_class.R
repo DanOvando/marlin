@@ -73,6 +73,11 @@ Fish <- R6::R6Class(
     #' @param semelparous TRUE or FALSE. When FALSE (default), individuals can reproduce multiple times. When TRUE, individuals can only spawn once, so mortality at increase increases as a function of maturity at age
     #' @param adult_home_range the desired home range of adults. Overrides adult_diffusion if set
     #' @param recruit_home_range the desired home range of recruits Overrides recruit_diffusion if set
+    #' @param l0 length at age 0 in growth cessation model
+    #' @param rmax related to maximum growth rate in growth cessation model
+    #' @param k steepness of the logistic function in the growth cessation model >=0
+    #' @param t50 age at the logistic function midpoint in the growth cessation model
+    #' @param fec_at_age manual vector of fecundity at age
     #' @param explt_type deprecated
     initialize = function(common_name = NA,
                           scientific_name = NA,
@@ -80,6 +85,10 @@ Fish <- R6::R6Class(
                           vbk = NA,
                           t0 = -0.5,
                           cv_len = 0.1,
+                          l0 = 18.85,
+                          rmax = 37.24,
+                          k =  0.89,
+                          t50 = 4.57,
                           length_a = .1,
                           length_b = 3,
                           length_units = "cm",
@@ -93,6 +102,7 @@ Fish <- R6::R6Class(
                           weight_units = "kg",
                           fec_form = "weight",
                           fec_expo = 1,
+                          fec_at_age = NULL,
                           length_50_mature = NA,
                           length_95_mature = NA,
                           delta_mature = .1,
@@ -165,7 +175,6 @@ Fish <- R6::R6Class(
       } else if (!is.na(ssb0) & is.na(b0)) {
         popsize_measure <- "ssb0"
       }
-
       popsize_target <- ifelse(popsize_measure == "ssb0", ssb0, b0) # assign target population size based on either ssb or b
 
       self$resolution <- resolution
@@ -419,6 +428,13 @@ Fish <- R6::R6Class(
           length_a * (ages - t0)^length_b
 
         growth_params <- list(length_a = length_a, length_b = length_b, t0 = t0)
+      } else if (self$growth_model == "growth_cessation"){
+
+
+        length_at_age <- (l0 + rmax * ((log(exp(-k * t50) + 1) - log(exp(k * (ages - t50)) + 1)) / k + ages))
+
+        growth_params <- list(l0 = l0, rmax = rmax,k = k, t50 = t50)
+
       }
 
       # process weight
@@ -538,22 +554,25 @@ Fish <- R6::R6Class(
       #
       # }
 
+      if (is.null(fec_at_age)) {
+
       if (fec_form == "pups") {
         fec_at_age <- rep(pups, length(maturity_at_age))
 
-        self$fec_at_age <- fec_at_age
       } else {
         fec_at_age <- weight_at_age^fec_expo
 
-        self$fec_at_age <- fec_at_age
       }
+
+      }
+        self$fec_at_age <- fec_at_age
 
       self$maturity_at_age <- maturity_at_age
 
       self$weight_at_age <- weight_at_age
 
       self$ssb_at_age <-
-        maturity_at_age * weight_at_age
+        maturity_at_age * fec_at_age
 
 
       self$max_hab_mult <- max_hab_mult
@@ -584,6 +603,13 @@ Fish <- R6::R6Class(
       self$diffusion_foundation <- purrr::map2(taxis_matrix, adult_diffusion, diffusion_prep, time_step = time_step, patch_area = patch_area) # prepare adult diffusion matrix account for potential land
 
       self$adult_diffusion <- adult_diffusion
+
+      self$recruit_diffusion <- recruit_diffusion
+
+      self$adult_home_range <- adult_home_range
+
+      self$recruit_home_range <- recruit_home_range
+
 
       diffusion_and_taxis <- purrr::map2(self$diffusion_foundation, taxis_matrix, ~ .x * .y)
 
@@ -688,7 +714,6 @@ Fish <- R6::R6Class(
           popsize_measure = popsize_measure,
           method = "L-BFGS-B"
         )
-
         local_r0s <- tuned_r0$par * r0s$rec_habitat
       }
 
@@ -800,6 +825,10 @@ Fish <- R6::R6Class(
       self$b0_p <- rowSums(unfished$tmppop$b_p_a)
 
       self$ssb0 <- unfished$ssb0
+
+      ssbs <- seq(0,self$ssb0, length.out = 100)
+
+      self$rec_at_dep <-  (((0.8 * sum(self$r0s) * self$steepness * ssbs) / (0.2 *  self$ssb0  * (1 - self$steepness) + (self$steepness - 0.2) * ssbs)));
 
       self$ssb0_p <- unfished$ssb0_p
 

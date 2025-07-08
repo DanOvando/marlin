@@ -27,6 +27,7 @@ create_critter(
   patch_area = 1,
   spawning_seasons = NA,
   density_dependence = "global_habitat",
+  growth_model = "von_bertalanffy",
   ...
 )
 }
@@ -74,6 +75,8 @@ create_critter(
 \item{spawning_seasons}{which seasons spawning occurs}
 
 \item{density_dependence}{one of 'global_habitat','local_habitat','pre_dispersal','post_dispersal','global_ssb'}
+
+\item{growth_model}{one of "von_bertalanffy", "power", "growth_cessation"}
 
 \item{...}{additional parameters passed to \code{Fish} class, see \code{?Fish}}
 }

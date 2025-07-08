@@ -31,6 +31,7 @@
 #' @param density_dependence one of 'global_habitat','local_habitat','pre_dispersal','post_dispersal','global_ssb'
 #' @param get_common_name TRUE or FALSE to lookup common name from scientific name. Requires internet connection
 #' @param critter_type placeholder for someday if non-Fish objects are implemented
+#' @param growth_model one of "von_bertalanffy", "power", "growth_cessation"
 #' @param ... additional parameters passed to `Fish` class, see `?Fish`
 
 create_critter <- function(common_name = NA,
@@ -55,6 +56,7 @@ create_critter <- function(common_name = NA,
                            patch_area = 1,
                            spawning_seasons = NA,
                            density_dependence = "global_habitat",
+                           growth_model = "von_bertalanffy",
                            ...) {
   if (!is.list(habitat)) {
     habitat <- list(habitat)
@@ -83,6 +85,7 @@ create_critter <- function(common_name = NA,
         get_common_name = get_common_name,
         resolution = resolution,
         spawning_seasons = spawning_seasons,
+        growth_model = growth_model,
         ...
       )
   }

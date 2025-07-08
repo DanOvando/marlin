@@ -16,7 +16,7 @@
 #' home_range = 42
 #' diffusion_rate <- tune_diffusion(home_range)
 #' diffusion_rate
-tune_diffusion <- function(home_range, resolution = c(500, 1), patch_area = 4) {
+tune_diffusion <- function(home_range, resolution = c(500, 1), patch_area = 4, mode = "opt") {
   patches <- tidyr::expand_grid(x = 1:resolution[1], y = 1:resolution[2]) |>
     dplyr::mutate(patch = 1:dplyr::n())
 
@@ -44,7 +44,7 @@ tune_diffusion <- function(home_range, resolution = c(500, 1), patch_area = 4) {
   #   ggplot(aes(x,y,fill = distance_from_centroid)) +
   #   geom_tile()
 
-  foo <- function(log_diffusion_rate, home_range, delta_t = 1) {
+  foo <- function(log_diffusion_rate, home_range, delta_t = 1, mode = "opt") {
     # diffusion_rate <- 10
 
     diffusion_rate <- exp(log_diffusion_rate)
@@ -104,9 +104,15 @@ tune_diffusion <- function(home_range, resolution = c(500, 1), patch_area = 4) {
 
     diffusion_distance <- next_patches$distance_from_centroid[which.min(next_patches$delta)]
 
-    delta <- as.numeric((diffusion_distance - home_range)^2)
+    if (mode == "opt"){
+      out <- as.numeric((diffusion_distance - home_range)^2)
 
-    return(delta)
+    } else {
+      out <- next_patches |>
+        dplyr::mutate(home_range = home_range)
+    }
+
+    return(out)
   }
 
   # home_range <- max_distance *.01
@@ -138,5 +144,17 @@ tune_diffusion <- function(home_range, resolution = c(500, 1), patch_area = 4) {
 
   best_guess <- optimise(foo, c(log(1e-6), log(100000)), home_range = home_range)
 
-  diffusion_rate <- exp(best_guess$minimum)
+  if (mode == "opt"){
+
+    out <- exp(best_guess$minimum)
+
+  } else {
+    out <- foo(best_guess$minimum, home_range = home_range, mode = "plot")
+
+  }
+
+
+
+
+  return(out)
 }

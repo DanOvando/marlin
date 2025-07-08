@@ -30,6 +30,13 @@ generate_length_at_age_key <- function(min_age,
   } else if (growth_model == "power") {
     mean_length_at_age <-
       growth_params$length_a * (seq(min_age, max_age, by = time_step) - growth_params$t0)^growth_params$length_b
+  } else if (growth_model == "growth_cessation"){
+
+    ages <- seq(min_age, max_age, by = time_step)
+    mean_length_at_age <-
+     (growth_params$l0 + growth_params$rmax * ((log(exp(-growth_params$k * growth_params$t50) + 1) - log(exp(growth_params$k * (ages - growth_params$t50)) + 1)) / growth_params$k + ages))
+
+
   }
 
   if (is.null(growth_params$linf)) {

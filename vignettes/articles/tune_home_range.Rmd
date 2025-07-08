@@ -16,7 +16,6 @@ fauna <-
   list(
     "bigeye" = create_critter(
       common_name = "bigeye tuna",
-      adult_diffusion = 10,
       adult_home_range = 10,
       density_dependence = "local_habitat",
       seasons = seasons,
@@ -29,5 +28,14 @@ fauna <-
   )
 
 fauna$bigeye$adult_diffusion
+
+diffusion_distance <- tune_diffusion(home_range = 10, mode = "plot")
+
+    diffusion_distance |>
+      ggplot(aes(distance_from_centroid, cdist)) +
+      geom_line() +
+      geom_hline(yintercept = 0.95) +
+      geom_vline(aes(xintercept = home_range)) +
+      scale_y_continuous(limits = c(0, 1.1))
 
 ```
