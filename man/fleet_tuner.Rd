@@ -4,10 +4,10 @@
 \alias{fleet_tuner}
 \title{fleet tuner}
 \usage{
-fleet_tuner(qs, fauna, fleets, years = 50)
+fleet_tuner(log_qs, fauna, fleets, years = 50)
 }
 \arguments{
-\item{qs}{vector of catchability coefficients}
+\item{log_qs}{vector of log catchability coefficients}
 
 \item{fauna}{fauna object}
 

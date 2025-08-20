@@ -35,6 +35,8 @@ library(gganimate)
 
 library(ggridges)
 
+library(gifski)
+
 years <- 20
 
 resolution <- 10
@@ -92,8 +94,8 @@ fauna <-
       scientific_name = "thunnus obesus",
       habitat = list(bigeye_habitat, bigeye_habitat2),
       season_blocks = list(c(1, 2), c(3, 4)),
-      adult_diffusion = list(5, 5), # standard deviation of the number of patches moved by adults
-      recruit_diffusion = 10,
+      adult_home_range = c(5, 5), # standard deviation of the number of patches moved by adults
+      recruit_home_range = 10,
       recruit_habitat = recruit_habitat,
       density_dependence = "pre_dispersal",
       seasons = seasons,
@@ -123,10 +125,9 @@ fleets <- list(
       sel_start = 1,
       sel_delta = .01,
       catchability = 1e-3,
-      p_explt = 1,
-      spatial_catchability = NA
+      p_explt = 1
     )),
-    base_effort = resolution^2,
+    base_effort = 10 * resolution^2,
     resolution = resolution
   )
 )
@@ -225,5 +226,5 @@ range_shift <- processed_marlin$fauna %>%
 
 animate(range_shift, nframes = 100, fps = 4)
 
-anim_save(filename = "ctmc.gif", animation = animate(range_shift, nframes = 100, fps = 4))
+# anim_save(filename = "ctmc.gif", animation = animate(range_shift, nframes = 100, fps = 4))
 ```

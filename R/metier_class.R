@@ -33,7 +33,7 @@ Metier <- R6::R6Class("metier",
                           sel05_anchor = NULL,
                           sel_at_linf = NULL,
                           catchability = 0.2,
-                          spatial_catchability = NA,
+                          spatial_catchability = NULL,
                           p_explt = 1,
                           sel_at_age = NULL) {
       catchability <- pmax(1e-9, catchability)
@@ -184,7 +184,13 @@ Metier <- R6::R6Class("metier",
         self$sel_at_length <- rep(1, length(length_bins))
       } # close sel_form things
 
-      if (all(is.na(spatial_catchability))) {
+      self$ages <- critter$ages
+
+      self$length_bins <- length_bins
+
+      self$resolution <- critter$resolution
+
+      if ((is.null(spatial_catchability))) {
         self$spatial_catchability <- rep(catchability, critter$patches)
       } else {
         if (unique(dim(spatial_catchability)) != sqrt(critter$patches)) {
@@ -213,6 +219,44 @@ Metier <- R6::R6Class("metier",
 
         self$spatial_catchability <- tmp$catchability * catchability
       } # close deal with spatial q
-    } # close initialize
+    }, # close initialize
+    #' plot selectivity
+    #'    #'
+    #' @return a plot of selectivity at age for the metier
+    plot_selectivity = function() {
+      a <- data.frame(
+        measure = self$ages, selectivity = self$sel_at_age,
+        unit = "Age"
+      )
+
+      b <- data.frame(
+        measure = self$length_bins, selectivity = self$sel_at_length,
+        unit = "Length"
+      )
+
+      d <- rbind(a, b)
+
+      out <- d |>
+        ggplot2::ggplot(aes(measure, selectivity)) +
+        ggplot2::geom_line() +
+        ggplot2::facet_wrap(~unit, nrow = 2, scales = "free_x") +
+        ggplot2::scale_y_continuous(limits = c(0, 1))
+
+
+      out
+    },
+    #' plot selectivity
+    #'    #'
+    #' @return a plot of selectivity at age for the metier
+    plot_catchability = function() {
+
+      out <- tidyr::expand_grid(x = 1:self$resolution[1], y = 1:self$resolution[2]) |>
+        dplyr::arrange(x, y) |>
+        dplyr::mutate(catchability = self$spatial_catchability) |>
+        ggplot2::ggplot(aes(x, y, fill = catchability)) +
+        ggplot2::geom_tile()
+
+      out
+    }
   ) # close public
 ) # close class

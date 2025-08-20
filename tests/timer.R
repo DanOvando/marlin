@@ -1,7 +1,7 @@
 library(marlin)
 library(tidyverse)
 options(dplyr.summarise.inform = FALSE)
-theme_set(marlin::theme_marlin(base_size = 42))
+theme_set(marlin::theme_marlin(base_size = 12))
 
 resolution <- 10 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches
 
@@ -17,8 +17,9 @@ fauna <-
   list(
     "bigeye" = create_critter(
       common_name = "bigeye tuna",
-      adult_diffusion = 10,
-      density_dependence = "post_dispersal",
+      adult_home_range = 1,
+      recruit_home_range = 4,
+      density_dependence = "pre_dispersal",
       seasons = seasons,
       fished_depletion = .25,
       resolution = resolution,
@@ -26,6 +27,10 @@ fauna <-
       ssb0 = 1000
     )
   )
+
+fauna$bigeye$plot_movement()
+
+fauna$bigeye$plot()
 
 fishing_grounds <- expand.grid(x = 1:resolution, y = 1:resolution) |>
   mutate(fishing_ground = FALSE)
@@ -49,9 +54,14 @@ fleets <- list(
   )
 )
 
-fauna$bigeye$plot()
+
+fleets$longline$metiers$bigeye$plot_selectivity()
+
 
 fleets <- tune_fleets(fauna, fleets, tune_type = "depletion")
+
+fleets$longline$metiers$bigeye$plot_catchability()
+
 
 start_time <- Sys.time()
 

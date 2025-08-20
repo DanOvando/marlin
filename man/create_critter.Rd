@@ -15,10 +15,14 @@ create_critter(
   seasons = 1,
   lorenzen_c = -1,
   fec_form = "weight",
-  adult_diffusion = 2,
-  recruit_diffusion = 10,
-  fished_depletion = 0.4,
+  adult_home_range = 1,
+  recruit_home_range = 2,
+  adult_diffusion = NULL,
+  recruit_diffusion = NULL,
+  depletion = 0.4,
+  fished_depletion = NULL,
   init_explt = 0.1,
+  f = NULL,
   explt_type = "f",
   burn_years = 50,
   weight_a = NA,
@@ -56,7 +60,7 @@ create_critter(
 
 \item{recruit_diffusion}{recruit diffusion rate}
 
-\item{fished_depletion}{depletion (biomass / unfished biomass) at start of simulation}
+\item{depletion}{depletion (biomass / unfished biomass) at start of simulation}
 
 \item{init_explt}{initial annual exploitation rate (fraction of exploitable population killed)}
 

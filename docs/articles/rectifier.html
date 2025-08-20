@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">marlin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -192,10 +192,23 @@ simulation space)</p>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">start_time</span></span>
-<span><span class="co">#&gt; Time difference of 0.5991502 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.45488 secs</span></span>
 <span></span>
 <span></span>
-<span><span class="va">processed_coastline</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">coastline_sim</span>, keep_age <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">processed_coastline</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">coastline_sim</span>, keep_age <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">A</span> <span class="op">=</span> <span class="va">coastline_sim</span><span class="op">$</span><span class="va">`1_1`</span><span class="op">$</span><span class="va">rockfish</span><span class="op">$</span><span class="va">c_p_a_fl</span></span>
+<span></span>
+<span><span class="co"># DT &lt;- as.data.table(as.table(A))         # dims + Freq</span></span>
+<span><span class="co"># setnames(DT, old = "N", new = "Freq", skip_absent = TRUE)</span></span>
+<span><span class="co"># setnames(DT, old = "Freq", new = "value")  # standardize column name</span></span>
+<span><span class="co"># # If you need a data.frame:</span></span>
+<span><span class="co"># df &lt;- as.data.frame(DT)</span></span>
+<span></span>
+<span><span class="co"># </span></span>
+<span><span class="co"># tic()</span></span>
+<span><span class="co"># faster_maybe_processed_coastline &lt;- fast_process_marlin(coastline_sim, keep_age = FALSE)</span></span>
+<span><span class="co"># toc()</span></span></code></pre></div>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_marlin.html">plot_marlin</a></span><span class="op">(</span>`Coastline Simulation` <span class="op">=</span> <span class="va">processed_coastline</span>, plot_type <span class="op">=</span> <span class="st">"space"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning in plot_marlin(`Coastline Simulation` = processed_coastline, plot_type</span></span>
@@ -216,7 +229,7 @@ Rectangular simulation of a coastal rockfish species
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer>

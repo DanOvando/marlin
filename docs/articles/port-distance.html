@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">marlin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -116,8 +116,7 @@ specified by x and y coordinates.</p>
 <span>      explt_type <span class="op">=</span> <span class="st">"f"</span>,</span>
 <span>      resolution <span class="op">=</span> <span class="va">resolution</span></span>
 <span>    <span class="op">)</span></span>
-<span>  <span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in f(names[[col]]): NAs introduced by coercion</span></span></code></pre></div>
+<span>  <span class="op">)</span></span></code></pre></div>
 <p>We’ll then create a fishing fleet with the desired port
 locations.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
@@ -146,7 +145,7 @@ locations.</p>
 <span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span>, tune_costs <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">fleets</span><span class="op">$</span><span class="va">longline</span><span class="op">$</span><span class="va">cost_per_unit_effort</span></span>
-<span><span class="co">#&gt; [1] 0.02550879</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 0.02504577</span></span></code></pre></div>
 <p>From there, run simulation and see how the fleet concentrates around
 the ports.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
@@ -192,7 +191,7 @@ function of distance.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer>

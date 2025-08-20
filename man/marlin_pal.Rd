@@ -7,6 +7,10 @@
 marlin_pal(palette = "fish_scales", reverse = FALSE, ...)
 }
 \arguments{
+\item{palette}{the palette}
+
+\item{reverse}{flip it}
+
 \item{...}{}
 }
 \value{

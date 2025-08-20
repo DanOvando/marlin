@@ -16,6 +16,7 @@ create_fleet(
   cost_per_distance = 1,
   cr_ratio = 1,
   resolution,
+  patch_area = 1,
   base_effort = NULL,
   fishing_grounds = NULL
 )
@@ -27,15 +28,27 @@ create_fleet(
 
 \item{fleet_model}{which fleet model to use, one of "constant_effort" or "open_access" or constant catch}
 
+\item{responsiveness}{how responsive the fleet is to profits when fleet_model = "open_access"}
+
+\item{cost_per_unit_effort}{the cost per unit effort}
+
 \item{spatial_allocation}{spatial effort allocation strategy ('revenue','rpue','profit','ppue')}
+
+\item{effort_cost_exponent}{exponent of costs}
+
+\item{ports}{location of fishing ports}
+
+\item{cost_per_distance}{cost per unit distance}
 
 \item{cr_ratio}{cost to revenue ratio at initial conditions (1 implies OA equilibrium, total profits = 0)}
 
+\item{resolution}{spatial resolution of the simulated seascape}
+
+\item{patch_area}{the area of each patch (KM^2^)}
+
 \item{base_effort}{base effort for the fleet}
 
-\item{profit_sensitivity}{the profit sensitivity of the open access model}
-
-\item{cost_per_unit_effortt}{the cost per unit effort in the open access model}
+\item{fishing_grounds}{the location of fishing grounds (TRUE or FALSE)}
 }
 \value{
 a fleet object

@@ -4,14 +4,12 @@
 \alias{tune_diffusion}
 \title{Tune Diffusion}
 \usage{
-tune_diffusion(home_range, resolution = c(500, 1), patch_area = 4)
+tune_diffusion(home_range, mode = "opt")
 }
 \arguments{
 \item{home_range}{the desired home range, defined as the linear distance such that 95\% of animals travel that distance or less from their starting location}
 
-\item{resolution}{the resolution of the system}
-
-\item{patch_area}{the area of each patch in the system}
+\item{mode}{one of "opt" to optimize diffusion rate or "plot" to return diffusion matrix}
 }
 \value{
 The tuned diffusion rate

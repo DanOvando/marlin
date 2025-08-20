@@ -6,7 +6,7 @@
 #' @param fauna a fauna object
 #' @param fleets a fleet object
 #' @param years the number of years to tune over
-#' @param tune_type one of 'explt' or 'depletion' to tune to an exploitation rate or a target depletion (B/B0)
+#' @param tune_type one of 'f' or 'depletion' to tune catchability to achieve a desired fishing mortality rate (f) or a target depletion (B/B0)
 #' @param tune_costs TRUE or FALSE to tune costs to a target cost to revenue ratio
 #' @param fine_tune_costs TRUE or FALSE
 #'
@@ -15,94 +15,105 @@
 tune_fleets <- function(fauna,
                         fleets,
                         years = 50,
-                        tune_type = "explt",
+                        tune_type = "f",
                         tune_costs = TRUE,
                         fine_tune_costs = TRUE) {
-  # might be best to define costs based on unfished rather than EQ to get around weird tuning behavior with tuning assuming revenue distribution but fleet model assuming IFD
 
-  fleet_names <- names(fleets)
+  tfleets <- fleets
+
+  if (tune_type == "explt"){
+    tune_type = "f"
+  }
+
+  for (i in length(tfleets)){
+
+
+    for (j in 1:length(tfleets[[i]]$metiers)){
+
+      tfleets[[i]]$metiers[[j]] <- fleets[[i]]$metiers[[j]]$clone(deep = TRUE)
+
+    }
+
+  }
+
+  fleet_names <- names(tfleets)
 
   fauni <- names(fauna)
 
-  og_fleet_model <- character(length = length(fleets))
-  names(og_fleet_model) <- names(fleets)
+  og_fleet_model <- character(length = length(tfleets))
+  # names(og_fleet_model) <- names(tfleets)
 
-  for (f in names(fleets)) {
-    og_fleet_model[f] <- fleets[[f]]$fleet_model
-    fleets[[f]]$fleet_model <- "constant_effort"
+  for (f in names(tfleets)) {
+    og_fleet_model[f] <- tfleets[[f]]$fleet_model
+    tfleets[[f]]$fleet_model <- "constant_effort"
   }
 
   # normalize p_explt to make sure it sums to 1
 
   for (s in fauni) {
-    p_explts <- purrr::map_dbl(fleets, c("metiers", s, "p_explt"))
+    p_explts <- purrr::map_dbl(tfleets, c("metiers", s, "p_explt"))
 
     p_explts <- p_explts / ifelse(sum(p_explts) > 0, sum(p_explts), 1e-6)
 
     for (f in fleet_names) {
-      fleets[[f]]$metiers[[s]]$p_explt <- as.numeric(p_explts[f])
+      tfleets[[f]]$metiers[[s]]$p_explt <- as.numeric(p_explts[f])
     } # close fleet loop
   } # close fauna loop
 
-  storage <- simmar(
-    fauna = fauna,
-    fleets = fleets,
-    years = years
-  )
 
-
-
-
-
-  revenue <-
-    purrr::map(
-      storage[[1]],
-      ~ data.frame(expand.grid(dimnames(.x$r_p_a_fl)), value = as.vector(.x$r_p_a_fl)) |>
-        purrr::set_names("patch", "age", "fleet", "revenue") |>
-        dplyr::mutate(across(patch:age, ~ as.numeric(as.character(
-          .x
-        ))))
-    ) %>%
-    dplyr::bind_rows(.id = "critter") %>%
-    dplyr::group_by(fleet) %>%
-    dplyr::summarise(revenue = sum(revenue, na.rm = TRUE))
+  # find patches within fishing grounds where b0_p is > 0
 
   fauni <- names(fauna)
 
-  fleeti <- names(fleets)
+  fleeti <- names(tfleets)
 
   for (s in fauni) {
-    e_p_fl <- storage[[length(storage)]][[1]]$e_p_fl
 
-    b_p <- rowSums(storage[[length(storage)]][[s]]$b_p_a)
+    e_fl <- rep(NA, length(tfleets))
+    # names(e_fl) <- names(tfleets)
+    # evenly divide up fishing effort into fishing grounds
+    # find intersection with viable habitat for the species in question (b0_p > 0)
+    # really, calculate proportion of fishing grounds that have viable habitat for species in question
 
-    weights <- b_p / max(b_p)
+    b0_p <- fauna[[s]]$b0_p
 
-    e_fl <- colSums((e_p_fl * weights)) / sum(weights) # calculate the total effort weighted by biomass of that species in patches.
+    for (fl in seq_along(fleeti)){
+
+      e_fl[fl] <- (tfleets[[fl]]$base_effort / sum(tfleets[[fl]]$fishing_grounds$fishing_ground > 0)) * mean(b0_p[tfleets[[fl]]$fishing_grounds$fishing_ground > 0] > 0)
+
+
+    }
 
     p_explt <-
-      purrr::map_dbl(fleets, c("metiers", s, "p_explt"))[names(e_p_fl)]
+      purrr::map_dbl(tfleets, c("metiers", s, "p_explt"))
 
     explt_by_fleet <- (fauna[[s]]$init_explt) * p_explt
 
     catchability <- explt_by_fleet / e_fl
-    for (f in fleeti) {
-      fleets[[f]]$metiers[[s]]$catchability <- catchability[f]
 
-      if (all(fleets[[f]]$metiers[[s]]$spatial_catchability == 0)) {
+    if (any(catchability > 1) & tune_type != "depletion"){
+
+      stop("Desired exploitation rate if not possible given supplied effort levels (q >=1 ); try increasing base_effort")
+
+    }
+
+    for (f in fleeti) {
+
+      tfleets[[f]]$metiers[[s]]$catchability <- catchability[f]
+
+      if (all(tfleets[[f]]$metiers[[s]]$spatial_catchability == 0)) {
         # annoying step: if q = 0 from earlier, then this will be a matrix of zeros and can't get updated
-        fleets[[f]]$metiers[[s]]$spatial_catchability <-
-          rep(1, length(fleets[[f]]$metiers[[s]]$spatial_catchability))
+        tfleets[[f]]$metiers[[s]]$spatial_catchability <-
+          rep(1, length(tfleets[[f]]$metiers[[s]]$spatial_catchability))
       }
 
-      mean_q <- mean(fleets[[f]]$metiers[[s]]$spatial_catchability)
+      mean_q <- mean(tfleets[[f]]$metiers[[s]]$spatial_catchability)
 
       mean_q <- ifelse(mean_q == 0, 1e-9, mean_q)
 
-      fleets[[f]]$metiers[[s]]$spatial_catchability <- (fleets[[f]]$metiers[[s]]$spatial_catchability / mean_q) * catchability[f]
+      tfleets[[f]]$metiers[[s]]$spatial_catchability <- (tfleets[[f]]$metiers[[s]]$spatial_catchability / mean_q) * catchability[f]
     } # close internal fleet loop
   } # close fauna loop
-
 
 
   if (tune_type == "depletion") {
@@ -115,49 +126,73 @@ tune_fleets <- function(fauna,
       for (ff in fleeti) {
         cc <- cc + 1
 
-        qs[cc] <- fleets[[ff]]$metiers[[f]]$catchability
+        qs[cc] <- tfleets[[ff]]$metiers[[f]]$catchability
       }
     }
 
+    #     browser()
+    # wtff <- tfleets
+    # wtff$longline$metiers[[1]]$catchability
+
+
     qs <-
       optim(
-        par = qs,
+        par = log(qs),
         fleet_tuner,
-        fleets = fleets,
+        fleets = tfleets,
         fauna = fauna,
         years = years,
-        lower = rep(0, length(fauna) * length(fleets)),
-        upper = rep(20, length(fauna) * length(fleets)),
+        upper = rep(0, length(fauna) * length(tfleets)),
         method = "L-BFGS-B"
       )
     cc <- 1
 
-    for (f in seq_along(fleets)) {
+    for (f in seq_along(tfleets)) {
       for (ff in seq_along(fauna)) {
-        fleets[[f]]$metiers[[ff]]$catchability <- qs$par[cc]
+        tfleets[[f]]$metiers[[ff]]$catchability <- exp(qs$par[cc])
 
 
-        if (all(fleets[[f]]$metiers[[ff]]$spatial_catchability == 0)) {
+        if (all(tfleets[[f]]$metiers[[ff]]$spatial_catchability == 0)) {
           # annoying step: if q = 0 from earlier, then this will be a matrix of zeros and can't get updated
-          fleets[[f]]$metiers[[ff]]$spatial_catchability <-
-            rep(1, length(fleets[[f]]$metiers[[ff]]$spatial_catchability))
+          tfleets[[f]]$metiers[[ff]]$spatial_catchability <-
+            rep(1, length(tfleets[[f]]$metiers[[ff]]$spatial_catchability))
         }
 
-        mean_q <- mean(fleets[[f]]$metiers[[ff]]$spatial_catchability)
+        mean_q <- mean(tfleets[[f]]$metiers[[ff]]$spatial_catchability)
 
         mean_q <- ifelse(mean_q == 0, 1e-9, mean_q)
 
 
-        fleets[[f]]$metiers[[ff]]$spatial_catchability <- fleets[[f]]$metiers[[ff]]$spatial_catchability / mean_q * qs$par[cc]
+        tfleets[[f]]$metiers[[ff]]$spatial_catchability <- tfleets[[f]]$metiers[[ff]]$spatial_catchability / mean_q * exp(qs$par[cc])
         cc <- cc + 1
       } # close internal fauna loop
     } # close fleet loop
   } # close depletion
 
+  # storage <- simmar(
+  #   fauna = fauna,
+  #   tfleets = tfleets,
+  #   years = years
+  # )
+  #
+  # revenue <-
+  #   purrr::map(
+  #     storage[[1]],
+  #     ~ data.frame(expand.grid(dimnames(.x$r_p_a_fl)), value = as.vector(.x$r_p_a_fl)) |>
+  #       purrr::set_names("patch", "age", "fleet", "revenue") |>
+  #       dplyr::mutate(across(patch:age, ~ as.numeric(as.character(
+  #         .x
+  #       ))))
+  #   ) %>%
+  #   dplyr::bind_rows(.id = "critter") %>%
+  #   dplyr::group_by(fleet) %>%
+  #   dplyr::summarise(revenue = sum(revenue, na.rm = TRUE))
+
+
   if (tune_costs) {
     init_sim <- simmar(
       fauna = fauna,
-      fleets = fleets,
+      fleets = tfleets,
       years = years
     )
 
@@ -192,7 +227,7 @@ tune_fleets <- function(fauna,
 
     cost_per_patch <-
       purrr::map(
-        fleets,
+        tfleets,
         ~ data.frame(
           patch = 1:length(.x$cost_per_patch),
           cost = .x$cost_per_patch
@@ -200,10 +235,10 @@ tune_fleets <- function(fauna,
       ) |>
       purrr::list_rbind(names_to = "fleet")
 
-    base_cr_ratio <- purrr::map(fleets, ~ data.frame(base_cr_ratio = .x$cr_ratio), .id = "fleet") |>
+    base_cr_ratio <- purrr::map(tfleets, ~ data.frame(base_cr_ratio = .x$cr_ratio), .id = "fleet") |>
       purrr::list_rbind(names_to = "fleet")
 
-    fleet_cost_expos <- purrr::map(fleets, ~ data.frame(beta = .x$effort_cost_exponent)) |>
+    fleet_cost_expos <- purrr::map(tfleets, ~ data.frame(beta = .x$effort_cost_exponent)) |>
       purrr::list_rbind(names_to = "fleet")
 
     effort_and_costs <- effort %>%
@@ -217,18 +252,21 @@ tune_fleets <- function(fauna,
       dplyr::left_join(base_cr_ratio, by = "fleet") %>%
       dplyr::left_join(fleet_cost_expos, by = "fleet") %>%
       dplyr::mutate(cost_per_unit_effort = (base_cr_ratio * revenue) / (effort^
-        beta + travel_cost)) %>%
+                                                                          beta + travel_cost)) %>%
       dplyr::mutate(profits = revenue - (cost_per_unit_effort * (effort^
-        beta + travel_cost)))
+                                                                   beta + travel_cost)))
 
-    for (f in names(fleets)) {
-      fleets[[f]]$cost_per_unit_effort <- effort_and_costs$cost_per_unit_effort[effort_and_costs$fleet == f]
+    for (f in names(tfleets)) {
+      tfleets[[f]]$cost_per_unit_effort <- effort_and_costs$cost_per_unit_effort[effort_and_costs$fleet == f]
 
-      fleets[[f]]$fleet_model <- og_fleet_model[f]
     }
+  }
+
+  for (f in names(tfleets)) {
+    tfleets[[f]]$fleet_model <- og_fleet_model[f]
   }
 
 
 
-  return(fleets)
+  return(tfleets)
 }

@@ -46,7 +46,7 @@ tune_type <- "depletion"
 
 steps <- years * seasons
 
-yft_diffusion <- 2
+yft_home_range <- 2
 
 yft_depletion <- .2
 
@@ -54,7 +54,7 @@ rec_factor <- 10
 
 mako_depletion <- 0.3
 
-mako_diffusion <- 100
+make_home_range <- 100
 
 # for now make up some habitat
 
@@ -110,8 +110,8 @@ fauna <-
       scientific_name = "Thunnus albacares",
       habitat = yft_habitat, # pass habitat as lists
       recruit_habitat = yft_habitat,
-      adult_diffusion = yft_diffusion, # cells per year
-      recruit_diffusion = rec_factor * yft_diffusion,
+      adult_home_range = yft_home_range, # cells per year
+      recruit_home_range = rec_factor * yft_home_range,
       fished_depletion = yft_depletion, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
       density_dependence = "pre_dispersal", # recruitment form, where 1 implies local recruitment
       seasons = seasons,
@@ -121,8 +121,8 @@ fauna <-
       scientific_name = "Isurus oxyrinchus",
       habitat = mako_habitat,
       recruit_habitat = mako_habitat,
-      adult_diffusion = mako_diffusion,
-      recruit_diffusion = rec_factor * .1,
+      adult_home_range = make_home_range,
+      recruit_home_range = rec_factor * .1,
       fished_depletion = mako_depletion,
       density_dependence = "local_habitat", # recruitment form, where 1 implies local recruitment
       burn_years = 200,

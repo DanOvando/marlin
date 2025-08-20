@@ -14,6 +14,7 @@ Fish like to swim
 \itemize{
 \item \href{#method-Fish-new}{\code{Fish$new()}}
 \item \href{#method-Fish-plot}{\code{Fish$plot()}}
+\item \href{#method-Fish-plot_movement}{\code{Fish$plot_movement()}}
 \item \href{#method-Fish-swim}{\code{Fish$swim()}}
 \item \href{#method-Fish-clone}{\code{Fish$clone()}}
 }
@@ -76,12 +77,12 @@ Used to store parameters describing the behavior of an object of class Fish
   default_wb = 2.8,
   tune_weight = FALSE,
   linf_buffer = 1.2,
-  resolution = NA,
+  resolution = NULL,
   patch_area = 1,
   habitat = list(),
   season_blocks = list(),
   recruit_habitat = NA,
-  fished_depletion = 1,
+  depletion = 1,
   burn_years = 50,
   seasons = 1,
   explt_type = "f",
@@ -173,11 +174,17 @@ Used to store parameters describing the behavior of an object of class Fish
 
 \item{\code{popsize_measure}}{whether unfished population size should be set based on biomass or spawning stock biomass}
 
-\item{\code{density_dependence}}{timing and nature of density dependence in the Beverton-Holt spawner recruit function, one of one of 'global_habitat','local_habitat','pre_dispersal','post_dispersal','global_ssb'}
+\item{\code{density_dependence}}{timing and nature of density dependence in the Beverton-Holt spawner recruit function,
+one of one of 'global_habitat','local_habitat','pre_dispersal','post_dispersal','global_ssb'. When 'global_habitat' density dependence is a function of the total spawning
+biomass across all patches, and recruits are then distributed proportional to recruit habitat quality. When 'local_habitat' density dependence is a function of the spawning biomass
+in each patch, and recruits are then distributed proportional to recruit habitat quality. When 'pre_dispersal', density dependence is a function of the spawning biomass
+in each patch, and recruits are then distributed from their home patch based on the \code{recruit_home_range}. When 'post_dispersal', larvae are distributed from their home patch
+based on \code{recruit_home_range}, and then density dependence happens based on spawning biomass in the settling patches. When 'global_ssb', density dependence is a function of the total spawning
+biomass and recruits are then distributed in space proportional to spawning biomass.}
 
-\item{\code{adult_diffusion}}{diffusion parameter \emph{D} in the CTMC movement function for "adults" (not recruits)}
+\item{\code{adult_diffusion}}{diffusion parameter \emph{D} in the CTMC movement function for "adults" (not recruits). Deprecated, best to use \code{adult_home_range}}
 
-\item{\code{recruit_diffusion}}{diffusion parameter \emph{D} in the CTMC movement function for recruits}
+\item{\code{recruit_diffusion}}{diffusion parameter \emph{D} in the CTMC movement function for recruits. Deprecated, best to use \code{recruit_home_range}}
 
 \item{\code{adult_home_range}}{the desired home range of adults. Overrides adult_diffusion if set}
 
@@ -209,7 +216,7 @@ Used to store parameters describing the behavior of an object of class Fish
 
 \item{\code{recruit_habitat}}{a matrix with dimensions X and Y with quality of recruit habitat (scales r0 in space as well as recruit diffusion under applicable forms of density dependence)}
 
-\item{\code{fished_depletion}}{depletion (SSB/SSB0) under initial fished conditions}
+\item{\code{depletion}}{depletion (SSB/SSB0) under initial fished conditions}
 
 \item{\code{burn_years}}{number of years used to burn in the population to tune parameters without analytical solutions like SSB0}
 
@@ -250,6 +257,26 @@ plot object of class fish}
 }
 \subsection{Returns}{
 a plot of the life history values
+plot diffusion
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Fish-plot_movement"></a>}}
+\if{latex}{\out{\hypertarget{method-Fish-plot_movement}{}}}
+\subsection{Method \code{plot_movement()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Fish$plot_movement()}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{type}}{}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+a plot of the diffusion after one year
 Swim
 
 Swim advances the population one time step

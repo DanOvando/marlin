@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">marlin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -28,6 +28,7 @@
     <li><a class="dropdown-item" href="../articles/port-distance.html">Setting and Using Distance from Port</a></li>
     <li><a class="dropdown-item" href="../articles/rectifier.html">Don't Be a Square</a></li>
     <li><a class="dropdown-item" href="../articles/Setting-Selectivity.html">Setting Selectivity</a></li>
+    <li><a class="dropdown-item" href="../articles/tune_home_range.html">Tune Home Range</a></li>
     <li><a class="dropdown-item" href="../articles/Working-with-Recruitment-Deviates.html">Working with Recruitment Deviates</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -64,6 +65,7 @@
 
 <ul><li><p><a href="#method-Fish-new"><code>Fish$new()</code></a></p></li>
 <li><p><a href="#method-Fish-plot"><code>Fish$plot()</code></a></p></li>
+<li><p><a href="#method-Fish-plot_movement"><code>Fish$plot_movement()</code></a></p></li>
 <li><p><a href="#method-Fish-swim"><code>Fish$swim()</code></a></p></li>
 <li><p><a href="#method-Fish-clone"><code>Fish$clone()</code></a></p></li>
 </ul></div><p></p><hr><a id="method-Fish-new"></a><div class="section">
@@ -77,6 +79,10 @@
 <span>  vbk <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  t0 <span class="op">=</span> <span class="op">-</span><span class="fl">0.5</span>,</span>
 <span>  cv_len <span class="op">=</span> <span class="fl">0.1</span>,</span>
+<span>  l0 <span class="op">=</span> <span class="fl">18.85</span>,</span>
+<span>  rmax <span class="op">=</span> <span class="fl">37.24</span>,</span>
+<span>  k <span class="op">=</span> <span class="fl">0.89</span>,</span>
+<span>  t50 <span class="op">=</span> <span class="fl">4.57</span>,</span>
 <span>  length_a <span class="op">=</span> <span class="fl">0.1</span>,</span>
 <span>  length_b <span class="op">=</span> <span class="fl">3</span>,</span>
 <span>  length_units <span class="op">=</span> <span class="st">"cm"</span>,</span>
@@ -90,12 +96,14 @@
 <span>  weight_units <span class="op">=</span> <span class="st">"kg"</span>,</span>
 <span>  fec_form <span class="op">=</span> <span class="st">"weight"</span>,</span>
 <span>  fec_expo <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  fec_at_age <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  length_50_mature <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  length_95_mature <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  delta_mature <span class="op">=</span> <span class="fl">0.1</span>,</span>
 <span>  age_50_mature <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  age_95_mature <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  age_mature <span class="op">=</span> <span class="cn">NA</span>,</span>
+<span>  semelparous <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  m <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  m_at_age <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  steepness <span class="op">=</span> <span class="fl">0.8</span>,</span>
@@ -106,6 +114,8 @@
 <span>  density_dependence <span class="op">=</span> <span class="st">"global_habitat"</span>,</span>
 <span>  adult_diffusion <span class="op">=</span> <span class="fl">4</span>,</span>
 <span>  recruit_diffusion <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  adult_home_range <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  recruit_home_range <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  query_fishlife <span class="op">=</span> <span class="cn">T</span>,</span>
 <span>  sigma_rec <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  ac_rec <span class="op">=</span> <span class="fl">0</span>,</span>
@@ -114,12 +124,12 @@
 <span>  default_wb <span class="op">=</span> <span class="fl">2.8</span>,</span>
 <span>  tune_weight <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  linf_buffer <span class="op">=</span> <span class="fl">1.2</span>,</span>
-<span>  resolution <span class="op">=</span> <span class="cn">NA</span>,</span>
+<span>  resolution <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  patch_area <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  habitat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  season_blocks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  recruit_habitat <span class="op">=</span> <span class="cn">NA</span>,</span>
-<span>  fished_depletion <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  depletion <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  burn_years <span class="op">=</span> <span class="fl">50</span>,</span>
 <span>  seasons <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  explt_type <span class="op">=</span> <span class="st">"f"</span>,</span>
@@ -158,6 +168,22 @@
 <dd><p>coefficient of variation around the length at age relationship (in log space)</p></dd>
 
 
+<dt><code>l0</code></dt>
+<dd><p>length at age 0 in growth cessation model</p></dd>
+
+
+<dt><code>rmax</code></dt>
+<dd><p>related to maximum growth rate in growth cessation model</p></dd>
+
+
+<dt><code>k</code></dt>
+<dd><p>steepness of the logistic function in the growth cessation model &gt;=0</p></dd>
+
+
+<dt><code>t50</code></dt>
+<dd><p>age at the logistic function midpoint in the growth cessation model</p></dd>
+
+
 <dt><code>length_a</code></dt>
 <dd><p>a coefficient in power function growth</p></dd>
 
@@ -175,7 +201,7 @@
 
 
 <dt><code>growth_model</code></dt>
-<dd><p>one of "von_bertalanddy" or "power"</p></dd>
+<dd><p>one of "von_bertalanffy" or "power"</p></dd>
 
 
 <dt><code>min_age</code></dt>
@@ -210,6 +236,10 @@
 <dd><p>exponent for fecundity at weight relationship, 1 = isometric &gt; 1 hyperallometric</p></dd>
 
 
+<dt><code>fec_at_age</code></dt>
+<dd><p>manual vector of fecundity at age</p></dd>
+
+
 <dt><code>length_50_mature</code></dt>
 <dd><p>length at 50% maturity in a logistic maturity ogive</p></dd>
 
@@ -232,6 +262,10 @@
 
 <dt><code>age_mature</code></dt>
 <dd><p>an alternative option to just set one age mature, which ends up as the age_50_mature</p></dd>
+
+
+<dt><code>semelparous</code></dt>
+<dd><p>TRUE or FALSE. When FALSE (default), individuals can reproduce multiple times. When TRUE, individuals can only spawn once, so mortality at increase increases as a function of maturity at age</p></dd>
 
 
 <dt><code>m</code></dt>
@@ -263,15 +297,29 @@
 
 
 <dt><code>density_dependence</code></dt>
-<dd><p>timing and nature of density dependence in the Beverton-Holt spawner recruit function, one of one of 'global_habitat','local_habitat','pre_dispersal','post_dispersal','global_ssb'</p></dd>
+<dd><p>timing and nature of density dependence in the Beverton-Holt spawner recruit function,
+one of one of 'global_habitat','local_habitat','pre_dispersal','post_dispersal','global_ssb'. When 'global_habitat' density dependence is a function of the total spawning
+biomass across all patches, and recruits are then distributed proportional to recruit habitat quality. When 'local_habitat' density dependence is a function of the spawning biomass
+in each patch, and recruits are then distributed proportional to recruit habitat quality. When 'pre_dispersal', density dependence is a function of the spawning biomass
+in each patch, and recruits are then distributed from their home patch based on the <code>recruit_home_range</code>. When 'post_dispersal', larvae are distributed from their home patch
+based on <code>recruit_home_range</code>, and then density dependence happens based on spawning biomass in the settling patches. When 'global_ssb', density dependence is a function of the total spawning
+biomass and recruits are then distributed in space proportional to spawning biomass.</p></dd>
 
 
 <dt><code>adult_diffusion</code></dt>
-<dd><p>diffusion parameter <em>D</em> in the CTMC movement function for "adults" (not recruits)</p></dd>
+<dd><p>diffusion parameter <em>D</em> in the CTMC movement function for "adults" (not recruits). Deprecated, best to use <code>adult_home_range</code></p></dd>
 
 
 <dt><code>recruit_diffusion</code></dt>
-<dd><p>diffusion parameter <em>D</em> in the CTMC movement function for recruits</p></dd>
+<dd><p>diffusion parameter <em>D</em> in the CTMC movement function for recruits. Deprecated, best to use <code>recruit_home_range</code></p></dd>
+
+
+<dt><code>adult_home_range</code></dt>
+<dd><p>the desired home range of adults. Overrides adult_diffusion if set</p></dd>
+
+
+<dt><code>recruit_home_range</code></dt>
+<dd><p>the desired home range of recruits Overrides recruit_diffusion if set</p></dd>
 
 
 <dt><code>query_fishlife</code></dt>
@@ -326,7 +374,7 @@
 <dd><p>a matrix with dimensions X and Y with quality of recruit habitat (scales r0 in space as well as recruit diffusion under applicable forms of density dependence)</p></dd>
 
 
-<dt><code>fished_depletion</code></dt>
+<dt><code>depletion</code></dt>
 <dd><p>depletion (SSB/SSB0) under initial fished conditions</p></dd>
 
 
@@ -364,7 +412,7 @@ plot object of class fish</p></dd>
 
 
 <dt><code>lorenzen_c</code></dt>
-<dd></dd>
+<dd><p>the rate of the Lorenzen curve. Defaults to -1, larger values will make the difference between natural mortality at young vs old ages less pronounced</p></dd>
 
 
 </dl><p></p></div>
@@ -389,6 +437,28 @@ plot object of class fish</p></dd>
 <div class="section">
 <h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
 <p>a plot of the life history values
+plot diffusion</p>
+</div>
+
+</div><p></p><hr><a id="method-Fish-plot_movement"></a><div class="section">
+<h3 id="method-plot-movement-">Method <code>plot_movement()</code><a class="anchor" aria-label="anchor" href="#method-plot-movement-"></a></h3>
+
+<div class="section">
+<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Fish</span><span class="op">$</span><span class="fu">plot_movement</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>type</code></dt>
+<dd></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<p>a plot of the diffusion after one year
 Swim</p>
 <p>Swim advances the population one time step</p>
 </div>
@@ -397,7 +467,7 @@ Swim</p>
 <h3 id="method-swim-">Method <code>swim()</code><a class="anchor" aria-label="anchor" href="#method-swim-"></a></h3>
 
 <div class="section">
-<h4 id="usage-2">Usage<a class="anchor" aria-label="anchor" href="#usage-2"></a></h4>
+<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Fish</span><span class="op">$</span><span class="fu">swim</span><span class="op">(</span></span>
 <span>  burn_steps <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  season <span class="op">=</span> <span class="fl">1</span>,</span>
@@ -410,7 +480,7 @@ Swim</p>
 </div>
 
 <div class="section">
-<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>burn_steps</code></dt>
 <dd><p>number of steps for burn in period if applicable</p></dd>
 
@@ -442,19 +512,19 @@ Swim</p>
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
 <p>the population in the next time step</p>
 </div>
 
 </div><p></p><hr><a id="method-Fish-clone"></a><div class="section">
 <h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
+<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Fish</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
+<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 
@@ -475,7 +545,7 @@ Swim</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer></div>

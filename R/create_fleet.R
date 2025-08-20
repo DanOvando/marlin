@@ -8,9 +8,15 @@
 #' @param cr_ratio cost to revenue ratio at initial conditions (1 implies OA equilibrium, total profits = 0)
 #' @param spatial_allocation spatial effort allocation strategy ('revenue','rpue','profit','ppue')
 #' @param metiers a list of metiers
+#' @param responsiveness how responsive the fleet is to profits when fleet_model = "open_access"
+#' @param cost_per_unit_effort the cost per unit effort
+#' @param effort_cost_exponent exponent of costs
+#' @param ports location of fishing ports
+#' @param cost_per_distance cost per unit distance
+#' @param resolution spatial resolution of the simulated seascape
+#' @param patch_area the area of each patch (KM^2^)
+#' @param fishing_grounds the location of fishing grounds (TRUE or FALSE)
 #' @param fleet_model which fleet model to use, one of "constant_effort" or "open_access" or constant catch
-#' @param profit_sensitivity the profit sensitivity of the open access model
-#' @param cost_per_unit_effortt the cost per unit effort in the open access model
 #'
 #' @return a fleet object
 #' @export
@@ -27,6 +33,7 @@ create_fleet <-
            cost_per_distance = 1,
            cr_ratio = 1,
            resolution,
+           patch_area = 1,
            base_effort = NULL,
            fishing_grounds = NULL) {
     fleet_model <- stringr::str_replace_all(fleet_model, " ", "_") # in case someone used spaces accidentally (like dumbass old dan)
@@ -36,6 +43,21 @@ create_fleet <-
     }
     if (is.null(base_effort)) {
       base_effort <- prod(resolution)
+    }
+
+    if (is.null(fishing_grounds)){
+
+      fishing_grounds <- tidyr::expand_grid(x = 1:resolution[1], y = 1:resolution[2]) |>
+        dplyr::mutate(fishing_ground = TRUE) |>
+        dplyr::arrange(x,y)
+
+    }
+
+    fishing_grounds <- fishing_grounds |>
+      dplyr::arrange(x,y)
+
+    if (nrow(fishing_grounds) != prod(resolution)){
+      stop("supplied fishing_grounds do not match the spatial dimensions of the simualted domain. Make sure that number of rows and columns match supplied resolution.")
     }
 
     if (is.null(ports)) {
@@ -55,7 +77,7 @@ create_fleet <-
       port_distance <- distance <-
         tidyr::expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
         dist(diag = TRUE) %>%
-        as.matrix()
+        as.matrix() * sqrt(patch_area)
 
       port_distances <- apply(matrix(port_distance[ports$patch, ], nrow = length(ports$patch)), 2, min) # calculate the distance from each patch to the port patches, then find the minimum distance
 

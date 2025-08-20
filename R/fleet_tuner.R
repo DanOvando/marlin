@@ -3,7 +3,7 @@
 #' finds catchability (q) by fleet such that
 #' target fished depletion is achieved
 #'
-#' @param qs vector of catchability coefficients
+#' @param log_qs vector of log catchability coefficients
 #' @param fauna fauna object
 #' @param years number of years to tune
 #' @param fleets fleet object
@@ -11,26 +11,40 @@
 #' @return objective function of fleet tuner
 #' @export
 #'
-fleet_tuner <- function(qs, fauna, fleets, years = 50) {
+fleet_tuner <- function(log_qs, fauna, fleets, years = 50) {
   cc <- 1
 
-  # qs <- exp(log_qs)
+  qs <- exp(log_qs)
 
-  for (f in seq_along(fleets)) {
+  tfleets <- fleets
+
+  for (i in length(tfleets)){
+
+
+    for (j in 1:length(tfleets[[i]]$metiers)){
+
+      tfleets[[i]]$metiers[[j]] <- fleets[[i]]$metiers[[j]]$clone(deep = TRUE)
+
+    }
+
+  }
+
+
+  for (f in seq_along(tfleets)) {
     for (ff in seq_along(fauna)) {
-      fleets[[f]]$metiers[[ff]]$catchability <- qs[cc]
+      tfleets[[f]]$metiers[[ff]]$catchability <- qs[cc]
 
-      if (all(fleets[[f]]$metiers[[ff]]$spatial_catchability == 0)) {
+      if (all(tfleets[[f]]$metiers[[ff]]$spatial_catchability == 0)) {
         # annoying step: if q = 0 from earlier, then this will be a matrix of zeros and can't get updated
-        fleets[[f]]$metiers[[ff]]$spatial_catchability <-
-          rep(1, length(fleets[[f]]$metiers[[ff]]$spatial_catchability))
+        tfleets[[f]]$metiers[[ff]]$spatial_catchability <-
+          rep(1, length(tfleets[[f]]$metiers[[ff]]$spatial_catchability))
       }
 
-      mean_q <- mean(fleets[[f]]$metiers[[ff]]$spatial_catchability)
+      mean_q <- mean(tfleets[[f]]$metiers[[ff]]$spatial_catchability)
 
       mean_q <- ifelse(mean_q == 0, 1e-9, mean_q)
 
-      fleets[[f]]$metiers[[ff]]$spatial_catchability <- fleets[[f]]$metiers[[ff]]$spatial_catchability / mean_q * qs[cc]
+      tfleets[[f]]$metiers[[ff]]$spatial_catchability <- tfleets[[f]]$metiers[[ff]]$spatial_catchability / mean_q * qs[cc]
 
       cc <- cc + 1
     }
@@ -38,7 +52,7 @@ fleet_tuner <- function(qs, fauna, fleets, years = 50) {
 
   storage <- simmar(
     fauna = fauna,
-    fleets = fleets,
+    fleets = tfleets,
     years = years
   )
 
@@ -59,7 +73,7 @@ fleet_tuner <- function(qs, fauna, fleets, years = 50) {
 
   ssb0s <- ssb0s[sort(names(ssb0s))]
 
-  target_depletion <- purrr::map_dbl(fauna, "fished_depletion")
+  target_depletion <- purrr::map_dbl(fauna, "depletion")
 
   target_depletion <- target_depletion[sort(names(target_depletion))]
 

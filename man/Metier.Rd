@@ -13,6 +13,8 @@ creates fleet object with spaces for selectivity, mpa response, etc.
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-metier-new}{\code{Metier$new()}}
+\item \href{#method-metier-plot_selectivity}{\code{Metier$plot_selectivity()}}
+\item \href{#method-metier-plot_catchability}{\code{Metier$plot_catchability()}}
 \item \href{#method-metier-clone}{\code{Metier$clone()}}
 }
 }
@@ -32,7 +34,7 @@ Parameters for specific metier of a given fleet
   sel05_anchor = NULL,
   sel_at_linf = NULL,
   catchability = 0.2,
-  spatial_catchability = NA,
+  spatial_catchability = NULL,
   p_explt = 1,
   sel_at_age = NULL
 )}\if{html}{\out{</div>}}
@@ -61,11 +63,39 @@ Parameters for specific metier of a given fleet
 
 \item{\code{spatial_catchability}}{a matrix of spatial q}
 
-\item{\code{p_explt}}{the proportion of total exploitation for a given critter coming from this metier. This value is relative to all other p_explt values for the critter in question. Set to 0 to have metier not catch critter at all}
+\item{\code{p_explt}}{the proportion of total exploitation for a given critter coming from this metier. This value is relative to all other p_explt values for the critter in question. Set to 0 to have metier not catch critter at all
+plot selectivity
+#'}
 
 \item{\code{sel_at_age}}{a manual vector of gear (contact) selectivity at age, where values are between 0 and 1}
 }
 \if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-metier-plot_selectivity"></a>}}
+\if{latex}{\out{\hypertarget{method-metier-plot_selectivity}{}}}
+\subsection{Method \code{plot_selectivity()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Metier$plot_selectivity()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+a plot of selectivity at age for the metier
+plot selectivity
+#'
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-metier-plot_catchability"></a>}}
+\if{latex}{\out{\hypertarget{method-metier-plot_catchability}{}}}
+\subsection{Method \code{plot_catchability()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Metier$plot_catchability()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+a plot of selectivity at age for the metier
 }
 }
 \if{html}{\out{<hr>}}

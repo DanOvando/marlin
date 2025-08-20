@@ -14,7 +14,7 @@
 #' @param habitat a list with adult habitat per season
 #' @param season_blocks a list with seasons per block
 #' @param seasons number of seasons per year (integer)
-#' @param fished_depletion depletion (biomass / unfished biomass) at start of simulation
+#' @param depletion depletion (biomass / unfished biomass) at start of simulation
 #' @param init_explt initial annual exploitation rate (fraction of exploitable population killed)
 #' @param explt_type f or fmsy
 #' @param recruit_habitat habitat for recruitment
@@ -44,10 +44,14 @@ create_critter <- function(common_name = NA,
                            seasons = 1,
                            lorenzen_c = -1,
                            fec_form = "weight",
-                           adult_diffusion = 2,
-                           recruit_diffusion = 10,
-                           fished_depletion = 0.4,
+                           adult_home_range = 1,
+                           recruit_home_range = 2,
+                           adult_diffusion = NULL,
+                           recruit_diffusion = NULL,
+                           depletion = 0.4,
+                           fished_depletion = NULL,
                            init_explt = .1,
+                           f = NULL,
                            explt_type = "f",
                            burn_years = 50,
                            weight_a = NA,
@@ -60,6 +64,12 @@ create_critter <- function(common_name = NA,
                            ...) {
   if (!is.list(habitat)) {
     habitat <- list(habitat)
+  }
+  if (!is.null(f)){
+    init_explt = f
+  }
+  if (!is.null(fished_depletion)){
+    depletion = fished_depletion
   }
 
   if (critter_type == "fish") {
@@ -76,7 +86,9 @@ create_critter <- function(common_name = NA,
         fec_form = fec_form,
         fec_expo = fec_expo,
         weight_a = weight_a,
-        fished_depletion = fished_depletion,
+        depletion = depletion,
+        adult_home_range = adult_home_range,
+        recruit_home_range = recruit_home_range,
         adult_diffusion = adult_diffusion,
         recruit_diffusion = recruit_diffusion,
         init_explt = init_explt,
@@ -86,6 +98,7 @@ create_critter <- function(common_name = NA,
         resolution = resolution,
         spawning_seasons = spawning_seasons,
         growth_model = growth_model,
+        patch_area = patch_area,
         ...
       )
   }

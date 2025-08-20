@@ -135,6 +135,20 @@ Sys.time() - start_time
 
 
 processed_coastline <- process_marlin(coastline_sim, keep_age = FALSE)
+
+A = coastline_sim$`1_1`$rockfish$c_p_a_fl
+
+# DT <- as.data.table(as.table(A))         # dims + Freq
+# setnames(DT, old = "N", new = "Freq", skip_absent = TRUE)
+# setnames(DT, old = "Freq", new = "value")  # standardize column name
+# # If you need a data.frame:
+# df <- as.data.frame(DT)
+
+# 
+# tic()
+# faster_maybe_processed_coastline <- fast_process_marlin(coastline_sim, keep_age = FALSE)
+# toc()
+
 ```
 
 ```{r, fig.cap="Rectangular simulation of a coastal rockfish species", fig.height=8, fig.width=3}

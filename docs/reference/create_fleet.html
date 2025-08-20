@@ -9,7 +9,7 @@ selectivity at age for each fleet and species"></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">marlin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -30,6 +30,7 @@ selectivity at age for each fleet and species"></head><body>
     <li><a class="dropdown-item" href="../articles/port-distance.html">Setting and Using Distance from Port</a></li>
     <li><a class="dropdown-item" href="../articles/rectifier.html">Don't Be a Square</a></li>
     <li><a class="dropdown-item" href="../articles/Setting-Selectivity.html">Setting Selectivity</a></li>
+    <li><a class="dropdown-item" href="../articles/tune_home_range.html">Tune Home Range</a></li>
     <li><a class="dropdown-item" href="../articles/Working-with-Recruitment-Deviates.html">Working with Recruitment Deviates</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -68,6 +69,7 @@ selectivity at age for each fleet and species</p>
 <span>  cost_per_distance <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  cr_ratio <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  <span class="va">resolution</span>,</span>
+<span>  patch_area <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  base_effort <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  fishing_grounds <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -86,27 +88,51 @@ selectivity at age for each fleet and species</p>
 
 
 <dt id="arg-fleet-model">fleet_model<a class="anchor" aria-label="anchor" href="#arg-fleet-model"></a></dt>
-<dd><p>which fleet model to use, one of "constant_effort" or "open_access"</p></dd>
+<dd><p>which fleet model to use, one of "constant_effort" or "open_access" or constant catch</p></dd>
+
+
+<dt id="arg-responsiveness">responsiveness<a class="anchor" aria-label="anchor" href="#arg-responsiveness"></a></dt>
+<dd><p>how responsive the fleet is to profits when fleet_model = "open_access"</p></dd>
+
+
+<dt id="arg-cost-per-unit-effort">cost_per_unit_effort<a class="anchor" aria-label="anchor" href="#arg-cost-per-unit-effort"></a></dt>
+<dd><p>the cost per unit effort</p></dd>
 
 
 <dt id="arg-spatial-allocation">spatial_allocation<a class="anchor" aria-label="anchor" href="#arg-spatial-allocation"></a></dt>
 <dd><p>spatial effort allocation strategy ('revenue','rpue','profit','ppue')</p></dd>
 
 
+<dt id="arg-effort-cost-exponent">effort_cost_exponent<a class="anchor" aria-label="anchor" href="#arg-effort-cost-exponent"></a></dt>
+<dd><p>exponent of costs</p></dd>
+
+
+<dt id="arg-ports">ports<a class="anchor" aria-label="anchor" href="#arg-ports"></a></dt>
+<dd><p>location of fishing ports</p></dd>
+
+
+<dt id="arg-cost-per-distance">cost_per_distance<a class="anchor" aria-label="anchor" href="#arg-cost-per-distance"></a></dt>
+<dd><p>cost per unit distance</p></dd>
+
+
 <dt id="arg-cr-ratio">cr_ratio<a class="anchor" aria-label="anchor" href="#arg-cr-ratio"></a></dt>
 <dd><p>cost to revenue ratio at initial conditions (1 implies OA equilibrium, total profits = 0)</p></dd>
+
+
+<dt id="arg-resolution">resolution<a class="anchor" aria-label="anchor" href="#arg-resolution"></a></dt>
+<dd><p>spatial resolution of the simulated seascape</p></dd>
+
+
+<dt id="arg-patch-area">patch_area<a class="anchor" aria-label="anchor" href="#arg-patch-area"></a></dt>
+<dd><p>the area of each patch (KM^2^)</p></dd>
 
 
 <dt id="arg-base-effort">base_effort<a class="anchor" aria-label="anchor" href="#arg-base-effort"></a></dt>
 <dd><p>base effort for the fleet</p></dd>
 
 
-<dt id="arg-profit-sensitivity">profit_sensitivity<a class="anchor" aria-label="anchor" href="#arg-profit-sensitivity"></a></dt>
-<dd><p>the profit sensitivity of the open access model</p></dd>
-
-
-<dt id="arg-cost-per-unit-effortt">cost_per_unit_effortt<a class="anchor" aria-label="anchor" href="#arg-cost-per-unit-effortt"></a></dt>
-<dd><p>the cost per unit effort in the open access model</p></dd>
+<dt id="arg-fishing-grounds">fishing_grounds<a class="anchor" aria-label="anchor" href="#arg-fishing-grounds"></a></dt>
+<dd><p>the location of fishing grounds (TRUE or FALSE)</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -123,7 +149,7 @@ selectivity at age for each fleet and species</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer></div>

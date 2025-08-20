@@ -23,15 +23,20 @@ management strategies. See examples below and vignettes under the
 articles tab for how to use `marlin` to do things like simulate… - the
 impacts of displaced fishing effort across multiple species - seasonal
 spawning aggregations or climate induced range shifts - the impacts of
-port distance in fleet dynamics - optimized marine protected area
-network design - Data-generating processes for spatial-stock assessment
+port distance in fleet dynamics - Data-generating processes for
+spatial-stock assessment
 
-The model is described in Ovando *et al.* (2023)
+The model is described in the following references
 
 Ovando, Daniel, Darcy Bradley, Echelle Burns, Lennon Thomas, and James
 Thorson. “Simulating Benefits, Costs and Trade-Offs of Spatial
 Management in Marine Social-Ecological Systems.” Fish and Fisheries,
 (2023). <https://doi.org/10.1111/faf.12804>.
+
+Ovando, Daniel. “Predicted Effects of Marine Protected Areas on
+Conservation and Catches Are Sensitive to Model Structure.” Theoretical
+Ecology 18, no. 1 (2025): 7.
+<https://doi.org/10.1007/s12080-024-00602-7>.
 
 ## What is `marlin` for?
 
@@ -83,11 +88,10 @@ devtools::install_github("DanOvando/marlin")
 Make sure you try the install with a fresh R session (go to
 “Session\>Restart R” to make sure)
 
+You need a version of R \>= 4.0.
+
 If you run into an error, first off try updating your R packages. From
 there….
-
-If your version of R is lower than 4.0, you might want to consider
-updating R itself.
 
 In order to install and run `marlin` you need to have R compiler tools
 correctly set up.
@@ -102,11 +106,7 @@ To do this…
 - On macOS I recommend either using the unofficial
   [macrtools](https://github.com/coatless-mac/macrtools) package, or if
   you prefer you can follow the official instructions on CRAN
-  [here](https://mac.r-project.org/tools/). If you’re using a version of
-  R pre- 4.XX, then follow instructions
-  [here](https://thecoatlessprofessor.com/programming/cpp/r-compiler-tools-for-rcpp-on-macos-before-r-4.0.0/),
-  though your mileage may vary depending on how out of date you R
-  ecosystem is.
+  [here](https://mac.r-project.org/tools/).
 
 Once you’ve got your R compiler tools installed correctly, close down
 then re-open R and then try installing `marlin` again.
@@ -117,7 +117,7 @@ then re-open R and then try installing `marlin` again.
 for the complexity of the modeling it enables users to do. However, it
 is not a tool for fully automated MPA design; users will still need to
 be able to understand the core functionality of the model, and mileage
-with the model will depend greatly on the creativity and R skills of the
+with `marliin` will depend greatly on the creativity and R skills of the
 user.
 
 In particular, while we provide some wrappers for organizing common
@@ -155,13 +155,18 @@ Some of the core options for `marlin`
   is divided into two time steps, 4 would mean a quarterly model, 12 a
   monthly model, etc.
 
+- `patch_area`: the area (assumed to be KM<sup>2</sup>) of each patch
+
 ``` r
 library(marlin)
 library(tidyverse)
 options(dplyr.summarise.inform = FALSE)
 theme_set(marlin::theme_marlin(base_size = 42))
 
-resolution <- c(5, 10) # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches
+resolution <- c(5, 10) 
+
+patch_area <- 2
+
 years <- 20
 
 seasons <- 4
@@ -211,16 +216,30 @@ will work.
 
 ### Creating a basic simulation
 
+We’ll create a basic simulation showing how to fill in some of the core
+options, starting with a simulated fish using the `create_critter`
+function.
+
+Much of this is simply passing the parameters of the system. However,
+the `create_critter` functiona also allows you to supply a wide range of
+species-specific parameters.
+
+in this case, we have specified `adult_home_range` and
+`recruit_home_range`. These are the linear distances (in KM) that 95% of
+animals would travel from a source patch over th course of a year.
+
 ``` r
 fauna <-
   list(
     "bigeye" = create_critter(
       common_name = "bigeye tuna",
-      adult_diffusion = 10,
+      adult_home_range = 5,
+      recruit_home_range = 15,
       density_dependence = "local_habitat",
       seasons = seasons,
-      fished_depletion = .25,
+      depletion = .25,
       resolution = resolution,
+      patch_area = patch_area,
       steepness = 0.6,
       ssb0 = 42,
       m = 0.4
@@ -234,8 +253,10 @@ fauna$bigeye$plot()
 
 ``` r
 
-resolution <- fauna[[1]]$resolution
+fauna$bigeye$plot_movement()
 ```
+
+<img src="man/figures/README-unnamed-chunk-3-2.png" width="100%" />
 
 The `fleets` object is a list of individual fishing fleets created by
 the `create_fleet` function. Importantly, each fleet is broken up into
@@ -265,7 +286,10 @@ fleets <- list(
     resolution = resolution
   )
 )
+fleets$longline$metiers$bigeye$plot_selectivity()
 ```
+
+<img src="man/figures/README-unnamed-chunk-4-1.png" width="100%" />
 
 We then use the `tune_fleets` function as needed to tune the dynamics of
 the fleet to achieve specific objectives. In this case, we specified a
@@ -276,7 +300,11 @@ level, taking into account the dynamics and `p_explt` values per metier.
 
 ``` r
 fleets <- tune_fleets(fauna, fleets, tune_type = "depletion")
+
+fleets$longline$metiers$bigeye$plot_catchability()
 ```
+
+<img src="man/figures/README-unnamed-chunk-5-1.png" width="100%" />
 
 From there, we run the simulation by passing the `fauna` and `fleet`
 options to the `simmar` function
@@ -291,7 +319,7 @@ example_sim <- simmar(
 )
 
 Sys.time() - start_time
-#> Time difference of 0.1321201 secs
+#> Time difference of 0.1283531 secs
 ```
 
 we can then use `process_marlin` and `plot_marlin` to examine the
@@ -339,16 +367,16 @@ steps <- years * seasons
 
 time_step <- 1 / seasons
 
-skipjack_diffusion <- 2
+skipjack_home_range <- 2
 
-bigeye_diffusion <- 5
+bigeye_home_range <- 5
 
 # for now make up some habitat
 
 skipjack_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   dplyr::mutate(
     habitat = dnorm((x^2 + y^2), 20, 200),
-    habitat = habitat / max(habitat) * skipjack_diffusion
+    habitat = habitat / max(habitat) * skipjack_home_range
   ) |>
   pivot_wider(names_from = x, values_from = habitat) %>%
   select(-y) %>%
@@ -358,7 +386,7 @@ skipjack_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
 bigeye_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   mutate(
     habitat = dnorm((x^2 + y^2), 300, 100),
-    habitat = habitat / max(habitat) * bigeye_diffusion
+    habitat = habitat / max(habitat) * bigeye_home_range
   ) %>%
   pivot_wider(names_from = x, values_from = habitat) %>%
   select(-y) %>%
@@ -368,7 +396,7 @@ bigeye_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
 bigeye_habitat2 <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   mutate(
     habitat = dnorm((x^.2 + y^.2), 100, 100),
-    habitat = habitat / max(habitat) * bigeye_diffusion
+    habitat = habitat / max(habitat) * bigeye_home_range
   ) %>%
   pivot_wider(names_from = x, values_from = habitat) %>%
   select(-y) %>%
@@ -383,8 +411,8 @@ fauna <-
       habitat = list(skipjack_habitat, skipjack_habitat), # pass habitat as lists
       season_blocks = list(c(1, 2), c(3, 4)), # seasons each habitat apply to
       recruit_habitat = skipjack_habitat,
-      adult_diffusion = skipjack_diffusion, # standard deviation of the number of patches moved by adults
-      fished_depletion = .6, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
+      adult_home_range = skipjack_home_range, # standard deviation of the number of patches moved by adults
+      depletion = .6, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
       density_dependence = "global_habitat", # recruitment form, where 1 implies local recruitment
       seasons = seasons,
       init_explt = 0.2,
@@ -395,8 +423,8 @@ fauna <-
       habitat = list(bigeye_habitat, bigeye_habitat2), # pass habitat as lists
       season_blocks = list(c(1, 2), c(3, 4)), # seasons each habitat apply to
       recruit_habitat = bigeye_habitat,
-      adult_diffusion = bigeye_diffusion,
-      fished_depletion = .1,
+      adult_home_range = bigeye_home_range,
+      depletion = .1,
       density_dependence = "local_habitat",
       seasons = seasons,
       init_explt = 0.3,
@@ -404,12 +432,27 @@ fauna <-
     )
   )
 Sys.time() - a
-#> Time difference of 1.942027 secs
+#> Time difference of 1.713558 secs
 
 # create a fleets object, which is a list of lists (of lists). Each fleet has one element,
 # with lists for each species inside there. Price specifies the price per unit weight of that
 # species for that fleet
 # sel_form can be one of logistic or dome
+
+
+fauna$skipjack$plot_movement()
+```
+
+<img src="man/figures/README-example-1.png" width="100%" />
+
+``` r
+
+fauna$bigeye$plot_movement()
+```
+
+<img src="man/figures/README-example-2.png" width="100%" />
+
+``` r
 
 
 fleets <- list(
@@ -472,7 +515,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets)
 
 Sys.time() - a
-#> Time difference of 0.72086 secs
+#> Time difference of 0.782378 secs
 
 
 # run simulations
@@ -487,7 +530,7 @@ sim3 <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.1030359 secs
+#> Time difference of 0.262851 secs
 # a <- Sys.time()
 
 processed_marlin <- process_marlin(sim = sim3, time_step = time_step, keep_age = TRUE)
@@ -496,21 +539,21 @@ processed_marlin <- process_marlin(sim = sim3, time_step = time_step, keep_age =
 plot_marlin(processed_marlin)
 ```
 
-<img src="man/figures/README-example-1.png" width="100%" />
+<img src="man/figures/README-example-3.png" width="100%" />
 
 ``` r
 
 plot_marlin(processed_marlin, plot_var = "c")
 ```
 
-<img src="man/figures/README-example-2.png" width="100%" />
+<img src="man/figures/README-example-4.png" width="100%" />
 
 ``` r
 
 plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", fauna = fauna)
 ```
 
-<img src="man/figures/README-example-3.png" width="100%" />
+<img src="man/figures/README-example-5.png" width="100%" />
 
 ## Evaluating MPAs
 
@@ -532,13 +575,13 @@ tune_type <- "depletion"
 
 steps <- years * seasons
 
-yft_diffusion <- 6
+yft_home_range <- 6
 
 yft_depletion <- 0.5
 
 mako_depletion <- 0.4
 
-mako_diffusion <- 5
+mako_home_range <- 5
 
 yft_b0 <- 1000
 
@@ -549,7 +592,7 @@ mako_b0 <- 42
 yft_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   mutate(
     habitat = .05 * x,
-    habitat = habitat / max(habitat) * yft_diffusion
+    habitat = habitat / max(habitat) * yft_home_range
   ) %>%
   pivot_wider(names_from = x, values_from = habitat) %>%
   select(-y) %>%
@@ -559,7 +602,7 @@ yft_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
 mako_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   mutate(
     habitat = dnorm(x, resolution, 8),
-    habitat = habitat / max(habitat) * mako_diffusion
+    habitat = habitat / max(habitat) * mako_home_range
   ) %>%
   pivot_wider(names_from = x, values_from = habitat) %>%
   select(-y) %>%
@@ -573,8 +616,8 @@ fauna <-
       scientific_name = "Thunnus albacares",
       habitat = yft_habitat, # pass habitat as lists
       recruit_habitat = yft_habitat,
-      adult_diffusion = yft_diffusion, # cells per year
-      fished_depletion = yft_depletion, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
+      adult_home_range = yft_home_range, # cells per year
+      depletion = yft_depletion, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
       density_dependence = "global_habitat", # recruitment form, where 1 implies local recruitment
       seasons = seasons,
       b0 = yft_b0
@@ -583,8 +626,8 @@ fauna <-
       scientific_name = "Isurus oxyrinchus",
       habitat = list(mako_habitat), # pass habitat as lists
       recruit_habitat = mako_habitat,
-      adult_diffusion = mako_diffusion,
-      fished_depletion = mako_depletion,
+      adult_home_range = mako_home_range,
+      depletion = mako_depletion,
       density_dependence = "global_habitat", # recruitment form, where 1 implies local recruitment
       burn_years = 200,
       seasons = seasons,
@@ -635,10 +678,28 @@ fleets <- list("longline" = create_fleet(
 
 a <- Sys.time()
 
+# before <- fleets$longline$metiers$`Yellowfin Tuna`$catchability
+# 
+# fleets$longline$metiers$`Yellowfin Tuna`$spatial_catchability
+
+
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
+# fleets$longline$base_effort
+# after =  fleets$longline$metiers$`Yellowfin Tuna`$catchability
+
+
+# fleets$longline$metiers[[1]]$catchability
+# fleets$longline$metiers[[1]]$catchability
+# fleets$longline$metiers[[2]]$catchability
+
+# new_fleets$longline$base_effort
+# before == after
+
+# fleets$longline$metiers$`Yellowfin Tuna`$spatial_catchability
+
 Sys.time() - a
-#> Time difference of 25.41526 secs
+#> Time difference of 9.816744 secs
 
 # run simulations
 
@@ -651,7 +712,7 @@ nearshore <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.1068521 secs
+#> Time difference of 0.1582222 secs
 
 proc_nearshore <- process_marlin(nearshore, time_step = fauna[[1]]$time_step)
 
@@ -702,7 +763,7 @@ nearshore_mpa <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.1760669 secs
+#> Time difference of 0.2383821 secs
 
 proc_nearshore_mpa <- process_marlin(nearshore_mpa, time_step = fauna[[1]]$time_step)
 
@@ -721,7 +782,7 @@ same MPA on this new scenario.
 mako_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   mutate(
     habitat = dnorm(x, .3 * resolution, 8),
-    habitat = habitat / max(habitat) * mako_diffusion
+    habitat = habitat / max(habitat) * mako_home_range
   ) %>%
   pivot_wider(names_from = x, values_from = habitat) %>%
   select(-y) %>%
@@ -736,8 +797,8 @@ fauna <-
       scientific_name = "Thunnus albacares",
       habitat = yft_habitat, # pass habitat as lists
       recruit_habitat = yft_habitat,
-      adult_diffusion = yft_diffusion, # cells per year
-      fished_depletion = yft_depletion, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
+      adult_home_range = yft_home_range, # cells per year
+      depletion = yft_depletion, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
       density_dependence = "global_habitat", # recruitment form, where 1 implies local recruitment
       seasons = seasons,
       b0 = yft_b0
@@ -746,8 +807,8 @@ fauna <-
       scientific_name = "Isurus oxyrinchus",
       habitat = list(mako_habitat), # pass habitat as lists
       recruit_habitat = mako_habitat,
-      adult_diffusion = mako_diffusion,
-      fished_depletion = mako_depletion,
+      adult_home_range = mako_home_range,
+      depletion = mako_depletion,
       density_dependence = "global_habitat", # recruitment form, where 1 implies local recruitment
       burn_years = 200,
       seasons = seasons,
@@ -780,7 +841,7 @@ offshore <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.1002061 secs
+#> Time difference of 0.1618731 secs
 
 proc_offshore <- process_marlin(offshore, time_step = fauna[[1]]$time_step)
 
@@ -797,7 +858,7 @@ offshore_mpa_sim <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.1593502 secs
+#> Time difference of 0.2181399 secs
 
 
 proc_offshore_mpa <- process_marlin(offshore_mpa_sim, time_step = fauna[[1]]$time_step)
@@ -848,14 +909,14 @@ shortfin mako that causes the fishing fleet to avoid that area.
 ``` r
 years <- 100
 
-tune_type <- "explt"
+tune_type <- "f"
 
 # make up some habitat
 
 yft_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   mutate(
     habitat = .05 * x,
-    habitat = habitat / max(habitat) * yft_diffusion
+    habitat = habitat / max(habitat) * yft_home_range
   ) %>%
   pivot_wider(names_from = x, values_from = habitat) %>%
   select(-y) %>%
@@ -865,7 +926,7 @@ yft_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
 mako_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   mutate(
     habitat = x > 12 & y > 12,
-    habitat = habitat / max(habitat) * mako_diffusion
+    habitat = habitat / max(habitat) * mako_home_range
   ) %>%
   pivot_wider(names_from = x, values_from = habitat) %>%
   select(-y) %>%
@@ -880,8 +941,8 @@ fauna <-
       scientific_name = "Thunnus albacares",
       habitat = list(yft_habitat),
       recruit_habitat = yft_habitat,
-      adult_diffusion = yft_diffusion,
-      fished_depletion = .4,
+      adult_home_range = yft_home_range,
+      depletion = .4,
       density_dependence = "local_habitat", # recruitment form, where 1 implies local recruitment
       seasons = seasons,
       init_explt = 0.12,
@@ -891,8 +952,8 @@ fauna <-
       scientific_name = "Isurus oxyrinchus",
       habitat = list(mako_habitat),
       recruit_habitat = mako_habitat,
-      adult_diffusion = mako_diffusion,
-      fished_depletion = .3,
+      adult_home_range = mako_home_range,
+      depletion = .3,
       density_dependence = "local_habitat", # recruitment form, where 1 implies local recruitment
       burn_years = 200,
       seasons = seasons,
@@ -934,7 +995,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
-#> Time difference of 0.234087 secs
+#> Time difference of 0.1806071 secs
 
 # run simulations
 

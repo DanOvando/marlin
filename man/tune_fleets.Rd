@@ -11,7 +11,7 @@ tune_fleets(
   fauna,
   fleets,
   years = 50,
-  tune_type = "explt",
+  tune_type = "f",
   tune_costs = TRUE,
   fine_tune_costs = TRUE
 )
@@ -23,7 +23,7 @@ tune_fleets(
 
 \item{years}{the number of years to tune over}
 
-\item{tune_type}{one of 'explt' or 'depletion' to tune to an exploitation rate or a target depletion (B/B0)}
+\item{tune_type}{one of 'f' or 'depletion' to tune catchability to achieve a desired fishing mortality rate (f) or a target depletion (B/B0)}
 
 \item{tune_costs}{TRUE or FALSE to tune costs to a target cost to revenue ratio}
 

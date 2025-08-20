@@ -117,7 +117,7 @@ fleets <- list(
     ),
     base_effort = resolution ^ 2,
     resolution = resolution,
-    responsiveness = .5,
+    responsiveness = 1,
     cr_ratio = 1,
     cost_per_distance = 1,
     fleet_model = "open access")

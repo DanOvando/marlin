@@ -1,6 +1,6 @@
 Package: marlin
 Title: Simulation of Marine Social-Ecological Systems
-Version: 0.7.0
+Version: 0.7.1
 Authors@R: 
     person(given = "Dan",
            family = "Ovando",
@@ -22,17 +22,13 @@ LinkingTo:
     RcppEigen,
 Imports: 
     Rcpp,
-    doParallel,
-    foreach,
     iterators,
-    parallel,
     ggplot2,
     purrr (>= 1.0.1),
     dplyr,
     magrittr,
     tidyr,
     R6,
-    ranger,
     expm,
     stringr,
     glue,

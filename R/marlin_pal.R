@@ -1,7 +1,7 @@
 #'  marlin pal palette
 #'
-#' @param palette
-#' @param reverse
+#' @param palette the palette
+#' @param reverse flip it
 #' @param ...
 #'
 #' @return color palletes

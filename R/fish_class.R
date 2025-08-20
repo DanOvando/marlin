@@ -35,9 +35,15 @@ Fish <- R6::R6Class(
     #' @param steepness  steepness parameter (h) in a Beverton-Holt spawner-recruit function
     #' @param r0  asymptotic number of recruits under unfished conditions
     #' @param ssb0  asymptotic spawning stock biomass of recruits under unfished conditions. Tunnes r0 to achieve
-    #' @param density_dependence  timing and nature of density dependence in the Beverton-Holt spawner recruit function, one of one of 'global_habitat','local_habitat','pre_dispersal','post_dispersal','global_ssb'
-    #' @param adult_diffusion  diffusion parameter *D* in the CTMC movement function for "adults" (not recruits)
-    #' @param recruit_diffusion  diffusion parameter *D* in the CTMC movement function for recruits
+    #' @param density_dependence  timing and nature of density dependence in the Beverton-Holt spawner recruit function,
+    #' one of one of 'global_habitat','local_habitat','pre_dispersal','post_dispersal','global_ssb'. When 'global_habitat' density dependence is a function of the total spawning
+    #' biomass across all patches, and recruits are then distributed proportional to recruit habitat quality. When 'local_habitat' density dependence is a function of the spawning biomass
+    #' in each patch, and recruits are then distributed proportional to recruit habitat quality. When 'pre_dispersal', density dependence is a function of the spawning biomass
+    #' in each patch, and recruits are then distributed from their home patch based on the `recruit_home_range`. When 'post_dispersal', larvae are distributed from their home patch
+    #' based on `recruit_home_range`, and then density dependence happens based on spawning biomass in the settling patches. When 'global_ssb', density dependence is a function of the total spawning
+    #' biomass and recruits are then distributed in space proportional to spawning biomass.
+    #' @param adult_diffusion  diffusion parameter *D* in the CTMC movement function for "adults" (not recruits). Deprecated, best to use `adult_home_range`
+    #' @param recruit_diffusion  diffusion parameter *D* in the CTMC movement function for recruits. Deprecated, best to use `recruit_home_range`
     #' @param query_fishlife TRUE or FALSE to query `Fishlife` for missing life history values. When set to FALSE all required life history values must be supplied by the user
     #' @param sigma_rec the standard deviation of recruitment deviates in log-normal space
     #' @param ac_rec the autocorrelation of recruitment deviates
@@ -49,7 +55,7 @@ Fish <- R6::R6Class(
     #' @param resolution a vector of length two with number of patches in X and Y dimensions
     #' @param season_blocks list with elements indicating blocks of seasons. For example, if there are four seasons, setting `season_blocks = list(c(1,2),c(3,4))` indicates that seasons 1 and 2 are one block, 3 and 4 another. Allows for the model to be run at fine time scales while allowing some processes like movement or spawning to operate at coarser scales
     #' @param recruit_habitat a matrix with dimensions X and Y with quality of recruit habitat (scales r0 in space as well as recruit diffusion under applicable forms of density dependence)
-    #' @param fished_depletion  depletion (SSB/SSB0) under initial fished conditions
+    #' @param depletion  depletion (SSB/SSB0) under initial fished conditions
     #' @param burn_years  number of years used to burn in the population to tune parameters without analytical solutions like SSB0
     #' @param seasons  number of seasons per year. 4 would indicate quarterly time steps, 12 monthly, 365 daily.
     #' @param init_explt  instantaneous fishing mortality rate under initial fished conditions
@@ -130,12 +136,12 @@ Fish <- R6::R6Class(
                           default_wb = 2.8,
                           tune_weight = FALSE,
                           linf_buffer = 1.2,
-                          resolution = NA,
+                          resolution = NULL,
                           patch_area = 1,
                           habitat = list(),
                           season_blocks = list(),
                           recruit_habitat = NA,
-                          fished_depletion = 1,
+                          depletion = 1,
                           burn_years = 50,
                           seasons = 1,
                           explt_type = "f",
@@ -166,7 +172,7 @@ Fish <- R6::R6Class(
       }
 
       # if habitat is an empty list
-      if (length(resolution) == 1 & all(!is.na(resolution))) {
+      if (length(resolution) == 1) {
         resolution <- rep(resolution, 2)
       }
 
@@ -227,7 +233,16 @@ Fish <- R6::R6Class(
 
       # override diffusion parameters with those based on home range
       if (!is.null(adult_home_range)) {
-        adult_diffusion <- tune_diffusion(adult_home_range)
+        adult_diffusion <- vector(length =  length(adult_home_range) , mode = "list")
+
+        # deal with possibliity of different movement rates per seasons
+
+        for (i in 1:length(adult_home_range)){
+
+          adult_diffusion[[i]] <- tune_diffusion(adult_home_range[[i]])
+
+        }
+
       }
 
       if (!is.null(recruit_home_range)) {
@@ -589,17 +604,20 @@ Fish <- R6::R6Class(
         taxis_matrix[[i]] <- as.numeric(taxis_matrix[[i]]$value)
 
         taxis_matrix[[i]] <- pmin(exp((time_step * outer(taxis_matrix[[i]], taxis_matrix[[i]], "-")) / sqrt(patch_area)), max_hab_mult) # convert habitat gradient into diffusion multiplier
-      }
 
-      self$taxis_matrix <- taxis_matrix
+        }
+
+      self$taxis_matrix <- taxis_matrix # this is the habitat preference matrix, which is a multiplier of of the diffusion rate
 
 
+      # the taxis matrix is used here just to mark of barriers, note x[!is.na(x)] <- 1, it is not double counting taxis
       diffusion_prep <- function(x, y, time_step, patch_area) {
         x[!is.na(x)] <- 1 # this is here to allow for barriers; set diffusion to zero if there's a physical barrier
 
         z <- x * y * (time_step / patch_area)
       }
 
+      # this is the non-taxis part of the movement model (dt / dd^2*D), with NAs for land
       self$diffusion_foundation <- purrr::map2(taxis_matrix, adult_diffusion, diffusion_prep, time_step = time_step, patch_area = patch_area) # prepare adult diffusion matrix account for potential land
 
       self$adult_diffusion <- adult_diffusion
@@ -610,6 +628,7 @@ Fish <- R6::R6Class(
 
       self$recruit_home_range <- recruit_home_range
 
+      # now calculate the net instantaneous movement matrix as the product of diffusion and taxis
 
       diffusion_and_taxis <- purrr::map2(self$diffusion_foundation, taxis_matrix, ~ .x * .y)
 
@@ -776,7 +795,7 @@ Fish <- R6::R6Class(
 
       self$m_at_age <- m_at_age
 
-      self$fished_depletion <- fished_depletion
+      self$depletion <- depletion
 
       self$explt_type <- explt_type
 
@@ -867,6 +886,78 @@ Fish <- R6::R6Class(
           tidy_ogives$trait
         ))))
     },
+    #' plot diffusion
+    #'
+    #' @param type
+    #'
+    #' @return a plot of the diffusion after one year
+    plot_movement = function() {
+      critter <- as.list(self)
+
+      grid <- tidyr::expand_grid(x = 1:critter$resolution[[1]], y = 1:critter$resolution[[2]]) |>
+        dplyr::mutate(patch = 1:dplyr::n(),
+                      n = 0,
+                      rec_n = 0)
+
+      middle = which(grid$x == round(mean(grid$x)) & grid$y == round(mean(grid$y)))
+
+      x_center <- grid$x[middle]
+
+      y_center <- grid$y[middle]
+
+      grid$n[middle] <- 1
+
+      grid$rec_n[middle] <- 1
+
+      patch_area <- critter$patch_area
+
+      patch_width <- sqrt(patch_area)
+
+      distance <- grid |>
+        dplyr::select(-patch) |>
+        dist() |>
+        as.matrix() * patch_width
+
+        diff_and_tax <- critter$movement_matrix[[1]]
+
+        rec_diff_and_tax <- critter$recruit_movement_matrix
+
+      for (i in seq_len(critter$seasons)) {
+        grid$n <- as.numeric(grid$n %*% (diff_and_tax)) # calculate the realized diffusion over one time step of the model
+
+        grid$rec_n <- as.numeric(grid$rec_n %*% (rec_diff_and_tax)) # calculate the realized diffusion over one time step of the model
+
+      }
+
+        if (critter$rec_form == "global_habitat" | critter$rec_form == "local_habitat"){
+
+          grid$rec_n <- critter$r0s / sum(critter$r0s)
+
+        } else if (critter$rec_form == "global_ssb"){
+
+          grid$rec_n <- critter$ssb0_p / sum(critter$ssb0_p)
+
+        }
+
+
+        grid <- grid |>
+          tidyr::pivot_longer(c(n, rec_n), names_to = "stage", values_to = "n") |>
+          dplyr::mutate(stage = dplyr::if_else(stage == "n", "Post-Recruits", paste0("Recruits:", "density dependence is ", critter$rec_form)))
+
+      out <- grid |>
+        dplyr::mutate(x = (x - x_center) * patch_width, y = (y - y_center) * patch_width ) |>
+        ggplot2::ggplot(aes(x,y,fill = n)) +
+        ggplot2::geom_tile() +
+        ggplot2::scale_fill_viridis_c(name = "Distribution after one year") +
+        ggplot2::scale_x_continuous(name = "KM from center") +
+        ggplot2::scale_y_continuous(name = "KM from center") +
+        ggplot2::theme(legend.position = "top") +
+        ggplot2::facet_wrap(~stage , nrow = 2) +
+        marlin::theme_marlin()
+
+      out
+    }
+    ,
     #' Swim
     #'
     #' Swim advances the population one time step

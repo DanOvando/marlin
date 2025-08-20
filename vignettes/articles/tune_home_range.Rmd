@@ -11,12 +11,13 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library(marlin)
+library(tidyverse)
 seasons <- 1
 fauna <-
   list(
     "bigeye" = create_critter(
       common_name = "bigeye tuna",
-      adult_home_range = 10,
+      adult_home_range = 1,
       density_dependence = "local_habitat",
       seasons = seasons,
       fished_depletion = .25,
