@@ -60,6 +60,10 @@ Metier <- R6::R6Class("metier",
 
       ages <- length(critter$ages)
 
+     if (!is.null(sel_at_age)){
+       sel_form = "manual"
+     }
+
       if (sel_unit == "p_of_mat") {
         l_50_sel <-
           critter$length_50_mature * sel_start
@@ -89,7 +93,9 @@ Metier <- R6::R6Class("metier",
         self$sel_at_age <- as.numeric(sel_at_age)
 
         self$sel_at_length <- sel_at_bin
-      } else if (sel_form == "dome") { # close logistic form if
+      }
+
+      if (sel_form == "dome") { # close logistic form if
 
         sel_at_bin <- dnorm(length_bins, l_50_sel, sd = (l_95_sel - l_50_sel))
 
@@ -101,9 +107,10 @@ Metier <- R6::R6Class("metier",
         self$sel_at_age <- as.numeric(sel_at_age)
 
         self$sel_at_length <- sel_at_bin / max(sel_at_bin)
-      } else if (sel_form == "double_normal") {
-        # Based on carruthers et al. 2014
+      }
 
+      if (sel_form == "double_normal") {
+        # Based on carruthers et al. 2014
 
         tune_double_normal <- function(log_sigmas,
                                        l_95_sel,
@@ -172,13 +179,17 @@ Metier <- R6::R6Class("metier",
         self$sel_at_age <- as.numeric(sel_at_age)
 
         self$sel_at_length <- sel_at_bin$selectivity
-      } else if (sel_form == "manual" | !is.null(set_at_age)) {
+      }
+
+      if (sel_form == "manual") {
         if (is.null(sel_at_age)) {
-          stop("sel_form = 'manual' but no manual set_at_age provided")
+          stop("sel_form = 'manual' but no manual sel_at_age provided")
         }
 
         self$sel_at_age <- sel_at_age
-      } else if (sel_form == "uniform") {
+      }
+
+      if (sel_form == "uniform") {
         self$sel_at_age <- rep(1, ages)
 
         self$sel_at_length <- rep(1, length(length_bins))
@@ -229,8 +240,18 @@ Metier <- R6::R6Class("metier",
         unit = "Age"
       )
 
+      if (is.null(self$sel_at_length)){
+
+        sel_at_length <- rep(NA, length(self$length_bins))
+
+      } else {
+
+        sel_at_length <- self$sel_at_length
+
+      }
+
       b <- data.frame(
-        measure = self$length_bins, selectivity = self$sel_at_length,
+        measure = self$length_bins, selectivity = sel_at_length,
         unit = "Length"
       )
 
