@@ -126,7 +126,7 @@ tune_fleets <- function(fauna,
       for (ff in fleeti) {
         cc <- cc + 1
 
-        qs[cc] <- tfleets[[ff]]$metiers[[f]]$catchability
+        qs[cc] <- tfleets[[ff]]$metiers[[f]]$catchability + 1e-6
       }
     }
 

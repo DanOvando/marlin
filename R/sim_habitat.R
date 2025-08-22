@@ -32,7 +32,13 @@ sim_habitat <-
            rescale_habitat = TRUE,
            max_delta = 3,
            max_abs_cor = 1,
+           min_abs_cor = 0,
            output = "df") {
+
+    if (max_abs_cor <= min_abs_cor){
+      stop("max_abs_cor must be greater than min_abs_cor")
+    }
+
     if (length(resolution) == 1) {
       resolution <- rep(resolution, 2)
     }
@@ -83,6 +89,10 @@ sim_habitat <-
       # n_species * (n_species + 1) / 2 # formula for the number of elements in the upper triangle of an n x n matric
 
       core_matrix <- matrix(0, nrow = n_species, ncol = n_species)
+
+      species_cores <-
+        runif(n_species_cores, min = min_abs_cor, max = max_abs_cor) * sample(c(-1,1), n_species_cores, replace =  TRUE)
+
 
       species_cores <-
         runif(n_species_cores,

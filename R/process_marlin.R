@@ -17,21 +17,21 @@
 #' }
 #'
 process_marlin <- function(sim,
-                           steps_to_keep = NA,
-                           time_step = NA,
+                           steps_to_keep = NULL,
+                           time_step = NULL,
                            keep_age = TRUE) {
   # names(sim) <- marlin::clean_steps(names(sim))
 
   names(sim) <- stringr::str_remove_all(names(sim), "step_")
 
 
-  if (all(is.na(steps_to_keep))) {
+  if ((is.null(steps_to_keep))) {
     steps_to_keep <- names(sim)
   }
 
   seasons <- as.integer(unique(stringr::str_remove_all(names(sim), "^.*_")))
 
-  if (is.na(time_step)) {
+  if (is.null(time_step)) {
     if (length(sim) > 1) {
       time_step <- 1 / dplyr::n_distinct(seasons)
       # time_step <- as.numeric(names(sim))
@@ -49,7 +49,8 @@ process_marlin <- function(sim,
 
   resolution <- sim[[1]][[1]]$resolution
 
-  grid <- tidyr::expand_grid(x = 1:resolution[1], y = 1:resolution[2])
+  grid <- tidyr::expand_grid(x = 1:resolution[1], y = 1:resolution[2]) |>
+    dplyr::arrange(x,y)
 
   stepper <- function(x, grid) {
     # x <- sim[[1]]

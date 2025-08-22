@@ -172,7 +172,7 @@ Metier <- R6::R6Class("metier",
         self$sel_at_age <- as.numeric(sel_at_age)
 
         self$sel_at_length <- sel_at_bin$selectivity
-      } else if (sel_form == "manual") {
+      } else if (sel_form == "manual" | !is.null(set_at_age)) {
         if (is.null(sel_at_age)) {
           stop("sel_form = 'manual' but no manual set_at_age provided")
         }

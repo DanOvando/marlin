@@ -3,7 +3,7 @@ library(tidyverse)
 options(dplyr.summarise.inform = FALSE)
 theme_set(marlin::theme_marlin(base_size = 12))
 
-resolution <- 10 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches
+resolution <- 28 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches
 
 years <- 50
 
