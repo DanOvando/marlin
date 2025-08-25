@@ -115,42 +115,34 @@ tune_fleets <- function(fauna,
     } # close internal fleet loop
   } # close fauna loop
 
-
   if (tune_type == "depletion") {
-    fleet_fauna <- length(fauni) * length(fleeti)
-
-    qs <- vector(mode = "double", length = (fleet_fauna))
-
-    cc <- 0
-    for (f in fauni) {
-      for (ff in fleeti) {
-        cc <- cc + 1
-
-        qs[cc] <- tfleets[[ff]]$metiers[[f]]$catchability + 1e-6
-      }
-    }
-
-    #     browser()
-    # wtff <- tfleets
-    # wtff$longline$metiers[[1]]$catchability
 
 
-    qs <-
+    log_fs <-
       optim(
-        par = log(qs),
+        par = rep(3, length(fauna)),
         fleet_tuner,
         fleets = tfleets,
+        e_fl = e_fl,
         fauna = fauna,
         years = years,
-        upper = rep(0, length(fauna) * length(tfleets)),
+        upper = rep(log(7), length(fauna)),
         method = "L-BFGS-B"
       )
-    cc <- 1
+
+    if (log_fs$value > .1){
+      warning("tune_fleets failed to match desired depletion levels, check whether target depletion is plausible given supplied selectivities, fishing grounds, and p_explt.")
+    }
 
     for (f in seq_along(tfleets)) {
       for (ff in seq_along(fauna)) {
-        tfleets[[f]]$metiers[[ff]]$catchability <- exp(qs$par[cc])
+        f_critter <- exp(log_fs$par[ff])
 
+        f_metier <-  tfleets[[f]]$metiers[[ff]]$p_explt * f_critter
+
+        metier_q <- f_metier / e_fl[f]
+
+        tfleets[[f]]$metiers[[ff]]$catchability <- metier_q
 
         if (all(tfleets[[f]]$metiers[[ff]]$spatial_catchability == 0)) {
           # annoying step: if q = 0 from earlier, then this will be a matrix of zeros and can't get updated
@@ -162,9 +154,8 @@ tune_fleets <- function(fauna,
 
         mean_q <- ifelse(mean_q == 0, 1e-9, mean_q)
 
+        tfleets[[f]]$metiers[[ff]]$spatial_catchability <- tfleets[[f]]$metiers[[ff]]$spatial_catchability / mean_q * metier_q
 
-        tfleets[[f]]$metiers[[ff]]$spatial_catchability <- tfleets[[f]]$metiers[[ff]]$spatial_catchability / mean_q * exp(qs$par[cc])
-        cc <- cc + 1
       } # close internal fauna loop
     } # close fleet loop
   } # close depletion

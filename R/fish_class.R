@@ -948,7 +948,7 @@ Fish <- R6::R6Class(
         dplyr::mutate(x = (x - x_center) * patch_width, y = (y - y_center) * patch_width ) |>
         ggplot2::ggplot(aes(x,y,fill = n)) +
         ggplot2::geom_tile() +
-        ggplot2::scale_fill_viridis_c(name = "Distribution after one year") +
+        ggplot2::scale_fill_viridis_c(name = "Density after one year") +
         ggplot2::scale_x_continuous(name = "KM from center") +
         ggplot2::scale_y_continuous(name = "KM from center") +
         ggplot2::theme(legend.position = "top") +

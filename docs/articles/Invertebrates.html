@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">marlin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -293,7 +293,7 @@ age group die <strong>after</strong> spawning</p></li>
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">tic</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">squishy_sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simmar.html">simmar</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span>, years <span class="op">=</span> <span class="va">years</span>, cor_rec <span class="op">=</span> <span class="va">critter_correlations</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">toc</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; 1.769 sec elapsed</span></span>
+<span><span class="co">#&gt; 1.814 sec elapsed</span></span>
 <span><span class="va">processed_squishy</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/process_marlin.html">process_marlin</a></span><span class="op">(</span>sim <span class="op">=</span> <span class="va">squishy_sim</span>, time_step <span class="op">=</span> <span class="va">time_step</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">processed_squishy</span><span class="op">$</span><span class="va">fauna</span> <span class="op">|&gt;</span></span>

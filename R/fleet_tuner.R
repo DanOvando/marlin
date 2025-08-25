@@ -3,18 +3,18 @@
 #' finds catchability (q) by fleet such that
 #' target fished depletion is achieved
 #'
-#' @param log_qs vector of log catchability coefficients
 #' @param fauna fauna object
 #' @param years number of years to tune
 #' @param fleets fleet object
+#' @param log_fs log instantaneous fishing mortality per critter
+#' @param e_fl baseline effort per fleet
 #'
 #' @return objective function of fleet tuner
 #' @export
 #'
-fleet_tuner <- function(log_qs, fauna, fleets, years = 50) {
-  cc <- 1
+fleet_tuner <- function(log_fs, fauna, fleets,e_fl, years = 50) {
 
-  qs <- exp(log_qs)
+  fs <- exp(log_fs)
 
   tfleets <- fleets
 
@@ -32,7 +32,18 @@ fleet_tuner <- function(log_qs, fauna, fleets, years = 50) {
 
   for (f in seq_along(tfleets)) {
     for (ff in seq_along(fauna)) {
-      tfleets[[f]]$metiers[[ff]]$catchability <- qs[cc]
+
+      f_critter <- fs[ff]
+
+      f_metier <-  tfleets[[f]]$metiers[[ff]]$p_explt * f_critter
+
+      metier_q <- f_metier / e_fl[f]
+
+      # print(e_fl)
+      #
+      # print(metier_q)
+
+      tfleets[[f]]$metiers[[ff]]$catchability <- metier_q
 
       if (all(tfleets[[f]]$metiers[[ff]]$spatial_catchability == 0)) {
         # annoying step: if q = 0 from earlier, then this will be a matrix of zeros and can't get updated
@@ -44,9 +55,8 @@ fleet_tuner <- function(log_qs, fauna, fleets, years = 50) {
 
       mean_q <- ifelse(mean_q == 0, 1e-9, mean_q)
 
-      tfleets[[f]]$metiers[[ff]]$spatial_catchability <- tfleets[[f]]$metiers[[ff]]$spatial_catchability / mean_q * qs[cc]
+      tfleets[[f]]$metiers[[ff]]$spatial_catchability <- tfleets[[f]]$metiers[[ff]]$spatial_catchability / mean_q * metier_q
 
-      cc <- cc + 1
     }
   }
 
@@ -80,6 +90,8 @@ fleet_tuner <- function(log_qs, fauna, fleets, years = 50) {
   tmp$depletion <- tmp$ssb / ssb0s
 
   ss <- sum((log(tmp$depletion) - log(target_depletion))^2)
+
+  rm(storage)
 
   return(ss)
 }

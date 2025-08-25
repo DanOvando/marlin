@@ -21,7 +21,8 @@ fauna <-
       recruit_home_range = 4,
       density_dependence = "pre_dispersal",
       seasons = seasons,
-      fished_depletion = .25,
+      f = 2,
+      depletion = .25,
       resolution = resolution,
       steepness = 0.6,
       ssb0 = 1000
@@ -33,9 +34,8 @@ fauna$bigeye$plot_movement()
 fauna$bigeye$plot()
 
 fishing_grounds <- expand.grid(x = 1:resolution, y = 1:resolution) |>
-  mutate(fishing_ground = FALSE)
+  mutate(fishing_ground = TRUE)
 
-fishing_grounds$fishing_ground[1:2] <- TRUE
 
 fleets <- list(
   "longline" = create_fleet(
@@ -43,12 +43,12 @@ fleets <- list(
       critter = fauna$bigeye,
       price = 10,
       sel_form = "logistic",
-      sel_start = 1,
+      sel_start = .01,
       sel_delta = .01,
       catchability = 0,
       p_explt = 1
     )),
-    base_effort = resolution^2,
+    base_effort = 1000*resolution^2,
     resolution = resolution,
     fishing_grounds = fishing_grounds
   )
@@ -59,6 +59,8 @@ fleets$longline$metiers$bigeye$plot_selectivity()
 
 
 fleets <- tune_fleets(fauna, fleets, tune_type = "depletion")
+
+fleets$longline$metiers$bigeye$catchability
 
 fleets$longline$metiers$bigeye$plot_catchability()
 
@@ -78,3 +80,6 @@ Sys.time() - start_time
 proc_sim <- process_marlin(example_sim)
 
 plot_marlin(proc_sim, plot_var = "c", plot_type = "space", max_scale = FALSE)
+
+
+plot_marlin(proc_sim, plot_var = "ssb", max_scale = FALSE)

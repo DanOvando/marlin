@@ -1,5 +1,5 @@
-pandoc: '3.2'
-pkgdown: 2.1.1
+pandoc: '3.4'
+pkgdown: 2.1.3
 pkgdown_sha: ~
 articles:
   dynamic-habitat: dynamic-habitat.html
@@ -12,8 +12,9 @@ articles:
   port-distance: port-distance.html
   rectifier: rectifier.html
   articles/Setting-Selectivity: Setting-Selectivity.html
+  articles/tune_home_range: tune_home_range.html
   articles/Working-with-Recruitment-Deviates: Working-with-Recruitment-Deviates.html
-last_built: 2025-03-04T19:11Z
+last_built: 2025-08-25T18:14Z
 urls:
   reference: https://danovando.github.io/marlin/reference
   article: https://danovando.github.io/marlin/articles
