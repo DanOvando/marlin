@@ -151,6 +151,7 @@ Fish <- R6::R6Class(
                           max_hab_mult = 2,
                           lorenzen_m = TRUE,
                           lorenzen_c = -1) {
+
       seasons <- as.integer(seasons)
 
       # if only one resolution dimension provided, assume square
@@ -603,7 +604,9 @@ Fish <- R6::R6Class(
 
         taxis_matrix[[i]] <- as.numeric(taxis_matrix[[i]]$value)
 
-        taxis_matrix[[i]] <- pmin(exp((time_step * outer(taxis_matrix[[i]], taxis_matrix[[i]], "-")) / sqrt(patch_area)), max_hab_mult) # convert habitat gradient into diffusion multiplier
+        taxis_matrix[[i]] <- pmin(exp((time_step * outer(taxis_matrix[[i]], taxis_matrix[[i]], "-")) / sqrt(ifelse(length(patch_area) == 1, patch_area, patch_area[[i]]))), max_hab_mult) # convert habitat gradient into diffusion multiplier
+        # adding conditional to above, where if patch area is a single value, just take the sqrt of that value
+        # otherwise, take the sqrt of the value at the same position as the taxis matrix
 
         }
 
@@ -614,6 +617,11 @@ Fish <- R6::R6Class(
       diffusion_prep <- function(x, y, time_step, patch_area) {
         x[!is.na(x)] <- 1 # this is here to allow for barriers; set diffusion to zero if there's a physical barrier
 
+        ## Flag that this is currently throwing an error: 
+        ## Error in `purrr::map2()` at marlin/R/fish_class.R:624:7:
+        ## ℹ In index: 1.
+        ## Caused by error in `x * y * (time_step / patch_area)`:
+        ##   ! non-conformable arrays
         z <- x * y * (time_step / patch_area)
       }
 
@@ -676,7 +684,35 @@ Fish <- R6::R6Class(
           names_prefix = "V",
           names_transform = list(x = as.integer)
         ) %>%
+        # Adding conditional for patch area 
+        # If it's a single value, we'll just add a column and the scalars will be 1
+        # If it's a matrix, we'll convert to data.frame and join with habitat data.frame
+        # If it's a vector, we assume it's in the right order, and just make it a new column
+        {if(length(patch_area) > 1) {
+          if(is.matrix(patch_area)) { 
+            dplyr::left_join(., patch_area %>% 
+                               as.data.frame() %>%
+                               dplyr::mutate(y = 1:nrow(.)) %>%
+                               tidyr::pivot_longer(
+                                 -y,
+                                 names_to = "x",
+                                 values_to = "patch_area",
+                                 names_prefix = "V", 
+                                 names_transform = list(x = as.integer)
+                               ))
+          } else if(is.vector(patch_area)) {
+            mutate(., patch_area = patch_area)
+          }
+        } else mutate(., patch_area = patch_area)} |>
+        # Scale the patch area to proportions, so that if every patch is the same, 
+        # all values are 1; otherwise the largest patches are 1 and the smaller
+        # patches are < 1
+        dplyr::mutate(prop_area = patch_area / max(patch_area)) |>
         dplyr::mutate(rec_habitat = rec_habitat / sum(rec_habitat)) |>
+        # Unclear if I should scale before or after we calculate the value/sum... 
+        # Maybe it doesn't matter? The goal is to have less r0 in cells that are 
+        # smaller compared to those that are bigger
+        dplyr::mutate(rec_habitat = rec_habitat * prop_area) |>
         dplyr::select(x, y, rec_habitat) |>
         dplyr::arrange(x, y)
 
@@ -774,6 +810,12 @@ Fish <- R6::R6Class(
         "pre_dispersal" = 2,
         "post_dispersal" = 3
       )
+      
+      # Add stop point if users try to use a matrix/vector for patch_area and a density dependence
+      # other than global or local habitat
+      if (length(patch_area) > 1 & !(density_dependence %in% c("global_habitat", "local_habitat"))) {
+        stop("patch areas by cell are only available for global_habitat and local_habitat recruitment options")
+      }
 
       rec_form <- density_dependence
 

@@ -44,7 +44,9 @@ simmar <- function(fauna = list(),
 
   steps_per_year <- 1 / time_step
 
-  patch_area <- unique(purrr::map_dbl(fauna, "patch_area"))
+  # Edited below from map_dbl() to just map() so that we receive a list 
+  # of the patch area values for each species
+  patch_area <- unique(purrr::map(fauna, "patch_area"))
 
   sigma_recs <- purrr::map_dbl(fauna, "sigma_rec") # gather recruitment standard deviations
 
@@ -718,8 +720,10 @@ simmar <- function(fauna = list(),
         current_habitat <-
           pmin(exp((
             time_step * outer(current_habitat$value, current_habitat$value, "-")
-          ) / sqrt(patch_area)), fauna[[f]]$max_hab_mult) # convert habitat gradient into diffusion multiplier
-
+          ) / sqrt(patch_area[[f]])), fauna[[f]]$max_hab_mult) # convert habitat gradient into diffusion multiplier
+        # edited the above to pull the patch areas from the list at the same position as
+        # the fauna we're isolating at this time step; it should take the sqrt of the values 
+        # (if there are multiples) or value (if just one was supplied)
 
         diffusion_and_taxis <-
           fauna[[f]]$diffusion_foundation[[season_block]] * current_habitat

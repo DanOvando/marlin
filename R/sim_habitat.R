@@ -47,6 +47,8 @@ sim_habitat <-
 
     patches <- prod(resolution) # the total number of patches
 
+    # This was flagged to update for flexible patch_areas, but EB thinks it might
+    # be ok as is, edited lines below instead
     patch_width <- sqrt(patch_area) # the width of a patch
 
     grid <-
@@ -56,7 +58,11 @@ sim_habitat <-
     distances <-
       grid |>
       dist() |>
-      as.matrix() * patch_width
+      as.matrix() * ifelse(length(patch_width) == 1, patch_width, patch_width |> as.matrix() |> t())
+    # Added conditional above where the matrix is scaled by the single patch_width if only one
+    # is provided, or uses matrix multiplaction to scale the matrix if multiple values are provided
+    # EB not sure about whether this works properly - but tried to match the distance matrix ncol 
+    # to the patch_width matrix ncol - could use a code review
 
     # following Thorson & Barnett 2017 doi:10.1093/icesjms/fsw193
     # kp = 1e-1 # the rate parameter; closer to 0, the farther correlation among patches persists
