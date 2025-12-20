@@ -630,6 +630,8 @@ Fish <- R6::R6Class(
         ## ℹ In index: 1.
         ## Caused by error in `x * y * (time_step / patch_area)`:
         ##   ! non-conformable arrays
+        ## I think I fixed this by updating patch area to be a vector if it's
+        ## a matrix - see above
         z <- x * y * (time_step / patch_area)
       }
 
