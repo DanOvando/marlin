@@ -15,6 +15,8 @@ knitr::opts_chunk$set(
 )
 ```
 
+[EB to fully fill out once this update is complete]
+
 One new feature of `marlin` is allowing for a flexible `patch_area()` parameter, in which users can supply a single value (if all grid cells are the same size), or a matrix or vector of values denoting different grid cell areas. This is particularly useful for modeling species with large habitat ranges with a particular focus on a small subset of the total modeled area. 
 
 ```{r echo=FALSE, fig.cap = "The area of interest (red) has a finer resolution than the larger modeled area"}

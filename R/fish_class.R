@@ -608,10 +608,18 @@ Fish <- R6::R6Class(
         # adding conditional to above, where if patch area is a single value, just take the sqrt of that value
         # otherwise, take the sqrt of the value at the same position as the taxis matrix
 
-        }
+      }
 
       self$taxis_matrix <- taxis_matrix # this is the habitat preference matrix, which is a multiplier of of the diffusion rate
-
+      
+      # Also reshape the patch area matrix to vector (if it's a matrix?)
+      if(is.matrix(patch_area)) { 
+        patch_area <- as.data.frame(patch_area) |>
+          tidyr::pivot_longer(dplyr::everything(), names_to = "x", 
+                              names_prefix = "V",names_transform = list(x = as.integer)) |>
+          dplyr::arrange(x) |>
+          dplyr::pull(value)
+      }
 
       # the taxis matrix is used here just to mark of barriers, note x[!is.na(x)] <- 1, it is not double counting taxis
       diffusion_prep <- function(x, y, time_step, patch_area) {
