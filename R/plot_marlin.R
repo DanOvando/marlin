@@ -228,7 +228,6 @@ plot_marlin <- function(...,
         dplyr::mutate(across({{ plot_var }}, ~ (. / max(., na.rm = TRUE)))) %>%
         dplyr::ungroup()
     }
-
     out <- out %>%
       ggplot2::ggplot(aes(x, y, fill = round(.data[[plot_var]], 2))) +
       ggplot2::geom_tile() +

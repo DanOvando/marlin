@@ -119,7 +119,7 @@ Some of the core options for `marlin`
 library(marlin)
 library(tidyverse)
 options(dplyr.summarise.inform = FALSE)
-theme_set(marlin::theme_marlin(base_size = 42))
+theme_set(marlin::theme_marlin(base_size = 14))
 
 resolution <- c(5, 10) 
 
@@ -290,7 +290,6 @@ bigeye_habitat2 <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
     habitat = dnorm((x^.2 + y^.2), 100, 100),
     habitat = habitat / max(habitat) * bigeye_home_range
   ) %>%
-  # mutate(habitat = as.numeric(scale(habitat))) |> 
   pivot_wider(names_from = x, values_from = habitat) %>%
   select(-y) %>%
   as.matrix()
@@ -308,7 +307,8 @@ fauna <-
       depletion = .6, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
       density_dependence = "global_habitat", # recruitment form, where 1 implies local recruitment
       seasons = seasons,
-      init_explt = 0
+      init_explt = 0.2,
+      explt_type = "f"
     ),
     "bigeye" = create_critter(
       common_name = "bigeye tuna",
@@ -319,7 +319,8 @@ fauna <-
       depletion = .1,
       density_dependence = "local_habitat",
       seasons = seasons,
-      init_explt = 0
+      init_explt = 0.3,
+      explt_type = "f"
     )
   )
 Sys.time() - a
@@ -419,6 +420,7 @@ plot_marlin(processed_marlin)
 plot_marlin(processed_marlin, plot_var = "c")
 
 plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", fauna = fauna)
+
 ```
 
 

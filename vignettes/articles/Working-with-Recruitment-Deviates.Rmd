@@ -55,36 +55,33 @@ critters <- c("yellowfin", "mako")
 ```
 
 ```{r}
+set.seed(24)
 fauna <-
   list(
     "yellowfin" = create_critter(
       scientific_name = "Thunnus albacares",
       adult_home_range  = yft_diffusion, # cells per year
       recruit_home_range = rec_factor * yft_diffusion,
-      fished_depletion = yft_depletion, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
       density_dependence = "pre_dispersal", # recruitment form, where 1 implies local recruitment
       seasons = seasons,
-      ssb0 = 5000,
+      ssb0 = 10000,
       sigma_rec = 0.25,
       ac_rec = 0.25,
       steepness = 1,
-      t0 = -2
+      t0 = -1
     ),
     "mako" = create_critter(
       scientific_name = "Isurus oxyrinchus",
       adult_home_range = mako_diffusion,
       recruit_home_range = rec_factor * 5,
-      fished_depletion = mako_depletion,
       density_dependence = "local_habitat", # recruitment form, where 1 implies local recruitment
-      burn_years = 200,
-      ssb0 = 1000,
+      burn_years = 10,
+      ssb0 = 10000,
       seasons = seasons,
-      fec_form = "pups",
-      pups = 6,
       sigma_rec = 0.1,
-      ac_rec = 0.1,
+      ac_rec = 0,
       steepness = 1,
-      t0 = -5
+      t0 = -2
     )
   )
 
@@ -92,31 +89,28 @@ fleets <- list("longline" = create_fleet(
   list(
     `yellowfin` = Metier$new(
       critter = fauna$`yellowfin`,
-      price = 100, # price per unit weight
+      price = 10, # price per unit weight
       sel_form = "logistic", # selectivity form, one of logistic or dome
       sel_start = .5, # percentage of length at maturity that selectivity starts
       sel_delta = .1, # additional percentage of sel_start where selectivity asymptotes
-      p_explt = 1
+      p_explt = 1,
+      catchability = .1
     ),
     `mako` = Metier$new(
       critter = fauna$`mako`,
       price = 10,
       sel_form = "logistic",
-      sel_start = .25,
+      sel_start = 1,
       sel_delta = .01,
-      p_explt = 1
+      p_explt = 1,
+      catchability = 0.15
     )
   ),
-  mpa_response = "stay",
-  base_effort = 100 * prod(resolution),
-  resolution = resolution
+  base_effort = 8*prod(resolution),
+  resolution = resolution,
+  spatial_allocation = "revenue"
 ))
 
-a <- Sys.time()
-
-fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
-
-Sys.time() - a
 
 # run simulations
 
@@ -131,16 +125,24 @@ recruitment_sim <- simmar(
 Sys.time() - a
 
 sim <- process_marlin(recruitment_sim)
+
+plot_marlin(sim, max_scale = FALSE, plot_var = "ssb")
+
+
+
 ```
 
 
 ```{r, fig.cap="Timeline of recruits (age 0 fish) into the population over time given degrees of variation and autocorrelation in the recruitment process."}
 sim$fauna |>
   filter(age == min(age)) |>
+  group_by(step, critter) |> 
+  summarise(n = sum(n)) |> 
   ggplot(aes(step, n)) +
   geom_line() +
   geom_point() +
-  facet_wrap(~critter, scales = "free_y")
+  facet_wrap(~critter, scales = "free_y") + 
+  scale_y_continuous(limits = c(0, NA))
 ```
 
 We can expand on this simple analysis by adding in a new feature, a correlation matrix for the recruitment deviates between the two simulated species. As this is a simple two-species system, this is just a two x two matrix with the off-diagonal elements indicating the correlation between the recruitment deviates of the two species. We will then pass this matrix to the `simmar` function. 
@@ -172,6 +174,8 @@ sim <- process_marlin(recruitment_sim)
 sim$fauna |>
   filter(age == min(age)) |>
   select(step, patch, critter, n) |>
+  group_by(critter, step) |> 
+  summarise(n = sum(n)) |> 
   pivot_wider(names_from = critter, values_from = n) |>
   ggplot(aes(mako, yellowfin)) +
   geom_point()
@@ -200,8 +204,6 @@ for (i in 2:rec_steps) {
 
 a <- Sys.time()
 
-plot(log_rec_devs)
-
 recruitment_sim <- simmar(
   fauna = fauna,
   fleets = fleets,
@@ -217,7 +219,9 @@ sim <- process_marlin(recruitment_sim)
 ```{r, fig.cap="Scatter plot of externally supplied negatively correlated recruitment between the two simulated species."}
 sim$fauna |>
   filter(age == min(age)) |>
-  select(step, patch, critter, n) |>
+  select(step, critter, n) |>
+    group_by(critter, step) |> 
+  summarise(n = sum(n)) |>
   pivot_wider(names_from = critter, values_from = n) |>
   ggplot(aes(mako, yellowfin)) +
   geom_point()

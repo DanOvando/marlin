@@ -185,6 +185,10 @@ Fish <- R6::R6Class(
 
       self$resolution <- resolution
 
+      self$grid <- tidyr::expand_grid(x = 1:resolution[[1]], y = 1:resolution[[2]]) |>
+        dplyr::arrange(x,y) |>
+        dplyr::mutate(patch = 1:dplyr::n())
+
       patches <- prod(resolution)
 
       self$patches <- patches
@@ -893,6 +897,7 @@ Fish <- R6::R6Class(
       critter <- as.list(self)
 
       grid <- tidyr::expand_grid(x = 1:critter$resolution[[1]], y = 1:critter$resolution[[2]]) |>
+        dplyr::arrange(x,y) |>
         dplyr::mutate(patch = 1:dplyr::n(),
                       n = 0,
                       rec_n = 0)
