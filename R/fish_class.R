@@ -592,14 +592,15 @@ Fish <- R6::R6Class(
 
       self$max_hab_mult <- max_hab_mult
       # create habitat and movement matrices
-
       taxis_matrix <- habitat
       # reshape to vector, for some reason doesn't work inside function
       for (i in seq_along(taxis_matrix)) {
-        taxis_matrix[[i]] <- as.data.frame(taxis_matrix[[i]]) |>
-          tidyr::pivot_longer(dplyr::everything(), names_to = "x", names_prefix = "V",names_transform = list(x = as.integer)) |>
-          dplyr::arrange(x)
 
+        taxis_matrix[[i]] <- as.data.frame(taxis_matrix[[i]]) |>
+          dplyr::mutate(y = dplyr::n():1) |>
+          tidyr::pivot_longer(-y, names_to = "x", values_to = "value") |>
+          dplyr::mutate(x = match(x, unique(x))) |>
+          dplyr::arrange(x,y)
 
         taxis_matrix[[i]] <- as.numeric(taxis_matrix[[i]]$value)
 
@@ -666,16 +667,12 @@ Fish <- R6::R6Class(
 
       recruit_habitat[is.na(recruit_habitat)] <- 0
 
-      r0s <- recruit_habitat %>%
-        as.data.frame() %>%
-        dplyr::mutate(y = 1:nrow(.)) %>%
-        tidyr::pivot_longer(
-          -y,
-          names_to = "x",
-          values_to = "rec_habitat",
-          names_prefix = "V",
-          names_transform = list(x = as.integer)
-        ) %>%
+      r0s <- recruit_habitat |>
+        as.data.frame() |>
+        dplyr::mutate(y = dplyr::n():1) |>
+        tidyr::pivot_longer(-y, names_to = "x", values_to = "rec_habitat") |>
+        dplyr::mutate(x = match(x, unique(x))) |>
+        dplyr::arrange(x,y) |>
         dplyr::mutate(rec_habitat = rec_habitat / sum(rec_habitat)) |>
         dplyr::select(x, y, rec_habitat) |>
         dplyr::arrange(x, y)
@@ -884,7 +881,8 @@ Fish <- R6::R6Class(
         marlin::theme_marlin() +
         ggplot2::scale_fill_manual(values = marlin::marlin_pal("diverging_fish")(length(unique(
           tidy_ogives$trait
-        ))))
+        )))) +
+        ggplot2::labs(title = self$common_name)
     },
     #' plot diffusion
     #'

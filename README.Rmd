@@ -290,6 +290,7 @@ bigeye_habitat2 <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
     habitat = dnorm((x^.2 + y^.2), 100, 100),
     habitat = habitat / max(habitat) * bigeye_home_range
   ) %>%
+  # mutate(habitat = as.numeric(scale(habitat))) |> 
   pivot_wider(names_from = x, values_from = habitat) %>%
   select(-y) %>%
   as.matrix()
@@ -307,8 +308,7 @@ fauna <-
       depletion = .6, # desired equilibrium depletion with fishing (1 = unfished, 0 = extinct),
       density_dependence = "global_habitat", # recruitment form, where 1 implies local recruitment
       seasons = seasons,
-      init_explt = 0.2,
-      explt_type = "f"
+      init_explt = 0
     ),
     "bigeye" = create_critter(
       common_name = "bigeye tuna",
@@ -319,8 +319,7 @@ fauna <-
       depletion = .1,
       density_dependence = "local_habitat",
       seasons = seasons,
-      init_explt = 0.3,
-      explt_type = "f"
+      init_explt = 0
     )
   )
 Sys.time() - a
