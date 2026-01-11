@@ -74,9 +74,10 @@ fleet_tuner <- function(log_fs, fauna, fleets,e_fl, years = 50) {
 
   b_p <- rowSums(tmp[, 2:ncol(tmp)], na.rm = TRUE)
 
-  tmp <- data.frame(fauna = tmp$fauna, ssb = b_p) %>%
-    dplyr::group_by(fauna) %>%
-    dplyr::summarise(ssb = sum(ssb)) %>%
+  tmp <- data.frame(fauna = tmp$fauna, ssb = b_p) |>
+    dplyr::group_by(fauna) |>
+    dplyr::summarise(ssb = sum(ssb)) |>
+    dplyr::ungroup() |>
     dplyr::arrange(fauna)
 
   ssb0s <- purrr::map_dbl(fauna, "ssb0")

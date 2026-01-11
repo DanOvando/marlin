@@ -39,7 +39,7 @@ plot_marlin <- function(...,
   fit_names[fit_names == ""] <-
     letters[!letters %in% fit_names][seq_along(fit_names[fit_names == ""])] # add in names if only some are named for some reason
 
-  fits <- list(...) %>%
+  fits <- list(...) |>
     purrr::set_names(fit_names)
 
 
@@ -74,7 +74,7 @@ plot_marlin <- function(...,
       dplyr::filter(step %in% steps_to_plot) %>%
       ggplot(aes(step, .data[[plot_var]], color = fit)) +
       ggplot2::geom_hline(aes(yintercept = 0)) +
-      ggplot2::geom_line(size = 3) +
+      ggplot2::geom_line(linewidth = 3) +
       ggplot2::facet_wrap(~critter, scales = "free_y") +
       {
         if (max_scale) {
@@ -228,15 +228,12 @@ plot_marlin <- function(...,
         dplyr::mutate(across({{ plot_var }}, ~ (. / max(., na.rm = TRUE)))) %>%
         dplyr::ungroup()
     }
-
     out <- out %>%
       ggplot2::ggplot(aes(x, y, fill = round(.data[[plot_var]], 2))) +
       ggplot2::geom_tile() +
       ggplot2::scale_fill_viridis_c(
         name = plot_var,
         guide = ggplot2::guide_colorbar(
-          frame.colour = "black",
-          tick.colour = "black",
           nbin = 1000,
           barwidth = unit(15, "lines")
         )
@@ -245,7 +242,12 @@ plot_marlin <- function(...,
       ggplot2::scale_y_continuous(expand = c(0, 0)) +
       ggplot2::facet_grid(critter ~ fit) +
       marlin::theme_marlin() +
-      ggplot2::theme(legend.position = "top")
+      ggplot2::theme(legend.position = "top") +
+      ggplot2::theme(
+        legend.key        = ggplot2::element_rect(colour = "black", fill = NA),
+        legend.ticks      = ggplot2::element_line(colour = "black"),
+        legend.ticks.length = unit(3, "mm")
+      )
   }
   return(out)
 }

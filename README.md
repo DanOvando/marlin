@@ -161,7 +161,7 @@ Some of the core options for `marlin`
 library(marlin)
 library(tidyverse)
 options(dplyr.summarise.inform = FALSE)
-theme_set(marlin::theme_marlin(base_size = 42))
+theme_set(marlin::theme_marlin(base_size = 14))
 
 resolution <- c(5, 10) 
 
@@ -249,14 +249,14 @@ fauna <-
 fauna$bigeye$plot()
 ```
 
-<img src="man/figures/README-unnamed-chunk-3-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-3-1.png" alt="" width="100%" />
 
 ``` r
 
 fauna$bigeye$plot_movement()
 ```
 
-<img src="man/figures/README-unnamed-chunk-3-2.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-3-2.png" alt="" width="100%" />
 
 The `fleets` object is a list of individual fishing fleets created by
 the `create_fleet` function. Importantly, each fleet is broken up into
@@ -289,7 +289,7 @@ fleets <- list(
 fleets$longline$metiers$bigeye$plot_selectivity()
 ```
 
-<img src="man/figures/README-unnamed-chunk-4-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-4-1.png" alt="" width="100%" />
 
 We then use the `tune_fleets` function as needed to tune the dynamics of
 the fleet to achieve specific objectives. In this case, we specified a
@@ -304,7 +304,7 @@ fleets <- tune_fleets(fauna, fleets, tune_type = "depletion")
 fleets$longline$metiers$bigeye$plot_catchability()
 ```
 
-<img src="man/figures/README-unnamed-chunk-5-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-5-1.png" alt="" width="100%" />
 
 From there, we run the simulation by passing the `fauna` and `fleet`
 options to the `simmar` function
@@ -319,7 +319,7 @@ example_sim <- simmar(
 )
 
 Sys.time() - start_time
-#> Time difference of 0.1283531 secs
+#> Time difference of 0.148066 secs
 ```
 
 we can then use `process_marlin` and `plot_marlin` to examine the
@@ -331,28 +331,28 @@ processed_marlin <- process_marlin(sim = example_sim, time_step = time_step)
 plot_marlin(processed_marlin)
 ```
 
-<img src="man/figures/README-unnamed-chunk-7-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-7-1.png" alt="" width="100%" />
 
 ``` r
 
 plot_marlin(processed_marlin, plot_var = "c", max_scale = FALSE)
 ```
 
-<img src="man/figures/README-unnamed-chunk-7-2.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-7-2.png" alt="" width="100%" />
 
 ``` r
 
 plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", fauna = fauna)
 ```
 
-<img src="man/figures/README-unnamed-chunk-7-3.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-7-3.png" alt="" width="100%" />
 
 ``` r
 
 plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space", steps_to_plot = max(processed_marlin$fauna$step))
 ```
 
-<img src="man/figures/README-unnamed-chunk-7-4.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-7-4.png" alt="" width="100%" />
 
 ## Two Species and two fleets with bells and whistles
 
@@ -432,7 +432,7 @@ fauna <-
     )
   )
 Sys.time() - a
-#> Time difference of 1.713558 secs
+#> Time difference of 1.673141 secs
 
 # create a fleets object, which is a list of lists (of lists). Each fleet has one element,
 # with lists for each species inside there. Price specifies the price per unit weight of that
@@ -443,14 +443,14 @@ Sys.time() - a
 fauna$skipjack$plot_movement()
 ```
 
-<img src="man/figures/README-example-1.png" width="100%" />
+<img src="man/figures/README-example-1.png" alt="" width="100%" />
 
 ``` r
 
 fauna$bigeye$plot_movement()
 ```
 
-<img src="man/figures/README-example-2.png" width="100%" />
+<img src="man/figures/README-example-2.png" alt="" width="100%" />
 
 ``` r
 
@@ -515,7 +515,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets)
 
 Sys.time() - a
-#> Time difference of 0.782378 secs
+#> Time difference of 0.862962 secs
 
 
 # run simulations
@@ -530,7 +530,7 @@ sim3 <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.262851 secs
+#> Time difference of 0.2996399 secs
 # a <- Sys.time()
 
 processed_marlin <- process_marlin(sim = sim3, time_step = time_step, keep_age = TRUE)
@@ -539,21 +539,21 @@ processed_marlin <- process_marlin(sim = sim3, time_step = time_step, keep_age =
 plot_marlin(processed_marlin)
 ```
 
-<img src="man/figures/README-example-3.png" width="100%" />
+<img src="man/figures/README-example-3.png" alt="" width="100%" />
 
 ``` r
 
 plot_marlin(processed_marlin, plot_var = "c")
 ```
 
-<img src="man/figures/README-example-4.png" width="100%" />
+<img src="man/figures/README-example-4.png" alt="" width="100%" />
 
 ``` r
 
 plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", fauna = fauna)
 ```
 
-<img src="man/figures/README-example-5.png" width="100%" />
+<img src="man/figures/README-example-5.png" alt="" width="100%" />
 
 ## Evaluating MPAs
 
@@ -642,7 +642,7 @@ fauna <-
 fauna$`Shortfin Mako`$plot()
 ```
 
-<img src="man/figures/README-unnamed-chunk-8-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-8-1.png" alt="" width="100%" />
 
 ``` r
 # create a fleets object, which is a list of lists (of lists). Each fleet has one element,
@@ -699,7 +699,7 @@ fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchabi
 # fleets$longline$metiers$`Yellowfin Tuna`$spatial_catchability
 
 Sys.time() - a
-#> Time difference of 9.816744 secs
+#> Time difference of 23.93866 secs
 
 # run simulations
 
@@ -712,20 +712,20 @@ nearshore <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.1582222 secs
+#> Time difference of 0.17519 secs
 
 proc_nearshore <- process_marlin(nearshore, time_step = fauna[[1]]$time_step)
 
 plot_marlin(proc_nearshore, max_scale = FALSE, plot_var = "b")
 ```
 
-<img src="man/figures/README-unnamed-chunk-8-2.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-8-2.png" alt="" width="100%" />
 
 ``` r
 plot_marlin(proc_nearshore, max_scale = FALSE, plot_var = "ssb")
 ```
 
-<img src="man/figures/README-unnamed-chunk-8-3.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-8-3.png" alt="" width="100%" />
 
 We will now design and implement an MPA network by specifying a data
 frame with columns x,y, and mpa denoting the coordinates of MPA patches.
@@ -744,7 +744,7 @@ mpa_locations %>%
   scale_y_continuous(name = "Lat")
 ```
 
-<img src="man/figures/README-unnamed-chunk-9-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-9-1.png" alt="" width="100%" />
 
 We will now simulate the impacts of those MPAs by passing them to the
 manager slot.
@@ -763,14 +763,14 @@ nearshore_mpa <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.2383821 secs
+#> Time difference of 0.2428691 secs
 
 proc_nearshore_mpa <- process_marlin(nearshore_mpa, time_step = fauna[[1]]$time_step)
 
 plot_marlin(proc_nearshore_mpa, max_scale = FALSE)
 ```
 
-<img src="man/figures/README-unnamed-chunk-10-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-10-1.png" alt="" width="100%" />
 
 Now though, consider a different scenario. Here the tunas still slightly
 prefer their same nearshore habitat, but now the shortfin mako
@@ -823,7 +823,7 @@ fauna <-
 fauna$`Shortfin Mako`$plot()
 ```
 
-<img src="man/figures/README-unnamed-chunk-11-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-11-1.png" alt="" width="100%" />
 
 ``` r
 
@@ -841,7 +841,7 @@ offshore <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.1618731 secs
+#> Time difference of 0.175189 secs
 
 proc_offshore <- process_marlin(offshore, time_step = fauna[[1]]$time_step)
 
@@ -858,7 +858,7 @@ offshore_mpa_sim <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.2181399 secs
+#> Time difference of 0.2285771 secs
 
 
 proc_offshore_mpa <- process_marlin(offshore_mpa_sim, time_step = fauna[[1]]$time_step)
@@ -875,7 +875,7 @@ plot_marlin(
 )
 ```
 
-<img src="man/figures/README-unnamed-chunk-12-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-12-1.png" alt="" width="100%" />
 
 ``` r
 plot_marlin(
@@ -898,7 +898,7 @@ plot_marlin(
   )
 ```
 
-<img src="man/figures/README-unnamed-chunk-13-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-13-1.png" alt="" width="100%" />
 
 ## Defacto MPAs through bycatch penalties
 
@@ -995,7 +995,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
-#> Time difference of 0.1806071 secs
+#> Time difference of 0.1852019 secs
 
 # run simulations
 
@@ -1017,7 +1017,7 @@ plot_marlin(
 )
 ```
 
-<img src="man/figures/README-unnamed-chunk-15-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-15-1.png" alt="" width="100%" />
 
 ## Repo Naviation
 

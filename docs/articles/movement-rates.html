@@ -83,7 +83,7 @@
 <span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggforce.data-imaginist.com" class="external-link">ggforce</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme_get.html" class="external-link">theme_set</a></span><span class="op">(</span><span class="fu"><a href="../reference/theme_marlin.html">theme_marlin</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">8</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/get_theme.html" class="external-link">theme_set</a></span><span class="op">(</span><span class="fu"><a href="../reference/theme_marlin.html">theme_marlin</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">8</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><code>marlin</code>’s movement dynamics are based on a
 continuous-time Markov chain (CTMC), as described in <a href="https://onlinelibrary.wiley.com/doi/abs/10.1111/faf.12592?casa_token=sMbD1uKODM8AAAAA:XpCKSWY9dYaQsxvtanHydjc520drhvuHd3UUjCvqTqL8fqB36iJTgUdCa5J-jkrTDj1vLzwoHQF8AXs" class="external-link">Thorston
 et al (2021)</a>. The advantate of the CTMC model is that it allows for
@@ -273,7 +273,7 @@ each other, and a 0 if not.</p>
 <span><span class="va">adjacent</span><span class="op">[</span><span class="va">adjacent</span> <span class="op">!=</span> <span class="fl">1</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">0</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/image.html" class="external-link">image</a></span><span class="op">(</span><span class="va">adjacent</span><span class="op">)</span></span></code></pre></div>
-<p><img src="movement-rates_files/figure-html/unnamed-chunk-3-1.png" width="700"></p>
+<p><img src="movement-rates_files/figure-html/unnamed-chunk-3-1.png" class="r-plt" alt="" width="700"></p>
 <p>We’ll now fill in the diffusion matrix, using
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>D</mi><annotation encoding="application/x-tex">D</annotation></semantics></math>,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mi>t</mi></msub><annotation encoding="application/x-tex">\delta_t</annotation></semantics></math>
@@ -296,7 +296,7 @@ using matrix exponentiation.</p>
 <span><span class="va">diffusion_matrix</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">diffusion_matrix</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/image.html" class="external-link">image</a></span><span class="op">(</span><span class="va">diffusion_matrix</span><span class="op">)</span></span></code></pre></div>
-<p><img src="movement-rates_files/figure-html/unnamed-chunk-4-1.png" width="700"></p>
+<p><img src="movement-rates_files/figure-html/unnamed-chunk-4-1.png" class="r-plt" alt="" width="700"></p>
 <p>Now, we’ll use this diffusion model to simulate ths diffusion of some
 critters from a central patch to the patches around it.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
@@ -337,7 +337,7 @@ critters from a central patch to the patches around it.</p>
 <span><span class="co">#&gt; Warning in ggforce::geom_circle(aes(x0 = resolution/2 * delta_d, y0 = resolution/2 * : All aesthetics have length 1, but the data has 400 rows.</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Please consider using `annotate()` or provide this layer with data containing</span></span>
 <span><span class="co">#&gt;   a single row.</span></span></code></pre></div>
-<p><img src="movement-rates_files/figure-html/unnamed-chunk-5-1.png" width="700"></p>
+<p><img src="movement-rates_files/figure-html/unnamed-chunk-5-1.png" class="r-plt" alt="" width="700"></p>
 <p>We visualize effect of the the diffusion rate
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>D</mi><annotation encoding="application/x-tex">D</annotation></semantics></math>
 by simulating dispersal of organisms initially seeded in one central
@@ -409,7 +409,7 @@ patch after one year across a range of diffusion rates
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_fixed.html" class="external-link">coord_fixed</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">D</span><span class="op">)</span>, labeller <span class="op">=</span> <span class="va">label_both</span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
-<img src="movement-rates_files/figure-html/fig-disp-1.png" alt="Diffusion from one central patch after one year for a range of diffusion rates." width="700"><p class="caption">
+<img src="movement-rates_files/figure-html/fig-disp-1.png" class="r-plt" alt="Diffusion from one central patch after one year for a range of diffusion rates." width="700"><p class="caption">
 Diffusion from one central patch after one year for a range of diffusion
 rates.
 </p>
@@ -466,7 +466,7 @@ times the diffusion rate.</p>
 <span><span class="va">habitat_difference</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/outer.html" class="external-link">outer</a></span><span class="op">(</span><span class="va">habitat</span>, <span class="va">habitat</span>, <span class="st">"-"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist</a></span><span class="op">(</span><span class="va">habitat_difference</span><span class="op">)</span></span></code></pre></div>
-<p><img src="movement-rates_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
+<p><img src="movement-rates_files/figure-html/unnamed-chunk-7-1.png" class="r-plt" alt="" width="700"></p>
 <p>The resulting habitat gradient has values as high as 100, which would
 produce illogical results.</p>
 <p>We can use the <code>rescale</code> function in R to get things into
@@ -478,7 +478,7 @@ produce a taxis multiplier of three</p>
 <span><span class="va">habitat_difference</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/outer.html" class="external-link">outer</a></span><span class="op">(</span><span class="va">new_habitat</span>, <span class="va">new_habitat</span>, <span class="st">"-"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist</a></span><span class="op">(</span><span class="va">habitat_difference</span><span class="op">)</span></span></code></pre></div>
-<p><img src="movement-rates_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
+<p><img src="movement-rates_files/figure-html/unnamed-chunk-8-1.png" class="r-plt" alt="" width="700"></p>
 <p>Rescaling like this is clearly distoring the ratios of the habitat
 gradient, and so should only be done if you’re making up habitats for
 simulation and want something that makes sense; you should
@@ -504,7 +504,7 @@ taxis data to simulate movement over one time step of the model</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_viridis.html" class="external-link">scale_fill_viridis_c</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"Number of Fish"</span>, limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="cn">NA</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"Distance from Bottom Left Corned in KM"</span>, expand <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_continuous</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"Distance from Bottom Left Corned in KM"</span>, expand <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="movement-rates_files/figure-html/unnamed-chunk-9-1.png" width="700"></p>
+<p><img src="movement-rates_files/figure-html/unnamed-chunk-9-1.png" class="r-plt" alt="" width="700"></p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
@@ -517,7 +517,7 @@ taxis data to simulate movement over one time step of the model</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>

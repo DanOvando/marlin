@@ -18,16 +18,16 @@ theme_marlin <- function(base_size = 14, ...) {
       # background
       panel.background = ggplot2::element_blank(),
       # borders and axis lines
-      panel.border = ggplot2::element_rect(size = 1, fill = "NA"),
+      panel.border = ggplot2::element_rect(linewidth = 1, fill = "NA"),
       axis.line = ggplot2::element_blank(),
       # gridlines
       panel.grid.major = ggplot2::element_line(
-        size = 0.1,
+        linewidth = 0.1,
         linetype = 2,
         colour = "lightgray"
       ),
       panel.grid.minor = ggplot2::element_line(
-        size = 0.1,
+        linewidth = 0.1,
         linetype = 2,
         colour = "lightgray"
       ),

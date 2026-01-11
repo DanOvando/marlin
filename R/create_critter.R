@@ -60,6 +60,7 @@ create_critter <- function(common_name = NA,
                            patch_area = 1,
                            spawning_seasons = NA,
                            density_dependence = "global_habitat",
+                           steepness = 0.8,
                            growth_model = "von_bertalanffy",
                            ...) {
   if (!is.list(habitat)) {
@@ -99,6 +100,7 @@ create_critter <- function(common_name = NA,
         spawning_seasons = spawning_seasons,
         growth_model = growth_model,
         patch_area = patch_area,
+        steepness = steepness,
         ...
       )
   }
