@@ -48,7 +48,7 @@ List sim_fish(
 
   int ages = length_at_age.length();
 
-  MatrixXd  tmpmat(as<MatrixXd>(last_n_p_a)); // create temporary matrix for movement
+  // MatrixXd  tmpmat(as<MatrixXd>(last_n_p_a)); // create temporary matrix for movement
 
   NumericMatrix n_p_a(patches, ages); // numbers in patch p age a
 
@@ -167,7 +167,28 @@ List sim_fish(
   } // close while loop
   } // close SSB0 tuner
 
+
+
+  NumericVector plus_group = last_n_p_a(_,ages - 1) * exp(-time_step * (m_at_age(ages - 1) +f_p_a(_,ages - 1))); // calculate numbers in the oldest group that survive
+
+  c_p_a(_,ages - 1) =   (f_p_a(_,ages - 1) / (m_at_age(ages - 1) + f_p_a(_,ages - 1))) * last_n_p_a(_,ages - 1) * (1 - exp(-time_step * (m_at_age(ages - 1) + f_p_a(_,ages - 1)))) * weight_at_age[ages - 1];
+
+  // age and die
+  for (int a = 1; a < ages; a++){
+
+    n_p_a(_,a) =  last_n_p_a(_,a - 1) * exp(-time_step * (m_at_age(a - 1) + f_p_a(_,a - 1)));
+
+    c_p_a(_,a - 1) =   weight_at_age[a]*(f_p_a(_,a - 1) / (m_at_age(a - 1) + f_p_a(_,a - 1))) * last_n_p_a(_,a - 1) * (1 - exp(-time_step * (m_at_age(a - 1) + f_p_a(_,a - 1))));
+
+  }
+
+  // add numbers that survived in the oldest group to numbers that grew into the oldest group
+  n_p_a(_, ages - 1) = n_p_a(_, ages - 1) + plus_group;
+
+
   //////////////////// move ////////////////////////
+
+  MatrixXd  tmpmat(as<MatrixXd>(n_p_a)); // create temporary matrix for movement
 
   tmpmat =  movement * tmpmat; // matrix multiplication of numbers at age by movement matrix
 
@@ -175,37 +196,16 @@ List sim_fish(
 
   Rcpp::NumericMatrix tmp2(tmp); // attempt to resolve weird issue with random erros based on this https://stackoverflow.com/questions/62586950/how-do-you-convert-object-of-class-eigenmatrixxd-to-class-rcppnumericmatrix
 
-  last_n_p_a = clone(tmp2); // set last population to post-movement last population
+  n_p_a = clone(tmp2); // set last population to post-movement last population
 
-  //////////////////// grow ////////////////////////
-
-
-  NumericVector plus_group = last_n_p_a(_,ages - 1) * exp(-time_step * (m_at_age(ages - 1) +f_p_a(_,ages - 1))); // calculate numbers in the oldest group that survive
-
-  c_p_a(_,ages - 1) =   (f_p_a(_,ages - 1) / (m_at_age(ages - 1) + f_p_a(_,ages - 1))) * last_n_p_a(_,ages - 1) * (1 - exp(-time_step * (m_at_age(ages - 1) + f_p_a(_,ages - 1))));
-
-  // age and die
-  for (int a = 1; a < ages; a++){
-
-    n_p_a(_,a) =  last_n_p_a(_,a - 1) * exp(-time_step * (m_at_age(a - 1) + f_p_a(_,a - 1)));
-
-    c_p_a(_,a - 1) =   (f_p_a(_,a - 1) / (m_at_age(a - 1) + f_p_a(_,a - 1))) * last_n_p_a(_,a - 1) * (1 - exp(-time_step * (m_at_age(a - 1) + f_p_a(_,a - 1))));
-
-  }
-
-  // add numbers that survived in the oldest group to numbers that grew into the oldest group
-  n_p_a(_, ages - 1) = n_p_a(_, ages - 1) + plus_group;
-
-  // calculate biomass and spawning stock biomass at age
   for (int p = 0;p < patches; p++){
-
-    c_p_a(p,_) = c_p_a(p,_) * weight_at_age;
 
     b_p_a(p,_) =  n_p_a(p,_) * weight_at_age;
 
     ssb_p_a(p,_) = n_p_a(p,_) * fec_at_age * maturity_at_age;
 
   }
+
 
   //////////////////// spawn / recruit ////////////////////////
 

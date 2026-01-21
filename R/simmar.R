@@ -57,7 +57,6 @@ simmar <- function(fauna = list(),
   covariance_rec <- cor_rec * (sigma_recs %o% sigma_recs)
 
 
-
   # if (!is.null(rec_devs)){
   #   if (length(rec_devs) > 1 & length(rec_devs) != length(fauna)){
   #     stop("rev_devs must either be a vector of length")
@@ -263,19 +262,23 @@ simmar <- function(fauna = list(),
     } # close MPA if statement
 
 
+    fleet_fishable <- vector(mode = "list", length = length(fleet_names))
+
+    fleet_concentrator <- vector(mode = "list", length = length(fleet_names))
+
     for (l in seq_along(fleet_names)) {
-      # distribute fleets in space based on revenues
-      #
       current_fleet <- fleet_names[l]
 
-      fleet_fishable <- fishable # keep base fishable, but modify by fleet-specific fishing grounds as needed
+      tmp_fleet_fishable <- fishable # keep base fishable, but modify by fleet-specific fishing grounds as needed
 
       if (!is.null(fleets[[l]]$fishing_grounds)) {
-        fleets[[l]]$fishing_grounds <- fleets[[l]]$fishing_grounds |>
-          dplyr::arrange(x, y) # make sure patches are in correct order
+        # fleets[[l]]$fishing_grounds <- fleets[[l]]$fishing_grounds |>
+        #   dplyr::arrange(x, y) # make sure patches are in correct order
 
-        fleet_fishable[fleets[[l]]$fishing_grounds$fishing_ground == FALSE] <- 0
+        tmp_fleet_fishable[fleets[[l]]$fishing_grounds$fishing_ground == FALSE] <- 0
       }
+
+      fleet_fishable[[l]] <- tmp_fleet_fishable
 
       concentrator <-
         rep(1, patches) # reset fishing effort concentrator by fleet
@@ -286,7 +289,10 @@ simmar <- function(fauna = list(),
           concentrator <- as.numeric(fishable)
         }
       }
+      fleet_concentrator[[l]] <- concentrator
+    }
 
+    for (l in seq_along(fleet_names)) {
       # xx add ability to incorporate past revenues here. Idea. have a marker that lets you know if initial conditions were passed in. If s<= 2 or there were no initial conditions, pull this. If s<= 2 but there were initial conditions, pull the initial conditions for those steps
 
       if (s == 2 & init_cond_provided) {
@@ -322,7 +328,7 @@ simmar <- function(fauna = list(),
           ))
 
           last_b_p <-
-            rowSums(last_b_p_a * tmp * (current_season %in% fishing_seasons[[f]])) * fleet_fishable
+            rowSums(last_b_p_a * tmp * (current_season %in% fishing_seasons[[f]])) * fleet_fishable[[l]]
 
           r_p_f[, f] <-
             last_b_p * fleets[[l]]$metiers[[fauni[f]]]$price
@@ -341,10 +347,8 @@ simmar <- function(fauna = list(),
           rowSums(r_p_f, na.rm = TRUE) # pull out total revenue for fleet l
       }
 
-      if (fleets[[l]]$fleet_model == "manual"){
-
-        total_effort <- fleets[[current_fleet]]$effort[s-1]
-
+      if (fleets[[l]]$fleet_model == "manual") {
+        total_effort <- fleets[[current_fleet]]$effort[s - 1]
       } else {
         total_effort <- sum(fleets[[l]]$e_p_s[, s - 1] * concentrator)
       }
@@ -396,17 +400,17 @@ simmar <- function(fauna = list(),
       # allocate fleets in space
 
       if (fleets[[l]]$spatial_allocation == "revenue") {
-        if (sum(fleet_fishable) == 0) {
+        if (sum(fleet_fishable[[l]]) == 0) {
           alloc <- 0
         } else if (sum(last_r_p, na.rm = TRUE) == 0) {
           # if there is no revenue anywhere just distribute fleet evenly as an edge case for extreme overfishing
 
-          alloc <- fleet_fishable / sum(fleet_fishable)
+          alloc <- fleet_fishable[[l]] / sum(fleet_fishable[[l]])
 
           # 1 / nrow(r_p_f)
         } else {
           alloc <-
-            ((last_r_p * fleet_fishable) / sum(last_r_p * fleet_fishable, na.rm = TRUE)) # just extra cautios.
+            ((last_r_p * fleet_fishable[[l]]) / sum(last_r_p * fleet_fishable[[l]], na.rm = TRUE)) # just extra cautios.
 
           alloc <-
             alloc - min(alloc, na.rm = TRUE) + 1 # rescale to be greater than or equal to 1
@@ -422,7 +426,7 @@ simmar <- function(fauna = list(),
             alloc <-
               alloc - min(alloc, na.rm = TRUE) + 1 # rescale to be greater than or equal to 1
 
-            alloc <- alloc * fleet_fishable
+            alloc <- alloc * fleet_fishable[[l]]
 
             alloc <- alloc / sum(alloc)
           }
@@ -431,16 +435,16 @@ simmar <- function(fauna = list(),
         fleets[[l]]$e_p_s[, s] <-
           total_effort * alloc # distribute fishing effort by fishable biomass
       } else if (fleets[[l]]$spatial_allocation == "rpue") {
-        if (sum(fleet_fishable) == 0) {
+        if (sum(fleet_fishable[[l]]) == 0) {
           alloc <- 0
         } else if (sum(last_r_p, na.rm = TRUE) == 0) {
           # if there is no revenue anywhere just distribute fleet evenly as an edge case for extreme overfishing
 
-          alloc <- fleet_fishable / sum(fleet_fishable)
+          alloc <- fleet_fishable[[l]] / sum(fleet_fishable[[l]])
 
           # 1 / nrow(r_p_f)
         } else {
-          alloc <- (last_r_p / (e_p)) * fleet_fishable
+          alloc <- (last_r_p / (e_p)) * fleet_fishable[[l]]
 
           alloc[!is.finite(alloc)] <- 0
 
@@ -460,13 +464,9 @@ simmar <- function(fauna = list(),
             alloc <-
               alloc - min(alloc, na.rm = TRUE) + 1 # rescale to be greater than or equal to 1
 
-            alloc <- alloc * fleet_fishable
+            alloc <- alloc * fleet_fishable[[l]]
 
             alloc <- alloc / sum(alloc)
-
-            # if (s == (steps-10)  & fleet_names[l] != "artisanal"){
-            #   browser()
-            # }
           }
         }
 
@@ -474,18 +474,18 @@ simmar <- function(fauna = list(),
           total_effort * alloc # distribute fishing effort by fishable biomass
       } else if (fleets[[l]]$spatial_allocation == "ppue" &&
         !is.na(fleets[[l]]$cost_per_unit_effort)) {
-        if (sum(fleet_fishable) == 0) {
+        if (sum(fleet_fishable[[l]]) == 0) {
           alloc <- 0
         } else if (sum(last_r_p, na.rm = TRUE) == 0) {
           # if there is no revenue anywhere just distribute fleet evenly as an edge case for extreme overfishing
 
-          alloc <- fleet_fishable / sum(fleet_fishable)
+          alloc <- fleet_fishable[[l]] / sum(fleet_fishable[[l]])
         } else {
           alloc <- ((
             last_r_p - fleets[[l]]$cost_per_unit_effort * ((e_p)^fleets[[l]]$effort_cost_exponent
               + fleets[[l]]$cost_per_patch * e_p
             ) / (e_p + 1)
-          )) * fleet_fishable
+          )) * fleet_fishable[[l]]
 
           alloc[!is.finite(alloc)] <- 0
 
@@ -503,7 +503,7 @@ simmar <- function(fauna = list(),
             alloc[!is.finite(alloc)] <- 0
 
             alloc <-
-              fleet_fishable * (alloc - min(alloc, na.rm = TRUE) + 1) # rescale to be greater than or equal to 1
+              fleet_fishable[[l]] * (alloc - min(alloc, na.rm = TRUE) + 1) # rescale to be greater than or equal to 1
 
             alloc <- alloc / sum(alloc)
           }
@@ -513,12 +513,12 @@ simmar <- function(fauna = list(),
           total_effort * alloc # distribute fishing effort by fishable biomass
       } else if (fleets[[l]]$spatial_allocation == "profit" &&
         !is.na(fleets[[l]]$cost_per_unit_effort)) {
-        if (sum(fleet_fishable) == 0) {
+        if (sum(fleet_fishable[[l]]) == 0) {
           alloc <- 0
         } else if (sum(last_r_p, na.rm = TRUE) == 0) {
           # if there is no revenue anywhere just distribute fleet evenly as an edge case for extreme overfishing
 
-          alloc <- fleet_fishable / sum(fleet_fishable)
+          alloc <- fleet_fishable[[l]] / sum(fleet_fishable[[l]])
 
           # 1 / nrow(r_p_f)
         } else {
@@ -530,7 +530,7 @@ simmar <- function(fauna = list(),
           alloc[!is.finite(alloc)] <- 0
 
           alloc <-
-            fleet_fishable * (alloc - min(alloc, na.rm = TRUE) + 1) # rescale to be greater than or equal to 1
+            fleet_fishable[[l]] * (alloc - min(alloc, na.rm = TRUE) + 1) # rescale to be greater than or equal to 1
 
           alloc <- alloc / sum(alloc, na.rm = TRUE)
 
@@ -541,7 +541,7 @@ simmar <- function(fauna = list(),
               }), na.rm = TRUE)
 
             alloc <-
-              fleet_fishable * (alloc - min(alloc, na.rm = TRUE) + 1) # rescale to be greater than or equal to 1
+              fleet_fishable[[l]] * (alloc - min(alloc, na.rm = TRUE) + 1) # rescale to be greater than or equal to 1
 
             alloc <- alloc / sum(alloc)
           }
@@ -549,83 +549,31 @@ simmar <- function(fauna = list(),
 
         fleets[[l]]$e_p_s[, s] <-
           total_effort * alloc # distribute fishing effort
-      } else if (fleets[[l]]$spatial_allocation == "ideal_free" &&
-        !is.na(fleets[[l]]$cost_per_unit_effort)) {
-        stop(
-          "ideal free distribution not yet supported. Set spatial_allocation = 'revenue' in create_fleet"
-        )
-
-        # calculate expected marginal revenue when effort = 0 in each patch
-        # marginal revenue is fishable revenue (r_p_f) - marginal cost per unit effort
-
-        worth_fishing <-
-          ((last_r_p - fleets[[l]]$cost_per_unit_effort) * fleet_fishable) > 0 # check whether any effort could be positive, factoring in potential for negative price,
-
-        # for patches that will support any fishing, solve for effort such that marginal profits are equal in space
-
-        # optfoo <- function(log_effort, mp = 0, revs, qs, cost) {
-        #   mp_hat <- sum(revs * exp(-qs * exp(log_effort))) - cost
-        #
-        #   ss <- (mp_hat - mp) ^ 2
-        # }
-
-        id_e_p <- rep(0, patches)
-
-        fishable_patches <-
-          (1:patches)[(fleet_fishable == 1) & worth_fishing]
-
-        r_p_f <-
-          matrix(r_p_f[fishable_patches, ], nrow = length(fishable_patches)) # seriously annoying step to preserve matrix structure when there is only one species
-        tmp <-
-          matrix(rep(f_q, nrow(r_p_f)),
-            nrow = nrow(r_p_f),
-            byrow = TRUE
-          )
-
-        id_e_p[fishable_patches] <-
-          ((rowSums(log(r_p_f * tmp))) - log(fleets[[l]]$cost_per_unit_effort)) / sum(tmp) # see physical paper TNC notebook for derivation of this, asumes that profits = p * b * exp(-(q * E)) - c
-
-
-        # for (pp in seq_along(fishable_patches)) {
-        #   id_e_p[fishable_patches[pp]] <-
-        #     exp(
-        #       nlminb(
-        #         log(total_effort / length(fishable_patches + 1e-3)),
-        #         optfoo,
-        #         revs = r_p_f[fishable_patches[pp], ],
-        #         qs = f_q,
-        #         cost = fleets[[l]]$cost_per_unit_effort
-        #       )$par
-        #     )
-        #
-        # }
-
-        # allocate available effort
-
-        choices <-
-          dplyr::arrange(
-            data.frame(patch = 1:patches, effort = id_e_p),
-            desc(effort)
-          )
-
-        choices$cumu_effort <- cumsum(choices$effort)
-
-        choices <- choices[choices$cumu_effort < total_effort, ]
-
-        choices$alloc_effort <-
-          total_effort * (choices$effort / sum(choices$effort))
-
-        fleets[[l]]$e_p_s[, s] <- 0
-
-        fleets[[l]]$e_p_s[choices$patch, s] <- choices$alloc_effort
-      } # close ifd else
-      else if ((fleets[[l]]$spatial_allocation == "manual")) {
-        alloc <- fleet_fishable * fleets[[l]]$fishing_grounds$fishing_ground
+      } else if ((fleets[[l]]$spatial_allocation == "manual")) {
+        alloc <- fleet_fishable[[l]] * fleets[[l]]$fishing_grounds$fishing_ground
 
         alloc <- alloc / sum(alloc)
 
         fleets[[l]]$e_p_s[, s] <-
           total_effort * alloc # distribute fishing effort by fishable biomass
+      } else if ((fleets[[l]]$spatial_allocation == "ifd")){
+
+        out <- allocate_ifd(
+          Etot_target = sum(e_p),
+          storage = storage[[s - 1]],
+          fauna = fauna,
+          fleets = fleets,
+          target_fleet = l,
+          fleet_fishable = fleet_fishable,
+          E_exo = NULL,
+          time_step = time_step
+        )
+
+        alloc <- out$E_target / sum(out$E_target)
+
+        fleets[[l]]$e_p_s[, s] <-
+          total_effort * alloc # distribute fishing effort by IFD
+
       } else {
         stop(
           "spatial effort allocation strategy not properly defined, check spatial_allocation and cost_per_unit_effort in fleet object"
@@ -691,8 +639,6 @@ simmar <- function(fauna = list(),
         ) # f by patch, age, and fleet
 
 
-
-
       movement <- fauna[[f]]$movement_matrix
 
 
@@ -739,8 +685,6 @@ simmar <- function(fauna = list(),
           )
         }
       } # close habitat update
-
-
 
 
       if (!(current_season %in% fishing_seasons[[names(fauna)[f]]])) {

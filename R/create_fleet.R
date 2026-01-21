@@ -27,7 +27,7 @@ create_fleet <-
            fleet_model = "constant_effort",
            responsiveness = 0.5,
            cost_per_unit_effort = 1,
-           spatial_allocation = "rpue",
+           spatial_allocation = "ifd",
            effort_cost_exponent = 1,
            ports = NULL,
            cost_per_distance = 1,

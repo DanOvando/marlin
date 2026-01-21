@@ -33,8 +33,9 @@ fauna$bigeye$plot_movement()
 
 fauna$bigeye$plot()
 
-fishing_grounds <- expand.grid(x = 1:resolution, y = 1:resolution) |>
-  mutate(fishing_ground = TRUE)
+fishing_grounds <- expand_grid(x = 1:resolution, y = 1:resolution) |>
+  mutate(fishing_ground = TRUE) |>
+  arrange(x,y)
 
 
 fleets <- list(
