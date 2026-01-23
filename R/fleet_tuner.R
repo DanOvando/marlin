@@ -60,13 +60,13 @@ fleet_tuner <- function(log_fs, fauna, fleets,e_fl, years = 50) {
     }
   }
 
-  tic()
+  # tic()
   storage <- simmar(
     fauna = fauna,
     fleets = tfleets,
     years = years
   )
-  toc()
+  # toc()
 
 
 

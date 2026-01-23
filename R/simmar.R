@@ -210,7 +210,6 @@ simmar <- function(fauna = list(),
         getElement(initial_conditions[[1]]$e_p_fl, i)
     }
   }
-
   r_p_f <-
     matrix(0, patches, length(fauni)) # fishable revenue by patch and fauna
 
@@ -348,7 +347,7 @@ simmar <- function(fauna = list(),
       }
 
       if (fleets[[l]]$fleet_model == "manual") {
-        total_effort <- fleets[[current_fleet]]$effort[s - 1]
+        total_effort <- fleets[[l]]$effort[s - 1]
       } else {
         total_effort <- sum(fleets[[l]]$e_p_s[, s - 1] * concentrator)
       }
@@ -556,6 +555,7 @@ simmar <- function(fauna = list(),
 
         fleets[[l]]$e_p_s[, s] <-
           total_effort * alloc # distribute fishing effort by fishable biomass
+
       } else if ((fleets[[l]]$spatial_allocation == "ifd")) {
         cost_patch <- fleets[[l]]$cost_per_patch
         c0 <- 2 # fleets[[l]]$cost_per_unit_effort
