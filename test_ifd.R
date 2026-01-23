@@ -20,7 +20,7 @@ yft_home_range <- 6
 
 yft_depletion <- 0.5
 
-mako_depletion <- 0.4
+mako_depletion <- 0.2
 
 mako_home_range <- 5
 
@@ -32,7 +32,7 @@ mako_b0 <- 1e7
 
 yft_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   mutate(
-    habitat = .05 * x,
+    habitat = 0.9 * x,
     habitat = habitat / max(habitat) * yft_home_range
   ) %>%
   pivot_wider(names_from = x, values_from = habitat) %>%
@@ -42,7 +42,7 @@ yft_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
 
 mako_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   mutate(
-    habitat = dnorm(x, resolution, 8),
+    habitat = dnorm(x, resolution, 100),
     habitat = habitat / max(habitat) * mako_home_range
   ) %>%
   pivot_wider(names_from = x, values_from = habitat) %>%
@@ -108,7 +108,7 @@ fleets <- list("longline" = create_fleet(
     )
   ),
   mpa_response = "stay",
-  base_effort = 100* prod(resolution),
+  base_effort = prod(resolution),
   resolution = resolution
 ))
 
@@ -176,4 +176,5 @@ a = proc_nearshore$fleets  |>
 
 plot_marlin(proc_nearshore, max_scale = FALSE, plot_var = "b")
 plot_marlin(proc_nearshore, max_scale = FALSE, plot_var = "ssb")
+
 

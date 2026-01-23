@@ -606,9 +606,9 @@ simmar <- function(fauna = list(),
         res <- allocate_until_stable_patchwise(
           e_init = e_p, E_tot = sum(e_p),
           v_mats = pre$v_mats, other_mats = pre$v_mats, b_mats = pre$b_mats, price_s = pre$price_s, time_step,
-          c0 = fleets[[l]]$cost_per_unit_effort, gamma = fleets[[l]]$effort_cost_exponent, travel_p = fleets[[l]]$cost_per_patch, open_p = (fleet_fishable[[l]] == 1),
-          beta = 7, rho = 0.1,
-          max_iter = 5, tol = 0.01,
+          c0 = 0, gamma = fleets[[l]]$effort_cost_exponent, travel_p = fleets[[l]]$cost_per_patch, open_p = (fleet_fishable[[l]] == 1),
+          beta = 6, rho = 0.1,
+          max_iter = 40, tol = 0.01,
           norm = "iqr",
           cap_frac = 0.03,
           record = FALSE
