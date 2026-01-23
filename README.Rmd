@@ -210,7 +210,7 @@ fleets$longline$metiers$bigeye$plot_selectivity()
 We then use the `tune_fleets` function as needed to tune the dynamics of the fleet to achieve specific objectives. In this case, we specified a target equilibrium fished depletion of 25% (meaning biomass at equilibrium is 25% of unfished biomass). `tune_fleets` adjusts the catchability coefficients by fleet to achieve the desired depletion level, taking into account the dynamics and `p_explt` values per metier. 
 
 ```{r}
-fleets <- tune_fleets(fauna, fleets, tune_type = "depletion")
+fleets <- tune_fleets(fauna, fleets, tune_type = "explt")
 
 fleets$longline$metiers$bigeye$plot_catchability()
 ```

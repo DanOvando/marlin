@@ -556,24 +556,66 @@ simmar <- function(fauna = list(),
 
         fleets[[l]]$e_p_s[, s] <-
           total_effort * alloc # distribute fishing effort by fishable biomass
-      } else if ((fleets[[l]]$spatial_allocation == "ifd")){
+      } else if ((fleets[[l]]$spatial_allocation == "ifd")) {
+        cost_patch <- fleets[[l]]$cost_per_patch
+        c0 <- 2 # fleets[[l]]$cost_per_unit_effort
+        gamma <- 1.2 # fleets[[l]]$effort_cost_exponent
+        fishable_int <- as.integer(fleet_fishable[[l]])
 
-        out <- allocate_ifd(
-          Etot_target = sum(e_p),
+        pre <- precompute_baranov_inputs(
           storage = storage[[s - 1]],
           fauna = fauna,
           fleets = fleets,
           target_fleet = l,
-          fleet_fishable = fleet_fishable,
           E_exo = NULL,
-          time_step = time_step
+          P = length(patches)
+        )
+
+        out <- cpp_allocate_ifd_kkt_fullsolve_fast(
+          Etot_target = sum(e_p, na.rm = TRUE),
+          alpha_mats = pre$alpha_mats,
+          other_mort_mats = pre$other_mort_mats,
+          biomass_mats = pre$biomass_mats,
+          price_s = pre$price_s,
+          cost_patch = cost_patch,
+          c0 = c0,
+          gamma = gamma,
+          fishable_int = fishable_int,
+          time_step = time_step,
+          include_costs = TRUE,
+          n_outer = 24L,
+          n_inner = 18L,
+          active_tol = 1e-14,
+          flat_tol_sd = 1e-6,
+          flat_tol_abs = 1e-10
         )
 
         alloc <- out$E_target / sum(out$E_target)
 
         fleets[[l]]$e_p_s[, s] <-
           total_effort * alloc # distribute fishing effort by IFD
+      } else if ((fleets[[l]]$spatial_allocation == "ifdish")) {
+        pre <- precompute_baranov_inputs_softmax(storage[[s - 1]],
+          fauna,
+          fleets,
+          l,
+          E_exo = NULL,
+          (patches)
+        )
 
+        res <- allocate_until_stable_patchwise(
+          e_init = e_p, E_tot = sum(e_p),
+          v_mats = pre$v_mats, other_mats = pre$v_mats, b_mats = pre$b_mats, price_s = pre$price_s, time_step,
+          c0 = fleets[[l]]$cost_per_unit_effort, gamma = fleets[[l]]$effort_cost_exponent, travel_p = fleets[[l]]$cost_per_patch, open_p = (fleet_fishable[[l]] == 1),
+          beta = 7, rho = 0.1,
+          max_iter = 5, tol = 0.01,
+          norm = "iqr",
+          cap_frac = 0.03,
+          record = FALSE
+        )
+
+        fleets[[l]]$e_p_s[, s] <-
+          res$e # distribute fishing effort by IFD
       } else {
         stop(
           "spatial effort allocation strategy not properly defined, check spatial_allocation and cost_per_unit_effort in fleet object"
@@ -806,6 +848,7 @@ simmar <- function(fauna = list(),
 
       storage[[s - 1]][[f]]$f_p_a_fl <-
         f_p_a_fl # store effort by patch by fleet (note that this is the same across species)
+
 
       if (any(tmp_e_p_fl < 0)) {
         stop("something hase gone very wrong, effort is negative")

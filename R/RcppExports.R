@@ -9,6 +9,10 @@ move_test <- function(seasonal_movement, movement_seasons, season) {
     .Call(`_marlin_move_test`, seasonal_movement, movement_seasons, season)
 }
 
+cpp_allocate_ifd_kkt_fullsolve_fast <- function(Etot_target, alpha_mats, other_mort_mats, biomass_mats, price_s, cost_patch, c0, gamma, fishable_int, time_step, include_costs, n_outer, n_inner, active_tol, flat_tol_sd, flat_tol_abs) {
+    .Call(`_marlin_cpp_allocate_ifd_kkt_fullsolve_fast`, Etot_target, alpha_mats, other_mort_mats, biomass_mats, price_s, cost_patch, c0, gamma, fishable_int, time_step, include_costs, n_outer, n_inner, active_tol, flat_tol_sd, flat_tol_abs)
+}
+
 move <- function(x, m) {
     .Call(`_marlin_move`, x, m)
 }

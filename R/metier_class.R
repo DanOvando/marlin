@@ -201,6 +201,7 @@ Metier <- R6::R6Class("metier",
 
       self$resolution <- critter$resolution
 
+
       if ((is.null(spatial_catchability))) {
         self$spatial_catchability <- rep(catchability, critter$patches)
       } else {
@@ -230,6 +231,9 @@ Metier <- R6::R6Class("metier",
 
         self$spatial_catchability <- tmp$catchability * catchability
       } # close deal with spatial q
+
+      self$vul_p_a = tcrossprod(self$spatial_catchability,self$sel_at_age)
+
     }, # close initialize
     #' plot selectivity
     #'    #'

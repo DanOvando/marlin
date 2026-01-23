@@ -60,11 +60,15 @@ fleet_tuner <- function(log_fs, fauna, fleets,e_fl, years = 50) {
     }
   }
 
+  tic()
   storage <- simmar(
     fauna = fauna,
     fleets = tfleets,
     years = years
   )
+  toc()
+
+
 
   # tmp <- purrr::map_dfr(storage[[length(storage)]], ~as.data.frame(.x$ssb_p_a), .id = "fauna")
 

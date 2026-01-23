@@ -36,6 +36,32 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// cpp_allocate_ifd_kkt_fullsolve_fast
+List cpp_allocate_ifd_kkt_fullsolve_fast(const double Etot_target, const List& alpha_mats, const List& other_mort_mats, const List& biomass_mats, const NumericVector& price_s, const NumericVector& cost_patch, const double c0, const double gamma, const IntegerVector& fishable_int, const double time_step, const bool include_costs, const int n_outer, const int n_inner, const double active_tol, const double flat_tol_sd, const double flat_tol_abs);
+RcppExport SEXP _marlin_cpp_allocate_ifd_kkt_fullsolve_fast(SEXP Etot_targetSEXP, SEXP alpha_matsSEXP, SEXP other_mort_matsSEXP, SEXP biomass_matsSEXP, SEXP price_sSEXP, SEXP cost_patchSEXP, SEXP c0SEXP, SEXP gammaSEXP, SEXP fishable_intSEXP, SEXP time_stepSEXP, SEXP include_costsSEXP, SEXP n_outerSEXP, SEXP n_innerSEXP, SEXP active_tolSEXP, SEXP flat_tol_sdSEXP, SEXP flat_tol_absSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const double >::type Etot_target(Etot_targetSEXP);
+    Rcpp::traits::input_parameter< const List& >::type alpha_mats(alpha_matsSEXP);
+    Rcpp::traits::input_parameter< const List& >::type other_mort_mats(other_mort_matsSEXP);
+    Rcpp::traits::input_parameter< const List& >::type biomass_mats(biomass_matsSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type price_s(price_sSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type cost_patch(cost_patchSEXP);
+    Rcpp::traits::input_parameter< const double >::type c0(c0SEXP);
+    Rcpp::traits::input_parameter< const double >::type gamma(gammaSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type fishable_int(fishable_intSEXP);
+    Rcpp::traits::input_parameter< const double >::type time_step(time_stepSEXP);
+    Rcpp::traits::input_parameter< const bool >::type include_costs(include_costsSEXP);
+    Rcpp::traits::input_parameter< const int >::type n_outer(n_outerSEXP);
+    Rcpp::traits::input_parameter< const int >::type n_inner(n_innerSEXP);
+    Rcpp::traits::input_parameter< const double >::type active_tol(active_tolSEXP);
+    Rcpp::traits::input_parameter< const double >::type flat_tol_sd(flat_tol_sdSEXP);
+    Rcpp::traits::input_parameter< const double >::type flat_tol_abs(flat_tol_absSEXP);
+    rcpp_result_gen = Rcpp::wrap(cpp_allocate_ifd_kkt_fullsolve_fast(Etot_target, alpha_mats, other_mort_mats, biomass_mats, price_s, cost_patch, c0, gamma, fishable_int, time_step, include_costs, n_outer, n_inner, active_tol, flat_tol_sd, flat_tol_abs));
+    return rcpp_result_gen;
+END_RCPP
+}
 // move
 NumericVector move(NumericVector x, Eigen::MatrixXd m);
 RcppExport SEXP _marlin_move(SEXP xSEXP, SEXP mSEXP) {
@@ -97,6 +123,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_marlin_sample_problem", (DL_FUNC) &_marlin_sample_problem, 2},
     {"_marlin_move_test", (DL_FUNC) &_marlin_move_test, 3},
+    {"_marlin_cpp_allocate_ifd_kkt_fullsolve_fast", (DL_FUNC) &_marlin_cpp_allocate_ifd_kkt_fullsolve_fast, 16},
     {"_marlin_move", (DL_FUNC) &_marlin_move, 2},
     {"_marlin_cpp_seq", (DL_FUNC) &_marlin_cpp_seq, 2},
     {"_marlin_sim_fish", (DL_FUNC) &_marlin_sim_fish, 23},
