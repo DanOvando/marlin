@@ -18,7 +18,7 @@ fleet_tuner <- function(log_fs, fauna, fleets,e_fl, years = 50) {
 
   tfleets <- fleets
 
-  for (i in length(tfleets)){
+  for (i in seq_along(tfleets)){
 
 
     for (j in 1:length(tfleets[[i]]$metiers)){
@@ -38,10 +38,6 @@ fleet_tuner <- function(log_fs, fauna, fleets,e_fl, years = 50) {
       f_metier <-  tfleets[[f]]$metiers[[ff]]$p_explt * f_critter
 
       metier_q <- f_metier / e_fl[f]
-
-      # print(e_fl)
-      #
-      # print(metier_q)
 
       tfleets[[f]]$metiers[[ff]]$catchability <- metier_q
 
@@ -94,9 +90,12 @@ fleet_tuner <- function(log_fs, fauna, fleets,e_fl, years = 50) {
 
   tmp$depletion <- tmp$ssb / ssb0s
 
-  ss <- sum((log(tmp$depletion) - log(target_depletion))^2)
+  r <- log(pmax(  tmp$depletion , 1e-12)) - log(target_depletion)
+
+  # if something pathological happened, return big residuals (not stop())
+  if (any(!is.finite(r))) r <- rep(1e6, length(r))
 
   rm(storage)
 
-  return(ss)
+  return(r)
 }

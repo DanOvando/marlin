@@ -445,13 +445,13 @@ yft_home_range <- 6
 
 yft_depletion <- 0.5
 
-mako_depletion <- 0.4
+mako_depletion <- 0.2
 
 mako_home_range <- 5
 
-yft_b0 <- 1000
+yft_b0 <- 10000
 
-mako_b0 <- 42
+mako_b0 <- 420
 
 # for now make up some habitat
 
@@ -534,7 +534,8 @@ fleets <- list("longline" = create_fleet(
   ),
   mpa_response = "stay",
   base_effort = prod(resolution),
-  resolution = resolution
+  resolution = resolution,
+  spatial_allocation = "rpue"
 ))
 
 a <- Sys.time()

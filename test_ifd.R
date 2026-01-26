@@ -6,6 +6,8 @@ library(tidyverse)
 
 library(tictoc)
 
+library(plot.matrix)
+
 resolution <- c(20, 20) # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches
 
 seasons <- 1
@@ -18,9 +20,9 @@ steps <- years * seasons
 
 yft_home_range <- 6
 
-yft_depletion <- 0.5
+yft_depletion <- 0.9
 
-mako_depletion <- 0.2
+mako_depletion <- 0.9
 
 mako_home_range <- 5
 
@@ -32,12 +34,14 @@ mako_b0 <- 1e7
 
 yft_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   mutate(
-    habitat = 0.9 * x,
+    habitat = 0.9*x,
     habitat = habitat / max(habitat) * yft_home_range
   ) %>%
   pivot_wider(names_from = x, values_from = habitat) %>%
   select(-y) %>%
   as.matrix()
+
+plot(yft_habitat)
 
 
 mako_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
@@ -94,7 +98,7 @@ fleets <- list("longline" = create_fleet(
       sel_form = "logistic", # selectivity form, one of logistic or dome
       sel_start = .3, # percentage of length at maturity that selectivity starts
       sel_delta = .1, # additional percentage of sel_start where selectivity asymptotes
-      catchability = .0001, # overwritten by tune_fleet but can be set manually here
+      catchability = .2, # overwritten by tune_fleet but can be set manually here
       p_explt = 1
     ),
     `Shortfin Mako` = Metier$new(
@@ -103,10 +107,13 @@ fleets <- list("longline" = create_fleet(
       sel_form = "logistic",
       sel_start = .1,
       sel_delta = .01,
-      catchability = 0.001,
+      catchability = 0.2,
       p_explt = 1
     )
   ),
+  cost_per_unit_effort = 10000,
+  effort_cost_exponent = 2,
+  spatial_allocation = "ifdish",
   mpa_response = "stay",
   base_effort = prod(resolution),
   resolution = resolution
@@ -124,14 +131,14 @@ a <- Sys.time()
 
 # fleets <- fleets
 #
-fleets$longline$spatial_allocation <- "ifdish"
+# fleets$longline$spatial_allocation <- "ifdish"
 # tic()
 # fleets <- tune_fleets(fauna, fleets, tune_type = "depletion") # tunes the catchability by fleet to achieve target depletion
 # toc()
 
-# tic()
-# fleets <- tune_fleets(fauna, fleets, tune_type = "depletion") # tunes the catchability by fleet to achieve target depletion
-# toc()
+tic()
+fleets <- tune_fleets(fauna, fleets, tune_type = "depletion") # tunes the catchability by fleet to achieve target depletion
+toc()
 # fleets$longline$base_effort
 # after =  fleets$longline$metiers$`Yellowfin Tuna`$catchability
 
@@ -145,11 +152,11 @@ fleets$longline$spatial_allocation <- "ifdish"
 
 # fleets$longline$metiers$`Yellowfin Tuna`$spatial_catchability
 
-Sys.time() - a
+# Sys.time() - a
 
 # run simulations
 
-a <- Sys.time()
+# a <- Sys.time()
 
 nearshore <- simmar(
   fauna = fauna,
@@ -157,7 +164,7 @@ nearshore <- simmar(
   years = years
 )
 
-Sys.time() - a
+# Sys.time() - a
 
 proc_nearshore <- process_marlin(nearshore, time_step = fauna[[1]]$time_step, keep_age = FALSE)
 

@@ -886,7 +886,7 @@ Fish <- R6::R6Class(
         ggplot2::scale_fill_manual(values = marlin::marlin_pal("diverging_fish")(length(unique(
           tidy_ogives$trait
         )))) +
-        ggplot2::labs(title = self$common_name)
+        ggplot2::labs(title = ifelse(is.na(self$common_name), self$scientific_name, self$common_name))
     },
     #' plot diffusion
     #'

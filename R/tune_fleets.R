@@ -25,7 +25,7 @@ tune_fleets <- function(fauna,
     tune_type = "f"
   }
 
-  for (i in length(tfleets)){
+  for (i in seq_along(tfleets)){
 
 
     for (j in 1:length(tfleets[[i]]$metiers)){
@@ -117,26 +117,43 @@ tune_fleets <- function(fauna,
 
   if (tune_type == "depletion") {
 
+    #
+    # log_fs <-
+    #   optim(
+    #     par = rep(log(3), length(fauna)),
+    #     fleet_tuner,
+    #     fleets = tfleets,
+    #     e_fl = e_fl,
+    #     fauna = fauna,
+    #     years = years,
+    #     upper = rep(log(7), length(fauna)),
+    #     method = "L-BFGS-B"
+    #   )
 
-    log_fs <-
-      optim(
-        par = rep(3, length(fauna)),
-        fleet_tuner,
+    log_fs <- nleqslv::nleqslv(
+        x = rep(log(0.1), length(fauna)),
+        fn = fleet_tuner,
+        method = "Broyden",
+        global = "dbldog",   # trust-region-ish; good default for gnarly sims
+        control = list(
+          maxit = 50,
+          xtol = 1e-3,
+          ftol = 1e-3,
+          trace = 0
+        ),
         fleets = tfleets,
         e_fl = e_fl,
         fauna = fauna,
         years = years,
-        upper = rep(log(7), length(fauna)),
-        method = "L-BFGS-B"
       )
 
-    if (log_fs$value > .1){
+    if (!(log_fs$termcd %in% c(1,2))){
       warning("tune_fleets failed to match desired depletion levels, check whether target depletion is plausible given supplied selectivities, fishing grounds, and p_explt.")
     }
 
     for (f in seq_along(tfleets)) {
       for (ff in seq_along(fauna)) {
-        f_critter <- exp(log_fs$par[ff])
+        f_critter <- exp(log_fs$x[ff])
 
         f_metier <-  tfleets[[f]]$metiers[[ff]]$p_explt * f_critter
 
@@ -159,25 +176,6 @@ tune_fleets <- function(fauna,
       } # close internal fauna loop
     } # close fleet loop
   } # close depletion
-
-  # storage <- simmar(
-  #   fauna = fauna,
-  #   tfleets = tfleets,
-  #   years = years
-  # )
-  #
-  # revenue <-
-  #   purrr::map(
-  #     storage[[1]],
-  #     ~ data.frame(expand.grid(dimnames(.x$r_p_a_fl)), value = as.vector(.x$r_p_a_fl)) |>
-  #       purrr::set_names("patch", "age", "fleet", "revenue") |>
-  #       dplyr::mutate(across(patch:age, ~ as.numeric(as.character(
-  #         .x
-  #       ))))
-  #   ) %>%
-  #   dplyr::bind_rows(.id = "critter") %>%
-  #   dplyr::group_by(fleet) %>%
-  #   dplyr::summarise(revenue = sum(revenue, na.rm = TRUE))
 
 
   if (tune_costs) {

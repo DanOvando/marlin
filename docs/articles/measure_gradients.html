@@ -229,7 +229,7 @@ Simulated Species Habitat
 <span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span>, tune_type <span class="op">=</span> <span class="va">tune_type</span><span class="op">)</span> <span class="co"># tunes the catchability by fleet to achieve target depletion</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 21.67564 secs</span></span>
+<span><span class="co">#&gt; Time difference of 2.327689 secs</span></span>
 <span></span>
 <span><span class="co"># run simulations</span></span>
 <span></span>
@@ -242,7 +242,7 @@ Simulated Species Habitat
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.216903 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.05594993 secs</span></span>
 <span></span>
 <span></span>
 <span></span>
@@ -287,7 +287,7 @@ Simulated Species Habitat
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.107743 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.08990788 secs</span></span>
 <span></span>
 <span><span class="va">proc_mpa_spillover</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">mpa_spillover</span>, time_step <span class="op">=</span> <span class="va">fauna</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">time_step</span><span class="op">)</span></span></code></pre></div>
 <p>We can use <code><a href="../reference/get_distance_to_mpas.html">marlin::get_distance_to_mpas</a></code> to measure the
@@ -465,8 +465,8 @@ Negative distance means inside the MPA.
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; SAMPLING FOR MODEL 'continuous' NOW (CHAIN 1).</span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
-<span><span class="co">#&gt; Chain 1: Gradient evaluation took 0.000948 seconds</span></span>
-<span><span class="co">#&gt; Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 9.48 seconds.</span></span>
+<span><span class="co">#&gt; Chain 1: Gradient evaluation took 0.000233 seconds</span></span>
+<span><span class="co">#&gt; Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 2.33 seconds.</span></span>
 <span><span class="co">#&gt; Chain 1: Adjust your expectations accordingly!</span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
@@ -483,9 +483,9 @@ Negative distance means inside the MPA.
 <span><span class="co">#&gt; Chain 1: Iteration: 1800 / 2000 [ 90%]  (Sampling)</span></span>
 <span><span class="co">#&gt; Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)</span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
-<span><span class="co">#&gt; Chain 1:  Elapsed Time: 0.026 seconds (Warm-up)</span></span>
-<span><span class="co">#&gt; Chain 1:                0.029 seconds (Sampling)</span></span>
-<span><span class="co">#&gt; Chain 1:                0.055 seconds (Total)</span></span>
+<span><span class="co">#&gt; Chain 1:  Elapsed Time: 0.021 seconds (Warm-up)</span></span>
+<span><span class="co">#&gt; Chain 1:                0.022 seconds (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1:                0.043 seconds (Total)</span></span>
 <span><span class="co">#&gt; Chain 1:</span></span>
 <span></span>
 <span><span class="va">response_ratio</span> <span class="op">&lt;-</span> <span class="fu">tidybayes</span><span class="fu">::</span><span class="fu"><a href="https://mjskay.github.io/tidybayes/reference/tidy_draws.html" class="external-link">tidy_draws</a></span><span class="op">(</span><span class="va">response_ratio_model</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -611,79 +611,8 @@ predicted</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; SAMPLING FOR MODEL 'continuous' NOW (CHAIN 1).</span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
-<span><span class="co">#&gt; Chain 1: Gradient evaluation took 0.000264 seconds</span></span>
-<span><span class="co">#&gt; Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 2.64 seconds.</span></span>
-<span><span class="co">#&gt; Chain 1: Adjust your expectations accordingly!</span></span>
-<span><span class="co">#&gt; Chain 1: </span></span>
-<span><span class="co">#&gt; Chain 1: </span></span>
-<span><span class="co">#&gt; Chain 1: Iteration:    1 / 2000 [  0%]  (Warmup)</span></span>
-<span><span class="co">#&gt; Chain 1: Iteration:  200 / 2000 [ 10%]  (Warmup)</span></span>
-<span><span class="co">#&gt; Chain 1: Iteration:  400 / 2000 [ 20%]  (Warmup)</span></span>
-<span><span class="co">#&gt; Chain 1: Iteration:  600 / 2000 [ 30%]  (Warmup)</span></span>
-<span><span class="co">#&gt; Chain 1: Iteration:  800 / 2000 [ 40%]  (Warmup)</span></span>
-<span><span class="co">#&gt; Chain 1: Iteration: 1000 / 2000 [ 50%]  (Warmup)</span></span>
-<span><span class="co">#&gt; Chain 1: Iteration: 1001 / 2000 [ 50%]  (Sampling)</span></span>
-<span><span class="co">#&gt; Chain 1: Iteration: 1200 / 2000 [ 60%]  (Sampling)</span></span>
-<span><span class="co">#&gt; Chain 1: Iteration: 1400 / 2000 [ 70%]  (Sampling)</span></span>
-<span><span class="co">#&gt; Chain 1: Iteration: 1600 / 2000 [ 80%]  (Sampling)</span></span>
-<span><span class="co">#&gt; Chain 1: Iteration: 1800 / 2000 [ 90%]  (Sampling)</span></span>
-<span><span class="co">#&gt; Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)</span></span>
-<span><span class="co">#&gt; Chain 1: </span></span>
-<span><span class="co">#&gt; Chain 1:  Elapsed Time: 0.036 seconds (Warm-up)</span></span>
-<span><span class="co">#&gt; Chain 1:                0.044 seconds (Sampling)</span></span>
-<span><span class="co">#&gt; Chain 1:                0.08 seconds (Total)</span></span>
-<span><span class="co">#&gt; Chain 1:</span></span>
-<span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">b_gradient_model</span><span class="op">)</span></span></code></pre></div>
-<p><img src="measure_gradients_files/figure-html/unnamed-chunk-7-1.png" class="r-plt" alt="" width="700"></p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="va">cpue_gradient_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mc-stan.org/rstanarm/reference/stan_glm.html" class="external-link">stan_glm</a></span><span class="op">(</span></span>
-<span>  <span class="va">cpue</span> <span class="op">~</span> <span class="va">distance_to_mpa_edge</span>,</span>
-<span>  data <span class="op">=</span> <span class="va">fishery_indicators</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="op">!</span><span class="va">mpa</span><span class="op">)</span>,</span>
-<span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">Gamma</a></span><span class="op">(</span>link <span class="op">=</span> <span class="st">"log"</span><span class="op">)</span>,</span>
-<span>  chains <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  cores <span class="op">=</span> <span class="fl">1</span></span>
-<span><span class="op">)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; SAMPLING FOR MODEL 'continuous' NOW (CHAIN 1).</span></span>
-<span><span class="co">#&gt; Chain 1: </span></span>
-<span><span class="co">#&gt; Chain 1: Gradient evaluation took 1.5e-05 seconds</span></span>
-<span><span class="co">#&gt; Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.15 seconds.</span></span>
-<span><span class="co">#&gt; Chain 1: Adjust your expectations accordingly!</span></span>
-<span><span class="co">#&gt; Chain 1: </span></span>
-<span><span class="co">#&gt; Chain 1: </span></span>
-<span><span class="co">#&gt; Chain 1: Iteration:    1 / 2000 [  0%]  (Warmup)</span></span>
-<span><span class="co">#&gt; Chain 1: Iteration:  200 / 2000 [ 10%]  (Warmup)</span></span>
-<span><span class="co">#&gt; Chain 1: Iteration:  400 / 2000 [ 20%]  (Warmup)</span></span>
-<span><span class="co">#&gt; Chain 1: Iteration:  600 / 2000 [ 30%]  (Warmup)</span></span>
-<span><span class="co">#&gt; Chain 1: Iteration:  800 / 2000 [ 40%]  (Warmup)</span></span>
-<span><span class="co">#&gt; Chain 1: Iteration: 1000 / 2000 [ 50%]  (Warmup)</span></span>
-<span><span class="co">#&gt; Chain 1: Iteration: 1001 / 2000 [ 50%]  (Sampling)</span></span>
-<span><span class="co">#&gt; Chain 1: Iteration: 1200 / 2000 [ 60%]  (Sampling)</span></span>
-<span><span class="co">#&gt; Chain 1: Iteration: 1400 / 2000 [ 70%]  (Sampling)</span></span>
-<span><span class="co">#&gt; Chain 1: Iteration: 1600 / 2000 [ 80%]  (Sampling)</span></span>
-<span><span class="co">#&gt; Chain 1: Iteration: 1800 / 2000 [ 90%]  (Sampling)</span></span>
-<span><span class="co">#&gt; Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)</span></span>
-<span><span class="co">#&gt; Chain 1: </span></span>
-<span><span class="co">#&gt; Chain 1:  Elapsed Time: 0.039 seconds (Warm-up)</span></span>
-<span><span class="co">#&gt; Chain 1:                0.037 seconds (Sampling)</span></span>
-<span><span class="co">#&gt; Chain 1:                0.076 seconds (Total)</span></span>
-<span><span class="co">#&gt; Chain 1:</span></span>
-<span></span>
-<span><span class="va">effort_gradient_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mc-stan.org/rstanarm/reference/stan_glm.html" class="external-link">stan_glm</a></span><span class="op">(</span></span>
-<span>  <span class="va">effort</span> <span class="op">~</span> <span class="va">distance_to_mpa_edge</span> <span class="op">+</span> <span class="va">scaled_ssb0_p</span>,</span>
-<span>  data <span class="op">=</span> <span class="va">fishery_indicators</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="op">!</span><span class="va">mpa</span><span class="op">)</span>,</span>
-<span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">Gamma</a></span><span class="op">(</span>link <span class="op">=</span> <span class="st">"log"</span><span class="op">)</span>,</span>
-<span>  chains <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  cores <span class="op">=</span> <span class="fl">1</span></span>
-<span><span class="op">)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; SAMPLING FOR MODEL 'continuous' NOW (CHAIN 1).</span></span>
-<span><span class="co">#&gt; Chain 1: </span></span>
-<span><span class="co">#&gt; Chain 1: Gradient evaluation took 1.9e-05 seconds</span></span>
-<span><span class="co">#&gt; Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.19 seconds.</span></span>
+<span><span class="co">#&gt; Chain 1: Gradient evaluation took 0.0001 seconds</span></span>
+<span><span class="co">#&gt; Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 1 seconds.</span></span>
 <span><span class="co">#&gt; Chain 1: Adjust your expectations accordingly!</span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
@@ -701,8 +630,79 @@ predicted</p>
 <span><span class="co">#&gt; Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)</span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
 <span><span class="co">#&gt; Chain 1:  Elapsed Time: 0.035 seconds (Warm-up)</span></span>
-<span><span class="co">#&gt; Chain 1:                0.04 seconds (Sampling)</span></span>
-<span><span class="co">#&gt; Chain 1:                0.075 seconds (Total)</span></span>
+<span><span class="co">#&gt; Chain 1:                0.036 seconds (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1:                0.071 seconds (Total)</span></span>
+<span><span class="co">#&gt; Chain 1:</span></span>
+<span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">b_gradient_model</span><span class="op">)</span></span></code></pre></div>
+<p><img src="measure_gradients_files/figure-html/unnamed-chunk-7-1.png" class="r-plt" alt="" width="700"></p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="va">cpue_gradient_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mc-stan.org/rstanarm/reference/stan_glm.html" class="external-link">stan_glm</a></span><span class="op">(</span></span>
+<span>  <span class="va">cpue</span> <span class="op">~</span> <span class="va">distance_to_mpa_edge</span>,</span>
+<span>  data <span class="op">=</span> <span class="va">fishery_indicators</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="op">!</span><span class="va">mpa</span><span class="op">)</span>,</span>
+<span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">Gamma</a></span><span class="op">(</span>link <span class="op">=</span> <span class="st">"log"</span><span class="op">)</span>,</span>
+<span>  chains <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  cores <span class="op">=</span> <span class="fl">1</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; SAMPLING FOR MODEL 'continuous' NOW (CHAIN 1).</span></span>
+<span><span class="co">#&gt; Chain 1: </span></span>
+<span><span class="co">#&gt; Chain 1: Gradient evaluation took 1.6e-05 seconds</span></span>
+<span><span class="co">#&gt; Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.16 seconds.</span></span>
+<span><span class="co">#&gt; Chain 1: Adjust your expectations accordingly!</span></span>
+<span><span class="co">#&gt; Chain 1: </span></span>
+<span><span class="co">#&gt; Chain 1: </span></span>
+<span><span class="co">#&gt; Chain 1: Iteration:    1 / 2000 [  0%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration:  200 / 2000 [ 10%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration:  400 / 2000 [ 20%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration:  600 / 2000 [ 30%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration:  800 / 2000 [ 40%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 1000 / 2000 [ 50%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 1001 / 2000 [ 50%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 1200 / 2000 [ 60%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 1400 / 2000 [ 70%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 1600 / 2000 [ 80%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 1800 / 2000 [ 90%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1: </span></span>
+<span><span class="co">#&gt; Chain 1:  Elapsed Time: 0.035 seconds (Warm-up)</span></span>
+<span><span class="co">#&gt; Chain 1:                0.035 seconds (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1:                0.07 seconds (Total)</span></span>
+<span><span class="co">#&gt; Chain 1:</span></span>
+<span></span>
+<span><span class="va">effort_gradient_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mc-stan.org/rstanarm/reference/stan_glm.html" class="external-link">stan_glm</a></span><span class="op">(</span></span>
+<span>  <span class="va">effort</span> <span class="op">~</span> <span class="va">distance_to_mpa_edge</span> <span class="op">+</span> <span class="va">scaled_ssb0_p</span>,</span>
+<span>  data <span class="op">=</span> <span class="va">fishery_indicators</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="op">!</span><span class="va">mpa</span><span class="op">)</span>,</span>
+<span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">Gamma</a></span><span class="op">(</span>link <span class="op">=</span> <span class="st">"log"</span><span class="op">)</span>,</span>
+<span>  chains <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  cores <span class="op">=</span> <span class="fl">1</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; SAMPLING FOR MODEL 'continuous' NOW (CHAIN 1).</span></span>
+<span><span class="co">#&gt; Chain 1: </span></span>
+<span><span class="co">#&gt; Chain 1: Gradient evaluation took 1.4e-05 seconds</span></span>
+<span><span class="co">#&gt; Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.14 seconds.</span></span>
+<span><span class="co">#&gt; Chain 1: Adjust your expectations accordingly!</span></span>
+<span><span class="co">#&gt; Chain 1: </span></span>
+<span><span class="co">#&gt; Chain 1: </span></span>
+<span><span class="co">#&gt; Chain 1: Iteration:    1 / 2000 [  0%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration:  200 / 2000 [ 10%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration:  400 / 2000 [ 20%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration:  600 / 2000 [ 30%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration:  800 / 2000 [ 40%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 1000 / 2000 [ 50%]  (Warmup)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 1001 / 2000 [ 50%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 1200 / 2000 [ 60%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 1400 / 2000 [ 70%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 1600 / 2000 [ 80%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 1800 / 2000 [ 90%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1: </span></span>
+<span><span class="co">#&gt; Chain 1:  Elapsed Time: 0.038 seconds (Warm-up)</span></span>
+<span><span class="co">#&gt; Chain 1:                0.043 seconds (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1:                0.081 seconds (Total)</span></span>
 <span><span class="co">#&gt; Chain 1:</span></span>
 <span></span>
 <span><span class="fu"><a href="https://mc-stan.org/bayesplot/reference/MCMC-distributions.html" class="external-link">mcmc_hist</a></span><span class="op">(</span><span class="va">b_gradient_model</span>, pars <span class="op">=</span> <span class="st">"distance_to_mpa_edge"</span><span class="op">)</span></span>
