@@ -535,7 +535,9 @@ fleets <- list("longline" = create_fleet(
   mpa_response = "stay",
   base_effort = prod(resolution),
   resolution = resolution,
-  spatial_allocation = "rpue"
+  spatial_allocation = "rpue",
+  cost_per_unit_effort = 1,
+  effort_cost_exponent = 1.3
 ))
 
 a <- Sys.time()
@@ -545,7 +547,7 @@ a <- Sys.time()
 # fleets$longline$metiers$`Yellowfin Tuna`$spatial_catchability
 
 
-fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
+fleets <- tune_fleets(fauna, fleets, tune_type = tune_type, tune_costs = FALSE) # tunes the catchability by fleet to achieve target depletion
 
 # fleets$longline$base_effort
 # after =  fleets$longline$metiers$`Yellowfin Tuna`$catchability
@@ -667,7 +669,7 @@ fauna <-
 
 fauna$`Shortfin Mako`$plot()
 
-fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
+fleets <- tune_fleets(fauna, fleets, tune_type = tune_type,tune_costs = FALSE) # tunes the catchability by fleet to achieve target depletion
 
 # run simulations
 

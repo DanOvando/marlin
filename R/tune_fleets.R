@@ -8,7 +8,6 @@
 #' @param years the number of years to tune over
 #' @param tune_type one of 'f' or 'depletion' to tune catchability to achieve a desired fishing mortality rate (f) or a target depletion (B/B0)
 #' @param tune_costs TRUE or FALSE to tune costs to a target cost to revenue ratio
-#' @param fine_tune_costs TRUE or FALSE
 #'
 #' @return tuned fleet object
 #' @export
@@ -16,8 +15,7 @@ tune_fleets <- function(fauna,
                         fleets,
                         years = 50,
                         tune_type = "f",
-                        tune_costs = TRUE,
-                        fine_tune_costs = TRUE) {
+                        tune_costs = TRUE) {
 
   tfleets <- fleets
 
