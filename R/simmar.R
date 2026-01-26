@@ -395,6 +395,14 @@ simmar <- function(fauna = list(),
         }
 
         fleets[[l]]$e_p_s[, s] <- total_effort * alloc
+      } else if (fleets[[l]]$spatial_allocation == "uniform"){
+
+        if (sum(fleet_fishable[[l]]) == 0) {
+          alloc <- 0
+        } else {
+          alloc <- fleet_fishable[[l]] / sum(fleet_fishable[[l]])
+        }
+
       } else if (fleets[[l]]$spatial_allocation == "rpue") {
         if (sum(fleet_fishable[[l]]) == 0) {
           alloc <- 0
@@ -500,7 +508,7 @@ simmar <- function(fauna = list(),
 
         alloc <- out$E_target / sum(out$E_target)
         fleets[[l]]$e_p_s[, s] <- total_effort * alloc
-      } else if (fleets[[l]]$spatial_allocation == "ifdish") {
+      } else if (fleets[[l]]$spatial_allocation == "marginal_profits") {
         pre <- precompute_baranov_inputs_softmax(
           storage[[s - 1]],
           fauna,

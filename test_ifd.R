@@ -113,7 +113,7 @@ fleets <- list("longline" = create_fleet(
   ),
   cost_per_unit_effort = 10000,
   effort_cost_exponent = 2,
-  spatial_allocation = "ifdish",
+  spatial_allocation = "marginal_profits",
   mpa_response = "stay",
   base_effort = prod(resolution),
   resolution = resolution
