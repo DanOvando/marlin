@@ -109,7 +109,7 @@ simmar <- function(fauna = list(),
     1:steps_per_year,
     sep = "_"
   )
-  step_names <- step_names[1:(steps + offset)]
+  step_names <- step_names[(1:steps) + offset]
 
   # --- SPEED: parse year/season ONCE (avoid repeated stringr in the step loop) ---
   step_year   <- as.integer(sub("_.*$", "", step_names))
