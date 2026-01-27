@@ -37,6 +37,16 @@ simmar <- function(fauna = list(),
 
   fauni <- names(fauna)
 
+  # if initial_conditions is passed, enforce names/order too (cheap and catches a ton)
+  if (!all(is.na(initial_conditions))) {
+    initial_conditions <- rlang::set_names(initial_conditions, fauni)
+    initial_conditions <- initial_conditions[fauni]
+  }
+
+  if (is.null(fauni) || anyNA(fauni) || any(fauni == "") || any(duplicated(fauni))) {
+    stop("fauna must be a *named* list with unique, non-empty species names.")
+  }
+
   n_critters <- length(fauna)
 
   fleet_names <- names(fleets)
@@ -124,6 +134,15 @@ simmar <- function(fauna = list(),
         log_rec_devs[i, ] <- ac_recs * log_rec_devs[i - 1, ] + ar_scale * eps[i, ]
       }
     }
+  } else {
+
+    if (is.null(colnames(log_rec_devs)) ||
+        !setequal(colnames(log_rec_devs), names(fauna))) {
+      stop("column names of log_rec_devs must match those of fauna")
+    }
+    log_rec_devs <- log_rec_devs[, names(fauna), drop = FALSE]
+
+
   }
 
   # step_names <- step_names[1:steps] # chop back to the actual number of steps used; works this way in case there are multiple steps per year but an incomplete number of years
@@ -161,6 +180,10 @@ simmar <- function(fauna = list(),
 
   fishing_seasons <-
     purrr::imap(fauna, season_foo, manager = manager) # figure out which seasons are open for each critter
+
+  if (!is.null(names(fishing_seasons)) && all(fauni %in% names(fishing_seasons))) {
+    fishing_seasons <- fishing_seasons[fauni]
+  }
 
   # --- Habitat handling (same logic, faster inner use) ---
   # We keep your expansion logic exactly, but ALSO precompute the per-step habitat vector
@@ -216,10 +239,15 @@ simmar <- function(fauna = list(),
   } # close check on supplied habitat
   # --- end habitat handling ---
 
-  storage <- vector("list", steps)
+  storage <- replicate(
+    steps,
+    setNames(vector("list", length(fauna)), names(fauna)),
+    simplify = FALSE
+  )
 
   storage[[1]] <-
     initial_conditions # start populations at initial conditions
+
 
   fleets <- purrr::map(
     fleets,
@@ -295,7 +323,10 @@ simmar <- function(fauna = list(),
           rowSums(r_p_f, na.rm = TRUE) # pull out total revenue for fleet l
       } else if (s <= 2) {
         for (f in seq_along(fauni)) {
-          last_b_p_a <- storage[[s - 1]][[f]]$b_p_a
+
+          critter <- fauni[f]
+
+          last_b_p_a <- storage[[s - 1]][[critter]]$b_p_a
 
           last_e_p <- fleets[[l]]$e_p_s[, s - 1]
 
@@ -304,13 +335,13 @@ simmar <- function(fauna = list(),
           # account for spatial catchability
           tmp <- 1 - exp(-(
             matrix(
-              fleets[[l]]$metiers[[fauni[f]]]$spatial_catchability,
+              fleets[[l]]$metiers[[critter]]$spatial_catchability,
               nrow = nrow(last_b_p_a),
               ncol = ncol(last_b_p_a),
               byrow = FALSE
             ) *
               matrix(
-                fleets[[l]]$metiers[[fauni[f]]]$sel_at_age,
+                fleets[[l]]$metiers[[critter]]$sel_at_age,
                 nrow = nrow(last_b_p_a),
                 ncol = ncol(last_b_p_a),
                 byrow = TRUE
@@ -318,12 +349,12 @@ simmar <- function(fauna = list(),
           ))
 
           last_b_p <-
-            rowSums(last_b_p_a * tmp * (current_season %in% fishing_seasons[[f]])) * fleet_fishable[[l]]
+            rowSums(last_b_p_a * tmp * (current_season %in% fishing_seasons[[critter]])) * fleet_fishable[[l]]
 
           r_p_f[, f] <-
-            last_b_p * fleets[[l]]$metiers[[fauni[f]]]$price
+            last_b_p * fleets[[l]]$metiers[[critter]]$price
 
-          f_q[f] <- fleets[[l]]$metiers[[fauni[f]]]$catchability
+          f_q[f] <- fleets[[l]]$metiers[[critter]]$catchability
         } # close fauni loop
 
         last_r_p <- rowSums(r_p_f, na.rm = TRUE)
@@ -519,8 +550,8 @@ simmar <- function(fauna = list(),
         )
 
         res <- allocate_until_stable_patchwise(
-          e_init = e_p, E_tot = sum(e_p),
-          v_mats = pre$v_mats, other_mats = pre$v_mats, b_mats = pre$b_mats, price_s = pre$price_s, time_step,
+          eff_init_p = e_p, E_tot = sum(e_p),
+          v_mats = pre$v_mats, other_mats = pre$other_mats, b_mats = pre$b_mats, price_s = pre$price_s, time_step,
           c0 = fleets$longline$cost_per_unit_effort, gamma = fleets[[l]]$effort_cost_exponent, travel_p = fleets[[l]]$cost_per_patch, open_p = (fleet_fishable[[l]] == 1),
           beta = 6, rho = 0.1,
           max_iter = 40, tol = 0.01,
@@ -536,9 +567,12 @@ simmar <- function(fauna = list(),
     } # close loop over fleets
 
     for (f in seq_along(fauni)) {
-      ages <- length(fauna[[f]]$length_at_age)
 
-      last_n_p_a <- storage[[s - 1]][[f]]$n_p_a
+      critter <- fauni[f]
+
+      ages <- length(fauna[[critter]]$length_at_age)
+
+      last_n_p_a <- storage[[s - 1]][[critter]]$n_p_a
 
       f_p_a <-
         matrix(0, nrow = patches, ncol = ages) # total fishing mortality by patch and age
@@ -547,26 +581,26 @@ simmar <- function(fauna = list(),
         array(
           0,
           dim = c(patches, ages, length(fleets)),
-          dimnames = list(1:patches, fauna[[f]]$ages, names(fleets))
+          dimnames = list(1:patches, fauna[[critter]]$ages, names(fleets))
         ) # storage for proportion of fishing mortality by patch, age, and fleet
 
       p_p_a_fl <-
         array(
           0,
           dim = c(patches, ages, length(fleets)),
-          dimnames = list(1:patches, fauna[[f]]$ages, names(fleets))
+          dimnames = list(1:patches, fauna[[critter]]$ages, names(fleets))
         ) # storage for price by patch, age, and fleet
 
       for (l in seq_along(fleet_names)) {
         tmp <-
           matrix(
-            fleets[[l]]$metiers[[fauni[f]]]$spatial_catchability,
+            fleets[[l]]$metiers[[critter]]$spatial_catchability,
             nrow = nrow(last_n_p_a),
             ncol = ncol(last_n_p_a),
             byrow = FALSE
           ) *
           matrix(
-            fleets[[l]]$metiers[[fauni[f]]]$sel_at_age,
+            fleets[[l]]$metiers[[critter]]$sel_at_age,
             nrow = nrow(last_n_p_a),
             ncol = ncol(last_n_p_a),
             byrow = TRUE
@@ -579,40 +613,40 @@ simmar <- function(fauna = list(),
         f_p_a_fl[, , l] <-
           fleets[[l]]$e_p_s[, s] * tmp
 
-        p_p_a_fl[, , l] <- fleets[[l]]$metiers[[fauni[f]]]$price
+        p_p_a_fl[, , l] <- fleets[[l]]$metiers[[critter]]$price
       } # calculate cumulative f at age by patch
 
       f_p_a_fl <-
         f_p_a_fl / array(
           f_p_a,
           dim = c(patches, ages, length(fleets)),
-          dimnames = list(1:patches, fauna[[f]]$ages, names(fleets))
+          dimnames = list(1:patches, fauna[[critter]]$ages, names(fleets))
         ) # f by patch, age, and fleet
 
-      movement <- fauna[[f]]$movement_matrix
+      movement <- fauna[[critter]]$movement_matrix
 
       # if there is updated habitat for the critter in question in current time step, update habitat
       if ((length(habitat) > 0) &
-          (names(fauna)[[f]] %in% names(habitat))) {
+          (critter %in% names(habitat))) {
         season_block <-
-          which(sapply(fauna[[f]]$movement_seasons, function(x, y) {
+          which(sapply(fauna[[critter]]$movement_seasons, function(x, y) {
             any(y %in% x)
           }, x = current_season)) # figure out which season block you are in
 
         # update habitat in this time step
-        current_habitat <- habitat[[names(fauna)[[f]]]][[s - 1]]
+        current_habitat <- habitat[[critter]][[s - 1]]
 
         # need to use pivot_longer to match patch order from expand_grid
         # SPEED (spirit-of-comment): we precomputed the equivalent patch-ordered vector with as.vector()
-        hab_vals <- habitat_vecs[[names(fauna)[[f]]]][[s - 1]]
+        hab_vals <- habitat_vecs[[critter]][[s - 1]]
 
         current_habitat <-
           pmin(exp((
             time_step * outer(hab_vals, hab_vals, "-")
-          ) / sqrt(patch_area)), fauna[[f]]$max_hab_mult) # convert habitat gradient into diffusion multiplier
+          ) / sqrt(patch_area)), fauna[[critter]]$max_hab_mult) # convert habitat gradient into diffusion multiplier
 
         diffusion_and_taxis <-
-          fauna[[f]]$diffusion_foundation[[season_block]] * current_habitat
+          fauna[[critter]]$diffusion_foundation[[season_block]] * current_habitat
 
         inst_movement_matrix <-
           prep_movement(diffusion_and_taxis, resolution = resolution)
@@ -624,13 +658,13 @@ simmar <- function(fauna = list(),
         }
       }
 
-      if (!(current_season %in% fishing_seasons[[names(fauna)[f]]])) {
+      if (!(current_season %in% fishing_seasons[[critter]])) {
         f_p_a <- f_p_a * 0
       }
 
-      fauna_rec_devs <- rep(exp(log_rec_devs[s, f] - fauna[[f]]$sigma_rec^2 / 2), patches)
+      fauna_rec_devs <- rep(exp(log_rec_devs[s, critter] - fauna[[critter]]$sigma_rec^2 / 2), patches)
 
-      pop <- fauna[[f]]$swim(
+      pop <- fauna[[critter]]$swim(
         season = current_season,
         adult_movement = movement,
         f_p_a = f_p_a,
@@ -641,13 +675,13 @@ simmar <- function(fauna = list(),
       c_p_a_fl <- f_p_a_fl * array(
         pop$c_p_a,
         dim = c(patches, ages, length(fleets)),
-        dimnames = list(1:patches, fauna[[f]]$ages, names(fleets))
+        dimnames = list(1:patches, fauna[[critter]]$ages, names(fleets))
       )
 
       fmult <- 1
-      if (length(manager$quotas[names(fauna)[f]]) > 0) {
-        if (manager$quotas[[names(fauna)[f]]] < sum(c_p_a_fl, na.rm = TRUE)) {
-          quota <- manager$quotas[[names(fauna)[f]]]
+      if (length(manager$quotas[critter]) > 0) {
+        if (manager$quotas[[critter]] < sum(c_p_a_fl, na.rm = TRUE)) {
+          quota <- manager$quotas[[critter]]
 
           fmulter <- optim(
             par = 0.9,
@@ -659,7 +693,7 @@ simmar <- function(fauna = list(),
             f_p_a = f_p_a,
             last_n_p_a = last_n_p_a,
             f_p_a_fl = f_p_a_fl,
-            f = f,
+            critter = critter,
             patches = patches,
             ages = ages,
             fleets = fleets,
@@ -672,7 +706,7 @@ simmar <- function(fauna = list(),
           fmult <- fmulter$par
           f_p_a <- f_p_a * fmult
 
-          pop <- fauna[[f]]$swim(
+          pop <- fauna[[critter]]$swim(
             season = current_season,
             adult_movement = movement,
             f_p_a = f_p_a,
@@ -683,7 +717,7 @@ simmar <- function(fauna = list(),
           c_p_a_fl <- f_p_a_fl * array(
             pop$c_p_a,
             dim = c(patches, ages, length(fleets)),
-            dimnames = list(1:patches, fauna[[f]]$ages, names(fleets))
+            dimnames = list(1:patches, fauna[[critter]]$ages, names(fleets))
           )
         }
       }
@@ -708,37 +742,37 @@ simmar <- function(fauna = list(),
           )
       }
 
-      storage[[s - 1]][[f]]$c_p_fl <-
+      storage[[s - 1]][[critter]]$c_p_fl <-
         c_p_fl # store catch by patch  by fleet
 
-      storage[[s - 1]][[f]]$r_p_fl <-
+      storage[[s - 1]][[critter]]$r_p_fl <-
         r_p_fl # store revenue by patch  by fleet
 
-      storage[[s - 1]][[f]]$prof_p_fl <-
+      storage[[s - 1]][[critter]]$prof_p_fl <-
         prof_p_fl # store profits by patch by fleet
 
-      storage[[s - 1]][[f]]$c_p_a_fl <-
+      storage[[s - 1]][[critter]]$c_p_a_fl <-
         c_p_a_fl # catch stored in each model is the catch that came from the last time step, so put in the right place here
 
-      storage[[s - 1]][[f]]$r_p_a_fl <-
+      storage[[s - 1]][[critter]]$r_p_a_fl <-
         r_p_a_fl # revenue stored in each model is the revenue that came from the last time step, so put in the right place here
 
-      storage[[s - 1]][[f]]$c_p_a <-
+      storage[[s - 1]][[critter]]$c_p_a <-
         pop$c_p_a # catch stored in each model is the catch that came from the last time step, so put in the right place here
 
-      storage[[s - 1]][[f]]$e_p_fl <-
+      storage[[s - 1]][[critter]]$e_p_fl <-
         tmp_e_p_fl # store effort by patch by fleet (note that this is the same across species)
 
-      storage[[s - 1]][[f]]$f_p_a_fl <-
+      storage[[s - 1]][[critter]]$f_p_a_fl <-
         f_p_a_fl # store effort by patch by fleet (note that this is the same across species)
 
       if (any(tmp_e_p_fl < 0)) {
         stop("something hase gone very wrong, effort is negative")
       }
 
-      storage[[s]][[f]] <- pop
+      storage[[s]][[critter]] <- pop
 
-      storage[[s]][[f]]$b0 <- fauna[[f]]$b0
+      storage[[s]][[critter]]$b0 <- fauna[[critter]]$b0
     } # close fauni, much faster this way than dopar, who knew
   } # close steps
 
@@ -749,6 +783,7 @@ simmar <- function(fauna = list(),
 
   storage <-
     storage[ifelse(keep_starting_step, 1, 2):pmax(2, steps - 1)] # since catch is retrospective, chop off last time step to ensure that every step has a catch history, and drop starting step is specified
+
   storage <-
     rlang::set_names(storage, nm = paste0(trimmed_names))
 

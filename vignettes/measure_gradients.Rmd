@@ -218,6 +218,8 @@ mpa_spillover <- simmar(
 Sys.time() - a
 
 proc_mpa_spillover <- process_marlin(mpa_spillover, time_step = fauna[[1]]$time_step)
+
+plot_marlin(proc_mpa_spillover)
 ```
 
 We can use `marlin::get_distance_to_mpas` to measure the euclidian distance between the centroid of each cell and the nearest MPA cell centroid. 

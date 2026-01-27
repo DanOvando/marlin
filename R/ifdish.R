@@ -2,13 +2,16 @@
 # marlin_softmax_patchwise_ragged_FAST.R
 #
 # End-to-end "fast swaps" applied:
-#   1) Replace finite-difference marginal with analytic marginal:
+#   1) Analytic marginal (no finite differences):
 #        marginal_unconstrained_ragged_analytic_fast()
-#   2) Replace O(P^2) swap-marginal with vectorized O(P):
+#   2) Vectorized swap-marginal in O(P):
 #        swap_marginal_from_m_fast()
 #
-# Everything else left as-is, except allocate_until_stable_patchwise()
-# now calls the new fast marginal + fast swap.
+# Changes in this version:
+#   - precompute_baranov_inputs_softmax() stores outputs by species name (critter)
+#   - fixed typo: v_mats[[critter]] (was [[critter]])
+#   - marginal_unconstrained_ragged_analytic_fast() iterates by species names
+#     and pulls prices by name (price_s[[critter]]) for extra robustness.
 #
 # Notes:
 # - Ragged ages by species => v_mats/other_mats/b_mats are lists of [P x A_s]
@@ -17,7 +20,7 @@
 # ============================================================
 
 # ----------------------------
-# 1) Precompute (unchanged)
+# 1) Precompute (name-safe)
 # ----------------------------
 
 precompute_baranov_inputs_softmax <- function(storage,
@@ -27,116 +30,130 @@ precompute_baranov_inputs_softmax <- function(storage,
                                               E_exo = NULL,
                                               P) {
   n_species <- length(storage)
+
+  critters <- names(fauna)
+
+  if (any(names(fauna) != names(storage))){
+    stop("fauna and storage must have the same names in the same order")
+  }
+
+  stopifnot(!is.null(critters), length(critters) == n_species)
+
   n_fleet <- length(fleets)
 
-  v_mats <- vector("list", n_species)
-  other_mats <- vector("list", n_species)
-  b_mats <- vector("list", n_species)
-  price_s <- numeric(n_species)
+  v_mats     <- setNames(vector("list", n_species), critters)
+  other_mats <- setNames(vector("list", n_species), critters)
+  b_mats     <- setNames(vector("list", n_species), critters)
 
-  for (s in seq_len(n_species)) {
-    b_pa <- storage[[s]]$b_p_a
+  price_s <- setNames(numeric(n_species), critters)
+
+  for (critter in critters) {
+    # biomass (P x A_s)
+    b_pa <- storage[[critter]]$b_p_a
     A_s <- ncol(b_pa)
     stopifnot(nrow(b_pa) == P)
 
-    met_t <- fleets[[target_fleet]]$metiers[[s]]
-    price_s[s] <- met_t$price
+    # target fleet metier for this species
+    met_t <- fleets[[target_fleet]]$metiers[[critter]]
+    price_s[[critter]] <- met_t$price
 
     v_pa <- met_t$vul_p_a
     stopifnot(!is.null(v_pa), nrow(v_pa) == P, ncol(v_pa) == A_s)
 
+    # exogenous fishing mortality from other fleets (as "other_fish_pa")
     other_fish_pa <- matrix(0, nrow = P, ncol = A_s)
 
     if (!is.null(E_exo) && n_fleet > 1) {
       for (fleet_idx in seq_len(n_fleet)) {
         if (fleet_idx == target_fleet) next
 
-        met_f <- fleets[[fleet_idx]]$metiers[[s]]
-        alpha_pa_f <- met_f$vul_p_a
-        stopifnot(!is.null(alpha_pa_f), nrow(alpha_pa_f) == P, ncol(alpha_pa_f) == A_s)
+        met_f <- fleets[[fleet_idx]]$metiers[[critter]]
+        v_pa_f <- met_f$vul_p_a
+        stopifnot(!is.null(v_pa_f), nrow(v_pa_f) == P, ncol(v_pa_f) == A_s)
 
-        E_p_f <- as.numeric(E_exo[[fleet_idx]])
-        stopifnot(length(E_p_f) == P)
+        eff_exo_p <- as.numeric(E_exo[[fleet_idx]])
+        stopifnot(length(eff_exo_p) == P)
 
-        other_fish_pa <- other_fish_pa + alpha_pa_f * E_p_f
+        # other_fish_pa += (v_pa_f) * eff_exo_p  (row-wise scaling)
+        other_fish_pa <- other_fish_pa + v_pa_f * eff_exo_p
       }
     }
 
-    m_a <- fauna[[s]]$m_at_age
+    # natural mortality for this species (length A_s)
+    m_a <- fauna[[critter]]$m_at_age
     stopifnot(length(m_a) == A_s)
     m_pa <- matrix(m_a, nrow = P, ncol = A_s, byrow = TRUE)
 
-    v_mats[[s]] <- v_pa
-    other_mats[[s]] <- m_pa + other_fish_pa
-    b_mats[[s]] <- b_pa
+    # store by species name
+    v_mats[[critter]]     <- v_pa
+    other_mats[[critter]] <- m_pa + other_fish_pa
+    b_mats[[critter]]     <- b_pa
   }
 
   list(v_mats = v_mats, other_mats = other_mats, b_mats = b_mats, price_s = price_s)
 }
 
 # ----------------------------
-# 2) FAST analytic marginal m[p] = d obj_p / d e_p
+# 2) FAST analytic marginal m[p] = d obj_p / d eff_p
 # ----------------------------
 
 marginal_unconstrained_ragged_analytic_fast <- function(
-    e,
+    eff_p,
     v_mats, other_mats, b_mats, price_s, dt,
     c0, gamma, travel_p,
     open_p,
     eps = 1e-12
 ) {
-  # Analytic derivative of Baranov term with respect to effort.
+  # Analytic derivative of the Baranov catch fraction with respect to effort.
   #
-  # For each species s and age a at patch p:
-  #   F = v * e
+  # For each species and age at patch p:
+  #   F = v * eff
   #   O = other
   #   Z = F + O
   #   g(F) = (F/Z) * (1 - exp(-dt*Z))
   #
   # d/dF g(F) = (O/Z^2)*(1-exp(-dt*Z)) + (F/Z)*dt*exp(-dt*Z)
-  # d/de g(F) = v * d/dF g(F)
+  # d/deff g(F) = v * d/dF g(F)
   #
   # Marginal revenue at patch p:
-  #   sum_s price_s[s] * sum_a b * d/de g(F)
+  #   sum_species price * rowSums( b * d/deff g(F) )
   #
-  # Marginal cost at patch p:
-  #   c0 * (gamma*e^(gamma-1) + travel_p)
-  #
-  P <- length(e)
-  e_use <- e
-  e_use[!open_p] <- 0
+  P <- length(eff_p)
+  eff_use <- eff_p
+  eff_use[!open_p] <- 0
 
   m_rev <- rep(0, P)
 
-  for (s in seq_along(v_mats)) {
-    v_pa     <- v_mats[[s]]      # [P x A_s]
-    other_pa <- other_mats[[s]]  # [P x A_s]  (this is O)
-    b_pa     <- b_mats[[s]]      # [P x A_s]
+  # iterate by species names to keep everything name-aligned
+  for (critter in names(v_mats)) {
+    v_pa     <- v_mats[[critter]]      # [P x A_s]
+    other_pa <- other_mats[[critter]]  # [P x A_s]
+    b_pa     <- b_mats[[critter]]      # [P x A_s]
+    price    <- price_s[[critter]]     # scalar
 
     # F and Z
-    F_pa <- v_pa * e_use
-    Z_pa <- F_pa + other_pa
-    Z_pa <- pmax(Z_pa, eps)
+    F_pa <- v_pa * eff_use
+    Z_pa <- pmax(F_pa + other_pa, eps)
 
-    exp_term <- exp(-dt * Z_pa)
+    exp_term  <- exp(-dt * Z_pa)
     one_minus <- 1 - exp_term
 
     # d/dF g(F)
     term1 <- (other_pa / (Z_pa^2)) * one_minus
     term2 <- (F_pa / Z_pa) * (dt * exp_term)
-    dgdF <- term1 + term2
+    dgdF  <- term1 + term2
 
-    # d/de g(F) = v * dgdF
-    dgdE <- v_pa * dgdF
+    # d/deff g(F) = v * dgdF
+    dgdEff <- v_pa * dgdF
 
-    # add price-weighted biomass contribution (rowSums is fast)
-    m_rev <- m_rev + price_s[s] * rowSums(b_pa * dgdE)
+    # price-weighted biomass contribution
+    m_rev <- m_rev + price * rowSums(b_pa * dgdEff)
   }
 
-  # marginal cost
-  # gamma*e^(gamma-1) is well-defined at e=0 for gamma>=1 (0^(>0)=0); use pmax just in case
-  e_pos <- pmax(e_use, 0)
-  m_cost <- c0 * (gamma * (e_pos^(gamma - 1)) + travel_p)
+  # marginal cost:
+  # cost_p = c0*(eff^gamma + travel*eff) => d/deff = c0*(gamma*eff^(gamma-1) + travel)
+  eff_pos <- pmax(eff_use, 0)
+  m_cost  <- c0 * (gamma * (eff_pos^(gamma - 1)) + travel_p)
 
   m <- m_rev - m_cost
   m[!open_p] <- NA_real_
@@ -147,27 +164,27 @@ marginal_unconstrained_ragged_analytic_fast <- function(
 # 3) FAST swap marginal u_swap[p] in O(P)
 # ----------------------------
 
-swap_marginal_from_m_fast <- function(e, m, open_p, eps = 1e-12) {
+swap_marginal_from_m_fast <- function(eff_p, m_p, open_p, eps = 1e-12) {
   # Budget-neutral "proportional donor" swap marginal:
   # donors are all other open patches; donor funding shares proportional to donor effort.
   #
   # For open patch p:
-  #   donor_mean_m(p) = (sum_j e_j m_j - e_p m_p) / (sum_j e_j - e_p)
+  #   donor_mean_m(p) = (sum_j eff_j m_j - eff_p m_p) / (sum_j eff_j - eff_p)
   #   u_swap[p] = m_p - donor_mean_m(p)
   #
-  u_swap <- rep(NA_real_, length(e))
+  u_swap <- rep(NA_real_, length(eff_p))
 
-  idx <- which(open_p & is.finite(m))
+  idx <- which(open_p & is.finite(m_p))
   if (length(idx) <= 1) return(u_swap)
 
-  e_i <- e[idx]
-  m_i <- m[idx]
+  eff_i <- eff_p[idx]
+  m_i   <- m_p[idx]
 
-  E <- sum(e_i)
-  S <- sum(e_i * m_i)
+  Eff_tot_open <- sum(eff_i)
+  S <- sum(eff_i * m_i)
 
-  denom <- pmax(E - e_i, eps)
-  donor_mean <- (S - e_i * m_i) / denom
+  denom <- pmax(Eff_tot_open - eff_i, eps)
+  donor_mean <- (S - eff_i * m_i) / denom
 
   u_swap[idx] <- m_i - donor_mean
   u_swap
@@ -195,46 +212,47 @@ normalize_util <- function(u, open_p, method = c("iqr", "sd"), eps = 1e-12) {
 }
 
 update_effort_softmax <- function(
-    e, E_tot, u_swap, open_p,
+    eff_p, E_tot, u_swap, open_p,
     beta = 2.5, rho = 0.1, norm = "iqr",
     cap_frac = 0
 ) {
-  e[!open_p] <- 0
+  eff_p[!open_p] <- 0
 
   nu <- normalize_util(u_swap, open_p, method = norm)
   u_star <- nu$u_scaled
 
   idx <- which(open_p & is.finite(u_swap))
-  shares <- rep(0, length(e))
+  shares <- rep(0, length(eff_p))
   shares[idx] <- softmax_stable(beta * u_star[idx])
 
-  e_target <- E_tot * shares
-  e_new <- (1 - rho) * e + rho * e_target
+  eff_target <- E_tot * shares
+  eff_new <- (1 - rho) * eff_p + rho * eff_target
 
   if (cap_frac > 0) {
     cap <- cap_frac * E_tot
-    e_new <- pmax(e - cap, pmin(e + cap, e_new))
+    eff_new <- pmax(eff_p - cap, pmin(eff_p + cap, eff_new))
   }
 
-  e_new[!open_p] <- 0
-  s <- sum(e_new)
+  # project back to constraints
+  eff_new[!open_p] <- 0
+  s <- sum(eff_new)
 
   if (s > 0) {
-    e_new <- e_new * (E_tot / s)
+    eff_new <- eff_new * (E_tot / s)
   } else {
-    e_new <- rep(0, length(e))
-    e_new[open_p] <- E_tot / sum(open_p)
+    eff_new <- rep(0, length(eff_p))
+    eff_new[open_p] <- E_tot / sum(open_p)
   }
 
-  list(e = e_new, shares = shares, util_scale = nu$scale, u_scaled = u_star)
+  list(eff_p = eff_new, shares = shares, util_scale = nu$scale, u_scaled = u_star)
 }
 
 # ----------------------------
-# 5) Inner-loop allocator (UPDATED to use fast marginal + fast swap)
+# 5) Inner-loop allocator (fast marginal + fast swap)
 # ----------------------------
 
 allocate_until_stable_patchwise <- function(
-    e_init, E_tot,
+    eff_init_p, E_tot,
     v_mats, other_mats, b_mats, price_s, dt,
     c0, gamma, travel_p, open_p,
     beta = 1, rho = 0.1,
@@ -243,26 +261,26 @@ allocate_until_stable_patchwise <- function(
     cap_frac = 0,
     record = TRUE
 ) {
-  P <- length(e_init)
+  P <- length(eff_init_p)
   open_idx <- which(open_p)
 
   # init on simplex
-  e <- pmax(e_init, 0)
-  e[!open_p] <- 0
-  if (sum(e) > 0) {
-    e <- e * (E_tot / sum(e))
+  eff_p <- pmax(eff_init_p, 0)
+  eff_p[!open_p] <- 0
+  if (sum(eff_p) > 0) {
+    eff_p <- eff_p * (E_tot / sum(eff_p))
   } else {
-    e[open_idx] <- E_tot / length(open_idx)
+    eff_p[open_idx] <- E_tot / length(open_idx)
   }
 
   history <- if (record) vector("list", max_iter) else NULL
 
   for (k in seq_len(max_iter)) {
-    e_old <- e
+    eff_old <- eff_p
 
     # 1) fast analytic marginal
-    m <- marginal_unconstrained_ragged_analytic_fast(
-      e = e,
+    m_p <- marginal_unconstrained_ragged_analytic_fast(
+      eff_p = eff_p,
       v_mats = v_mats, other_mats = other_mats, b_mats = b_mats,
       price_s = price_s, dt = dt,
       c0 = c0, gamma = gamma, travel_p = travel_p,
@@ -270,25 +288,25 @@ allocate_until_stable_patchwise <- function(
     )
 
     # 2) fast swap marginal
-    u_swap <- swap_marginal_from_m_fast(e, m, open_p)
+    u_swap <- swap_marginal_from_m_fast(eff_p, m_p, open_p)
 
     # 3) softmax update + inertia + projection
     upd <- update_effort_softmax(
-      e = e, E_tot = E_tot,
+      eff_p = eff_p, E_tot = E_tot,
       u_swap = u_swap, open_p = open_p,
       beta = beta, rho = rho,
       norm = norm, cap_frac = cap_frac
     )
-    e <- upd$e
+    eff_p <- upd$eff_p
 
-    rel_change <- sum(abs(e - e_old)) / E_tot
+    rel_change <- sum(abs(eff_p - eff_old)) / E_tot
 
     if (record) {
       history[[k]] <- tibble::tibble(
         iter = k,
         patch = seq_len(P),
-        effort = e,
-        m = m,
+        effort = eff_p,
+        m = m_p,
         u_swap = u_swap,
         open = open_p
       )
@@ -300,7 +318,7 @@ allocate_until_stable_patchwise <- function(
     }
   }
 
-  list(e = e, history = history)
+  list(eff_p = eff_p, history = history)
 }
 
 # ============================================================
