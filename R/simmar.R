@@ -406,6 +406,9 @@ simmar <- function(fauna = list(),
 
       e_p <- fleets[[l]]$e_p_s[, s - 1]
 
+
+      e_floor <- 1e-2 * mean(e_p)
+
       # allocate fleets in space
       if (fleets[[l]]$spatial_allocation == "revenue") {
         if (sum(fleet_fishable[[l]]) == 0) {
@@ -440,20 +443,28 @@ simmar <- function(fauna = list(),
         } else if (sum(last_r_p, na.rm = TRUE) == 0) {
           alloc <- fleet_fishable[[l]] / sum(fleet_fishable[[l]])
         } else {
-          alloc <- (last_r_p / (e_p)) * fleet_fishable[[l]]
-          alloc[!is.finite(alloc)] <- 0
 
-          alloc <- alloc - min(alloc, na.rm = TRUE) + 1
-          alloc <- alloc / sum(alloc, na.rm = TRUE)
-
-          if (s > 2) {
-            alloc <- rowSums(sapply(storage[[s - 2]], function(x) x$r_p_fl[, l]), na.rm = TRUE) / (e_p)
-            alloc[!is.finite(alloc)] <- 0
-            alloc <- alloc - min(alloc, na.rm = TRUE) + 1
-            alloc <- alloc * fleet_fishable[[l]]
-            alloc <- alloc / sum(alloc)
+          if (s<=2){
+          if (init_cond_provided) {
+            rpue <-  rpue_bar <- (last_r_p / pmax(e_p, e_floor))
+          } else {
+            rpue <- rpue_bar <-  fleet_fishable[[l]] / sum(fleet_fishable[[l]])
+          }
+          } else {
+            rpue <- rowSums(sapply(storage[[s - 2]], function(x) x$r_p_fl[, l]), na.rm = TRUE) / pmax(e_p, e_floor)
           }
         }
+        rpue[!is.finite(rpue)] <- 0
+        rpue <- rpue * fleet_fishable[[l]]
+
+        smoother <- 0.2
+
+        rpue_bar <- (1-smoother)*rpue_bar + smoother*rpue
+        beta <- .2
+        w <- exp(beta * (rpue_bar - max(rpue_bar)))
+        w <- w * fleet_fishable[[l]]
+        if (sum(w) == 0) w <- fleet_fishable[[l]]
+        alloc <- w / sum(w)
 
         fleets[[l]]$e_p_s[, s] <- total_effort * alloc
       } else if (fleets[[l]]$spatial_allocation == "ppue" && !is.na(fleets[[l]]$cost_per_unit_effort)) {
@@ -540,19 +551,21 @@ simmar <- function(fauna = list(),
         alloc <- out$E_target / sum(out$E_target)
         fleets[[l]]$e_p_s[, s] <- total_effort * alloc
       } else if (fleets[[l]]$spatial_allocation == "marginal_profits") {
+
+
         pre <- precompute_baranov_inputs_softmax(
           storage[[s - 1]],
           fauna,
           fleets,
           l,
-          E_exo = NULL,
+          E_exo = purrr::map(fleets, \(x,s) x$e_p_s[,s-1],s = s),
           (patches)
         )
 
         res <- allocate_until_stable_patchwise(
           eff_init_p = e_p, E_tot = sum(e_p),
           v_mats = pre$v_mats, other_mats = pre$other_mats, b_mats = pre$b_mats, price_s = pre$price_s, time_step,
-          c0 = fleets$longline$cost_per_unit_effort, gamma = fleets[[l]]$effort_cost_exponent, travel_p = fleets[[l]]$cost_per_patch, open_p = (fleet_fishable[[l]] == 1),
+          c0 = fleets[[l]]$cost_per_unit_effort, gamma = fleets[[l]]$effort_cost_exponent, travel_p = fleets[[l]]$cost_per_patch, open_p = (fleet_fishable[[l]] == 1),
           beta = 6, rho = 0.1,
           max_iter = 40, tol = 0.01,
           norm = "iqr",
@@ -560,7 +573,8 @@ simmar <- function(fauna = list(),
           record = FALSE
         )
 
-        fleets[[l]]$e_p_s[, s] <- res$e
+        fleets[[l]]$e_p_s[, s] <- res$eff_p
+
         } else {
         stop("spatial effort allocation strategy not properly defined, check spatial_allocation and cost_per_unit_effort in fleet object")
       }

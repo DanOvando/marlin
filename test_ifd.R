@@ -22,7 +22,7 @@ yft_home_range <- 6
 
 yft_depletion <- 0.9
 
-mako_depletion <- 0.9
+mako_depletion <- 0.4
 
 mako_home_range <- 5
 
@@ -96,7 +96,7 @@ fleets <- list("longline" = create_fleet(
       critter = fauna$`Yellowfin Tuna`,
       price = 100, # price per unit weight
       sel_form = "logistic", # selectivity form, one of logistic or dome
-      sel_start = .3, # percentage of length at maturity that selectivity starts
+      sel_start = .3, # percentage of lngth at maturity that selectivity starts
       sel_delta = .1, # additional percentage of sel_start where selectivity asymptotes
       catchability = .2, # overwritten by tune_fleet but can be set manually here
       p_explt = 1
@@ -112,10 +112,38 @@ fleets <- list("longline" = create_fleet(
     )
   ),
   cost_per_unit_effort = 10000,
-  effort_cost_exponent = 2,
+  effort_cost_exponent = 1.3,
   spatial_allocation = "marginal_profits",
   mpa_response = "stay",
   base_effort = prod(resolution),
+  resolution = resolution
+),
+"longline2" = create_fleet(
+  list(
+    `Yellowfin Tuna` = Metier$new(
+      critter = fauna$`Yellowfin Tuna`,
+      price = 10, # price per unit weight
+      sel_form = "logistic", # selectivity form, one of logistic or dome
+      sel_start = .6, # percentage of length at maturity that selectivity starts
+      sel_delta = .1, # additional percentage of sel_start where selectivity asymptotes
+      catchability = .2, # overwritten by tune_fleet but can be set manually here
+      p_explt = 1
+    ),
+    `Shortfin Mako` = Metier$new(
+      critter = fauna$`Shortfin Mako`,
+      price = 100,
+      sel_form = "logistic",
+      sel_start = .1,
+      sel_delta = .01,
+      catchability = 0.2,
+      p_explt = 2
+    )
+  ),
+  cost_per_unit_effort = 10000,
+  effort_cost_exponent = 1.3,
+  spatial_allocation = "marginal_profits",
+  mpa_response = "stay",
+  base_effort = 2*prod(resolution),
   resolution = resolution
 ))
 
@@ -169,7 +197,7 @@ nearshore <- simmar(
 proc_nearshore <- process_marlin(nearshore, time_step = fauna[[1]]$time_step, keep_age = FALSE)
 
 a = proc_nearshore$fleets  |>
-  group_by(step) |>
+  group_by(step, fleet) |>
   summarise(effort = sum(effort))
 
   proc_nearshore$fleets |>
@@ -183,5 +211,6 @@ a = proc_nearshore$fleets  |>
 
 plot_marlin(proc_nearshore, max_scale = FALSE, plot_var = "b")
 plot_marlin(proc_nearshore, max_scale = FALSE, plot_var = "ssb")
+plot_marlin(proc_nearshore, max_scale = FALSE, plot_var = "c")
 
 

@@ -30,6 +30,8 @@ library(marlin)
 
 library(tidyverse)
 
+library(plot.matrix)
+
 options(dplyr.summarise.inform = FALSE)
 
 theme_set(marlin::theme_marlin(base_size = 14))
@@ -56,7 +58,7 @@ coastal_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   select(-y) %>%
   as.matrix()
 
-image(coastal_habitat)
+plot(coastal_habitat)
 ```
 
 And from there we pass things to the usual sets of functions
@@ -66,9 +68,11 @@ fauna <-
   list(
     "rockfish" = create_critter(
       common_name = "blue rockfish",
-      adult_diffusion = 10,
+      adult_home_range = 10,
+      recruit_home_range = 10,
       density_dependence = "post_dispersal",
       habitat = coastal_habitat,
+      recruit_habitat = coastal_habitat,
       patch_area = patch_area,
       seasons = 4,
       fished_depletion = .25,
@@ -79,9 +83,11 @@ fauna <-
     ),
     "lingcod" = create_critter(
       common_name = "lingcod",
-      adult_diffusion = 10,
+      adult_home_range = 10,
+      recruit_home_range = 10,
       density_dependence = "post_dispersal",
       habitat = coastal_habitat,
+      recruit_habitat = coastal_habitat,
       patch_area = patch_area,
       seasons = 4,
       fished_depletion = .7,
