@@ -457,11 +457,11 @@ simmar <- function(fauna = list(),
         rpue[!is.finite(rpue)] <- 0
         rpue <- rpue * fleet_fishable[[l]]
 
-        smoother <- 0.8
+        smoother <- 0.4
 
         rpue_bar <- (1-smoother)*rpue_bar + smoother*rpue
 
-        beta <- 0.6
+        beta <- 0.1
 
         z <- rpue_bar - median(rpue_bar)
         z <- z / (mad(rpue_bar) + 1e-12)   # robust scale

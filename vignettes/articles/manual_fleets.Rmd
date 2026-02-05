@@ -61,7 +61,7 @@ fleets <- list(
       critter = fauna$snapper,
       p_explt = 1
     )),
-    base_effort = resolution^2,
+    base_effort = 10 * resolution^2,
     resolution = resolution,
     fishing_grounds = fishing_grounds,
     spatial_allocation = "rpue"
@@ -71,9 +71,9 @@ fleets <- list(
       critter = fauna$snapper,
       p_explt = 1
     )),
-    base_effort = resolution^2,
+    base_effort = 10*resolution^2,
     resolution = resolution,
-    spatial_allocation = "rpue"
+    spatial_allocation = "marginal_profits"
   )
 )
 
