@@ -600,16 +600,15 @@ Fish <- R6::R6Class(
       # reshape to vector, for some reason doesn't work inside function
       for (i in seq_along(taxis_matrix)) {
 
-        taxis_matrix[[i]] <- as.vector(taxis_matrix[[i]])
+        taxis_matrix[[i]] <- as.data.frame(taxis_matrix[[i]]) |>
+          dplyr::mutate(y = dplyr::n():1) |>
+          tidyr::pivot_longer(-y, names_to = "x", values_to = "value") |>
+          dplyr::mutate(x = match(x, unique(x))) |>
+          dplyr::arrange(x,y)
 
-        #   as.data.frame(taxis_matrix[[i]]) |>
-        #   dplyr::mutate(y = dplyr::n():1) |>
-        #   tidyr::pivot_longer(-y, names_to = "x", values_to = "value") |>
-        #   dplyr::mutate(x = match(x, unique(x))) |>
-        #   dplyr::arrange(x,y)
-        #
-        # taxis_matrix[[i]] <- as.numeric(taxis_matrix[[i]]$value)
+        taxis_matrix[[i]] <- as.numeric(taxis_matrix[[i]]$value)
 
+          # as.vector(taxis_matrix[[i]])
         taxis_matrix[[i]] <- pmin(exp((time_step * outer(taxis_matrix[[i]], taxis_matrix[[i]], "-")) / sqrt(patch_area)), max_hab_mult) # convert habitat gradient into diffusion multiplier
 
         }

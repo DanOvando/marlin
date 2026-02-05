@@ -788,7 +788,8 @@ fauna <-
     ),
     "Shortfin Mako" = create_critter(
       scientific_name = "Isurus oxyrinchus",
-      recruit_habitat = list(mako_habitat),
+      habitat = list(mako_habitat),
+      recruit_habitat = mako_habitat,
       adult_home_range = mako_home_range,
       depletion = .3,
       density_dependence = "local_habitat", # recruitment form, where 1 implies local recruitment
@@ -798,14 +799,6 @@ fauna <-
       explt_type = "f"
     )
   )
-
-wtf = fauna$`Shortfin Mako`$grid
-
-wtf$sigh <- fauna$`Shortfin Mako`$r0s
-
-wtf |> 
-  ggplot(aes(x,y,fill = sigh)) + 
-  geom_tile()
 
 # create a fleets object, accounting a negative price to shortfin makos
 
@@ -822,7 +815,7 @@ fleets <- list("longline" = create_fleet(
     ),
     `Shortfin Mako` = Metier$new(
       critter = fauna$`Shortfin Mako`,
-      price = 100,
+      price = -20000,
       sel_form = "logistic",
       sel_start = .1,
       sel_delta = .01,
@@ -831,7 +824,6 @@ fleets <- list("longline" = create_fleet(
     )
   ),
   mpa_response = "stay",
-  spatial_allocation = "marginal_profits",
   base_effort = prod(resolution),
   resolution = resolution
 ))
