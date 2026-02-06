@@ -608,7 +608,9 @@ Fish <- R6::R6Class(
 
         h <- as.numeric(taxis_matrix[[i]]$value)
 
-        neighbors <- find_neighbors(resolution = resolution, water = is.finite(h))
+        water = is.finite(h)
+
+        neighbors <- find_neighbors(resolution = resolution, water = water)
 
         edges <- Matrix::summary(neighbors)
 
@@ -670,11 +672,33 @@ Fish <- R6::R6Class(
 
       # ideally, you would set things up with mean environmental conditions, but for now, set up a placeholder for movement ignoring taxis for unfished conditions...
 
+
+      apply_reflective_land <- function(transition_matrix, water_mask) {
+
+        # Zero probability of landing on land (rows = destination patches)
+
+        if (!all(water_mask)) {
+          transition_matrix[!water_mask, ] <- 0
+        }
+
+
+        # Renormalize each origin column so total probability = 1
+        column_sums <- Matrix::colSums(transition_matrix)
+
+        transition_matrix <- transition_matrix %*%
+          Matrix::Diagonal(x = 1 / column_sums)
+
+        transition_matrix
+      }
+
+
       self$movement_matrix <-
         purrr::map(
           inst_movement_matrix,
-          ~ sparsify_transition(as.matrix(expm::expm(as.matrix(.x))))
+          ~ apply_reflective_land(sparsify_transition(as.matrix(expm::expm(as.matrix(.x)))),water)
         )
+
+
 
       self$movement_seasons <- season_blocks
 
@@ -687,7 +711,7 @@ Fish <- R6::R6Class(
         )
 
       self$recruit_movement_matrix <-
-        sparsify_transition(as.matrix(expm::expm(as.matrix(inst_recruit_move_matrix))))
+        apply_reflective_land(sparsify_transition(as.matrix(expm::expm(as.matrix(inst_recruit_move_matrix)))),water)
 
 
       # set up unfished recruitment by patch

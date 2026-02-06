@@ -218,7 +218,10 @@ finds the cost parameters that results in the desired equilibrium
 <span>  cost_per_unit_effort <span class="op">=</span> <span class="fl">2</span></span>
 <span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span>, tune_type <span class="op">=</span> <span class="st">"depletion"</span><span class="op">)</span> </span></code></pre></div>
+<span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span>, tune_type <span class="op">=</span> <span class="st">"depletion"</span><span class="op">)</span> </span>
+<span><span class="co">#&gt; Warning in tune_fleets(fauna, fleets, tune_type = "depletion"): tune_fleets</span></span>
+<span><span class="co">#&gt; failed to match desired depletion levels, check whether target depletion is</span></span>
+<span><span class="co">#&gt; plausible given supplied selectivities, fishing grounds, and p_explt.</span></span></code></pre></div>
 <p>We can now run our simulation and examine the resulting fleet
 dynamics</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
@@ -337,10 +340,12 @@ dynamics might <strong>reduce</strong> the total amount of effort,
 effort will never expand beyond the supplied cap for that fleet.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
+<span><span class="va">cap</span> <span class="op">=</span> <span class="fl">4</span> <span class="op">*</span><span class="va">fleets</span><span class="op">$</span><span class="va">longline</span><span class="op">$</span><span class="va">base_effort</span></span>
+<span></span>
 <span><span class="va">sim_effort</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simmar.html">simmar</a></span><span class="op">(</span>fauna <span class="op">=</span> <span class="va">fauna</span>,</span>
 <span>                  fleets <span class="op">=</span> <span class="va">fleets</span>,</span>
 <span>                  years <span class="op">=</span> <span class="va">years</span>,</span>
-<span>                  manager <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>effort_cap <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>longline <span class="op">=</span> <span class="fl">1.5</span> <span class="op">*</span><span class="va">fleets</span><span class="op">$</span><span class="va">longline</span><span class="op">$</span><span class="va">base_effort</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span>                  manager <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>effort_cap <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>longline <span class="op">=</span> <span class="va">cap</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">proc_sim_effort</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">sim_effort</span><span class="op">)</span></span>
 <span></span>
@@ -359,11 +364,15 @@ effort will never expand beyond the supplied cap for that fleet.</p>
 <code class="sourceCode R"><span></span>
 <span></span>
 <span><span class="va">proc_sim_effort</span><span class="op">$</span><span class="va">fleets</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">step</span>, <span class="va">fleet</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span>effort <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">effort</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">step</span>, <span class="va">fleet</span>, <span class="va">patch</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span>effort <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">effort</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">step</span>, <span class="va">fleet</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span>effort <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">effort</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">step</span> <span class="op">*</span> <span class="va">time_step</span>, <span class="va">effort</span>, color <span class="op">=</span> <span class="va">fleet</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"Year"</span><span class="op">)</span></span></code></pre></div>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_hline</a></span><span class="op">(</span>yintercept <span class="op">=</span> <span class="va">cap</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"Year"</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_continuous</a></span><span class="op">(</span>limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="cn">NA</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="fleet-management_files/figure-html/unnamed-chunk-6-3.png" class="r-plt" alt="" width="700"></p>
 <!-- ## Seasons -->
 <!-- We can also impose closed or reduced fishing seasons that apply to one or more targeted species. This is specified by a vector containing values between 0 and 1 with length equal to the number of seasons in the simulation.  When a season has a value of 1, that implies that fishing continues as normal in that season. When that value is 0, that means that the fishery is closed in that season. Setting intermediate values, like say 0.5, is akin to simulating a closed seasons with a 50% discard mortality rate -->
@@ -406,6 +415,9 @@ effort in each time step.</p>
 <span><span class="va">fleets</span><span class="op">$</span><span class="va">longline</span><span class="op">$</span><span class="va">effort</span> <span class="op">&lt;-</span> <span class="va">fleets</span><span class="op">$</span><span class="va">longline</span><span class="op">$</span><span class="va">base_effort</span> <span class="op">*</span>  <span class="fu"><a href="https://rdrr.io/r/stats/Lognormal.html" class="external-link">rlnorm</a></span><span class="op">(</span><span class="va">time_steps</span>,<span class="fl">0</span>,<span class="fl">.2</span><span class="op">)</span></span>
 <span>  </span>
 <span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span>, tune_type <span class="op">=</span> <span class="st">"depletion"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning in tune_fleets(fauna, fleets, tune_type = "depletion"): tune_fleets</span></span>
+<span><span class="co">#&gt; failed to match desired depletion levels, check whether target depletion is</span></span>
+<span><span class="co">#&gt; plausible given supplied selectivities, fishing grounds, and p_explt.</span></span>
 <span></span>
 <span><span class="va">sim_effort</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simmar.html">simmar</a></span><span class="op">(</span></span>
 <span>  fauna <span class="op">=</span> <span class="va">fauna</span>,</span>

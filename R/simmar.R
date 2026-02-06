@@ -660,10 +660,30 @@ simmar <- function(fauna = list(),
         # SPEED (spirit-of-comment): we precomputed the equivalent patch-ordered vector with as.vector()
         hab_vals <- habitat_vecs[[critter]][[s - 1]]
 
-        current_habitat <-
-          pmin(exp((
-            time_step * outer(hab_vals, hab_vals, "-")
-          ) / sqrt(patch_area)), fauna[[critter]]$max_hab_mult) # convert habitat gradient into diffusion multiplier
+        neighbors <- find_neighbors(resolution = resolution, water = is.finite(hab_vals))
+
+        edges <- Matrix::summary(neighbors)
+
+        to <- edges$i
+
+        from   <- edges$j
+
+        delta_h <- hab_vals[to] - hab_vals[from]
+
+        mult <- exp((time_step * delta_h) / sqrt(patch_area))
+
+        mult <- pmin(mult, fauna[[critter]]$max_hab_mult)
+
+        P <- length(hab_vals)
+
+        current_habitat <-  Matrix::sparseMatrix(
+          i = to,
+          j = from,
+          x = mult,
+          dims = c(P, P),
+          dimnames = dimnames(neighbors)
+        )
+
 
         diffusion_and_taxis <-
           fauna[[critter]]$diffusion_foundation[[season_block]] * current_habitat
@@ -671,7 +691,7 @@ simmar <- function(fauna = list(),
         inst_movement_matrix <-
           prep_movement(diffusion_and_taxis, resolution = resolution)
 
-        movement[[season_block]] <- as.matrix(expm::expm(inst_movement_matrix))
+        movement[[season_block]] <- sparsify_transition(as.matrix(expm::expm(as.matrix(inst_movement_matrix))))
 
         if (any(!is.finite(movement[[season_block]]))) {
           stop("scale of supplied habitat differences are too extreme, try rescaling so that the exponent of the differences are less extreme in magnitude")

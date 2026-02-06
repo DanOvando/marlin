@@ -195,15 +195,30 @@ tune_fleets <- function(fauna,
 
   if (tune_type == "depletion") {
 
+
+    log_fs_phase_1 <- nleqslv::nleqslv(
+      x = rep(log(0.1), length(fauna)),
+      fn = fleet_tuner,
+      method = "Broyden",
+      global = "dbldog",   # trust-region-ish; good default for gnarly sims
+      control=list(maxit=80, xtol=1e-3, ftol=1e-3, allowSingular=TRUE, stepmax=1.5),
+      fleets = tfleets,
+      e_fl = e_fl,
+      fauna = fauna,
+      years = years,
+    )
+
     log_fs <- nleqslv::nleqslv(
-        x = rep(log(0.1), length(fauna)),
+        x = log_fs_phase_1$x,
         fn = fleet_tuner,
         method = "Broyden",
         global = "dbldog",   # trust-region-ish; good default for gnarly sims
         control = list(
-          maxit = 50,
-          xtol = 1e-3,
-          ftol = 1e-3,
+          maxit = 150,
+          xtol = 1e-5,
+          ftol = 1e-5,
+          allowSingular = TRUE,
+          stepmax = 0.8,
           trace = 0
         ),
         fleets = tfleets,

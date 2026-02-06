@@ -242,10 +242,12 @@ Note that effort caps only really apply when `fleet_model == "open access`; when
 
 ```{r}
 
+cap = 4 *fleets$longline$base_effort
+
 sim_effort <- simmar(fauna = fauna,
                   fleets = fleets,
                   years = years,
-                  manager = list(effort_cap = list(longline = 1.5 *fleets$longline$base_effort)))
+                  manager = list(effort_cap = list(longline = cap)))
 
 proc_sim_effort <- process_marlin(sim_effort)
 
@@ -260,11 +262,15 @@ proc_sim_effort$fleets %>%
 
 
 proc_sim_effort$fleets %>% 
-  group_by(step, fleet) %>%
-  summarise(effort = sum(effort)) %>% 
+  group_by(step, fleet, patch) %>%
+  summarise(effort = unique(effort)) %>% 
+  group_by(step, fleet) |> 
+  summarise(effort = sum(effort)) |> 
   ggplot(aes(step * time_step, effort, color = fleet)) + 
   geom_line() + 
-    scale_x_continuous(name = "Year")
+  geom_hline(yintercept = cap) +
+    scale_x_continuous(name = "Year") + 
+  scale_y_continuous(limits = c(0, NA))
 
 
 ```
