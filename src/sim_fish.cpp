@@ -28,7 +28,7 @@ List sim_fish(
     const NumericMatrix f_p_a, // fishing mortality by patch and age
     const List movement_matrix,
     const List movement_seasons,
-    Eigen::MatrixXd recruit_movement_matrix,
+    Eigen::SparseMatrix<double> recruit_movement_matrix,
     Rcpp::NumericMatrix last_n_p_a, // last numbers by patch and age
     const int patches,
     const int burn_steps, // number of burn steps if burn is in effect
@@ -57,7 +57,9 @@ List sim_fish(
   Eigen::MatrixXd n_p_a_eig = Eigen::MatrixXd::Zero(patches, ages);
 
   // seasonal movement matrix (dense, for step 1)
-  Eigen::MatrixXd movement = Eigen::MatrixXd::Zero(patches, patches);
+  // Eigen::MatrixXd movement = Eigen::MatrixXd::Zero(patches, patches);
+
+  Eigen::SparseMatrix<double> movement(patches, patches);
 
   NumericVector recruits(patches);      // recruits by patch
   NumericVector zero_recruits(patches); // helper
@@ -75,7 +77,8 @@ List sim_fish(
 
     if (b) {
       // explicit conversion keeps intent clear
-      movement = Rcpp::as<Eigen::MatrixXd>(movement_matrix[s]);
+      movement = Rcpp::as<Eigen::SparseMatrix<double>>(movement_matrix[s]);
+      // movement = Rcpp::as<Eigen::MatrixXd>(movement_matrix[s]);
       s = movement_seasons.length() + 1; // stop loop once found
     }
   }
