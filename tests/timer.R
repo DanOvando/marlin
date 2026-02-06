@@ -84,3 +84,5 @@ plot_marlin(proc_sim, plot_var = "c", plot_type = "space", max_scale = FALSE)
 
 
 plot_marlin(proc_sim, plot_var = "ssb", max_scale = FALSE)
+
+fauna$bigeye$plot_movement()

@@ -606,19 +606,44 @@ Fish <- R6::R6Class(
           dplyr::mutate(x = match(x, unique(x))) |>
           dplyr::arrange(x,y)
 
-        taxis_matrix[[i]] <- as.numeric(taxis_matrix[[i]]$value)
+        h <- as.numeric(taxis_matrix[[i]]$value)
 
-          # as.vector(taxis_matrix[[i]])
-        taxis_matrix[[i]] <- pmin(exp((time_step * outer(taxis_matrix[[i]], taxis_matrix[[i]], "-")) / sqrt(patch_area)), max_hab_mult) # convert habitat gradient into diffusion multiplier
+        neighbors <- find_neighbors(resolution = resolution, water = is.finite(h))
 
-        }
+        edges <- Matrix::summary(neighbors)
+
+        to <- edges$i
+
+        from   <- edges$j
+
+        delta_h <- h[to] - h[from]
+
+        mult <- exp((time_step * delta_h) / sqrt(patch_area))
+
+        mult <- pmin(mult, max_hab_mult)
+
+        P <- length(h)
+
+        taxis_matrix[[i]] <-  Matrix::sparseMatrix(
+          i = to,
+          j = from,
+          x = mult,
+          dims = c(P, P),
+          dimnames = dimnames(neighbors)
+        )
+
+          # calculate habitat
+        # taxis_matrix[[i]] <- pmin(exp((time_step * outer(h, h, "-")) / sqrt(patch_area)), max_hab_mult) # convert habitat gradient into diffusion multiplier
+
+        # browser()
+        } # close taxis matrix loop
 
       self$taxis_matrix <- taxis_matrix # this is the habitat preference matrix, which is a multiplier of of the diffusion rate
 
 
       # the taxis matrix is used here just to mark of barriers, note x[!is.na(x)] <- 1, it is not double counting taxis
       diffusion_prep <- function(x, y, time_step, patch_area) {
-        x[!is.na(x)] <- 1 # this is here to allow for barriers; set diffusion to zero if there's a physical barrier
+        x[is.finite(x)] <- 1 # this is here to allow for barriers; set diffusion to zero if there's a physical barrier
 
         z <- x * y * (time_step / patch_area)
       }
@@ -648,7 +673,7 @@ Fish <- R6::R6Class(
       self$movement_matrix <-
         purrr::map(
           inst_movement_matrix,
-          ~ as.matrix(expm::expm((.x)))
+          ~ sparsify_transition(as.matrix(expm::expm(as.matrix(.x))))
         )
 
       self$movement_seasons <- season_blocks
@@ -662,7 +687,7 @@ Fish <- R6::R6Class(
         )
 
       self$recruit_movement_matrix <-
-        as.matrix(expm::expm(inst_recruit_move_matrix))
+        sparsify_transition(as.matrix(expm::expm(as.matrix(inst_recruit_move_matrix))))
 
 
       # set up unfished recruitment by patch
