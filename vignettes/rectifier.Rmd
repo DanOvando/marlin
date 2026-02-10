@@ -36,7 +36,7 @@ options(dplyr.summarise.inform = FALSE)
 
 theme_set(marlin::theme_marlin(base_size = 14))
 
-resolution <- c(10, 40) # specify a 10 wide by 40 tall grid
+resolution <- c(100, 100) # specify a 10 wide by 40 tall grid
 
 patch_area <- 10 # 10km2
 
@@ -99,6 +99,11 @@ fauna <-
   )
 
 
+fauna$rockfish$movement_matrix[[1]] -> mat
+nnz <- Matrix::nnzero(mat)
+total <- prod(dim(mat))
+sparsity <- 1 - nnz / total
+
 fleets <- list(
   "dayboats" = create_fleet(
     list(
@@ -127,7 +132,7 @@ fleets <- list(
 )
 
 
-fleets <- tune_fleets(fauna, fleets, tune_type = "depletion")
+# fleets <- tune_fleets(fauna, fleets, tune_type = "depletion")
 
 start_time <- Sys.time()
 

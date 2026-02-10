@@ -77,7 +77,7 @@ create_fleet <-
       port_distance <- distance <-
         tidyr::expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
         dist(diag = TRUE) %>%
-        as.matrix() * sqrt(patch_area)
+        as.matrix() * sqrt(mean(patch_area))
 
       port_distances <- apply(matrix(port_distance[ports$patch, ], nrow = length(ports$patch)), 2, min) # calculate the distance from each patch to the port patches, then find the minimum distance
 

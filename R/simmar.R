@@ -55,7 +55,7 @@ simmar <- function(fauna = list(),
 
   steps_per_year <- 1 / time_step
 
-  patch_area <- unique(purrr::map_dbl(fauna, "patch_area"))
+  patch_area_vec <- fauna[[1]]$grid$patch_area
 
   sigma_recs <- purrr::map_dbl(fauna, "sigma_rec") # gather recruitment standard deviations
 
@@ -457,7 +457,7 @@ simmar <- function(fauna = list(),
         rpue[!is.finite(rpue)] <- 0
         rpue <- rpue * fleet_fishable[[l]]
 
-        smoother <- 0.4
+        smoother <- 0.2
 
         rpue_bar <- (1-smoother)*rpue_bar + smoother*rpue
 
@@ -465,12 +465,17 @@ simmar <- function(fauna = list(),
 
         z <- rpue_bar - median(rpue_bar)
         z <- z / (mad(rpue_bar) + 1e-12)   # robust scale
+        z <- pmax(pmin(z, 6), -6) # prevent extreme spikes
         w <- exp(beta * (z - max(z)))
 
         # w <- exp(beta * (rpue_bar - max(rpue_bar)))
         w <- w * fleet_fishable[[l]]
         if (sum(w) == 0) w <- fleet_fishable[[l]]
         alloc <- w / sum(w)
+
+        eps <- 0.01  # 2% exploration
+        alloc <- (1 - eps) * alloc + eps * (fleet_fishable[[l]] / sum(fleet_fishable[[l]]))
+
 
         fleets[[l]]$e_p_s[, s] <- total_effort * alloc
       } else if (fleets[[l]]$spatial_allocation == "ppue" && !is.na(fleets[[l]]$cost_per_unit_effort)) {
@@ -670,7 +675,9 @@ simmar <- function(fauna = list(),
 
         delta_h <- hab_vals[to] - hab_vals[from]
 
-        mult <- exp((time_step * delta_h) / sqrt(patch_area))
+        mean_area <- (patch_area_vec[to] + patch_area_vec[from]) / 2 # arithmetic mean of mean area
+
+        mult <- exp((time_step * delta_h) / sqrt(mean_area))
 
         mult <- pmin(mult, fauna[[critter]]$max_hab_mult)
 
@@ -683,7 +690,6 @@ simmar <- function(fauna = list(),
           dims = c(P, P),
           dimnames = dimnames(neighbors)
         )
-
 
         diffusion_and_taxis <-
           fauna[[critter]]$diffusion_foundation[[season_block]] * current_habitat

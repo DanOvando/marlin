@@ -35,6 +35,7 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/dynamic-habitat.html">Set Dynamic Habitats</a></li>
     <li><a class="dropdown-item" href="../articles/fleet-management.html">Manage Catch and Effort of Fleets</a></li>
+    <li><a class="dropdown-item" href="../articles/flexible_patch_area.html">Setting flexible patch areas</a></li>
     <li><a class="dropdown-item" href="../articles/Invertebrates.html">Invertebrates</a></li>
     <li><a class="dropdown-item" href="../articles/manual_fleets.html">Manual Fishing Grounds and Effort Allocation</a></li>
     <li><a class="dropdown-item" href="../articles/measure_gradients.html">Measure MPA Gradients</a></li>
@@ -218,10 +219,7 @@ finds the cost parameters that results in the desired equilibrium
 <span>  cost_per_unit_effort <span class="op">=</span> <span class="fl">2</span></span>
 <span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span>, tune_type <span class="op">=</span> <span class="st">"depletion"</span><span class="op">)</span> </span>
-<span><span class="co">#&gt; Warning in tune_fleets(fauna, fleets, tune_type = "depletion"): tune_fleets</span></span>
-<span><span class="co">#&gt; failed to match desired depletion levels, check whether target depletion is</span></span>
-<span><span class="co">#&gt; plausible given supplied selectivities, fishing grounds, and p_explt.</span></span></code></pre></div>
+<span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span>, tune_type <span class="op">=</span> <span class="st">"depletion"</span><span class="op">)</span> </span></code></pre></div>
 <p>We can now run our simulation and examine the resulting fleet
 dynamics</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
@@ -415,9 +413,6 @@ effort in each time step.</p>
 <span><span class="va">fleets</span><span class="op">$</span><span class="va">longline</span><span class="op">$</span><span class="va">effort</span> <span class="op">&lt;-</span> <span class="va">fleets</span><span class="op">$</span><span class="va">longline</span><span class="op">$</span><span class="va">base_effort</span> <span class="op">*</span>  <span class="fu"><a href="https://rdrr.io/r/stats/Lognormal.html" class="external-link">rlnorm</a></span><span class="op">(</span><span class="va">time_steps</span>,<span class="fl">0</span>,<span class="fl">.2</span><span class="op">)</span></span>
 <span>  </span>
 <span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span>, tune_type <span class="op">=</span> <span class="st">"depletion"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in tune_fleets(fauna, fleets, tune_type = "depletion"): tune_fleets</span></span>
-<span><span class="co">#&gt; failed to match desired depletion levels, check whether target depletion is</span></span>
-<span><span class="co">#&gt; plausible given supplied selectivities, fishing grounds, and p_explt.</span></span>
 <span></span>
 <span><span class="va">sim_effort</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simmar.html">simmar</a></span><span class="op">(</span></span>
 <span>  fauna <span class="op">=</span> <span class="va">fauna</span>,</span>

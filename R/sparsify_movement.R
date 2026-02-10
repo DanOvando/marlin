@@ -28,65 +28,44 @@
 #   - Columns of T approximately sum to 1 (post expm movement matrix)
 # -----------------------------------------------------------------------------
 
-sparsify_transition <- function(T, retain = 0.999) {
+sparsify_transition <- function(trans_mat, retain = 0.999) {
 
-  # Number of spatial patches (matrix is P × P)
-  P <- nrow(T)
+  P <- nrow(trans_mat)
 
-  # Storage for sparse matrix triplet form
-  #   ii = destination patch index (row)
-  #   jj = origin patch index (column)
-  #   xx = transition probability value
-  ii <- integer(0)
-  jj <- integer(0)
-  xx <- numeric(0)
+  ii_list <- vector("list", P)
+  jj_list <- vector("list", P)
+  xx_list <- vector("list", P)
 
-  # Loop over origin patches (columns = "from")
   for (from in seq_len(P)) {
 
-    # Probability distribution of destinations from this origin patch
-    col_vals <- T[, from]
-
-    # Ignore exact zeros (no movement probability → no need to store)
+    col_vals <- trans_mat[, from]
     nz <- which(col_vals > 0)
 
-    # If no movement from this patch, skip
-    if (length(nz) == 0) next
+    if (length(nz) == 0L) next
 
-    # Extract nonzero values
     vals <- col_vals[nz]
 
-    # Sort by probability mass (largest first)
+    # Match old behavior exactly (including tie-breaking)
     ord <- order(vals, decreasing = TRUE)
+    idx_sorted  <- nz[ord]
+    vals_sorted <- vals[ord]
 
-    idx_sorted  <- nz[ord]     # destination patch indices
-    vals_sorted <- vals[ord]   # corresponding probabilities
-
-    # Cumulative probability mass retained as we add destinations
     cum_mass <- cumsum(vals_sorted)
-
-    # Minimum number of destinations needed to retain target mass
     k <- which(cum_mass >= retain)[1]
-
-    # If retain never reached (rare; numerical or degenerate cases),
-    # keep everything
     if (is.na(k)) k <- length(vals_sorted)
 
-    # Indices and values to keep
     keep_rows <- idx_sorted[seq_len(k)]
     keep_vals <- col_vals[keep_rows]
-
-    # Renormalize so column sums exactly to 1 (mass conservation)
     keep_vals <- keep_vals / sum(keep_vals)
 
-    # Append to sparse storage vectors
-    ii <- c(ii, keep_rows)
-    jj <- c(jj, rep.int(from, length(keep_rows)))
-    xx <- c(xx, keep_vals)
+    ii_list[[from]] <- keep_rows
+    jj_list[[from]] <- rep.int(from, length(keep_rows))
+    xx_list[[from]] <- keep_vals
   }
 
-  # Build sparse transition matrix
-  #   rows = destination patch
-  #   cols = origin patch
+  ii <- unlist(ii_list, use.names = FALSE)
+  jj <- unlist(jj_list, use.names = FALSE)
+  xx <- unlist(xx_list, use.names = FALSE)
+
   Matrix::sparseMatrix(i = ii, j = jj, x = xx, dims = c(P, P))
 }
