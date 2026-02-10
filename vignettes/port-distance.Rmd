@@ -67,9 +67,9 @@ fleets <- list(
     ports = ports,
     base_effort = prod(resolution),
     resolution = resolution,
-    spatial_allocation = "ppue",
+    spatial_allocation = "marginal_profits",
     cost_per_unit_effort = 1,
-    cost_per_distance = 10,
+    cost_per_distance = .1,
     fleet_model = "open access"
   )
 )

@@ -49,6 +49,7 @@ fleets <- list(
       catchability = 0,
       p_explt = 1
     )),
+    spatial_allocation = "ifd",
     base_effort = 1000*resolution^2,
     resolution = resolution,
     fishing_grounds = fishing_grounds
