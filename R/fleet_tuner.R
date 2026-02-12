@@ -53,6 +53,9 @@ fleet_tuner <- function(log_fs, fauna, fleets,e_fl, years = 50) {
 
       tfleets[[f]]$metiers[[ff]]$spatial_catchability <- tfleets[[f]]$metiers[[ff]]$spatial_catchability / mean_q * metier_q
 
+      tfleets[[f]]$metiers[[ff]]$vul_p_a  <-  outer(tfleets[[f]]$metiers[[ff]]$spatial_catchability, tfleets[[f]]$metiers[[ff]]$sel_at_age, `*`)
+
+
     }
   }
 

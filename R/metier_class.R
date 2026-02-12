@@ -218,21 +218,19 @@ Metier <- R6::R6Class("metier",
           spatial_catchability <- spatial_catchability - min(spatial_catchability)
         }
 
-        tmp <- spatial_catchability %>%
-          as.data.frame() %>%
-          dplyr::mutate(x = 1:nrow(.)) %>%
-          tidyr::pivot_longer(
-            -x,
-            names_to = "y",
-            values_to = "catchability",
-            names_prefix = "V"
-          ) %>%
+        tmp <- as.data.frame(spatial_catchability) |>
+          dplyr::mutate(y = dplyr::n():1) |>
+          tidyr::pivot_longer(-y, values_to = "catchability") |>
+          dplyr::group_by(y) |>
+          dplyr::mutate(x = dplyr::row_number()) |>
+          dplyr::ungroup() |>
+          dplyr::arrange(x, y) |>
           dplyr::mutate(catchability = catchability / mean(catchability))
 
         self$spatial_catchability <- tmp$catchability * catchability
       } # close deal with spatial q
 
-      self$vul_p_a = tcrossprod(self$spatial_catchability,self$sel_at_age)
+      self$vul_p_a  <-  outer(self$spatial_catchability, self$sel_at_age, `*`)
 
     }, # close initialize
     #' plot selectivity

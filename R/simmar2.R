@@ -19,7 +19,7 @@
 #' @return a list containing the results of the simulation
 #' @export
 #'
-simmar <- function(fauna = list(),
+simmar2 <- function(fauna = list(),
                    fleets = list(),
                    manager = list(),
                    habitat = list(),
@@ -31,7 +31,6 @@ simmar <- function(fauna = list(),
                    keep_starting_step = TRUE,
                    log_rec_devs = NULL,
                    cor_rec = diag(length(fauna))) {
-
   init_cond_provided <-
     !all(is.na(initial_conditions)) # marker in case initial conditions were provided
 
@@ -112,7 +111,7 @@ simmar <- function(fauna = list(),
   step_names <- step_names[(1:steps) + offset]
 
   # --- SPEED: parse year/season ONCE (avoid repeated stringr in the step loop) ---
-  step_year   <- as.integer(sub("_.*$", "", step_names))
+  step_year <- as.integer(sub("_.*$", "", step_names))
   step_season <- as.integer(sub("^.*_", "", step_names))
   # --- end step parsing ---
 
@@ -135,14 +134,11 @@ simmar <- function(fauna = list(),
       }
     }
   } else {
-
     if (is.null(colnames(log_rec_devs)) ||
         !setequal(colnames(log_rec_devs), names(fauna))) {
       stop("column names of log_rec_devs must match those of fauna")
     }
     log_rec_devs <- log_rec_devs[, names(fauna), drop = FALSE]
-
-
   }
 
   # step_names <- step_names[1:steps] # chop back to the actual number of steps used; works this way in case there are multiple steps per year but an incomplete number of years
@@ -272,7 +268,6 @@ simmar <- function(fauna = list(),
 
   # loop over steps
   for (s in 2:steps) {
-
     last_season <- step_season[s - 1]
     year <- step_year[s]
     current_season <- step_season[s]
@@ -323,7 +318,6 @@ simmar <- function(fauna = list(),
           rowSums(r_p_f, na.rm = TRUE) # pull out total revenue for fleet l
       } else if (s <= 2) {
         for (f in seq_along(fauni)) {
-
           critter <- fauni[f]
 
           last_b_p_a <- storage[[s - 1]][[critter]]$b_p_a
@@ -429,27 +423,24 @@ simmar <- function(fauna = list(),
         }
 
         fleets[[l]]$e_p_s[, s] <- total_effort * alloc
-      } else if (fleets[[l]]$spatial_allocation == "uniform"){
-
+      } else if (fleets[[l]]$spatial_allocation == "uniform") {
         if (sum(fleet_fishable[[l]]) == 0) {
           alloc <- 0
         } else {
           alloc <- fleet_fishable[[l]] / sum(fleet_fishable[[l]])
         }
-
       } else if (fleets[[l]]$spatial_allocation == "rpue") {
         if (sum(fleet_fishable[[l]]) == 0) {
           alloc <- 0
         } else if (sum(last_r_p, na.rm = TRUE) == 0) {
           alloc <- fleet_fishable[[l]] / sum(fleet_fishable[[l]])
         } else {
-
-          if (s<=2){
-          if (init_cond_provided) {
-            rpue <-  rpue_bar <- (last_r_p / pmax(e_p, e_floor))
-          } else {
-            rpue <- rpue_bar <-  fleet_fishable[[l]] / sum(fleet_fishable[[l]])
-          }
+          if (s <= 2) {
+            if (init_cond_provided) {
+              rpue <- rpue_bar <- (last_r_p / pmax(e_p, e_floor))
+            } else {
+              rpue <- rpue_bar <- fleet_fishable[[l]] / sum(fleet_fishable[[l]])
+            }
           } else {
             rpue <- rowSums(sapply(storage[[s - 2]], function(x) x$r_p_fl[, l]), na.rm = TRUE) / pmax(e_p, e_floor)
           }
@@ -459,12 +450,12 @@ simmar <- function(fauna = list(),
 
         smoother <- 0.2
 
-        rpue_bar <- (1-smoother)*rpue_bar + smoother*rpue
+        rpue_bar <- (1 - smoother) * rpue_bar + smoother * rpue
 
         beta <- 0.1
 
         z <- rpue_bar - median(rpue_bar)
-        z <- z / (mad(rpue_bar) + 1e-12)   # robust scale
+        z <- z / (mad(rpue_bar) + 1e-12) # robust scale
         z <- pmax(pmin(z, 6), -6) # prevent extreme spikes
         w <- exp(beta * (z - max(z)))
 
@@ -473,7 +464,7 @@ simmar <- function(fauna = list(),
         if (sum(w) == 0) w <- fleet_fishable[[l]]
         alloc <- w / sum(w)
 
-        eps <- 0.01  # 2% exploration
+        eps <- 0.01 # 2% exploration
         alloc <- (1 - eps) * alloc + eps * (fleet_fishable[[l]] / sum(fleet_fishable[[l]]))
 
 
@@ -562,14 +553,12 @@ simmar <- function(fauna = list(),
         alloc <- out$E_target / sum(out$E_target)
         fleets[[l]]$e_p_s[, s] <- total_effort * alloc
       } else if (fleets[[l]]$spatial_allocation == "marginal_profits") {
-
-
         pre <- precompute_baranov_inputs_softmax(
           storage[[s - 1]],
           fauna,
           fleets,
           l,
-          E_exo = purrr::map(fleets, \(x,s) x$e_p_s[,s-1],s = s),
+          E_exo = purrr::map(fleets, \(x, s) x$e_p_s[, s - 1], s = s),
           (patches)
         )
 
@@ -585,14 +574,12 @@ simmar <- function(fauna = list(),
         )
 
         fleets[[l]]$e_p_s[, s] <- res$eff_p
-
-        } else {
+      } else {
         stop("spatial effort allocation strategy not properly defined, check spatial_allocation and cost_per_unit_effort in fleet object")
       }
     } # close loop over fleets
 
     for (f in seq_along(fauni)) {
-
       critter <- fauni[f]
 
       ages <- length(fauna[[critter]]$length_at_age)
@@ -617,12 +604,7 @@ simmar <- function(fauna = list(),
         ) # storage for price by patch, age, and fleet
 
       for (l in seq_along(fleet_names)) {
-
-        # tmp <-  outer(fleets[[l]]$metiers[[critter]]$spatial_catchability,  fleets[[l]]$metiers[[critter]]$sel_at_age, `*`)
-
         tmp <- fleets[[fleet_names[l]]]$metiers[[critter]]$vul_p_a
-
-        ## could add in the effective discard factor here, where that would be a multipliier as a function of 1 - (discard_rate * discard_survival)
 
         f_p_a <-
           f_p_a + fleets[[l]]$e_p_s[, s] * tmp
@@ -663,7 +645,7 @@ simmar <- function(fauna = list(),
 
         to <- edges$i
 
-        from   <- edges$j
+        from <- edges$j
 
         delta_h <- hab_vals[to] - hab_vals[from]
 
@@ -675,7 +657,7 @@ simmar <- function(fauna = list(),
 
         P <- length(hab_vals)
 
-        current_habitat <-  Matrix::sparseMatrix(
+        current_habitat <- Matrix::sparseMatrix(
           i = to,
           j = from,
           x = mult,
@@ -710,11 +692,13 @@ simmar <- function(fauna = list(),
         rec_devs = fauna_rec_devs
       )
 
+
       tmp_e_p_fl <-
         purrr::list_cbind(unname(purrr::map(
-          fleets, ~ data.frame(x = as.numeric(.x$e_p_s[, s] * 1))
+          fleets, ~ data.frame(x = as.numeric(.x$e_p_s[, s]))
         )), name_repair = "unique_quiet")
       colnames(tmp_e_p_fl) <- names(fleets)
+
 
       yields <- allocate_yields(f_p_a_fl = f_p_a_fl, e_p_fl = tmp_e_p_fl,p_p_a_fl = p_p_a_fl, critter = critter,pop = pop, fauna = fauna, fleets = fleets, patches = patches, ages = ages )
 
@@ -763,8 +747,6 @@ simmar <- function(fauna = list(),
           )
         }
       }
-
-      r_p_a_fl <- yields$r_p_a_fl
 
       storage[[s - 1]][[critter]]$c_p_fl <-
         yields$c_p_fl # store catch by patch  by fleet

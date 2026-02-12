@@ -116,6 +116,9 @@ tune_fleets <- function(fauna,
       mean_q <- ifelse(mean_q == 0, 1e-9, mean_q)
 
       tfleets[[f]]$metiers[[s]]$spatial_catchability <- (tfleets[[f]]$metiers[[s]]$spatial_catchability / mean_q) * catchability[f]
+
+      tfleets[[f]]$metiers[[s]]$vul_p_a  <-  outer(tfleets[[f]]$metiers[[s]]$spatial_catchability, tfleets[[f]]$metiers[[s]]$sel_at_age, `*`)
+
     } # close internal fleet loop
   } # close fauna loop
 
@@ -252,6 +255,8 @@ tune_fleets <- function(fauna,
         mean_q <- ifelse(mean_q == 0, 1e-9, mean_q)
 
         tfleets[[f]]$metiers[[ff]]$spatial_catchability <- tfleets[[f]]$metiers[[ff]]$spatial_catchability / mean_q * metier_q
+
+        tfleets[[f]]$metiers[[ff]]$vul_p_a  <-  outer(tfleets[[f]]$metiers[[ff]]$spatial_catchability, tfleets[[f]]$metiers[[ff]]$sel_at_age, `*`)
 
       } # close internal fauna loop
     } # close fleet loop
