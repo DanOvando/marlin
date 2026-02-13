@@ -208,7 +208,7 @@ biomass and recruits are then distributed in space proportional to spawning biom
 
 \item{\code{resolution}}{a vector of length two with number of patches in X and Y dimensions}
 
-\item{\code{patch_area}}{area of each patch (e.g. KM2)}
+\item{\code{patch_area}}{area of each patch (e.g. KM2). Either a scaler, a matrix, or a vector. If vector must be in correct patch order (arrange(x,y))}
 
 \item{\code{habitat}}{a matrix with dimensions X and Y specifying quality of adult (non-recruit) habitat. Determines taxis matrix}
 

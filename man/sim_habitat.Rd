@@ -13,6 +13,7 @@ sim_habitat(
   rescale_habitat = TRUE,
   max_delta = 3,
   max_abs_cor = 1,
+  min_abs_cor = 0,
   output = "df"
 )
 }

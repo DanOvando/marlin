@@ -31,6 +31,7 @@ create_critter(
   patch_area = 1,
   spawning_seasons = NA,
   density_dependence = "global_habitat",
+  steepness = 0.8,
   growth_model = "von_bertalanffy",
   ...
 )

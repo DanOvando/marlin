@@ -4,14 +4,16 @@
 \alias{fleet_tuner}
 \title{fleet tuner}
 \usage{
-fleet_tuner(log_qs, fauna, fleets, years = 50)
+fleet_tuner(log_fs, fauna, fleets, e_fl, years = 50)
 }
 \arguments{
-\item{log_qs}{vector of log catchability coefficients}
+\item{log_fs}{log instantaneous fishing mortality per critter}
 
 \item{fauna}{fauna object}
 
 \item{fleets}{fleet object}
+
+\item{e_fl}{baseline effort per fleet}
 
 \item{years}{number of years to tune}
 }

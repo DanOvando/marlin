@@ -25,7 +25,7 @@ allocate_yields <- function(f_p_a_fl,p_p_a_fl, e_p_fl, critter, pop, patches, ag
 
     prof_p_fl[, fl] <-
       r_p_fl[, fl] - fleets[[fl]]$cost_per_unit_effort * ((
-        as.matrix(tmp_e_p_fl[, fl]) / length(fauna)^fleets[[fl]]$effort_cost_exponent
+        as.matrix((tmp_e_p_fl[, fl]) / length(fauna))^fleets[[fl]]$effort_cost_exponent
       ) + as.matrix(tmp_e_p_fl[, fl] / length(fauna) * fleets[[fl]]$cost_per_patch)
       )
 

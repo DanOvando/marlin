@@ -13,7 +13,7 @@ quota_finder(
   f_p_a,
   last_n_p_a,
   f_p_a_fl,
-  f,
+  critter,
   rec_devs,
   patches,
   ages,

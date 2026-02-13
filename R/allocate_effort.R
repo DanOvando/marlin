@@ -1,34 +1,271 @@
-#' Allocate Effort
+#' Allocate Fishing Effort Using Multiplicative Velocity-Field Update
 #'
-#' This function takes an objective function in space for a given fleet
-#' and returns an allocator of total effort based on that objective function
+#' @description
+#' Updates patch-level effort for one or more fleets using a multiplicative
+#' (replicator-style) gradient-flow heuristic derived from an objective signal.
+#' Each fleet's objective is selected automatically from the \code{buffet} based
+#' on its \code{spatial_allocation} setting (e.g., "rpue", "profit", "catch").
 #'
-#' @param obj_p a vector of length p with the objective function value in each patch
-#' @param beta the responsiveness of allocation to differences in objective function, lower values make the surface smoother. >0
-#' @param eps a small amount of exploratory fishing to apply everywhere available to the fleet to prevent pooling
-#' @param fleet_fishable a boolean vector of length p indicating whether a given patch is open to fishing for that fleet
+#' The allocator interprets the objective as a **velocity field** rather than a
+#' target distribution. Effort changes proportionally according to:
 #'
-#' @returns a numeric vector of length p that sums to 1 that can be used to distribute the total pool of effort
+#' \deqn{e_{new} \propto e_{old} \exp(\eta v)}
+#'
+#' where \eqn{v} is a centered, scaled, and clipped version of the objective.
+#'
+#' This is a **single-step response**: fleets observe the current objective
+#' landscape and make one reallocation decision each. Convergence to equilibrium
+#' emerges from the bioeconomic feedback loop in \code{\link{simmar}}, where
+#' effort decisions play out through population dynamics and generate updated
+#' objective signals at each timestep.
+#'
+#' This approach guarantees:
+#' \itemize{
+#'   \item Non-negative effort
+#'   \item Conservation of total effort (per fleet)
+#'   \item No change when incentives are equal across open patches
+#'   \item High numerical stability via log-space updates
+#'   \item Stable behavior when objective is flat (no spurious edge concentration)
+#' }
+#'
+#' @param effort_by_patch Numeric matrix of effort by patch (rows) and fleet
+#'   (columns). Column names should be fleet names.
+#' @param buffet List returned by \code{\link{go_fish}} with
+#'   \code{output_format = "matrix"}. Must contain: \code{r_p_fl}, \code{c_p_fl},
+#'   \code{prof_p_fl}, \code{rpue_p_fl}, \code{cpue_p_fl}, \code{ppue_p_fl}.
+#'   Each fleet picks its objective from this buffet based on its
+#'   \code{spatial_allocation} setting.
+#' @param fleets List of fleet objects. Each fleet must have a
+#'   \code{spatial_allocation} element set to one of: \code{"revenue"},
+#'   \code{"catch"}, \code{"profit"}, \code{"rpue"}, \code{"cpue"}, or
+#'   \code{"ppue"}.
+#' @param open_patch Logical matrix indicating which patches are open to fishing,
+#'   by patch (rows) and fleet (columns). Same dimensions as
+#'   \code{effort_by_patch}. Allows fleet-specific closures (e.g., different
+#'   fishing grounds per fleet). Can also be a logical vector if all fleets share
+#'   the same open patches.
+#' @param eta Numeric responsiveness parameter controlling magnitude of effort
+#'   movement (default: 0.2). Higher values = faster adjustment to incentives.
+#' @param clip_z Numeric maximum absolute standardized objective value allowed
+#'   (default: 5). Prevents extreme updates from outliers.
+#' @param scale Character string specifying method to scale the objective:
+#'   "mad" (median absolute deviation, default), "iqr" (interquartile range),
+#'   or "sd" (standard deviation). MAD is most robust to outliers.
+#' @param eps_mix Numeric optional exploration mixing fraction between 0 and 1
+#'   (default: 0). When > 0, mixes optimal allocation with uniform distribution
+#'   to allow re-entry into abandoned patches.
+#' @param floor_frac Numeric optional fractional effort floor relative to mean
+#'   open-patch effort (default: 0). Prevents complete abandonment of patches.
+#' @param flatness_tol Numeric threshold for detecting flat objectives using
+#'   coefficient of variation (default: 1e-3 = 0.1%).
+#' @param min_scale_abs Numeric absolute minimum scale value to prevent
+#'   division by tiny numbers (default: 1e-10).
+#' @param adaptive_floor_pct Numeric percentage of median for adaptive scale floor
+#'   (default: 0.01 = 1%).
+#'
+#' @return A list with:
+#' \describe{
+#'   \item{effort_new}{Numeric matrix of updated effort (patches x fleets),
+#'     with column names preserved from \code{effort_by_patch}}
+#'   \item{velocity_by_patch}{Numeric matrix of velocity fields (patches x fleets)}
+#'   \item{z_by_patch}{Numeric matrix of standardized objective values (patches x fleets)}
+#'   \item{flat_objective}{Named logical vector (one per fleet): TRUE if objective was
+#'     detected as flat for that fleet}
+#'   \item{cv}{Named numeric vector (one per fleet): coefficient of variation of objective}
+#'   \item{obj_range}{Named numeric vector (one per fleet): range of objective across open patches}
+#' }
+#'
 #' @export
 #'
 #' @examples
-allocate_effort <- function(obj_p, beta = 0.1, eps = 0.01, fleet_fishable) {
-  # robust scale, convert to median absolute deviations from the median
-  z <- obj_p - median(obj_p)
-  z <- z / (mad(obj_p) + 1e-6) # robust scale, constant prevents 0
-  z <- pmax(pmin(z, 6), -6) # prevent extreme spikes
-  w <- exp(beta * (z - max(z))) # softmax transformation
+#' \dontrun{
+#' # Run go_fish in matrix mode, then allocate
+#' buffet <- go_fish(e_p_fl, fauna, n_p_a, fleets, output_format = "matrix")
+#'
+#' result <- allocate_effort(
+#'   effort_by_patch = e_p_fl,
+#'   buffet = buffet,
+#'   fleets = fleets,
+#'   open_patch = fleet_fishable
+#' )
+#'
+#' # Updated effort matrix, ready for next simmar timestep
+#' e_p_fl_new <- result$effort_new
+#'
+#' # Check which fleets saw flat objectives
+#' result$flat_objective
+#' }
+#'
+allocate_effort <- function(
+    effort_by_patch,
+    total_effort_by_fleet = NULL,
+    buffet,
+    fleets,
+    open_patch,
+    eta = 0.2,
+    clip_z = 5,
+    scale = c("mad", "iqr", "sd"),
+    eps_mix = 0.0,
+    floor_frac = 0.0,
+    flatness_tol = 1e-3,
+    min_scale_abs = 1e-10,
+    adaptive_floor_pct = 0.01
+) {
 
+  scale <- match.arg(scale)
 
-  if (sum(w) == 0) {
-    w <- fleet_fishable # if numerical issues cause all w to be 0
+  if (is.null(total_effort_by_fleet)){
+    total_effort_by_fleet = colSums(effort_by_patch)
+  }
+  # --- Coerce inputs to matrices -----------------------------------------------
+
+  # incase total effort has changed, first normalize each fleets effort, then redistribute total effort
+  effort_by_patch <- as.matrix(effort_by_patch)
+  colnames(effort_by_patch) <- names(fleets)
+  effort_by_patch <- (effort_by_patch / rep(colSums(effort_by_patch), each = nrow(effort_by_patch))) *  rep(total_effort_by_fleet, each = nrow(effort_by_patch))
+
+  n_patches <- nrow(effort_by_patch)
+  n_fleets <- ncol(effort_by_patch)
+  fleet_names <- (names(fleets))
+
+  # open_patch: accept vector (shared) or matrix (per-fleet)
+  if (is.null(dim(open_patch))) {
+    open_patch <- matrix(open_patch, nrow = n_patches, ncol = n_fleets)
   } else {
-    w <- w * fleet_fishable
+    open_patch <- as.matrix(open_patch)
+  }
+  storage.mode(open_patch) <- "logical"
+
+  # --- Map spatial_allocation to buffet matrices --------------------------------
+  alloc_to_mat <- c(
+    revenue = "r_p_fl",
+    catch   = "c_p_fl",
+    profit  = "prof_p_fl",
+    rpue    = "rpue_p_fl",
+    cpue    = "cpue_p_fl",
+    ppue    = "ppue_p_fl"
+  )
+
+  # --- Pre-allocate output -----------------------------------------------------
+  effort_new <- matrix(0, nrow = n_patches, ncol = n_fleets)
+  velocity_out <- matrix(0, nrow = n_patches, ncol = n_fleets)
+  z_out <- matrix(0, nrow = n_patches, ncol = n_fleets)
+  flat_out <- logical(n_fleets)
+  cv_out <- numeric(n_fleets)
+  range_out <- numeric(n_fleets)
+
+  # --- Per-fleet allocation ----------------------------------------------------
+  for (fl in seq_len(n_fleets)) {
+
+    fl_name <- fleet_names[fl]
+    # Look up which objective this fleet uses
+    alloc_type <- fleets[[fl_name]]$spatial_allocation
+    mat_name <- alloc_to_mat[alloc_type]
+
+    if (is.na(mat_name)) {
+      stop(sprintf(
+        "Fleet '%s' has spatial_allocation = '%s', which is not one of: %s",
+        fl_name, alloc_type, paste(names(alloc_to_mat), collapse = ", ")
+      ))
+    }
+
+    effort <- effort_by_patch[, fl]
+    objective <- buffet[[mat_name]][, fl_name]
+    open <- open_patch[, fl]
+
+    open_idx <- which(open)
+    total_effort <- sum(effort)
+
+    # Step 1: FLATNESS DETECTION ------------------------------------------------
+    obj_open <- objective[open_idx]
+    obj_center <- stats::median(obj_open, na.rm = TRUE)
+    obj_rng <- diff(range(obj_open, na.rm = TRUE))
+
+    obj_scale <- switch(
+      scale,
+      mad = stats::mad(obj_open, constant = 1, na.rm = TRUE),
+      iqr = stats::IQR(obj_open, na.rm = TRUE) / 1.349,
+      sd  = stats::sd(obj_open, na.rm = TRUE)
+    )
+
+    cv <- obj_scale / (abs(obj_center) + 1e-100)
+    is_flat <- (cv < flatness_tol) || (obj_scale < min_scale_abs)
+
+    cv_out[fl] <- cv
+    range_out[fl] <- obj_rng
+
+    if (is_flat) {
+      flat_out[fl] <- TRUE
+      if (eps_mix > 0) {
+        effort_new[open_idx, fl] <- total_effort / length(open_idx)
+      } else {
+        effort_new[, fl] <- effort
+      }
+      next
+    }
+
+    flat_out[fl] <- FALSE
+
+    # Step 2: ADAPTIVE SCALE FLOOR ----------------------------------------------
+    min_scale_adaptive <- pmax(adaptive_floor_pct * abs(obj_center), min_scale_abs)
+    obj_scale <- pmax(obj_scale, min_scale_adaptive)
+
+    # Step 3: STANDARDIZE -------------------------------------------------------
+    z <- (objective - obj_center) / obj_scale
+    z <- pmax(pmin(z, clip_z), -clip_z)
+    z[!open] <- 0
+    z_out[, fl] <- z
+
+    # Step 4: VELOCITY FIELD ----------------------------------------------------
+    z_open_mean <- mean(z[open_idx])
+    v <- z - z_open_mean
+    v[!open] <- 0
+    velocity_out[, fl] <- v
+
+    # Step 5: MULTIPLICATIVE UPDATE ---------------------------------------------
+    e_open <- effort
+    e_open[!open] <- 0
+
+    if (floor_frac > 0) {
+      floor_effort <- floor_frac * (total_effort / length(open_idx))
+      e_open[open] <- pmax(e_open[open], floor_effort)
+    }
+
+    log_e <- rep(-Inf, n_patches)
+    log_e[open] <- log(pmax(e_open[open], 1e-300))
+    log_e_prop <- log_e + eta * v
+
+    mx <- max(log_e_prop[open])
+    w <- numeric(n_patches)
+    w[open] <- exp(log_e_prop[open] - mx)
+    w[!open] <- 0
+
+    e_new <- w * (total_effort / sum(w))
+
+    # Step 6: EXPLORATION MIX ---------------------------------------------------
+    if (eps_mix > 0) {
+      baseline <- numeric(n_patches)
+      baseline[open] <- total_effort / length(open_idx)
+      e_new <- (1 - eps_mix) * e_new + eps_mix * baseline
+    }
+
+    effort_new[, fl] <- e_new
   }
 
-  alloc <- w / sum(w) # normalize
+  # --- Label outputs -----------------------------------------------------------
+  colnames(effort_new) <- fleet_names
+  colnames(velocity_out) <- fleet_names
+  colnames(z_out) <- fleet_names
+  names(flat_out) <- fleet_names
+  names(cv_out) <- fleet_names
+  names(range_out) <- fleet_names
 
-  alloc <- (1 - eps) * alloc + eps * (fleet_fishable / sum(fleet_fishable)) # add a small bit of exploratory fishing and normalize again
-
-  return(alloc)
+  list(
+    effort_new = effort_new,
+    velocity_by_patch = velocity_out,
+    z_by_patch = z_out,
+    flat_objective = flat_out,
+    cv = cv_out,
+    obj_range = range_out
+  )
 }

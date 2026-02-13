@@ -7,14 +7,7 @@ note that this is not exact: post-tuning values will not perfectly match inputs 
 for example some tuning steps depend on prior tuning step, making it difficult to tune everything
 at once.}
 \usage{
-tune_fleets(
-  fauna,
-  fleets,
-  years = 50,
-  tune_type = "f",
-  tune_costs = TRUE,
-  fine_tune_costs = TRUE
-)
+tune_fleets(fauna, fleets, years = 50, tune_type = "f", tune_costs = TRUE)
 }
 \arguments{
 \item{fauna}{a fauna object}
@@ -26,8 +19,6 @@ tune_fleets(
 \item{tune_type}{one of 'f' or 'depletion' to tune catchability to achieve a desired fishing mortality rate (f) or a target depletion (B/B0)}
 
 \item{tune_costs}{TRUE or FALSE to tune costs to a target cost to revenue ratio}
-
-\item{fine_tune_costs}{TRUE or FALSE}
 }
 \value{
 tuned fleet object

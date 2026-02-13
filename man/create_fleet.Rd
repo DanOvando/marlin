@@ -11,7 +11,7 @@ create_fleet(
   responsiveness = 0.5,
   cost_per_unit_effort = 1,
   spatial_allocation = "rpue",
-  effort_cost_exponent = 1,
+  effort_cost_exponent = 1.2,
   ports = NULL,
   cost_per_distance = 1,
   cr_ratio = 1,

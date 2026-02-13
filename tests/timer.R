@@ -5,6 +5,8 @@ theme_set(marlin::theme_marlin(base_size = 12))
 
 resolution <- 28 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches
 
+patches <- resolution^2
+
 years <- 50
 
 seasons <- 1
@@ -13,10 +15,14 @@ time_step <- 1 / seasons
 
 steps <- years * seasons
 
+species_distributions <- sim_habitat(critters = "bigeye", resolution = resolution, patch_area = 1, kp = 0.1, output = "list" )
+
+
 fauna <-
   list(
     "bigeye" = create_critter(
       common_name = "bigeye tuna",
+      habitat = species_distributions$critter_distributions$bigeye,
       adult_home_range = 1,
       recruit_home_range = 4,
       density_dependence = "pre_dispersal",
@@ -28,6 +34,9 @@ fauna <-
       ssb0 = 1000
     )
   )
+
+
+
 
 fauna$bigeye$plot_movement()
 
@@ -67,6 +76,8 @@ fleets$longline$metiers$bigeye$catchability
 fleets$longline$metiers$bigeye$plot_catchability()
 
 
+
+
 start_time <- Sys.time()
 
 for (i in 1:(1)) {
@@ -87,3 +98,4 @@ plot_marlin(proc_sim, plot_var = "c", plot_type = "space", max_scale = FALSE)
 plot_marlin(proc_sim, plot_var = "ssb", max_scale = FALSE)
 
 fauna$bigeye$plot_movement()
+proc_sim$fauna$ssb

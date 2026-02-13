@@ -236,6 +236,8 @@ we can then use `process_marlin` and `plot_marlin` to examine the simulation
 
 
 ```{r}
+# options(warn = 2)
+
 processed_marlin <- process_marlin(sim = example_sim, time_step = time_step)
 
 plot_marlin(processed_marlin)

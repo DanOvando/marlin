@@ -67,12 +67,6 @@ simmar <- function(fauna = list(),
 
   covariance_rec <- cor_rec * (sigma_recs %o% sigma_recs)
 
-  # if (!is.null(rec_devs)){
-  #   if (length(rec_devs) > 1 & length(rec_devs) != length(fauna)){
-  #     stop("rev_devs must either be a vector of length")
-  #   }
-  # }
-
   if (length(time_step) > 1) {
     stop(
       paste(
@@ -157,6 +151,33 @@ simmar <- function(fauna = list(),
   if (all(is.na(initial_conditions))) {
     initial_conditions <-
       purrr::map(fauna, c("unfished")) # pull out unfished conditions created by create_critter
+
+    initial_e_p_fl <- purrr::imap(fleets, ~ data.frame(x = rep(.x$base_effort / patches, patches)) |>
+      setNames(.y)) |>
+      purrr::list_cbind() |>
+      as.matrix()
+
+
+    initial_n_p_a <- map(fauna, "n_p_a_0")
+
+    initial_exploration <- go_fish(
+      e_p_fl = initial_e_p_fl,
+      fauna = fauna,
+      fleets = fleets,
+      n_p_a = initial_n_p_a,
+      output_format = "matrix"
+    )
+
+    initial_effort <- allocate_effort(
+      effort_by_patch = initial_e_p_fl,
+      fleets = fleets,
+      buffet = initial_exploration,
+      open_patch = rep(TRUE, patches),
+      flatness_tol = 1e-2
+    )
+
+
+
   }
 
   if (length(patches) > 1) {
@@ -249,15 +270,23 @@ simmar <- function(fauna = list(),
     initial_conditions # start populations at initial conditions
 
 
-  fleets <- purrr::map(
-    fleets,
-    ~ purrr::list_modify(.x, e_p_s = matrix((.x$base_effort / patches), nrow = patches, ncol = steps))
-  )
+  # fleets <- purrr::map(
+  #   fleets,
+  #   ~ purrr::list_modify(.x, e_p_s = matrix((.x$base_effort / patches), nrow = patches, ncol = steps))
+  # )
+
+
+  last_e_p_f <- matrix(NA,nrow = patches, ncol = length(fleets))
 
   if (init_cond_provided) {
     for (i in names(fleets)) {
-      fleets[[i]]$e_p_s[, 1] <- getElement(initial_conditions[[1]]$e_p_fl, i)
+      # fleets[[i]]$e_p_s[, 1] <- getElement(initial_conditions[[1]]$e_p_fl, i)
+      last_e_p_f[,i] <- getElement(initial_conditions[[1]]$e_p_fl, i)
     }
+
+
+  } else {
+    last_e_p_f <- initial_effort$effort_new
   }
 
   r_p_f <- matrix(0, patches, length(fauni))
@@ -273,7 +302,8 @@ simmar <- function(fauna = list(),
   # loop over steps
   for (s in 2:steps) {
 
-    last_season <- step_season[s - 1]
+    updated_e_p_f <- last_e_p_f
+
     year <- step_year[s]
     current_season <- step_season[s]
 
@@ -313,282 +343,53 @@ simmar <- function(fauna = list(),
     for (l in seq_along(fleet_names)) {
       # xx add ability to incorporate past revenues here. Idea. have a marker that lets you know if initial conditions were passed in. If s<= 2 or there were no initial conditions, pull this. If s<= 2 but there were initial conditions, pull the initial conditions for those steps
 
-      if (s == 2 & init_cond_provided) {
-        r_p_f <-
-          (sapply(initial_conditions, function(x) {
-            rowSums(x$r_p_a_fl[, , l], na.rm = TRUE)
-          }))
-
-        last_r_p <-
-          rowSums(r_p_f, na.rm = TRUE) # pull out total revenue for fleet l
-      } else if (s <= 2) {
-        for (f in seq_along(fauni)) {
-
-          critter <- fauni[f]
-
-          last_b_p_a <- storage[[s - 1]][[critter]]$b_p_a
-
-          last_e_p <- fleets[[l]]$e_p_s[, s - 1]
-
-          # calculate fishable biomass in each patch for each species for that fleet
-
-          # account for spatial catchability
-          tmp <- 1 - exp(-(
-            matrix(
-              fleets[[l]]$metiers[[critter]]$spatial_catchability,
-              nrow = nrow(last_b_p_a),
-              ncol = ncol(last_b_p_a),
-              byrow = FALSE
-            ) *
-              matrix(
-                fleets[[l]]$metiers[[critter]]$sel_at_age,
-                nrow = nrow(last_b_p_a),
-                ncol = ncol(last_b_p_a),
-                byrow = TRUE
-              )
-          ))
-
-          last_b_p <-
-            rowSums(last_b_p_a * tmp * (current_season %in% fishing_seasons[[critter]])) * fleet_fishable[[l]]
-
-          r_p_f[, f] <-
-            last_b_p * fleets[[l]]$metiers[[critter]]$price
-
-          f_q[f] <- fleets[[l]]$metiers[[critter]]$catchability
-        } # close fauni loop
-
-        last_r_p <- rowSums(r_p_f, na.rm = TRUE)
-      } else {
-        r_p_f <-
-          (sapply(storage[[s - 2]], function(x) {
-            rowSums(x$r_p_a_fl[, , l], na.rm = TRUE)
-          }))
-
-        last_r_p <-
-          rowSums(r_p_f, na.rm = TRUE) # pull out total revenue for fleet l
-      }
-
       if (fleets[[l]]$fleet_model == "manual") {
         total_effort <- fleets[[l]]$effort[s - 1]
       } else {
-        total_effort <- sum(fleets[[l]]$e_p_s[, s - 1] * fleet_concentrator[[l]])
+        total_effort <- sum(last_e_p_f[,l] * fleet_concentrator[[l]])
       }
 
-      if (sum(last_r_p, na.rm = TRUE) > 0) {
-        # the only way for revenues in the last step to be literally zero is 100% mpas or all target species seasons closed or last effort = zero
-        last_revenue <-
-          sum(last_r_p, na.rm = TRUE) # pull out total revenue for fleet l
 
-        last_cost <-
-          fleets[[l]]$cost_per_unit_effort * (
-            sum((fleets[[l]]$e_p_s[, s - 1])^
-                  fleets[[l]]$effort_cost_exponent) + sum(fleets[[l]]$cost_per_patch * fleets[[l]]$e_p_s[, s - 1])
-          )
-      }
-
-      if (fleets[[l]]$fleet_model == "open_access") {
+      if (fleets[[l]]$fleet_model == "open_access" & s > 2) {
         if (is.na(fleets[[l]]$cost_per_unit_effort) || is.na(fleets[[l]]$responsiveness)) {
-          stop("open access fleet model requires both cost_per_unit_effort and responsiveness parameters")
+          stop("open access fleet model requires both cost_per_unit_effort and responsiveness parameters for the fleet in question")
         }
 
-        if (exists("last_revenue")) {
           effort_cap <- Inf
           if (length(manager$effort_cap[[l]]) > 0) effort_cap <- manager$effort_cap[[l]]
 
+          last_profits <- sum(buffet$ppue_p_fl[,names(fleets)[l]], na.rm = TRUE)
+
+          message("ohhh thats why you did it that way, so that responsiveness was in units of profit margins rather than absolute profits")
           total_effort <- pmin(
             effort_cap,
             total_effort * pmin(1.5, exp(
               fleets[[l]]$responsiveness * log(pmax(last_revenue, 1e-6) / pmax(1e-6, last_cost))
             ))
           )
-        }
       }
 
-      e_p <- fleets[[l]]$e_p_s[, s - 1]
 
+      ### allocate fleet in space ###
+      ### claude check logic here ###
+      if (s > 2){
 
-      e_floor <- 1e-2 * mean(e_p)
+      e_p <- last_e_p_f[,l]
 
-      # allocate fleets in space
-      if (fleets[[l]]$spatial_allocation == "revenue") {
-        if (sum(fleet_fishable[[l]]) == 0) {
-          alloc <- 0
-        } else if (sum(last_r_p, na.rm = TRUE) == 0) {
-          alloc <- fleet_fishable[[l]] / sum(fleet_fishable[[l]])
-        } else {
-          alloc <- ((last_r_p * fleet_fishable[[l]]) / sum(last_r_p * fleet_fishable[[l]], na.rm = TRUE))
-          alloc <- alloc - min(alloc, na.rm = TRUE) + 1
-          alloc <- alloc / sum(alloc)
+      current_effort <- allocate_effort(
+        effort_by_patch = e_p,
+        total_effort_by_fleet = total_effort,
+        fleets = fleets[l],
+        buffet = buffet,
+        open_patch = fleet_fishable[[l]],
+        flatness_tol = 1e-2
+      )
 
-          if (s > 2) {
-            alloc <- rowSums(sapply(storage[[s - 2]], function(x) x$r_p_fl[, l]), na.rm = TRUE)
-            alloc <- alloc - min(alloc, na.rm = TRUE) + 1
-            alloc <- alloc * fleet_fishable[[l]]
-            alloc <- alloc / sum(alloc)
-          }
-        }
+      # warning("this is the bananas messy part. storage is indexed s-1 but fleet effort is indexed s. So, the effort sotred in s here is actually in storage in s-1, the effort that produced the outcomes in that time step of storage")
 
-        fleets[[l]]$e_p_s[, s] <- total_effort * alloc
-      } else if (fleets[[l]]$spatial_allocation == "uniform"){
-
-        if (sum(fleet_fishable[[l]]) == 0) {
-          alloc <- 0
-        } else {
-          alloc <- fleet_fishable[[l]] / sum(fleet_fishable[[l]])
-        }
-
-      } else if (fleets[[l]]$spatial_allocation == "rpue") {
-        if (sum(fleet_fishable[[l]]) == 0) {
-          alloc <- 0
-        } else if (sum(last_r_p, na.rm = TRUE) == 0) {
-          alloc <- fleet_fishable[[l]] / sum(fleet_fishable[[l]])
-        } else {
-
-          if (s<=2){
-          if (init_cond_provided) {
-            rpue <-  rpue_bar <- (last_r_p / pmax(e_p, e_floor))
-          } else {
-            rpue <- rpue_bar <-  fleet_fishable[[l]] / sum(fleet_fishable[[l]])
-          }
-          } else {
-            rpue <- rowSums(sapply(storage[[s - 2]], function(x) x$r_p_fl[, l]), na.rm = TRUE) / pmax(e_p, e_floor)
-          }
-        }
-        rpue[!is.finite(rpue)] <- 0
-        rpue <- rpue * fleet_fishable[[l]]
-
-        smoother <- 0.2
-
-        rpue_bar <- (1-smoother)*rpue_bar + smoother*rpue
-
-        beta <- 0.1
-
-        z <- rpue_bar - median(rpue_bar)
-        z <- z / (mad(rpue_bar) + 1e-12)   # robust scale
-        z <- pmax(pmin(z, 6), -6) # prevent extreme spikes
-        w <- exp(beta * (z - max(z)))
-
-        # w <- exp(beta * (rpue_bar - max(rpue_bar)))
-        w <- w * fleet_fishable[[l]]
-        if (sum(w) == 0) w <- fleet_fishable[[l]]
-        alloc <- w / sum(w)
-
-        eps <- 0.01  # 2% exploration
-        alloc <- (1 - eps) * alloc + eps * (fleet_fishable[[l]] / sum(fleet_fishable[[l]]))
-
-
-        fleets[[l]]$e_p_s[, s] <- total_effort * alloc
-      } else if (fleets[[l]]$spatial_allocation == "ppue" && !is.na(fleets[[l]]$cost_per_unit_effort)) {
-        if (sum(fleet_fishable[[l]]) == 0) {
-          alloc <- 0
-        } else if (sum(last_r_p, na.rm = TRUE) == 0) {
-          alloc <- fleet_fishable[[l]] / sum(fleet_fishable[[l]])
-        } else {
-          alloc <- ((
-            last_r_p - fleets[[l]]$cost_per_unit_effort * ((e_p)^fleets[[l]]$effort_cost_exponent + fleets[[l]]$cost_per_patch * e_p) / (e_p + 1)
-          )) * fleet_fishable[[l]]
-
-          alloc[!is.finite(alloc)] <- 0
-          alloc <- alloc - min(alloc, na.rm = TRUE) + 1
-          alloc <- alloc / sum(alloc, na.rm = TRUE)
-
-          if (s > 2) {
-            alloc <- rowSums(sapply(storage[[s - 2]], function(x) x$prof_p_fl[, l]), na.rm = TRUE) / (e_p)
-            alloc[!is.finite(alloc)] <- 0
-            alloc <- fleet_fishable[[l]] * (alloc - min(alloc, na.rm = TRUE) + 1)
-            alloc <- alloc / sum(alloc)
-          }
-        }
-
-        fleets[[l]]$e_p_s[, s] <- total_effort * alloc
-      } else if (fleets[[l]]$spatial_allocation == "profit" && !is.na(fleets[[l]]$cost_per_unit_effort)) {
-        if (sum(fleet_fishable[[l]]) == 0) {
-          alloc <- 0
-        } else if (sum(last_r_p, na.rm = TRUE) == 0) {
-          alloc <- fleet_fishable[[l]] / sum(fleet_fishable[[l]])
-        } else {
-          alloc <- (last_r_p - fleets[[l]]$cost_per_unit_effort * ((e_p)^fleets[[l]]$effort_cost_exponent + fleets[[l]]$cost_per_patch * e_p))
-          alloc[!is.finite(alloc)] <- 0
-          alloc <- fleet_fishable[[l]] * (alloc - min(alloc, na.rm = TRUE) + 1)
-          alloc <- alloc / sum(alloc, na.rm = TRUE)
-
-          if (s > 2) {
-            alloc <- rowSums(sapply(storage[[s - 2]], function(x) x$prof_p_fl[, l]), na.rm = TRUE)
-            alloc <- fleet_fishable[[l]] * (alloc - min(alloc, na.rm = TRUE) + 1)
-            alloc <- alloc / sum(alloc)
-          }
-        }
-
-        fleets[[l]]$e_p_s[, s] <- total_effort * alloc
-      } else if (fleets[[l]]$spatial_allocation == "manual") {
-        alloc <- fleet_fishable[[l]] * fleets[[l]]$fishing_grounds$fishing_ground
-        alloc <- alloc / sum(alloc)
-        fleets[[l]]$e_p_s[, s] <- total_effort * alloc
-      } else if (fleets[[l]]$spatial_allocation == "ifd") {
-        # leaving your IFD branch intact; optimization here is mostly upstream (habitat + step parsing)
-        cost_patch <- fleets[[l]]$cost_per_patch
-        c0 <- 2
-        gamma <- 1.2
-        fishable_int <- as.integer(fleet_fishable[[l]])
-
-        pre <- precompute_baranov_inputs(
-          storage = storage[[s - 1]],
-          fauna = fauna,
-          fleets = fleets,
-          target_fleet = l,
-          E_exo = NULL,
-          P = length(patches) # IMPORTANT: preserve your original behavior (even though patches is scalar)
-        )
-
-        out <- cpp_allocate_ifd_kkt_fullsolve_fast(
-          Etot_target = sum(e_p, na.rm = TRUE),
-          alpha_mats = pre$alpha_mats,
-          other_mort_mats = pre$other_mort_mats,
-          biomass_mats = pre$biomass_mats,
-          price_s = pre$price_s,
-          cost_patch = cost_patch,
-          c0 = c0,
-          gamma = gamma,
-          fishable_int = fishable_int,
-          time_step = time_step,
-          include_costs = TRUE,
-          n_outer = 24L,
-          n_inner = 18L,
-          active_tol = 1e-14,
-          flat_tol_sd = 1e-6,
-          flat_tol_abs = 1e-10
-        )
-
-        alloc <- out$E_target / sum(out$E_target)
-        fleets[[l]]$e_p_s[, s] <- total_effort * alloc
-      } else if (fleets[[l]]$spatial_allocation == "marginal_profits") {
-
-
-        pre <- precompute_baranov_inputs_softmax(
-          storage[[s - 1]],
-          fauna,
-          fleets,
-          l,
-          E_exo = purrr::map(fleets, \(x,s) x$e_p_s[,s-1],s = s),
-          (patches)
-        )
-
-        res <- allocate_until_stable_patchwise(
-          eff_init_p = e_p, E_tot = sum(e_p),
-          v_mats = pre$v_mats, other_mats = pre$other_mats, b_mats = pre$b_mats, price_s = pre$price_s, time_step,
-          c0 = fleets[[l]]$cost_per_unit_effort, gamma = fleets[[l]]$effort_cost_exponent, travel_p = fleets[[l]]$cost_per_patch, open_p = (fleet_fishable[[l]] == 1),
-          beta = 6, rho = 0.1,
-          max_iter = 40, tol = 0.01,
-          norm = "iqr",
-          cap_frac = 0.03,
-          record = FALSE
-        )
-
-        fleets[[l]]$e_p_s[, s] <- res$eff_p
-
-        } else {
-        stop("spatial effort allocation strategy not properly defined, check spatial_allocation and cost_per_unit_effort in fleet object")
+      updated_e_p_f[,l] <- current_effort$effort_new[,1]
       }
+
     } # close loop over fleets
 
     for (f in seq_along(fauni)) {
@@ -625,10 +426,10 @@ simmar <- function(fauna = list(),
         ## could add in the effective discard factor here, where that would be a multipliier as a function of 1 - (discard_rate * discard_survival)
 
         f_p_a <-
-          f_p_a + fleets[[l]]$e_p_s[, s] * tmp
+          f_p_a + updated_e_p_f[,l] * tmp
 
         f_p_a_fl[, , l] <-
-          fleets[[l]]$e_p_s[, s] * tmp
+          updated_e_p_f[,l] * tmp
 
         p_p_a_fl[, , l] <- fleets[[l]]$metiers[[critter]]$price
       } # calculate cumulative f at age by patch
@@ -710,15 +511,15 @@ simmar <- function(fauna = list(),
         rec_devs = fauna_rec_devs
       )
 
-      tmp_e_p_fl <-
-        purrr::list_cbind(unname(purrr::map(
-          fleets, ~ data.frame(x = as.numeric(.x$e_p_s[, s] * 1))
-        )), name_repair = "unique_quiet")
-      colnames(tmp_e_p_fl) <- names(fleets)
+      # tmp_e_p_fl <-
+      #   purrr::list_cbind(unname(purrr::map(
+      #     fleets, ~ data.frame(x = as.numeric(.x$e_p_s[, s]))
+      #   )), name_repair = "unique_quiet")
+      # colnames(tmp_e_p_fl) <- names(fleets)
 
-      yields <- allocate_yields(f_p_a_fl = f_p_a_fl, e_p_fl = tmp_e_p_fl,p_p_a_fl = p_p_a_fl, critter = critter,pop = pop, fauna = fauna, fleets = fleets, patches = patches, ages = ages )
+      buffet <- allocate_yields(f_p_a_fl = f_p_a_fl, e_p_fl = updated_e_p_f,p_p_a_fl = p_p_a_fl, critter = critter,pop = pop, fauna = fauna, fleets = fleets, patches = patches, ages = ages )
 
-      c_p_a_fl <- yields$c_p_a_fl
+      c_p_a_fl <- buffet$c_p_a_fl
 
       fmult <- 1
       if (length(manager$quotas[critter]) > 0) {
@@ -764,33 +565,33 @@ simmar <- function(fauna = list(),
         }
       }
 
-      r_p_a_fl <- yields$r_p_a_fl
+      r_p_a_fl <- buffet$r_p_a_fl
 
       storage[[s - 1]][[critter]]$c_p_fl <-
-        yields$c_p_fl # store catch by patch  by fleet
+        buffet$c_p_fl # store catch by patch  by fleet
 
       storage[[s - 1]][[critter]]$r_p_fl <-
-        yields$r_p_fl # store revenue by patch  by fleet
+        buffet$r_p_fl # store revenue by patch  by fleet
 
       storage[[s - 1]][[critter]]$prof_p_fl <-
-        yields$prof_p_fl # store profits by patch by fleet
+        buffet$prof_p_fl # store profits by patch by fleet
 
       storage[[s - 1]][[critter]]$c_p_a_fl <-
-        yields$c_p_a_fl # catch stored in each model is the catch that came from the last time step, so put in the right place here
+        buffet$c_p_a_fl # catch stored in each model is the catch that came from the last time step, so put in the right place here
 
       storage[[s - 1]][[critter]]$r_p_a_fl <-
-        yields$r_p_a_fl # revenue stored in each model is the revenue that came from the last time step, so put in the right place here
+        buffet$r_p_a_fl # revenue stored in each model is the revenue that came from the last time step, so put in the right place here
 
       storage[[s - 1]][[critter]]$c_p_a <-
-        pop$c_p_a # catch stored in each model is the catch that came from the last time step, so put in the right place here
+        buffet$c_p_a # catch stored in each model is the catch that came from the last time step, so put in the right place here
 
       storage[[s - 1]][[critter]]$e_p_fl <-
-        tmp_e_p_fl # store effort by patch by fleet (note that this is the same across species)
+        updated_e_p_f # store effort by patch by fleet (note that this is the same across species)
 
       storage[[s - 1]][[critter]]$f_p_a_fl <-
         f_p_a_fl # store effort by patch by fleet (note that this is the same across species)
 
-      if (any(tmp_e_p_fl < 0)) {
+      if (any(updated_e_p_f < 0)) {
         stop("something hase gone very wrong, effort is negative")
       }
 
@@ -798,6 +599,16 @@ simmar <- function(fauna = list(),
 
       storage[[s]][[critter]]$b0 <- fauna[[critter]]$b0
     } # close fauni, much faster this way than dopar, who knew
+
+    # gather per-critter yields from storage into a list
+    yields_this_step <- setNames(
+      lapply(fauni, function(cr) storage[[s - 1]][[cr]]),
+      fauni
+    )
+
+    buffet <- aggregate_yields(yields_this_step, updated_e_p_f)
+
+    last_e_p_f <- updated_e_p_f
   } # close steps
 
   trimmed_names <- step_names[ifelse(keep_starting_step, 1, 2):steps]

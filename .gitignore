@@ -4,6 +4,7 @@ marlin-notebook.Rmd
 scratch.R
 *.gif
 misc
+*.zip
 # History files
 .Rhistory
 .Rapp.history
