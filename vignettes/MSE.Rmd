@@ -54,7 +54,7 @@ fauna <-
       scientific_name = "Kajikia audax",
       adult_diffusion = 10,
       seasons = seasons,
-      fished_depletion = 0.2,
+      fished_depletion = 0.1,
       resolution = resolution,
       steepness = 0.6,
       ssb0 = 1000
@@ -75,10 +75,10 @@ fleets <- list(
     )),
     base_effort = resolution^2,
     resolution = resolution,
-    responsiveness = .5,
-    cost_per_unit_effort = 1,
+    responsiveness = 5,
+    cost_per_unit_effort = 100,
     fleet_model = "open access",
-        spatial_allocation = "marginal_profits"
+        spatial_allocation = "ppue"
   ),
   "handline" = create_fleet(
     list("striped marlin" = Metier$new(
@@ -90,14 +90,15 @@ fleets <- list(
       catchability = 0,
       p_explt = 1
     )),
+    cost_per_unit_effort = 1000,
     base_effort = resolution^2,
     resolution = resolution,
     fleet_model = "constant effort",
-    spatial_allocation = "marginal_profits"
+    spatial_allocation = "ppue"
   )
 )
 
-fleets <- tune_fleets(fauna, fleets, tune_type = "depletion")
+fleets <- tune_fleets(fauna, fleets, tune_type = "depletion", tune_costs = FALSE)
 
 
 hcr_cutoff <- 0.1
@@ -132,6 +133,8 @@ mse_sim <- simmar(
 )
 
 test <- process_marlin(mse_sim, keep_age = FALSE)
+
+plot_marlin(test)
 
 initial_conditions <- mse_sim[[length(mse_sim)]]
 

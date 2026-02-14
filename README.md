@@ -319,13 +319,15 @@ example_sim <- simmar(
 )
 
 Sys.time() - start_time
-#> Time difference of 0.04969597 secs
+#> Time difference of 0.03605103 secs
 ```
 
 we can then use `process_marlin` and `plot_marlin` to examine the
 simulation
 
 ``` r
+# options(warn = 2)
+
 processed_marlin <- process_marlin(sim = example_sim, time_step = time_step)
 
 plot_marlin(processed_marlin)
@@ -432,7 +434,7 @@ fauna <-
     )
   )
 Sys.time() - a
-#> Time difference of 2.044176 secs
+#> Time difference of 1.450678 secs
 
 # create a fleets object, which is a list of lists (of lists). Each fleet has one element,
 # with lists for each species inside there. Price specifies the price per unit weight of that
@@ -515,7 +517,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets)
 
 Sys.time() - a
-#> Time difference of 0.2788379 secs
+#> Time difference of 0.32902 secs
 
 
 # run simulations
@@ -530,7 +532,7 @@ sim3 <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.112772 secs
+#> Time difference of 0.0752399 secs
 # a <- Sys.time()
 
 processed_marlin <- process_marlin(sim = sim3, time_step = time_step, keep_age = TRUE)
@@ -591,7 +593,7 @@ mako_b0 <- 420
 
 yft_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   mutate(
-    habitat = .05 * x,
+    habitat = dnorm(x, resolution, 8),
     habitat = habitat / max(habitat) * yft_home_range
   ) %>%
   pivot_wider(names_from = x, values_from = habitat) %>%
@@ -663,7 +665,7 @@ fleets <- list("longline" = create_fleet(
     ),
     `Shortfin Mako` = Metier$new(
       critter = fauna$`Shortfin Mako`,
-      price = 0,
+      price = 10,
       sel_form = "logistic",
       sel_start = .1,
       sel_delta = .01,
@@ -674,7 +676,7 @@ fleets <- list("longline" = create_fleet(
   mpa_response = "stay",
   base_effort = prod(resolution),
   resolution = resolution,
-  spatial_allocation = "marginal_profits",
+  spatial_allocation = "rpue",
   cost_per_unit_effort = 1,
   effort_cost_exponent = 1.3
 ))
@@ -702,7 +704,7 @@ fleets <- tune_fleets(fauna, fleets, tune_type = tune_type, tune_costs = TRUE) #
 # fleets$longline$metiers$`Yellowfin Tuna`$spatial_catchability
 
 Sys.time() - a
-#> Time difference of 33.1723 secs
+#> Time difference of 1.913505 secs
 
 # run simulations
 
@@ -715,7 +717,7 @@ nearshore <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 1.08516 secs
+#> Time difference of 0.124193 secs
 
 proc_nearshore <- process_marlin(nearshore, time_step = fauna[[1]]$time_step)
 
@@ -766,7 +768,7 @@ nearshore_mpa <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 1.098116 secs
+#> Time difference of 0.1865718 secs
 
 proc_nearshore_mpa <- process_marlin(nearshore_mpa, time_step = fauna[[1]]$time_step)
 
@@ -784,7 +786,7 @@ same MPA on this new scenario.
 ``` r
 mako_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   mutate(
-    habitat = dnorm(x, .3 * resolution, 8),
+    habitat = dnorm(x, .75 * resolution, 6),
     habitat = habitat / max(habitat) * mako_home_range
   ) %>%
   pivot_wider(names_from = x, values_from = habitat) %>%
@@ -829,8 +831,17 @@ fauna$`Shortfin Mako`$plot()
 <img src="man/figures/README-unnamed-chunk-11-1.png" alt="" width="100%" />
 
 ``` r
+fleets$longline$metiers$`Shortfin Mako`$catchability
+#>   longline 
+#> 0.05220262
+new_fleets <- tune_fleets(fauna, fleets, tune_type = tune_type,tune_costs = FALSE) # tunes the catchability by fleet to achieve target depletion
+new_fleets$longline$metiers$`Shortfin Mako`$catchability
+#> longline 
+#> 0.221504
+new_fleets$longline$metiers$`Yellowfin Tuna`$catchability
+#>  longline 
+#> 0.1621951
 
-fleets <- tune_fleets(fauna, fleets, tune_type = tune_type,tune_costs = FALSE) # tunes the catchability by fleet to achieve target depletion
 
 # run simulations
 
@@ -839,12 +850,12 @@ a <- Sys.time()
 
 offshore <- simmar(
   fauna = fauna,
-  fleets = fleets,
+  fleets = new_fleets,
   years = years
 )
 
 Sys.time() - a
-#> Time difference of 1.227184 secs
+#> Time difference of 0.1188719 secs
 
 proc_offshore <- process_marlin(offshore, time_step = fauna[[1]]$time_step)
 
@@ -852,7 +863,7 @@ a <- Sys.time()
 
 offshore_mpa_sim <- simmar(
   fauna = fauna,
-  fleets = fleets,
+  fleets = new_fleets,
   years = years,
   manager = list(mpas = list(
     locations = mpa_locations,
@@ -861,7 +872,7 @@ offshore_mpa_sim <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 1.136199 secs
+#> Time difference of 0.2800112 secs
 
 
 proc_offshore_mpa <- process_marlin(offshore_mpa_sim, time_step = fauna[[1]]$time_step)
@@ -998,7 +1009,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
-#> Time difference of 0.1539621 secs
+#> Time difference of 0.1110809 secs
 
 # run simulations
 

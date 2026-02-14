@@ -5,6 +5,9 @@
 #' (replicator-style) gradient-flow heuristic derived from an objective signal.
 #' Each fleet's objective is selected automatically from the \code{buffet} based
 #' on its \code{spatial_allocation} setting (e.g., "rpue", "profit", "catch").
+#' Fleets with \code{spatial_allocation = "manual"} bypass the optimizer
+#' entirely: their effort is distributed proportionally to the continuous
+#' weights in \code{fishing_grounds$fishing_ground}.
 #'
 #' The allocator interprets the objective as a **velocity field** rather than a
 #' target distribution. Effort changes proportionally according to:
@@ -37,8 +40,12 @@
 #'   \code{spatial_allocation} setting.
 #' @param fleets List of fleet objects. Each fleet must have a
 #'   \code{spatial_allocation} element set to one of: \code{"revenue"},
-#'   \code{"catch"}, \code{"profit"}, \code{"rpue"}, \code{"cpue"}, or
-#'   \code{"ppue"}.
+#'   \code{"catch"}, \code{"profit"}, \code{"rpue"}, \code{"cpue"},
+#'   \code{"ppue"}, or \code{"manual"}. When set to \code{"manual"}, the
+#'   fleet's \code{fishing_grounds$fishing_ground} values (continuous,
+#'   between 0 and 1) define the relative spatial distribution of effort.
+#'   Total effort is preserved but distributed proportionally to these
+#'   weights rather than optimized against an objective.
 #' @param open_patch Logical matrix indicating which patches are open to fishing,
 #'   by patch (rows) and fleet (columns). Same dimensions as
 #'   \code{effort_by_patch}. Allows fleet-specific closures (e.g., different
@@ -57,7 +64,9 @@
 #' @param floor_frac Numeric optional fractional effort floor relative to mean
 #'   open-patch effort (default: 0). Prevents complete abandonment of patches.
 #' @param flatness_tol Numeric threshold for detecting flat objectives using
-#'   coefficient of variation (default: 1e-3 = 0.1%).
+#'   range-based coefficient of variation (range / median; default: 1e-3 = 0.1%).
+#'   Range-based CV is used instead of MAD/IQR-based CV because the latter
+#'   can severely underestimate spread in bimodal distributions.
 #' @param min_scale_abs Numeric absolute minimum scale value to prevent
 #'   division by tiny numbers (default: 1e-10).
 #' @param adaptive_floor_pct Numeric percentage of median for adaptive scale floor
@@ -71,7 +80,8 @@
 #'   \item{z_by_patch}{Numeric matrix of standardized objective values (patches x fleets)}
 #'   \item{flat_objective}{Named logical vector (one per fleet): TRUE if objective was
 #'     detected as flat for that fleet}
-#'   \item{cv}{Named numeric vector (one per fleet): coefficient of variation of objective}
+#'   \item{cv}{Named numeric vector (one per fleet): range-based coefficient of
+#'     variation of objective (used for flatness detection)}
 #'   \item{obj_range}{Named numeric vector (one per fleet): range of objective across open patches}
 #' }
 #'
@@ -160,11 +170,41 @@ allocate_effort <- function(
     fl_name <- fleet_names[fl]
     # Look up which objective this fleet uses
     alloc_type <- fleets[[fl_name]]$spatial_allocation
+
+    # --- Manual allocation: distribute effort by fishing_grounds weights --------
+    if (alloc_type == "manual") {
+
+      weights <- fleets[[fl_name]]$fishing_grounds$fishing_ground
+      # Zero out weights in MPA-closed patches
+      weights[!open_patch[, fl]] <- 0
+      total_effort <- sum(effort_by_patch[, fl])
+
+      weight_sum <- sum(weights)
+      if (weight_sum <= 0) {
+        warning(
+          sprintf("Fleet '%s' has spatial_allocation = 'manual' but all fishing_grounds weights are zero (possibly due to MPA closures). Distributing effort uniformly across open patches.", fl_name),
+          call. = FALSE
+        )
+        open_idx_manual <- which(open_patch[, fl])
+        if (length(open_idx_manual) > 0) {
+          effort_new[open_idx_manual, fl] <- total_effort / length(open_idx_manual)
+        }
+      } else {
+        effort_new[, fl] <- total_effort * (weights / weight_sum)
+      }
+
+      # No velocity or z to report for manual fleets
+      flat_out[fl] <- NA
+      cv_out[fl] <- NA
+      range_out[fl] <- NA
+      next
+    }
+
     mat_name <- alloc_to_mat[alloc_type]
 
     if (is.na(mat_name)) {
       stop(sprintf(
-        "Fleet '%s' has spatial_allocation = '%s', which is not one of: %s",
+        "Fleet '%s' has spatial_allocation = '%s', which is not one of: %s, manual",
         fl_name, alloc_type, paste(names(alloc_to_mat), collapse = ", ")
       ))
     }
@@ -188,19 +228,21 @@ allocate_effort <- function(
       sd  = stats::sd(obj_open, na.rm = TRUE)
     )
 
-    cv <- obj_scale / (abs(obj_center) + 1e-100)
-    is_flat <- (cv < flatness_tol) || (obj_scale < min_scale_abs)
+    # Flatness detection uses the range, not obj_scale.
+    # MAD/IQR can severely underestimate spread in bimodal distributions
+    # (e.g. 80 patches at RPUE~1.44, 20 patches at RPUE~1.66 gives MAD-based
+    # CV ~3e-5 even though the range-based CV is ~15%). The range captures
+    # the full spread regardless of distribution shape.
+    range_cv <- obj_rng / (abs(obj_center) + 1e-100)
+    is_flat <- (range_cv < flatness_tol) || (obj_rng < min_scale_abs)
 
-    cv_out[fl] <- cv
+    cv_out[fl] <- range_cv
     range_out[fl] <- obj_rng
 
     if (is_flat) {
       flat_out[fl] <- TRUE
-      if (eps_mix > 0) {
-        effort_new[open_idx, fl] <- total_effort / length(open_idx)
-      } else {
-        effort_new[, fl] <- effort
-      }
+      # Distribute uniformly across open patches only; closed patches stay at 0
+      effort_new[open_idx, fl] <- total_effort / length(open_idx)
       next
     }
 

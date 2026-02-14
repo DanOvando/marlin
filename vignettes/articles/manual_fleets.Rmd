@@ -39,7 +39,7 @@ fauna <-
     "snapper" = create_critter(
       scientific_name = "lutjanus griseus",
       adult_diffusion = 10,
-      fished_depletion = .25,
+      fished_depletion = .5,
       resolution = resolution
     )
   )
@@ -61,7 +61,7 @@ fleets <- list(
       critter = fauna$snapper,
       p_explt = 1
     )),
-    base_effort = 10 * resolution^2,
+    base_effort = 2 * resolution^2,
     resolution = resolution,
     fishing_grounds = fishing_grounds,
     spatial_allocation = "rpue"
@@ -69,15 +69,21 @@ fleets <- list(
   "commercial" = create_fleet(
     list("snapper" = Metier$new(
       critter = fauna$snapper,
-      p_explt = 1
+      p_explt = 10
     )),
     base_effort = 10*resolution^2,
     resolution = resolution,
-    spatial_allocation = "marginal_profits"
+    spatial_allocation = "ppue"
   )
 )
 
 fleets <- tune_fleets(fauna, fleets, tune_type = "depletion")
+
+fleets$artisanal$metiers$snapper$catchability
+
+fleets$commercial$metiers$snapper$catchability
+
+
 ```
 
 
@@ -94,6 +100,8 @@ fishing_ground_sim <- simmar(
 
 proc_sim <- process_marlin(fishing_ground_sim)
 
+
+plot_marlin(proc_sim, plot_type = "space")
 
 fleet_summary <- proc_sim$fleets |>
   filter(step == max(step)) |>
@@ -122,7 +130,8 @@ In this example, we'll leave the commercial fleet as is, but now specify a rando
 
 ```{r}
 fishing_grounds <- expand.grid(x = 1:resolution, y = 1:resolution) |>
-  mutate(fishing_ground = runif(length(x)))
+  mutate(fishing_ground = runif(length(x))) |> 
+  mutate(fishing_ground = fishing_ground / sum(fishing_ground))
 
 
 

@@ -158,7 +158,7 @@ simmar <- function(fauna = list(),
       as.matrix()
 
 
-    initial_n_p_a <- map(fauna, "n_p_a_0")
+    initial_n_p_a <- purrr::map(fauna, "n_p_a_0")
 
     initial_exploration <- go_fish(
       e_p_fl = initial_e_p_fl,
@@ -168,11 +168,17 @@ simmar <- function(fauna = list(),
       output_format = "matrix"
     )
 
+    open_patches <- matrix(nrow = patches, ncol = length(fleets))
+
+    for (i in seq_along(fleets)){
+      open_patches[,i] <- as.numeric(fleets[[i]]$fishing_grounds$fishing_ground)
+    }
+
     initial_effort <- allocate_effort(
       effort_by_patch = initial_e_p_fl,
       fleets = fleets,
       buffet = initial_exploration,
-      open_patch = rep(TRUE, patches),
+      open_patch = open_patches,
       flatness_tol = 1e-2
     )
 
@@ -279,11 +285,8 @@ simmar <- function(fauna = list(),
   last_e_p_f <- matrix(NA,nrow = patches, ncol = length(fleets))
 
   if (init_cond_provided) {
-    for (i in names(fleets)) {
-      # fleets[[i]]$e_p_s[, 1] <- getElement(initial_conditions[[1]]$e_p_fl, i)
-      last_e_p_f[,i] <- getElement(initial_conditions[[1]]$e_p_fl, i)
-    }
 
+    last_e_p_f <- initial_conditions[[1]]$e_p_fl
 
   } else {
     last_e_p_f <- initial_effort$effort_new
@@ -349,7 +352,6 @@ simmar <- function(fauna = list(),
         total_effort <- sum(last_e_p_f[,l] * fleet_concentrator[[l]])
       }
 
-
       if (fleets[[l]]$fleet_model == "open_access" & s > 2) {
         if (is.na(fleets[[l]]$cost_per_unit_effort) || is.na(fleets[[l]]$responsiveness)) {
           stop("open access fleet model requires both cost_per_unit_effort and responsiveness parameters for the fleet in question")
@@ -358,9 +360,10 @@ simmar <- function(fauna = list(),
           effort_cap <- Inf
           if (length(manager$effort_cap[[l]]) > 0) effort_cap <- manager$effort_cap[[l]]
 
-          last_profits <- sum(buffet$ppue_p_fl[,names(fleets)[l]], na.rm = TRUE)
+          last_revenue <- sum(buffet$ppue_p_fl[,names(fleets)[l]], na.rm = TRUE)
 
-          message("ohhh thats why you did it that way, so that responsiveness was in units of profit margins rather than absolute profits")
+          last_cost <- sum(buffet$cost_p_fl[,names(fleets)[l]], na.rm = TRUE)
+
           total_effort <- pmin(
             effort_cap,
             total_effort * pmin(1.5, exp(
@@ -382,7 +385,7 @@ simmar <- function(fauna = list(),
         fleets = fleets[l],
         buffet = buffet,
         open_patch = fleet_fishable[[l]],
-        flatness_tol = 1e-2
+        flatness_tol = 1e-3
       )
 
       # warning("this is the bananas messy part. storage is indexed s-1 but fleet effort is indexed s. So, the effort sotred in s here is actually in storage in s-1, the effort that produced the outcomes in that time step of storage")
@@ -557,15 +560,10 @@ simmar <- function(fauna = list(),
             rec_devs = fauna_rec_devs
           )
 
-          c_p_a_fl <- f_p_a_fl * array(
-            pop$c_p_a,
-            dim = c(patches, ages, length(fleets)),
-            dimnames = list(1:patches, fauna[[critter]]$ages, names(fleets))
-          )
+          buffet <- allocate_yields(f_p_a_fl = f_p_a_fl, e_p_fl = updated_e_p_f,p_p_a_fl = p_p_a_fl, critter = critter,pop = pop, fauna = fauna, fleets = fleets, patches = patches, ages = ages )
+
         }
       }
-
-      r_p_a_fl <- buffet$r_p_a_fl
 
       storage[[s - 1]][[critter]]$c_p_fl <-
         buffet$c_p_fl # store catch by patch  by fleet
@@ -583,10 +581,10 @@ simmar <- function(fauna = list(),
         buffet$r_p_a_fl # revenue stored in each model is the revenue that came from the last time step, so put in the right place here
 
       storage[[s - 1]][[critter]]$c_p_a <-
-        buffet$c_p_a # catch stored in each model is the catch that came from the last time step, so put in the right place here
+        pop$c_p_a # catch stored in each model is the catch that came from the last time step, so put in the right place here
 
       storage[[s - 1]][[critter]]$e_p_fl <-
-        updated_e_p_f # store effort by patch by fleet (note that this is the same across species)
+        as.data.frame(updated_e_p_f) # store effort by patch by fleet (note that this is the same across species)
 
       storage[[s - 1]][[critter]]$f_p_a_fl <-
         f_p_a_fl # store effort by patch by fleet (note that this is the same across species)

@@ -459,7 +459,7 @@ mako_b0 <- 420
 
 yft_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   mutate(
-    habitat = .05 * x,
+    habitat = dnorm(x, resolution, 8),
     habitat = habitat / max(habitat) * yft_home_range
   ) %>%
   pivot_wider(names_from = x, values_from = habitat) %>%
@@ -526,7 +526,7 @@ fleets <- list("longline" = create_fleet(
     ),
     `Shortfin Mako` = Metier$new(
       critter = fauna$`Shortfin Mako`,
-      price = 0,
+      price = 10,
       sel_form = "logistic",
       sel_start = .1,
       sel_delta = .01,
@@ -630,7 +630,7 @@ Now though, consider a different scenario. Here the tunas still slightly prefer 
 ```{r}
 mako_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   mutate(
-    habitat = dnorm(x, .3 * resolution, 8),
+    habitat = dnorm(x, .75 * resolution, 6),
     habitat = habitat / max(habitat) * mako_home_range
   ) %>%
   pivot_wider(names_from = x, values_from = habitat) %>%
@@ -670,8 +670,11 @@ fauna <-
   )
 
 fauna$`Shortfin Mako`$plot()
+fleets$longline$metiers$`Shortfin Mako`$catchability
+new_fleets <- tune_fleets(fauna, fleets, tune_type = tune_type,tune_costs = FALSE) # tunes the catchability by fleet to achieve target depletion
+new_fleets$longline$metiers$`Shortfin Mako`$catchability
+new_fleets$longline$metiers$`Yellowfin Tuna`$catchability
 
-fleets <- tune_fleets(fauna, fleets, tune_type = tune_type,tune_costs = FALSE) # tunes the catchability by fleet to achieve target depletion
 
 # run simulations
 
@@ -680,7 +683,7 @@ a <- Sys.time()
 
 offshore <- simmar(
   fauna = fauna,
-  fleets = fleets,
+  fleets = new_fleets,
   years = years
 )
 
@@ -692,7 +695,7 @@ a <- Sys.time()
 
 offshore_mpa_sim <- simmar(
   fauna = fauna,
-  fleets = fleets,
+  fleets = new_fleets,
   years = years,
   manager = list(mpas = list(
     locations = mpa_locations,
@@ -704,6 +707,7 @@ Sys.time() - a
 
 
 proc_offshore_mpa <- process_marlin(offshore_mpa_sim, time_step = fauna[[1]]$time_step)
+
 ```
 
 

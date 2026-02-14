@@ -1,13 +1,165 @@
-#' tune_fleets tunes parameters of the fleet model to achieve desired initial conditions.
-#' note that this is not exact: post-tuning values will not perfectly match inputs since
-#' for example some tuning steps depend on prior tuning step, making it difficult to tune everything
-#' at once.
+#' Deep-clone all metiers in a fleet list
+#'
+#' Creates independent copies of all metier R6 objects so that
+#' modifications during tuning don't mutate the caller's fleet objects.
+#'
+#' @param fleets a fleet object (list of fleets)
+#'
+#' @return cloned fleet list
+#' @keywords internal
+clone_fleet_metiers <- function(fleets) {
+  tfleets <- fleets
+  for (i in seq_along(tfleets)) {
+    for (j in seq_along(tfleets[[i]]$metiers)) {
+      tfleets[[i]]$metiers[[j]] <- fleets[[i]]$metiers[[j]]$clone(deep = TRUE)
+    }
+  }
+  tfleets
+}
+
+
+#' Link function mapping raw catchability to (0, 1)
+#'
+#' Applies the transformation \code{q = raw_q / (1 + raw_q)}, which is
+#' equivalent to \code{plogis(log(raw_q))}. This smoothly maps positive
+#' real values to (0, 1), approximately preserving values much less than 1
+#' (when \code{raw_q << 1}, \code{q ≈ raw_q}) while preventing q from
+#' ever reaching or exceeding 1. The smooth gradient avoids the flat
+#' boundary regions that hard clamping would create for the optimizer.
+#'
+#' @param raw_q positive numeric, the unconstrained catchability value
+#'
+#' @return numeric in (0, 1)
+#' @keywords internal
+q_link <- function(raw_q) {
+  raw_q / (1 + raw_q)
+}
+
+
+#' Inverse link function mapping (0, 1) back to positive reals
+#'
+#' Applies the transformation \code{raw_q = q / (1 - q)}, the inverse of
+#' \code{\link{q_link}}.
+#'
+#' @param q numeric in (0, 1)
+#'
+#' @return positive numeric
+#' @keywords internal
+q_link_inv <- function(q) {
+
+  q / (1 - q)
+}
+
+
+#' Set catchability for a single fleet-species metier
+#'
+#' Assigns scalar catchability, rescales the spatial catchability vector
+#' to have the correct mean, and rebuilds \code{vul_p_a}. Catchability
+#' is enforced to lie in (0, 1).
+#'
+#' @param metier a metier R6 object (modified in place)
+#' @param q_value the target scalar catchability. Must be in [0, 1] when
+#'   \code{use_link = FALSE}. When \code{use_link = TRUE}, can be any
+#'   non-negative value and will be mapped to (0, 1) via \code{\link{q_link}}.
+#' @param use_link logical; if TRUE, applies \code{\link{q_link}} to map
+#'   \code{q_value} from the positive reals into (0, 1). Use this during
+#'   numerical optimization to ensure smooth gradients. If FALSE (default),
+#'   \code{q_value} is used directly and must already be in [0, 1].
+#'
+#' @return the (modified) metier, invisibly
+#' @keywords internal
+set_metier_catchability <- function(metier, q_value, use_link = FALSE) {
+
+  if (!is.finite(q_value) || q_value < 0) {
+    q_value <- 0
+  }
+
+  if (use_link) {
+    q <- q_link(q_value)
+  } else {
+    if (q_value > 1) {
+      stop(
+        sprintf(
+          "Catchability = %.4g is > 1. Increase base_effort or reduce target exploitation.",
+          q_value
+        ),
+        call. = FALSE
+      )
+    }
+    q <- q_value
+  }
+
+  metier$catchability <- q
+
+  # If spatial_catchability is all zeros (e.g. from a prior zeroed-out metier),
+  # reset to a uniform vector so it can be rescaled
+  if (all(metier$spatial_catchability == 0)) {
+    metier$spatial_catchability <- rep(1, length(metier$spatial_catchability))
+  }
+
+  mean_sq <- mean(metier$spatial_catchability)
+  mean_sq <- ifelse(mean_sq == 0, 1e-9, mean_sq)
+
+  metier$spatial_catchability <- (metier$spatial_catchability / mean_sq) * q
+
+  metier$vul_p_a <- outer(metier$spatial_catchability, metier$sel_at_age, `*`)
+
+  invisible(metier)
+}
+
+
+#' Compute effective effort per fleet
+#'
+#' For each fleet, calculates the share of base effort that overlaps with
+#' viable habitat (\code{b0_p > 0}) within the fleet's fishing grounds.
+#' Effort is a fleet-level quantity (not species-specific): a fleet exerts
+#' one pool of effort that affects each species differently through
+#' catchability. Any single species' habitat can be used for the overlap
+#' calculation.
+#'
+#' @param fauna_species a single fauna element (used only for \code{b0_p})
+#' @param fleets a fleet object (list of fleets)
+#'
+#' @return named numeric vector of effective effort per fleet
+#' @keywords internal
+compute_effort_by_fleet <- function(fauna_species, fleets) {
+
+  e_fl <- vapply(fleets, function(fl) {
+    fg <- fl$fishing_grounds$fishing_ground
+    n_active <- sum(fg > 0)
+    if (n_active == 0) return(0)
+    habitat_overlap <- mean(fauna_species$b0_p[fg > 0] > 0)
+    (fl$base_effort / n_active) * habitat_overlap
+  }, numeric(1))
+
+  e_fl
+}
+
+
+#' Tune fleet catchability to achieve target initial conditions
+#'
+#' Adjusts the catchability coefficient of each fleet's metiers so that the
+#' simulated fishery reaches either a target fishing mortality rate or a
+#' target depletion level (B/B0). Optionally tunes cost parameters to match
+#' a target cost-to-revenue ratio.
+#'
+#' Catchability is enforced to lie in (0, 1). In the \code{"f"} path,
+#' infeasible values (q >= 1) produce an error. In the \code{"depletion"}
+#' path, a logistic link function (\code{q = raw_q / (1 + raw_q)})
+#' smoothly maps the optimizer's unconstrained catchability proposals
+#' into (0, 1), preserving smooth gradients and avoiding hard boundary
+#' issues during numerical solution.
+#'
+#' Note that tuning is approximate: post-tuning values will not perfectly
+#' match inputs since some tuning steps depend on prior steps.
 #'
 #' @param fauna a fauna object
 #' @param fleets a fleet object
-#' @param years the number of years to tune over
-#' @param tune_type one of 'f' or 'depletion' to tune catchability to achieve a desired fishing mortality rate (f) or a target depletion (B/B0)
-#' @param tune_costs TRUE or FALSE to tune costs to a target cost to revenue ratio
+#' @param years the number of years to simulate during tuning
+#' @param tune_type one of \code{"f"} (or \code{"explt"}) to tune to a target
+#'   fishing mortality rate, or \code{"depletion"} to tune to a target B/B0
+#' @param tune_costs logical; if TRUE, tune cost_per_unit_effort to match each
+#'   fleet's target cost-to-revenue ratio
 #'
 #' @return tuned fleet object
 #' @export
@@ -15,113 +167,72 @@ tune_fleets <- function(fauna,
                         fleets,
                         years = 50,
                         tune_type = "f",
-                        tune_costs = TRUE) {
+                        tune_costs = TRUE,
+                        depl_tol = 0.025) {
 
-  tfleets <- fleets
-
-  if (tune_type == "explt"){
-    tune_type = "f"
+  # Treat "explt" as an alias for "f"
+  if (tune_type == "explt") {
+    tune_type <- "f"
   }
 
-  for (i in seq_along(tfleets)){
+  tune_type <- match.arg(tune_type, c("f", "depletion"))
 
-
-    for (j in 1:length(tfleets[[i]]$metiers)){
-
-      tfleets[[i]]$metiers[[j]] <- fleets[[i]]$metiers[[j]]$clone(deep = TRUE)
-
-    }
-
-  }
+  tfleets <- clone_fleet_metiers(fleets)
 
   fleet_names <- names(tfleets)
-
   fauni <- names(fauna)
 
-  og_fleet_model <- character(length = length(tfleets))
-  # names(og_fleet_model) <- names(tfleets)
-
-  for (f in names(tfleets)) {
-    og_fleet_model[f] <- tfleets[[f]]$fleet_model
+  # Store and override fleet models to constant effort for tuning
+  og_fleet_model <- setNames(
+    vapply(tfleets, function(fl) fl$fleet_model, character(1)),
+    fleet_names
+  )
+  for (f in fleet_names) {
     tfleets[[f]]$fleet_model <- "constant_effort"
   }
 
-  # normalize p_explt to make sure it sums to 1
-
+  # --- Normalize p_explt to sum to 1 across fleets for each species ---
   for (s in fauni) {
     p_explts <- purrr::map_dbl(tfleets, c("metiers", s, "p_explt"))
 
-    p_explts <- p_explts / ifelse(sum(p_explts) > 0, sum(p_explts), 1e-6)
+    p_total <- sum(p_explts)
+    p_explts <- p_explts / ifelse(p_total > 0, p_total, 1e-6)
 
     for (f in fleet_names) {
       tfleets[[f]]$metiers[[s]]$p_explt <- as.numeric(p_explts[f])
-    } # close fleet loop
-  } # close fauna loop
+    }
+  }
 
+  # --- Compute effective effort per fleet ---
+  # Effort is a fleet-level quantity (identical across species); use the
+  # first species as the reference for habitat overlap
+  e_fl <- compute_effort_by_fleet(fauna[[fauni[1]]], tfleets)
 
-  # find patches within fishing grounds where b0_p is > 0
-
-  fauni <- names(fauna)
-
-  fleeti <- names(tfleets)
-
+  # --- Set initial catchability estimates ---
   for (s in fauni) {
+    p_explt <- purrr::map_dbl(tfleets, c("metiers", s, "p_explt"))
 
-    e_fl <- rep(NA, length(tfleets))
-    # names(e_fl) <- names(tfleets)
-    # evenly divide up fishing effort into fishing grounds
-    # find intersection with viable habitat for the species in question (b0_p > 0)
-    # really, calculate proportion of fishing grounds that have viable habitat for species in question
-
-    b0_p <- fauna[[s]]$b0_p
-
-    for (fl in seq_along(fleeti)){
-
-      e_fl[fl] <- (tfleets[[fl]]$base_effort / sum(tfleets[[fl]]$fishing_grounds$fishing_ground > 0)) * mean(b0_p[tfleets[[fl]]$fishing_grounds$fishing_ground > 0] > 0)
-
-
-    }
-
-    p_explt <-
-      purrr::map_dbl(tfleets, c("metiers", s, "p_explt"))
-
-    if (tune_type != "depletion"){
-      explt_by_fleet <- (fauna[[s]]$init_explt) * p_explt
-
+    if (tune_type == "f") {
+      explt_by_fleet <- fauna[[s]]$init_explt * p_explt
     } else {
+      # Depletion mode: initial guess uses (1 - depletion) as total exploitation
       explt_by_fleet <- (1 - fauna[[s]]$depletion) * p_explt
-
     }
 
-    catchability <- explt_by_fleet / e_fl
+    raw_q <- explt_by_fleet / e_fl
+    # Replace NaN/Inf from zero effort with 0
+    raw_q[!is.finite(raw_q)] <- 0
 
-    if (any(catchability > 1) & tune_type != "depletion"){
-
-      stop("Desired exploitation rate if not possible given supplied effort levels (q >=1 ); try increasing base_effort")
-
+    for (f in fleet_names) {
+      set_metier_catchability(
+        tfleets[[f]]$metiers[[s]],
+        raw_q[f],
+        use_link = (tune_type == "depletion")
+      )
     }
+  }
 
-    for (f in fleeti) {
-
-      tfleets[[f]]$metiers[[s]]$catchability <- catchability[f]
-
-      if (all(tfleets[[f]]$metiers[[s]]$spatial_catchability == 0)) {
-        # annoying step: if q = 0 from earlier, then this will be a matrix of zeros and can't get updated
-        tfleets[[f]]$metiers[[s]]$spatial_catchability <-
-          rep(1, length(tfleets[[f]]$metiers[[s]]$spatial_catchability))
-      }
-
-      mean_q <- mean(tfleets[[f]]$metiers[[s]]$spatial_catchability)
-
-      mean_q <- ifelse(mean_q == 0, 1e-9, mean_q)
-
-      tfleets[[f]]$metiers[[s]]$spatial_catchability <- (tfleets[[f]]$metiers[[s]]$spatial_catchability / mean_q) * catchability[f]
-
-      tfleets[[f]]$metiers[[s]]$vul_p_a  <-  outer(tfleets[[f]]$metiers[[s]]$spatial_catchability, tfleets[[f]]$metiers[[s]]$sel_at_age, `*`)
-
-    } # close internal fleet loop
-  } # close fauna loop
-
+  # --- Tune costs ---
   if (tune_costs) {
     init_sim <- simmar(
       fauna = fauna,
@@ -131,142 +242,202 @@ tune_fleets <- function(fauna,
 
     eq <- init_sim[[length(init_sim)]]
 
-
     revenue <-
       purrr::map(
         eq,
-        ~ tibble::rownames_to_column(data.frame(revenue = (colSums(.x$r_p_fl, na.rm = TRUE))), "fleet")
+        ~ tibble::rownames_to_column(
+          data.frame(revenue = colSums(.x$r_p_fl, na.rm = TRUE)),
+          "fleet"
+        )
       ) |>
       purrr::list_rbind(names_to = "critter") |>
-      dplyr::group_by(fleet)  |>
+      dplyr::group_by(fleet) |>
       dplyr::summarise(revenue = sum(revenue))
 
-    effort <- purrr::map(
-      eq[1],
-      ~ data.frame(.x$e_p_fl) %>% dplyr::mutate(patch = dplyr::row_number())
-    ) |>
+    # Effort is the same for all critters per fleet, so select first entry only
+    effort <-
+      purrr::map(
+        eq[1],
+        ~ data.frame(.x$e_p_fl) |> dplyr::mutate(patch = dplyr::row_number())
+      ) |>
       purrr::list_rbind(names_to = "critter") |>
-      tidyr::pivot_longer(-c(critter, patch), names_to = "fleet", values_to = "effort") # effort is the same for all critters per fleet so only selecting first entry
-
-
-    effort <- purrr::map(
-      eq[1],
-      ~ data.frame(.x$e_p_fl) |>  dplyr::mutate(patch = dplyr::row_number())
-    ) |>
-      purrr::list_rbind(names_to = "critter") |>
-      tidyr::pivot_longer(-c(critter, patch), names_to = "fleet", values_to = "effort") # effort is the same for all critters per fleet so only selecting first entry
-
-
+      tidyr::pivot_longer(
+        -c(critter, patch),
+        names_to = "fleet",
+        values_to = "effort"
+      )
 
     cost_per_patch <-
       purrr::map(
         tfleets,
         ~ data.frame(
-          patch = 1:length(.x$cost_per_patch),
+          patch = seq_along(.x$cost_per_patch),
           cost = .x$cost_per_patch
         )
       ) |>
       purrr::list_rbind(names_to = "fleet")
 
-    base_cr_ratio <- purrr::map(tfleets, ~ data.frame(base_cr_ratio = .x$cr_ratio), .id = "fleet") |>
+    base_cr_ratio <-
+      purrr::map(tfleets, ~ data.frame(base_cr_ratio = .x$cr_ratio)) |>
       purrr::list_rbind(names_to = "fleet")
 
-    fleet_cost_expos <- purrr::map(tfleets, ~ data.frame(beta = .x$effort_cost_exponent)) |>
+    fleet_cost_expos <-
+      purrr::map(tfleets, ~ data.frame(beta = .x$effort_cost_exponent)) |>
       purrr::list_rbind(names_to = "fleet")
 
-    effort_and_costs <- effort  |>
+    effort_and_costs <- effort |>
       dplyr::left_join(cost_per_patch, by = c("fleet", "patch")) |>
       dplyr::group_by(fleet) |>
       dplyr::summarise(
         travel_cost = sum(effort * cost),
         effort = sum(effort)
-      ) %>%
+      ) |>
       dplyr::left_join(revenue, by = "fleet") |>
       dplyr::left_join(base_cr_ratio, by = "fleet") |>
       dplyr::left_join(fleet_cost_expos, by = "fleet") |>
-      dplyr::mutate(cost_per_unit_effort = (base_cr_ratio * revenue) / (effort^
-                                                                          beta + travel_cost)) |>
-      dplyr::mutate(profits = revenue - (cost_per_unit_effort * (effort^
-                                                                   beta + travel_cost)))
+      dplyr::mutate(
+        cost_per_unit_effort = (base_cr_ratio * revenue) /
+          (effort^beta + travel_cost)
+      ) |>
+      dplyr::mutate(
+        profits = revenue - (cost_per_unit_effort * (effort^beta + travel_cost))
+      )
 
-    for (f in names(tfleets)) {
-      tfleets[[f]]$cost_per_unit_effort <- effort_and_costs$cost_per_unit_effort[effort_and_costs$fleet == f]
-
+    for (f in fleet_names) {
+      tfleets[[f]]$cost_per_unit_effort <-
+        effort_and_costs$cost_per_unit_effort[effort_and_costs$fleet == f]
     }
-  } # close tune costs
+  }
 
-
+  # --- Depletion-based tuning via numerical solver ---
   if (tune_type == "depletion") {
 
-
+    # Phase 1: coarse solve
     log_fs_phase_1 <- nleqslv::nleqslv(
       x = rep(log(0.1), length(fauna)),
       fn = fleet_tuner,
       method = "Broyden",
-      global = "dbldog",   # trust-region-ish; good default for gnarly sims
-      control=list(maxit=80, xtol=1e-3, ftol=1e-3, allowSingular=TRUE, stepmax=1.5),
+      global = "dbldog",
+      control = list(
+        maxit = 80, xtol = 1e-3, ftol = 1e-3,
+        allowSingular = TRUE, stepmax = 1.5
+      ),
       fleets = tfleets,
       e_fl = e_fl,
       fauna = fauna,
-      years = years,
+      years = years
     )
 
+    # Phase 2: refine from phase 1 solution
     log_fs <- nleqslv::nleqslv(
-        x = log_fs_phase_1$x,
-        fn = fleet_tuner,
-        method = "Broyden",
-        global = "dbldog",   # trust-region-ish; good default for gnarly sims
-        control = list(
-          maxit = 150,
-          xtol = 1e-5,
-          ftol = 1e-5,
-          allowSingular = TRUE,
-          stepmax = 0.8,
-          trace = 0
-        ),
-        fleets = tfleets,
-        e_fl = e_fl,
-        fauna = fauna,
-        years = years,
-      )
+      x = log_fs_phase_1$x,
+      fn = fleet_tuner,
+      method = "Broyden",
+      global = "dbldog",
+      control = list(
+        maxit = 150, xtol = 1e-5, ftol = 1e-5,
+        allowSingular = TRUE, stepmax = 0.8, trace = 0
+      ),
+      fleets = tfleets,
+      e_fl = e_fl,
+      fauna = fauna,
+      years = years
+    )
 
-    if (!(log_fs$termcd %in% c(1,2))){
-      warning("tune_fleets failed to match desired depletion levels, check whether target depletion is plausible given supplied selectivities, fishing grounds, and p_explt.")
+    # --- Solver convergence diagnostic ---
+    if (!(log_fs$termcd %in% c(1, 2))) {
+      warning(
+        "nleqslv solver did not converge (termination code: ",
+        log_fs$termcd, "). ",
+        "Depletion targets may not have been achieved. ",
+        "Check whether target depletion is plausible given supplied ",
+        "selectivities, fishing grounds, and p_explt.",
+        call. = FALSE
+      )
     }
 
+    # Apply solved catchabilities through the link function
     for (f in seq_along(tfleets)) {
       for (ff in seq_along(fauna)) {
+
         f_critter <- exp(log_fs$x[ff])
+        f_metier <- tfleets[[f]]$metiers[[ff]]$p_explt * f_critter
+        raw_q <- f_metier / e_fl[f]
 
-        f_metier <-  tfleets[[f]]$metiers[[ff]]$p_explt * f_critter
+        if (!is.finite(raw_q)) raw_q <- 0
 
-        metier_q <- f_metier / e_fl[f]
+        set_metier_catchability(
+          tfleets[[f]]$metiers[[ff]],
+          raw_q,
+          use_link = TRUE
+        )
+      }
+    }
 
-        tfleets[[f]]$metiers[[ff]]$catchability <- metier_q
+    # --- Post-solve validation: check achieved vs target depletion ---
+    validation_sim <- simmar(
+      fauna = fauna,
+      fleets = tfleets,
+      years = years
+    )
 
-        if (all(tfleets[[f]]$metiers[[ff]]$spatial_catchability == 0)) {
-          # annoying step: if q = 0 from earlier, then this will be a matrix of zeros and can't get updated
-          tfleets[[f]]$metiers[[ff]]$spatial_catchability <-
-            rep(1, length(tfleets[[f]]$metiers[[ff]]$spatial_catchability))
-        }
+    val_eq <- validation_sim[[length(validation_sim)]]
 
-        mean_q <- mean(tfleets[[f]]$metiers[[ff]]$spatial_catchability)
+    val_ssb <- purrr::map(
+      val_eq,
+      ~ as.data.frame(.x$ssb_p_a)
+    ) |>
+      purrr::list_rbind(names_to = "fauna")
 
-        mean_q <- ifelse(mean_q == 0, 1e-9, mean_q)
+    val_ssb <- data.frame(
+      fauna = val_ssb$fauna,
+      ssb = rowSums(val_ssb[, 2:ncol(val_ssb)], na.rm = TRUE)
+    ) |>
+      dplyr::group_by(fauna) |>
+      dplyr::summarise(ssb = sum(ssb)) |>
+      dplyr::ungroup() |>
+      dplyr::arrange(fauna)
 
-        tfleets[[f]]$metiers[[ff]]$spatial_catchability <- tfleets[[f]]$metiers[[ff]]$spatial_catchability / mean_q * metier_q
+    ssb0s <- purrr::map_dbl(fauna, "ssb0")
+    ssb0s <- ssb0s[sort(names(ssb0s))]
 
-        tfleets[[f]]$metiers[[ff]]$vul_p_a  <-  outer(tfleets[[f]]$metiers[[ff]]$spatial_catchability, tfleets[[f]]$metiers[[ff]]$sel_at_age, `*`)
+    target_depletion <- purrr::map_dbl(fauna, "depletion")
+    target_depletion <- target_depletion[sort(names(target_depletion))]
 
-      } # close internal fauna loop
-    } # close fleet loop
-  } # close depletion
+    achieved_depletion <- val_ssb$ssb / ssb0s
 
-  for (f in names(tfleets)) {
+    depl_tol <- depl_tol # relative tolerance: warn if off
+    rel_error <- abs(achieved_depletion - target_depletion) / target_depletion
+
+    species_off <- which(rel_error > depl_tol)
+
+    if (length(species_off) > 0) {
+      species_names <- sort(names(fauna))
+      msg_lines <- vapply(species_off, function(i) {
+        sprintf(
+          "  %s: target = %.3f, achieved = %.3f (%.1f%% off)",
+          species_names[i],
+          target_depletion[i],
+          achieved_depletion[i],
+          rel_error[i] * 100
+        )
+      }, character(1))
+
+      warning(
+        "Achieved depletion does not match target (>",
+        depl_tol * 100, "% relative error) for:\n",
+        paste(msg_lines, collapse = "\n"), "\n",
+        "Consider adjusting base_effort, selectivity, fishing grounds, ",
+        "or p_explt.",
+        call. = FALSE
+      )
+    }
+  }
+
+  # Restore original fleet models
+  for (f in fleet_names) {
     tfleets[[f]]$fleet_model <- og_fleet_model[f]
   }
 
-
-
-  return(tfleets)
+  tfleets
 }
