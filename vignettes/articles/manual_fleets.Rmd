@@ -64,13 +64,15 @@ fleets <- list(
     base_effort = 2 * resolution^2,
     resolution = resolution,
     fishing_grounds = fishing_grounds,
-    spatial_allocation = "rpue"
+    spatial_allocation = "rpue",
+    eta = 0.084
   ),
   "commercial" = create_fleet(
     list("snapper" = Metier$new(
       critter = fauna$snapper,
       p_explt = 10
     )),
+    eta = 0.084,
     base_effort = 10*resolution^2,
     resolution = resolution,
     spatial_allocation = "ppue"
@@ -153,7 +155,7 @@ fleets <- list(
     )),
     base_effort = resolution^2,
     resolution = resolution,
-    spatial_allocation = "rpue"
+    spatial_allocation = "ppue"
   )
 )
 

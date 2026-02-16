@@ -35,7 +35,8 @@ create_fleet <-
            resolution,
            patch_area = 1,
            base_effort = NULL,
-           fishing_grounds = NULL) {
+           fishing_grounds = NULL,
+           eta = 0.1) {
     fleet_model <- stringr::str_replace_all(fleet_model, " ", "_") # in case someone used spaces accidentally (like dumbass old dan)
 
     if (length(resolution) == 1) {
@@ -95,7 +96,8 @@ create_fleet <-
       fleet_model = fleet_model,
       effort_cost_exponent = effort_cost_exponent,
       cost_per_patch = cost_per_patch,
-      fishing_grounds = fishing_grounds
+      fishing_grounds = fishing_grounds,
+      eta = eta
     )
 
 

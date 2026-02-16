@@ -360,10 +360,10 @@ simmar <- function(fauna = list(),
           effort_cap <- Inf
           if (length(manager$effort_cap[[l]]) > 0) effort_cap <- manager$effort_cap[[l]]
 
-          last_revenue <- sum(buffet$ppue_p_fl[,names(fleets)[l]], na.rm = TRUE)
+          last_revenue <- sum(buffet$r_p_fl[,names(fleets)[l]], na.rm = TRUE)
 
           last_cost <- sum(buffet$cost_p_fl[,names(fleets)[l]], na.rm = TRUE)
-
+          browser()
           total_effort <- pmin(
             effort_cap,
             total_effort * pmin(1.5, exp(
@@ -559,6 +559,12 @@ simmar <- function(fauna = list(),
             last_n_p_a = last_n_p_a,
             rec_devs = fauna_rec_devs
           )
+          # warning("quotas are broken right no until you update e and f by fleet post quota adaptation")
+          # i think it's as simple as just downscaling by the same amount, since everything is a uniform scalar up and down?
+
+          f_p_a_fl <- f_p_a_fl * fmult
+
+          updated_e_p_f <- updated_e_p_f * fmult
 
           buffet <- allocate_yields(f_p_a_fl = f_p_a_fl, e_p_fl = updated_e_p_f,p_p_a_fl = p_p_a_fl, critter = critter,pop = pop, fauna = fauna, fleets = fleets, patches = patches, ages = ages )
 

@@ -107,32 +107,30 @@
 #' }
 #'
 allocate_effort <- function(
-    effort_by_patch,
-    total_effort_by_fleet = NULL,
-    buffet,
-    fleets,
-    open_patch,
-    eta = 0.2,
-    clip_z = 5,
-    scale = c("mad", "iqr", "sd"),
-    eps_mix = 0.0,
-    floor_frac = 0.0,
-    flatness_tol = 1e-3,
-    min_scale_abs = 1e-10,
-    adaptive_floor_pct = 0.01
+  effort_by_patch,
+  total_effort_by_fleet = NULL,
+  buffet,
+  fleets,
+  open_patch,
+  clip_z = 5,
+  scale = c("mad", "iqr", "sd"),
+  eps_mix = 0.0,
+  floor_frac = 0.0,
+  flatness_tol = 1e-3,
+  min_scale_abs = 1e-10,
+  adaptive_floor_pct = 0.01
 ) {
-
   scale <- match.arg(scale)
 
-  if (is.null(total_effort_by_fleet)){
-    total_effort_by_fleet = colSums(effort_by_patch)
+  if (is.null(total_effort_by_fleet)) {
+    total_effort_by_fleet <- colSums(effort_by_patch)
   }
   # --- Coerce inputs to matrices -----------------------------------------------
 
   # incase total effort has changed, first normalize each fleets effort, then redistribute total effort
   effort_by_patch <- as.matrix(effort_by_patch)
   colnames(effort_by_patch) <- names(fleets)
-  effort_by_patch <- (effort_by_patch / rep(colSums(effort_by_patch), each = nrow(effort_by_patch))) *  rep(total_effort_by_fleet, each = nrow(effort_by_patch))
+  effort_by_patch <- (effort_by_patch / rep(colSums(effort_by_patch), each = nrow(effort_by_patch))) * rep(total_effort_by_fleet, each = nrow(effort_by_patch))
 
   n_patches <- nrow(effort_by_patch)
   n_fleets <- ncol(effort_by_patch)
@@ -166,14 +164,14 @@ allocate_effort <- function(
 
   # --- Per-fleet allocation ----------------------------------------------------
   for (fl in seq_len(n_fleets)) {
-
     fl_name <- fleet_names[fl]
     # Look up which objective this fleet uses
     alloc_type <- fleets[[fl_name]]$spatial_allocation
 
+    eta <- fleets[[fl_name]]$eta
+
     # --- Manual allocation: distribute effort by fishing_grounds weights --------
     if (alloc_type == "manual") {
-
       weights <- fleets[[fl_name]]$fishing_grounds$fishing_ground
       # Zero out weights in MPA-closed patches
       weights[!open_patch[, fl]] <- 0
@@ -221,8 +219,7 @@ allocate_effort <- function(
     obj_center <- stats::median(obj_open, na.rm = TRUE)
     obj_rng <- diff(range(obj_open, na.rm = TRUE))
 
-    obj_scale <- switch(
-      scale,
+    obj_scale <- switch(scale,
       mad = stats::mad(obj_open, constant = 1, na.rm = TRUE),
       iqr = stats::IQR(obj_open, na.rm = TRUE) / 1.349,
       sd  = stats::sd(obj_open, na.rm = TRUE)
@@ -275,6 +272,7 @@ allocate_effort <- function(
 
     log_e <- rep(-Inf, n_patches)
     log_e[open] <- log(pmax(e_open[open], 1e-300))
+
     log_e_prop <- log_e + eta * v
 
     mx <- max(log_e_prop[open])
