@@ -54,7 +54,7 @@ fauna <-
       scientific_name = "Kajikia audax",
       adult_diffusion = 10,
       seasons = seasons,
-      fished_depletion = 0.1,
+      fished_depletion = 0.25,
       resolution = resolution,
       steepness = 0.6,
       ssb0 = 1000
@@ -75,7 +75,6 @@ fleets <- list(
     )),
     base_effort = resolution^2,
     resolution = resolution,
-    responsiveness = 5,
     cost_per_unit_effort = 100,
     fleet_model = "open access",
         spatial_allocation = "ppue"
@@ -85,7 +84,7 @@ fleets <- list(
       critter = fauna$`striped marlin`,
       price = 10,
       sel_form = "logistic",
-      sel_start = 0.25,
+      sel_start = 0.5,
       sel_delta = .01,
       catchability = 0,
       p_explt = 1
@@ -98,14 +97,14 @@ fleets <- list(
   )
 )
 
-fleets <- tune_fleets(fauna, fleets, tune_type = "depletion", tune_costs = FALSE)
+fleets <- tune_fleets(fauna, fleets, tune_type = "depletion", tune_costs = TRUE)
 
 
 hcr_cutoff <- 0.1
 
 hcr_target <- 0.5
 
-max_u <- 0.42
+max_u <- 0.021
 
 depletion <- seq(0, 1, by = 0.1)
 
@@ -133,8 +132,6 @@ mse_sim <- simmar(
 )
 
 test <- process_marlin(mse_sim, keep_age = FALSE)
-
-plot_marlin(test)
 
 initial_conditions <- mse_sim[[length(mse_sim)]]
 
@@ -179,6 +176,8 @@ b <- processed_mse_sim$fauna |>
 plot_marlin(processed_mse_sim, plot_var = "c", max_scale = FALSE)
 
 plot_marlin(processed_mse_sim, plot_var = "b", max_scale = FALSE)
+
+plot_marlin(processed_mse_sim, plot_var = "ssb", max_scale = FALSE)
 
 # plot_marlin(processed_mse_sim, plot_type = "space")
 

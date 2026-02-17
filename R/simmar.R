@@ -52,6 +52,11 @@ simmar <- function(fauna = list(),
   fleet_names <- names(fleets)
 
   time_step <- unique(purrr::map_dbl(fauna, "time_step"))
+  if (length(time_step) != 1) {
+    stop("all fauna must share the same time_step")
+  }
+  steps_per_year <- 1 / time_step
+
 
   steps_per_year <- 1 / time_step
 
@@ -172,6 +177,29 @@ simmar <- function(fauna = list(),
 
     for (i in seq_along(fleets)){
       open_patches[,i] <- as.numeric(fleets[[i]]$fishing_grounds$fishing_ground)
+    }
+
+    needs_marginals <- any(
+      purrr::map_chr(fleets, "spatial_allocation") %in%
+        c("marginal_revenue", "marginal_profit")
+    )
+
+    if (needs_marginals) {
+      # Gather current n_p_a from storage for go_fish
+      marginal_n_p_a <- initial_n_p_a
+
+      marginals <- calc_marginal_value(
+        e_p_fl   = initial_e_p_fl,
+        fauna    = fauna,
+        n_p_a    = marginal_n_p_a,
+        fleets   = fleets,
+        baseline = NULL,          # could pass go_fish result if available
+        method   = "separable",   # fast default; "patch_loop" for small grids
+        epsilon  = 1e-3
+      )
+
+      initial_exploration$mr_p_fl <- marginals$mr_p_fl
+      initial_exploration$mp_p_fl <- marginals$mp_p_fl
     }
 
     initial_effort <- allocate_effort(
@@ -350,31 +378,99 @@ simmar <- function(fauna = list(),
         total_effort <- sum(last_e_p_f[,l] * fleet_concentrator[[l]])
       }
 
+      # -------------------------------------------------------------------------
+      # OPEN ACCESS FLEET EFFORT DYNAMICS
+      #
+      # Concept:
+      # Total fleet effort changes multiplicatively each step based on a
+      # profitability signal derived from last step's realized revenue and cost.
+      #
+      # Key design goals:
+      # - Works when revenue can be negative (e.g., species penalty / negative price)
+      # - Scale-free (invariant to currency or cost scaling)
+      # - Stable under stochastic recruitment and spatial heterogeneity
+      # - Time-step invariant (same annual behavior regardless of step size)
+      #
+      # Structure:
+      # 1) Compute normalized profitability signal in [-1, 1]
+      # 2) Map signal -> behavioral response via tanh() (bounded adjustment speed)
+      # 3) Convert annual responsiveness + caps to per-step equivalents using time_step
+      # 4) Apply multiplicative effort update
+      # -------------------------------------------------------------------------
+
       if (fleets[[l]]$fleet_model == "open_access" & s > 2) {
-        if (is.na(fleets[[l]]$cost_per_unit_effort) || is.na(fleets[[l]]$responsiveness)) {
-          stop("open access fleet model requires both cost_per_unit_effort and responsiveness parameters for the fleet in question")
+
+        # --- Effort cap (manager override, if provided) ---
+        effort_cap_val <- Inf
+        if (length(manager$effort_cap[[l]]) > 0) {
+          effort_cap_val <- manager$effort_cap[[l]]
         }
 
-          effort_cap <- Inf
-          if (length(manager$effort_cap[[l]]) > 0) effort_cap <- manager$effort_cap[[l]]
+        # --- Last step fleet-wide economic outcomes ---
+        # NOTE: buffet contains outcomes from previous timestep
+        last_revenue <- sum(buffet$r_p_fl[, names(fleets)[l]], na.rm = TRUE)
 
-          last_revenue <- sum(buffet$r_p_fl[,names(fleets)[l]], na.rm = TRUE)
+        last_cost <- last_revenue - sum(buffet$prof_p_fl[, names(fleets)[l]], na.rm = TRUE)
 
-          last_profit  <- sum(buffet$prof_p_fl[, names(fleets)[l]], na.rm = TRUE)
+        # --- Sign-safe, scale-free profitability signal ---
+        #
+        # We use:
+        #   signal = (R - C) / (|R| + C + eps)
+        #
+        # Why:
+        # - bounded in [-1, 1]
+        # - handles negative revenue safely
+        # - invariant to rescaling economic units
+        # - denominator represents total economic "throughput magnitude"
+        #
+        eps <- 1e-12 * (abs(last_revenue) + last_cost + 1)
 
-          last_cost    <- last_revenue - last_profit
+        profit <- last_revenue - last_cost
+        denom <- abs(last_revenue) + last_cost + eps
 
-          total_effort <- pmin(
-            effort_cap,
-            total_effort * pmin(1.5, exp(
-              fleets[[l]]$responsiveness * log(pmax(last_revenue, 1e-6) / pmax(1e-6, last_cost))
-            ))
-          )
+        oa_signal <- profit / denom
+
+        # --- Convert annual parameters to per-step behavior ---
+        #
+        # time_step is fraction of a year per step
+        #
+        # Continuous-time interpretation:
+        #   multiplier_step = exp( rho_year * time_step * response(signal) )
+        #
+        # So:
+        #   rho_step = rho_year * time_step
+        #
+        # Caps also scale multiplicatively:
+        #   m_step = m_year ^ time_step
+        #
+
+          rho_step <- fleets[[l]]$oa_rho_year * time_step
+          k <- fleets[[l]]$oa_k
+
+          m_max_step <- fleets[[l]]$oa_m_max_year^time_step
+          m_min_step <- fleets[[l]]$oa_m_min_year^time_step
+
+          # --- Behavioral response ---
+          #
+          # tanh() gives:
+          # - linear response near break-even profitability
+          # - saturated response under extreme profit or loss
+          #
+          # Economic interpretation:
+          # - entry / exit speed is bounded by real-world frictions
+          # - avoids unrealistic boom/bust effort dynamics
+          #
+          multiplier <- exp(rho_step * tanh(oa_signal / k))
+
+          # --- Apply symmetric caps (per step) ---
+          multiplier <- pmax(m_min_step, pmin(m_max_step, multiplier))
+
+        # --- Apply effort update ---
+        total_effort <- pmin(effort_cap_val, total_effort * multiplier)
       }
 
 
       ### allocate fleet in space ###
-      ### claude check logic here ###
       if (s > 2){
 
       e_p <- last_e_p_f[,l]

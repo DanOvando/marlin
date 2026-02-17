@@ -92,7 +92,8 @@ go_fish <- function(e_p_fl, fauna, n_p_a, fleets, groupers = c("fleet", "patch")
       adult_movement = movement,
       f_p_a = f_p_a,
       last_n_p_a = last_n_p_a,
-      rec_devs = rec_devs
+      rec_devs = rec_devs,
+      move_fish = 0
     )
 
     yields[[critter]] <- allocate_yields(

@@ -117,7 +117,6 @@ fleets <- list(
     ),
     base_effort = resolution ^ 2,
     resolution = resolution,
-    responsiveness = 1,
     cr_ratio = 1,
     travel_fraction = 0.5,
     fleet_model = "open access")
@@ -242,7 +241,7 @@ Note that effort caps only really apply when `fleet_model == "open access`; when
 
 ```{r}
 
-cap = 1.25 *fleets$longline$base_effort
+cap = 1.1*fleets$longline$base_effort
 
 sim_effort <- simmar(fauna = fauna,
                   fleets = fleets,

@@ -8,6 +8,9 @@
 #' Fleets with \code{spatial_allocation = "manual"} bypass the optimizer
 #' entirely: their effort is distributed proportionally to the continuous
 #' weights in \code{fishing_grounds$fishing_ground}.
+#' Fleets with \code{spatial_allocation = "uniform"} distribute effort
+#' equally across all open patches, ignoring both the objective signal and
+#' fishing grounds weights.
 #'
 #' The allocator interprets the objective as a **velocity field** rather than a
 #' target distribution. Effort changes proportionally according to:
@@ -41,11 +44,13 @@
 #' @param fleets List of fleet objects. Each fleet must have a
 #'   \code{spatial_allocation} element set to one of: \code{"revenue"},
 #'   \code{"catch"}, \code{"profit"}, \code{"rpue"}, \code{"cpue"},
-#'   \code{"ppue"}, or \code{"manual"}. When set to \code{"manual"}, the
+#'   \code{"ppue"}, \code{"manual"}, or \code{"uniform"}. When set to \code{"manual"}, the
 #'   fleet's \code{fishing_grounds$fishing_ground} values (continuous,
 #'   between 0 and 1) define the relative spatial distribution of effort.
 #'   Total effort is preserved but distributed proportionally to these
 #'   weights rather than optimized against an objective.
+#'   When set to \code{"uniform"}, total effort is distributed equally
+#'   across all open patches regardless of any objective or weights.
 #' @param open_patch Logical matrix indicating which patches are open to fishing,
 #'   by patch (rows) and fleet (columns). Same dimensions as
 #'   \code{effort_by_patch}. Allows fleet-specific closures (e.g., different
@@ -107,18 +112,18 @@
 #' }
 #'
 allocate_effort <- function(
-  effort_by_patch,
-  total_effort_by_fleet = NULL,
-  buffet,
-  fleets,
-  open_patch,
-  clip_z = 5,
-  scale = c("mad", "iqr", "sd"),
-  eps_mix = 0.0,
-  floor_frac = 0.0,
-  flatness_tol = 1e-3,
-  min_scale_abs = 1e-10,
-  adaptive_floor_pct = 0.01
+    effort_by_patch,
+    total_effort_by_fleet = NULL,
+    buffet,
+    fleets,
+    open_patch,
+    clip_z = 5,
+    scale = c("mad", "iqr", "sd"),
+    eps_mix = 0.0,
+    floor_frac = 0.0,
+    flatness_tol = 1e-3,
+    min_scale_abs = 1e-10,
+    adaptive_floor_pct = 0.01
 ) {
   scale <- match.arg(scale)
 
@@ -146,16 +151,16 @@ allocate_effort <- function(
 
   # --- Map spatial_allocation to buffet matrices --------------------------------
 
-    alloc_to_mat <- c(
-      revenue          = "r_p_fl",
-      catch            = "c_p_fl",
-      profit           = "prof_p_fl",
-      rpue             = "rpue_p_fl",
-      cpue             = "cpue_p_fl",
-      ppue             = "ppue_p_fl",
-      marginal_revenue = "mr_p_fl",
-      marginal_profit  = "mp_p_fl"
-    )
+  alloc_to_mat <- c(
+    revenue          = "r_p_fl",
+    catch            = "c_p_fl",
+    profit           = "prof_p_fl",
+    rpue             = "rpue_p_fl",
+    cpue             = "cpue_p_fl",
+    ppue             = "ppue_p_fl",
+    marginal_revenue = "mr_p_fl",
+    marginal_profit  = "mp_p_fl"
+  )
 
 
   # --- Pre-allocate output -----------------------------------------------------
@@ -202,11 +207,27 @@ allocate_effort <- function(
       next
     }
 
+    # --- Uniform allocation: equal effort across all open patches ---------------
+    if (alloc_type == "uniform") {
+      total_effort <- sum(effort_by_patch[, fl])
+      open_idx_uniform <- which(open_patch[, fl])
+
+      if (length(open_idx_uniform) > 0) {
+        effort_new[open_idx_uniform, fl] <- total_effort / length(open_idx_uniform)
+      }
+
+      # No velocity or z to report for uniform fleets
+      flat_out[fl] <- NA
+      cv_out[fl] <- NA
+      range_out[fl] <- NA
+      next
+    }
+
     mat_name <- alloc_to_mat[alloc_type]
 
     if (is.na(mat_name)) {
       stop(sprintf(
-        "Fleet '%s' has spatial_allocation = '%s', which is not one of: %s, manual",
+        "Fleet '%s' has spatial_allocation = '%s', which is not one of: %s, manual, uniform",
         fl_name, alloc_type, paste(names(alloc_to_mat), collapse = ", ")
       ))
     }
@@ -224,9 +245,9 @@ allocate_effort <- function(
     obj_rng <- diff(range(obj_open, na.rm = TRUE))
 
     obj_scale <- switch(scale,
-      mad = stats::mad(obj_open, constant = 1, na.rm = TRUE),
-      iqr = stats::IQR(obj_open, na.rm = TRUE) / 1.349,
-      sd  = stats::sd(obj_open, na.rm = TRUE)
+                        mad = stats::mad(obj_open, constant = 1, na.rm = TRUE),
+                        iqr = stats::IQR(obj_open, na.rm = TRUE) / 1.349,
+                        sd  = stats::sd(obj_open, na.rm = TRUE)
     )
 
     # Flatness detection uses the range, not obj_scale.
