@@ -58,6 +58,7 @@ fleets <- list(
       catchability = 0,
       p_explt = 1
     )),
+    fleet_model = "open_access",
     spatial_allocation = "rpue",
     base_effort = 1000*resolution^2,
     resolution = resolution,

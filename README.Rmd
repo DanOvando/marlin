@@ -437,7 +437,7 @@ resolution <- c(20, 20) # resolution is in squared patches, so 20 implies a 20X2
 
 seasons <- 1
 
-years <- 50
+years <- 100
 
 tune_type <- "depletion"
 
@@ -445,7 +445,7 @@ steps <- years * seasons
 
 yft_home_range <- 6
 
-yft_depletion <- 0.5
+yft_depletion <- 0.6
 
 mako_depletion <- 0.2
 
@@ -537,7 +537,7 @@ fleets <- list("longline" = create_fleet(
   mpa_response = "stay",
   base_effort = prod(resolution),
   resolution = resolution,
-  spatial_allocation = "ppue",
+  spatial_allocation = "rpue",
   cost_per_unit_effort = 1,
   effort_cost_exponent = 1.3
 ))
@@ -549,7 +549,7 @@ a <- Sys.time()
 # fleets$longline$metiers$`Yellowfin Tuna`$spatial_catchability
 
 
-fleets <- tune_fleets(fauna, fleets, tune_type = tune_type, tune_costs = TRUE) # tunes the catchability by fleet to achieve target depletion
+fleets <- tune_fleets(fauna, fleets, tune_type = tune_type, tune_costs = TRUE,years = floor(years * .5)) # tunes the catchability by fleet to achieve target depletion
 
 # fleets$longline$base_effort
 # after =  fleets$longline$metiers$`Yellowfin Tuna`$catchability
@@ -630,7 +630,7 @@ Now though, consider a different scenario. Here the tunas still slightly prefer 
 ```{r}
 mako_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   mutate(
-    habitat = dnorm(x, .75 * resolution, 6),
+    habitat = dnorm(x, .7 * resolution, 6),
     habitat = habitat / max(habitat) * mako_home_range
   ) %>%
   pivot_wider(names_from = x, values_from = habitat) %>%
@@ -671,7 +671,7 @@ fauna <-
 
 fauna$`Shortfin Mako`$plot()
 fleets$longline$metiers$`Shortfin Mako`$catchability
-new_fleets <- tune_fleets(fauna, fleets, tune_type = tune_type,tune_costs = FALSE) # tunes the catchability by fleet to achieve target depletion
+new_fleets <- tune_fleets(fauna, fleets, tune_type = tune_type,tune_costs = FALSE, years = floor(years * .5)) # tunes the catchability by fleet to achieve target depletion
 new_fleets$longline$metiers$`Shortfin Mako`$catchability
 new_fleets$longline$metiers$`Yellowfin Tuna`$catchability
 
@@ -708,6 +708,11 @@ Sys.time() - a
 
 proc_offshore_mpa <- process_marlin(offshore_mpa_sim, time_step = fauna[[1]]$time_step)
 
+plot_marlin(proc_offshore)
+
+plot_marlin(proc_offshore_mpa)
+
+
 ```
 
 
@@ -715,6 +720,7 @@ proc_offshore_mpa <- process_marlin(offshore_mpa_sim, time_step = fauna[[1]]$tim
 ```{r}
 plot_marlin(
   `MPA: Sharks Offshore` = proc_offshore_mpa,
+  `No MPA: Sharks Offshoe` = proc_offshore,
   `No MPA: Sharks Nearshore` = proc_nearshore,
   `MPA: Sharks Nearshore` = proc_nearshore_mpa,
   steps_to_plot = NA,

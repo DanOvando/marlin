@@ -182,8 +182,6 @@ simmar <- function(fauna = list(),
       flatness_tol = 1e-2
     )
 
-
-
   }
 
   if (length(patches) > 1) {
@@ -362,8 +360,10 @@ simmar <- function(fauna = list(),
 
           last_revenue <- sum(buffet$r_p_fl[,names(fleets)[l]], na.rm = TRUE)
 
-          last_cost <- sum(buffet$cost_p_fl[,names(fleets)[l]], na.rm = TRUE)
-          browser()
+          last_profit  <- sum(buffet$prof_p_fl[, names(fleets)[l]], na.rm = TRUE)
+
+          last_cost    <- last_revenue - last_profit
+
           total_effort <- pmin(
             effort_cap,
             total_effort * pmin(1.5, exp(
@@ -425,8 +425,6 @@ simmar <- function(fauna = list(),
         # tmp <-  outer(fleets[[l]]$metiers[[critter]]$spatial_catchability,  fleets[[l]]$metiers[[critter]]$sel_at_age, `*`)
 
         tmp <- fleets[[fleet_names[l]]]$metiers[[critter]]$vul_p_a
-
-        ## could add in the effective discard factor here, where that would be a multipliier as a function of 1 - (discard_rate * discard_survival)
 
         f_p_a <-
           f_p_a + updated_e_p_f[,l] * tmp
@@ -613,6 +611,35 @@ simmar <- function(fauna = list(),
     buffet <- aggregate_yields(yields_this_step, updated_e_p_f)
 
     last_e_p_f <- updated_e_p_f
+
+    # --- Marginal value signals for effort allocation -------------------------
+        # Check if any fleet uses marginal-value allocation before paying the cost
+        needs_marginals <- any(
+          purrr::map_chr(fleets, "spatial_allocation") %in%
+            c("marginal_revenue", "marginal_profit")
+        )
+
+        if (needs_marginals) {
+          # Gather current n_p_a from storage for go_fish
+          marginal_n_p_a <- setNames(
+            lapply(fauni, function(cr) storage[[s]][[cr]]$n_p_a),
+            fauni
+          )
+
+          marginals <- calc_marginal_value(
+            e_p_fl   = updated_e_p_f,
+            fauna    = fauna,
+            n_p_a    = marginal_n_p_a,
+            fleets   = fleets,
+            baseline = NULL,          # could pass go_fish result if available
+            method   = "separable",   # fast default; "patch_loop" for small grids
+            epsilon  = 1e-3
+          )
+
+          buffet$mr_p_fl <- marginals$mr_p_fl
+          buffet$mp_p_fl <- marginals$mp_p_fl
+        }
+
   } # close steps
 
   trimmed_names <- step_names[ifelse(keep_starting_step, 1, 2):steps]

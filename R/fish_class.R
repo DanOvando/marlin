@@ -902,7 +902,8 @@ Fish <- R6::R6Class(
         tune_unfished = 1,
         rec_form = rec_form,
         spawning_seasons = self$spawning_seasons,
-        rec_devs = rep(1, patches)
+        rec_devs = rep(1, patches),
+        move_fish = 1
       )
 
       unfished$tmppop$ages <- ages
@@ -1047,7 +1048,8 @@ Fish <- R6::R6Class(
                     last_n_p_a = NULL,
                     adult_movement = NULL,
                     tune_unfished = 0,
-                    rec_devs = NA) {
+                    rec_devs = NA,
+                    move_fish = 1) {
       if (is.null(f_p_a)) {
         f_p_a <-
           matrix(0,
@@ -1087,7 +1089,8 @@ Fish <- R6::R6Class(
         tune_unfished = tune_unfished,
         rec_form = self$rec_form,
         spawning_seasons = self$spawning_seasons,
-        rec_devs = rec_devs
+        rec_devs = rec_devs,
+        move_fish = move_fish
       )
       pop$ages <- self$ages
 

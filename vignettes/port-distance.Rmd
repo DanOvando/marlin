@@ -69,7 +69,7 @@ fleets <- list(
     resolution = resolution,
     spatial_allocation = "ppue",
     cost_per_unit_effort = 1,
-    cost_per_distance = .1,
+    travel_fraction = .1,
     fleet_model = "open access"
   )
 )

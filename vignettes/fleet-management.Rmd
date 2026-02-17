@@ -119,7 +119,7 @@ fleets <- list(
     resolution = resolution,
     responsiveness = 1,
     cr_ratio = 1,
-    cost_per_distance = 1,
+    travel_fraction = 0.5,
     fleet_model = "open access")
 ,
 "handline" = create_fleet(
@@ -242,7 +242,7 @@ Note that effort caps only really apply when `fleet_model == "open access`; when
 
 ```{r}
 
-cap = 4 *fleets$longline$base_effort
+cap = 1.25 *fleets$longline$base_effort
 
 sim_effort <- simmar(fauna = fauna,
                   fleets = fleets,

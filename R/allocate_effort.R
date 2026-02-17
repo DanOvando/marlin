@@ -145,14 +145,18 @@ allocate_effort <- function(
   storage.mode(open_patch) <- "logical"
 
   # --- Map spatial_allocation to buffet matrices --------------------------------
-  alloc_to_mat <- c(
-    revenue = "r_p_fl",
-    catch   = "c_p_fl",
-    profit  = "prof_p_fl",
-    rpue    = "rpue_p_fl",
-    cpue    = "cpue_p_fl",
-    ppue    = "ppue_p_fl"
-  )
+
+    alloc_to_mat <- c(
+      revenue          = "r_p_fl",
+      catch            = "c_p_fl",
+      profit           = "prof_p_fl",
+      rpue             = "rpue_p_fl",
+      cpue             = "cpue_p_fl",
+      ppue             = "ppue_p_fl",
+      marginal_revenue = "mr_p_fl",
+      marginal_profit  = "mp_p_fl"
+    )
+
 
   # --- Pre-allocate output -----------------------------------------------------
   effort_new <- matrix(0, nrow = n_patches, ncol = n_fleets)

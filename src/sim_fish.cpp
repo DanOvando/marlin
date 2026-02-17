@@ -42,7 +42,8 @@ List sim_fish(
     bool tune_unfished, //0 = use a spawner recruit relationship, 1 = don't
     const String rec_form,
     const NumericVector spawning_seasons,
-    const NumericVector rec_devs) {
+    const NumericVector rec_devs,
+    bool move_fish){
 
   const int ages = length_at_age.length();
 
@@ -118,7 +119,8 @@ List sim_fish(
           1, // this HAS to be 1 inside burn loop
           rec_form,
           spawning_seasons,
-          rec_devs);
+          rec_devs,
+          1);
 
         b++; // increment b
 
@@ -182,7 +184,9 @@ List sim_fish(
 
   //////////////////// move ////////////////////////
   // Big win: keep in Eigen, do one multiply, no wrap/clone ping-pong.
+  if (move_fish == 1){
   n_p_a_eig = movement * n_p_a_eig;
+  }
 
   // Wrap once for downstream Rcpp code (recruitment / semelparous blocks)
   NumericMatrix n_p_a = Rcpp::wrap(n_p_a_eig);

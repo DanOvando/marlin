@@ -136,6 +136,110 @@ compute_effort_by_fleet <- function(fauna_species, fleets) {
 }
 
 
+#' Calibrate cost parameters from equilibrium simulation output
+#'
+#' Extracts revenue and effort from an equilibrium time step, then solves
+#' for \code{cost_per_unit_effort} and \code{effort_reference} for each
+#' fleet so that costs match the target cost-to-revenue ratio.
+#'
+#' The calibration formula is:
+#' \deqn{c0 = \frac{\text{cr\_ratio} \times \text{revenue}}{E^{ref} \times P \times (1 + \theta)}}
+#'
+#' The effort cost exponent \eqn{\gamma} does not appear in the inversion
+#' because tuning runs under constant effort, which distributes effort
+#' roughly uniformly across open patches. With \eqn{E_l / E^{ref} \approx 1}
+#' everywhere, \eqn{1^\gamma = 1} regardless of \eqn{\gamma}, so the
+#' exponent drops out.
+#'
+#' @param eq a single equilibrium time step from \code{\link{simmar}} output
+#'   (i.e. \code{sim[[length(sim)]]})
+#' @param fleets a fleet object (list of fleets)
+#'
+#' @return a data.frame with columns: fleet, cost_per_unit_effort,
+#'   effort_reference, revenue, total_effort, n_open_patches, cr_ratio,
+#'   travel_weight, implied_cr
+#' @keywords internal
+calibrate_fleet_costs <- function(eq, fleets) {
+
+  fleet_names <- names(fleets)
+
+  # Revenue: sum across species, by fleet
+  revenue <-
+    purrr::map(
+      eq,
+      ~ tibble::rownames_to_column(
+        data.frame(revenue = colSums(.x$r_p_fl, na.rm = TRUE)),
+        "fleet"
+      )
+    ) |>
+    purrr::list_rbind(names_to = "critter") |>
+    dplyr::group_by(fleet) |>
+    dplyr::summarise(revenue = sum(revenue), .groups = "drop")
+
+  # Effort by patch and fleet (same for all critters; use first)
+  effort <-
+    purrr::map(
+      eq[1],
+      ~ data.frame(.x$e_p_fl) |> dplyr::mutate(patch = dplyr::row_number())
+    ) |>
+    purrr::list_rbind(names_to = "critter") |>
+    tidyr::pivot_longer(
+      -c(critter, patch),
+      names_to = "fleet",
+      values_to = "effort"
+    )
+
+  # Fleet-level parameters needed for calibration
+  fleet_params <-
+    purrr::map(
+      fleets,
+      ~ data.frame(
+        cr_ratio = .x$cr_ratio,
+        travel_weight = .x$travel_weight
+      )
+    ) |>
+    purrr::list_rbind(names_to = "fleet")
+
+  # Fishing grounds mask (to identify open patches)
+  fishing_grounds <-
+    purrr::map(
+      fleets,
+      ~ data.frame(
+        patch = seq_along(.x$fishing_grounds$fishing_ground),
+        fishing_ground = .x$fishing_grounds$fishing_ground
+      )
+    ) |>
+    purrr::list_rbind(names_to = "fleet")
+
+  # Effort statistics: mean effort per open patch (where fishing is allowed)
+  effort_stats <- effort |>
+    dplyr::left_join(fishing_grounds, by = c("fleet", "patch")) |>
+    dplyr::filter(fishing_ground > 0) |>
+    dplyr::group_by(fleet) |>
+    dplyr::summarise(
+      total_effort = sum(effort),
+      n_open_patches = dplyr::n_distinct(patch),
+      .groups = "drop"
+    ) |>
+    dplyr::mutate(
+      effort_reference = total_effort / n_open_patches
+    )
+
+  # Solve for c0 and validate
+  cost_calibration <- effort_stats |>
+    dplyr::left_join(revenue, by = "fleet") |>
+    dplyr::left_join(fleet_params, by = "fleet") |>
+    dplyr::mutate(
+      cost_per_unit_effort = (cr_ratio * revenue) /
+        (effort_reference * n_open_patches * (1 + travel_weight)),
+      implied_cr = (cost_per_unit_effort * effort_reference *
+                      n_open_patches * (1 + travel_weight)) / revenue
+    )
+
+  cost_calibration
+}
+
+
 #' Tune fleet catchability to achieve target initial conditions
 #'
 #' Adjusts the catchability coefficient of each fleet's metiers so that the
@@ -149,6 +253,13 @@ compute_effort_by_fleet <- function(fauna_species, fleets) {
 #' smoothly maps the optimizer's unconstrained catchability proposals
 #' into (0, 1), preserving smooth gradients and avoiding hard boundary
 #' issues during numerical solution.
+#'
+#' When \code{tune_type = "depletion"} and \code{tune_costs = TRUE}, cost
+#' calibration uses a two-pass approach: (1) initial calibration using a
+#' heuristic (F = 1 - depletion) before the depletion solver runs, then
+#' (2) refined calibration using the actual equilibrium after depletion
+#' tuning converges. This ensures costs accurately reflect the final
+#' equilibrium conditions.
 #'
 #' Note that tuning is approximate: post-tuning values will not perfectly
 #' match inputs since some tuning steps depend on prior steps.
@@ -242,70 +353,12 @@ tune_fleets <- function(fauna,
 
     eq <- init_sim[[length(init_sim)]]
 
-    revenue <-
-      purrr::map(
-        eq,
-        ~ tibble::rownames_to_column(
-          data.frame(revenue = colSums(.x$r_p_fl, na.rm = TRUE)),
-          "fleet"
-        )
-      ) |>
-      purrr::list_rbind(names_to = "critter") |>
-      dplyr::group_by(fleet) |>
-      dplyr::summarise(revenue = sum(revenue))
-
-    # Effort is the same for all critters per fleet, so select first entry only
-    effort <-
-      purrr::map(
-        eq[1],
-        ~ data.frame(.x$e_p_fl) |> dplyr::mutate(patch = dplyr::row_number())
-      ) |>
-      purrr::list_rbind(names_to = "critter") |>
-      tidyr::pivot_longer(
-        -c(critter, patch),
-        names_to = "fleet",
-        values_to = "effort"
-      )
-
-    cost_per_patch <-
-      purrr::map(
-        tfleets,
-        ~ data.frame(
-          patch = seq_along(.x$cost_per_patch),
-          cost = .x$cost_per_patch
-        )
-      ) |>
-      purrr::list_rbind(names_to = "fleet")
-
-    base_cr_ratio <-
-      purrr::map(tfleets, ~ data.frame(base_cr_ratio = .x$cr_ratio)) |>
-      purrr::list_rbind(names_to = "fleet")
-
-    fleet_cost_expos <-
-      purrr::map(tfleets, ~ data.frame(beta = .x$effort_cost_exponent)) |>
-      purrr::list_rbind(names_to = "fleet")
-
-    effort_and_costs <- effort |>
-      dplyr::left_join(cost_per_patch, by = c("fleet", "patch")) |>
-      dplyr::group_by(fleet) |>
-      dplyr::summarise(
-        travel_cost = sum(effort * cost),
-        effort = sum(effort)
-      ) |>
-      dplyr::left_join(revenue, by = "fleet") |>
-      dplyr::left_join(base_cr_ratio, by = "fleet") |>
-      dplyr::left_join(fleet_cost_expos, by = "fleet") |>
-      dplyr::mutate(
-        cost_per_unit_effort = (base_cr_ratio * revenue) /
-          (effort^beta + travel_cost)
-      ) |>
-      dplyr::mutate(
-        profits = revenue - (cost_per_unit_effort * (effort^beta + travel_cost))
-      )
+    cost_calibration <- calibrate_fleet_costs(eq, tfleets)
 
     for (f in fleet_names) {
-      tfleets[[f]]$cost_per_unit_effort <-
-        effort_and_costs$cost_per_unit_effort[effort_and_costs$fleet == f]
+      row <- cost_calibration$fleet == f
+      tfleets[[f]]$cost_per_unit_effort <- cost_calibration$cost_per_unit_effort[row]
+      tfleets[[f]]$effort_reference <- cost_calibration$effort_reference[row]
     }
   }
 
@@ -431,6 +484,20 @@ tune_fleets <- function(fauna,
         "or p_explt.",
         call. = FALSE
       )
+    }
+
+    # --- Refine cost calibration using actual equilibrium ---
+    # The initial cost tuning used a heuristic (F = 1 - depletion), which is
+    # imprecise. Now that we have the actual equilibrium from depletion tuning,
+    # recalibrate costs for greater accuracy.
+    if (tune_costs) {
+      cost_calibration_refined <- calibrate_fleet_costs(val_eq, tfleets)
+
+      for (f in fleet_names) {
+        row <- cost_calibration_refined$fleet == f
+        tfleets[[f]]$cost_per_unit_effort <- cost_calibration_refined$cost_per_unit_effort[row]
+        tfleets[[f]]$effort_reference <- cost_calibration_refined$effort_reference[row]
+      }
     }
   }
 
