@@ -16,7 +16,11 @@
 #' @param resolution spatial resolution of the simulated seascape
 #' @param patch_area the area of each patch (KM^2^)
 #' @param fishing_grounds the location of fishing grounds (TRUE or FALSE)
-#' @param fleet_model which fleet model to use, one of "constant_effort" or "open_access" or constant catch
+#' @param fleet_model which fleet model to use, one of "constant_effort", "open_access", or "sole_owner".
+#'   "open_access" adjusts total effort based on average profitability, reaching
+#'   equilibrium when total profits equal zero. "sole_owner" uses the same
+#'   dynamic machinery but responds to marginal profitability, reaching
+#'   equilibrium at maximum economic yield (marginal profit = 0).
 #'
 #' @param oa_max_growth_per_year maximum fractional increase in total effort per year in very profitable conditions
 #'   (e.g. 0.5 means +50% per year)
@@ -168,7 +172,7 @@ create_fleet <-
     oa_rho_year <- NULL
     oa_k <- NULL
 
-    if (fleet_model == "open_access") {
+    if (fleet_model %in% c("open_access", "sole_owner")) {
 
       if (oa_max_growth_per_year <= 0) {
         stop("oa_max_growth_per_year must be > 0 (e.g. 0.5 for +50% per year)")

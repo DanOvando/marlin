@@ -44,6 +44,7 @@
     <li><a class="dropdown-item" href="../articles/port-distance.html">Setting and Using Distance from Port</a></li>
     <li><a class="dropdown-item" href="../articles/rectifier.html">Don't Be a Square</a></li>
     <li><a class="dropdown-item" href="../articles/Setting-Selectivity.html">Setting Selectivity</a></li>
+    <li><a class="dropdown-item" href="../articles/spatial-allocation_4.html">Spatial Allocation Strategies</a></li>
     <li><a class="dropdown-item" href="../articles/tune_home_range.html">Tune Home Range</a></li>
     <li><a class="dropdown-item" href="../articles/Working-with-Recruitment-Deviates.html">Working with Recruitment Deviates</a></li>
   </ul>
@@ -130,7 +131,7 @@ the results of our assessment</p></li>
 <span>      scientific_name <span class="op">=</span> <span class="st">"Kajikia audax"</span>,</span>
 <span>      adult_diffusion <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>      seasons <span class="op">=</span> <span class="va">seasons</span>,</span>
-<span>      fished_depletion <span class="op">=</span> <span class="fl">0.1</span>,</span>
+<span>      fished_depletion <span class="op">=</span> <span class="fl">0.25</span>,</span>
 <span>      resolution <span class="op">=</span> <span class="va">resolution</span>,</span>
 <span>      steepness <span class="op">=</span> <span class="fl">0.6</span>,</span>
 <span>      ssb0 <span class="op">=</span> <span class="fl">1000</span></span>
@@ -160,7 +161,7 @@ the results of our assessment</p></li>
 <span>      critter <span class="op">=</span> <span class="va">fauna</span><span class="op">$</span><span class="va">`striped marlin`</span>,</span>
 <span>      price <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>      sel_form <span class="op">=</span> <span class="st">"logistic"</span>,</span>
-<span>      sel_start <span class="op">=</span> <span class="fl">0.25</span>,</span>
+<span>      sel_start <span class="op">=</span> <span class="fl">0.5</span>,</span>
 <span>      sel_delta <span class="op">=</span> <span class="fl">.01</span>,</span>
 <span>      catchability <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>      p_explt <span class="op">=</span> <span class="fl">1</span></span>
@@ -173,14 +174,14 @@ the results of our assessment</p></li>
 <span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span>, tune_type <span class="op">=</span> <span class="st">"depletion"</span>, tune_costs <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span>, tune_type <span class="op">=</span> <span class="st">"depletion"</span>, tune_costs <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
 <span></span>
 <span><span class="va">hcr_cutoff</span> <span class="op">&lt;-</span> <span class="fl">0.1</span></span>
 <span></span>
 <span><span class="va">hcr_target</span> <span class="op">&lt;-</span> <span class="fl">0.5</span></span>
 <span></span>
-<span><span class="va">max_u</span> <span class="op">&lt;-</span> <span class="fl">0.42</span></span>
+<span><span class="va">max_u</span> <span class="op">&lt;-</span> <span class="fl">0.021</span></span>
 <span></span>
 <span><span class="va">depletion</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, by <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span></span>
 <span></span>
@@ -207,10 +208,6 @@ the results of our assessment</p></li>
 <span></span>
 <span><span class="va">test</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">mse_sim</span>, keep_age <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="../reference/plot_marlin.html">plot_marlin</a></span><span class="op">(</span><span class="va">test</span><span class="op">)</span></span></code></pre></div>
-<p><img src="MSE_files/figure-html/unnamed-chunk-2-1.png" class="r-plt" alt="" width="700"></p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
 <span><span class="va">initial_conditions</span> <span class="op">&lt;-</span> <span class="va">mse_sim</span><span class="op">[[</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">mse_sim</span><span class="op">)</span><span class="op">]</span><span class="op">]</span></span>
 <span></span>
 <span><span class="va">starting_step</span> <span class="op">&lt;-</span> <span class="fu">marlin</span><span class="fu">::</span><span class="fu"><a href="../reference/clean_steps.html">clean_steps</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/nth.html" class="external-link">last</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">mse_sim</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
@@ -264,10 +261,14 @@ the results of our assessment</p></li>
 <span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/plot_marlin.html">plot_marlin</a></span><span class="op">(</span><span class="va">processed_mse_sim</span>, plot_var <span class="op">=</span> <span class="st">"c"</span>, max_scale <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<p><img src="MSE_files/figure-html/unnamed-chunk-2-1.png" class="r-plt" alt="" width="700"></p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="fu"><a href="../reference/plot_marlin.html">plot_marlin</a></span><span class="op">(</span><span class="va">processed_mse_sim</span>, plot_var <span class="op">=</span> <span class="st">"b"</span>, max_scale <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <p><img src="MSE_files/figure-html/unnamed-chunk-2-2.png" class="r-plt" alt="" width="700"></p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="fu"><a href="../reference/plot_marlin.html">plot_marlin</a></span><span class="op">(</span><span class="va">processed_mse_sim</span>, plot_var <span class="op">=</span> <span class="st">"b"</span>, max_scale <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/plot_marlin.html">plot_marlin</a></span><span class="op">(</span><span class="va">processed_mse_sim</span>, plot_var <span class="op">=</span> <span class="st">"ssb"</span>, max_scale <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <p><img src="MSE_files/figure-html/unnamed-chunk-2-3.png" class="r-plt" alt="" width="700"></p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>

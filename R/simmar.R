@@ -158,7 +158,7 @@ simmar <- function(fauna = list(),
       purrr::map(fauna, c("unfished")) # pull out unfished conditions created by create_critter
 
     initial_e_p_fl <- purrr::imap(fleets, ~ data.frame(x = rep(.x$base_effort / patches, patches)) |>
-      setNames(.y)) |>
+                                    setNames(.y)) |>
       purrr::list_cbind() |>
       as.matrix()
 
@@ -182,6 +182,8 @@ simmar <- function(fauna = list(),
     needs_marginals <- any(
       purrr::map_chr(fleets, "spatial_allocation") %in%
         c("marginal_revenue", "marginal_profit")
+    ) || any(
+      purrr::map_chr(fleets, "fleet_model") == "sole_owner"
     )
 
     if (needs_marginals) {
@@ -444,28 +446,94 @@ simmar <- function(fauna = list(),
         #   m_step = m_year ^ time_step
         #
 
-          rho_step <- fleets[[l]]$oa_rho_year * time_step
-          k <- fleets[[l]]$oa_k
+        rho_step <- fleets[[l]]$oa_rho_year * time_step
+        k <- fleets[[l]]$oa_k
 
-          m_max_step <- fleets[[l]]$oa_m_max_year^time_step
-          m_min_step <- fleets[[l]]$oa_m_min_year^time_step
+        m_max_step <- fleets[[l]]$oa_m_max_year^time_step
+        m_min_step <- fleets[[l]]$oa_m_min_year^time_step
 
-          # --- Behavioral response ---
-          #
-          # tanh() gives:
-          # - linear response near break-even profitability
-          # - saturated response under extreme profit or loss
-          #
-          # Economic interpretation:
-          # - entry / exit speed is bounded by real-world frictions
-          # - avoids unrealistic boom/bust effort dynamics
-          #
-          multiplier <- exp(rho_step * tanh(oa_signal / k))
+        # --- Behavioral response ---
+        #
+        # tanh() gives:
+        # - linear response near break-even profitability
+        # - saturated response under extreme profit or loss
+        #
+        # Economic interpretation:
+        # - entry / exit speed is bounded by real-world frictions
+        # - avoids unrealistic boom/bust effort dynamics
+        #
+        multiplier <- exp(rho_step * tanh(oa_signal / k))
 
-          # --- Apply symmetric caps (per step) ---
-          multiplier <- pmax(m_min_step, pmin(m_max_step, multiplier))
+        # --- Apply symmetric caps (per step) ---
+        multiplier <- pmax(m_min_step, pmin(m_max_step, multiplier))
 
         # --- Apply effort update ---
+        total_effort <- pmin(effort_cap_val, total_effort * multiplier)
+      }
+
+      # -------------------------------------------------------------------------
+      # SOLE OWNER FLEET EFFORT DYNAMICS
+      #
+      # Identical to open access except the profitability signal is based on
+      # the fleet-level marginal profit (effort-weighted mean of patch-level
+      # marginal profits from calc_marginal_value) rather than average profit.
+      #
+      # Equilibrium: total effort where marginal profit = 0, i.e., MEY
+      # (maximum economic yield), compared to open access which equilibrates
+      # where average profit = 0.
+      # -------------------------------------------------------------------------
+
+      if (fleets[[l]]$fleet_model == "sole_owner" & s > 2) {
+
+        # --- Effort cap (manager override, if provided) ---
+        effort_cap_val <- Inf
+        if (length(manager$effort_cap[[l]]) > 0) {
+          effort_cap_val <- manager$effort_cap[[l]]
+        }
+
+        fl_name <- names(fleets)[l]
+
+        # --- Fleet-level marginal profit signal ---
+        # Effort-weighted mean of patch-level marginal profits:
+        #   dΠ/dE = Σ_p (∂Π_p/∂e_p) * (e_p / E)
+        # This represents the expected return of one additional unit of total
+        # effort, distributed proportionally to the current spatial allocation.
+
+        e_weights <- last_e_p_f[, l]
+        e_total <- sum(e_weights)
+
+        if (e_total > 0 && !is.null(buffet$mp_p_fl)) {
+
+          mp_fleet <- sum(buffet$mp_p_fl[, fl_name] * e_weights, na.rm = TRUE) / e_total
+          mr_fleet <- sum(buffet$mr_p_fl[, fl_name] * e_weights, na.rm = TRUE) / e_total
+
+          # Marginal cost per unit effort (MR - MP)
+          mc_fleet <- mr_fleet - mp_fleet
+
+          # --- Sign-safe, scale-free marginal profitability signal ---
+          # Mirrors the OA signal structure:
+          #   OA:         signal = (R - C)  / (|R|  + C  + eps)   → 0 at avg profit = 0
+          #   Sole owner: signal = MP / (|MR| + |MC| + eps)       → 0 at marginal profit = 0
+          eps <- 1e-12 * (abs(mr_fleet) + abs(mc_fleet) + 1)
+          oa_signal <- mp_fleet / (abs(mr_fleet) + abs(mc_fleet) + eps)
+
+        } else {
+          oa_signal <- 0  # no effort or marginals not yet available
+        }
+
+        # --- Convert annual parameters to per-step behavior ---
+        rho_step <- fleets[[l]]$oa_rho_year * time_step
+        k <- fleets[[l]]$oa_k
+
+        m_max_step <- fleets[[l]]$oa_m_max_year^time_step
+        m_min_step <- fleets[[l]]$oa_m_min_year^time_step
+
+        # --- Behavioral response (same tanh machinery as open access) ---
+        multiplier <- exp(rho_step * tanh(oa_signal / k))
+        multiplier <- pmax(m_min_step, pmin(m_max_step, multiplier))
+
+        # --- Apply effort update ---
+        browser()
         total_effort <- pmin(effort_cap_val, total_effort * multiplier)
       }
 
@@ -473,20 +541,20 @@ simmar <- function(fauna = list(),
       ### allocate fleet in space ###
       if (s > 2){
 
-      e_p <- last_e_p_f[,l]
+        e_p <- last_e_p_f[,l]
 
-      current_effort <- allocate_effort(
-        effort_by_patch = e_p,
-        total_effort_by_fleet = total_effort,
-        fleets = fleets[l],
-        buffet = buffet,
-        open_patch = fleet_fishable[[l]],
-        flatness_tol = 1e-3
-      )
+        current_effort <- allocate_effort(
+          effort_by_patch = e_p,
+          total_effort_by_fleet = total_effort,
+          fleets = fleets[l],
+          buffet = buffet,
+          open_patch = fleet_fishable[[l]],
+          flatness_tol = 1e-3
+        )
 
-      # warning("this is the bananas messy part. storage is indexed s-1 but fleet effort is indexed s. So, the effort sotred in s here is actually in storage in s-1, the effort that produced the outcomes in that time step of storage")
+        # warning("this is the bananas messy part. storage is indexed s-1 but fleet effort is indexed s. So, the effort sotred in s here is actually in storage in s-1, the effort that produced the outcomes in that time step of storage")
 
-      updated_e_p_f[,l] <- current_effort$effort_new[,1]
+        updated_e_p_f[,l] <- current_effort$effort_new[,1]
       }
 
     } # close loop over fleets
@@ -709,32 +777,34 @@ simmar <- function(fauna = list(),
     last_e_p_f <- updated_e_p_f
 
     # --- Marginal value signals for effort allocation -------------------------
-        # Check if any fleet uses marginal-value allocation before paying the cost
-        needs_marginals <- any(
-          purrr::map_chr(fleets, "spatial_allocation") %in%
-            c("marginal_revenue", "marginal_profit")
-        )
+    # Check if any fleet uses marginal-value allocation before paying the cost
+    needs_marginals <- any(
+      purrr::map_chr(fleets, "spatial_allocation") %in%
+        c("marginal_revenue", "marginal_profit")
+    ) || any(
+      purrr::map_chr(fleets, "fleet_model") == "sole_owner"
+    )
 
-        if (needs_marginals) {
-          # Gather current n_p_a from storage for go_fish
-          marginal_n_p_a <- setNames(
-            lapply(fauni, function(cr) storage[[s]][[cr]]$n_p_a),
-            fauni
-          )
+    if (needs_marginals) {
+      # Gather current n_p_a from storage for go_fish
+      marginal_n_p_a <- setNames(
+        lapply(fauni, function(cr) storage[[s]][[cr]]$n_p_a),
+        fauni
+      )
 
-          marginals <- calc_marginal_value(
-            e_p_fl   = updated_e_p_f,
-            fauna    = fauna,
-            n_p_a    = marginal_n_p_a,
-            fleets   = fleets,
-            baseline = NULL,          # could pass go_fish result if available
-            method   = "separable",   # fast default; "patch_loop" for small grids
-            epsilon  = 1e-3
-          )
+      marginals <- calc_marginal_value(
+        e_p_fl   = updated_e_p_f,
+        fauna    = fauna,
+        n_p_a    = marginal_n_p_a,
+        fleets   = fleets,
+        baseline = NULL,          # could pass go_fish result if available
+        method   = "separable",   # fast default; "patch_loop" for small grids
+        epsilon  = 1e-3
+      )
 
-          buffet$mr_p_fl <- marginals$mr_p_fl
-          buffet$mp_p_fl <- marginals$mp_p_fl
-        }
+      buffet$mr_p_fl <- marginals$mr_p_fl
+      buffet$mp_p_fl <- marginals$mp_p_fl
+    }
 
   } # close steps
 

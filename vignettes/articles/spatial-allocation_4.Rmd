@@ -331,28 +331,188 @@ plot_biomass(proc_3, "SSB — marginal_profit vs rpue")
 
 The `marginal_profit` fleet (longline) typically produces a smoother effort surface than any of the other cost-aware strategies. Compared to the `rpue` handline fleet sharing the same waters, the marginal profit fleet is more sensitive to congestion: it avoids piling into patches that are already heavily fished, even if those patches still have high average returns. The biomass maps reflect this — depletion tends to be more spatially uniform under `marginal_profit`.
 
+## Scenario 4: `sole_owner` vs `open_access`
+
+The previous scenarios varied the *spatial* allocation strategy while keeping the fleet model (how total effort changes over time) fixed. Now we flip that: both fleets use the same spatial allocation (`ppue`) but differ in their *fleet model*.
+
+The classic result from fisheries economics is that open access fleets fish until average profit is zero (all rents dissipated), while a sole owner — who internalizes the stock externality — stops expanding effort when the *marginal* profit of the next unit of effort hits zero. This corresponds to maximum economic yield (MEY), which occurs at lower effort and higher biomass than the open access equilibrium.
+
+In `marlin`, `fleet_model = "sole_owner"` implements this by using the same dynamic entry/exit machinery as open access, but replacing the profitability signal: instead of responding to total profits, the sole owner responds to the effort-weighted mean of patch-level marginal profits computed by `calc_marginal_value`.
+
+We build this scenario manually rather than using `build_fleets`, since the fleets differ in `fleet_model` rather than `spatial_allocation`.
+
+```{r scenario-4}
+fleets_oa <- list(
+  "longline" = create_fleet(
+    list(
+      "bigeye" = Metier$new(
+        critter = fauna$bigeye,
+        price = 10,
+        sel_form = "logistic",
+        sel_start = 1,
+        sel_delta = 0.01,
+        catchability = 0,
+        p_explt = 2
+      ),
+      "skipjack" = Metier$new(
+        critter = fauna$skipjack,
+        price = 5,
+        sel_form = "logistic",
+        sel_start = 0.8,
+        sel_delta = 0.1,
+        catchability = 0,
+        p_explt = 1
+      )
+    ),
+    ports = ports,
+    base_effort = patches,
+    resolution = resolution,
+    spatial_allocation = "ppue",
+    fleet_model = "open_access",
+    cr_ratio = 1,
+    travel_fraction = 0.7
+  ),
+  "handline" = create_fleet(
+    list(
+      "bigeye" = Metier$new(
+        critter = fauna$bigeye,
+        price = 10,
+        sel_form = "logistic",
+        sel_start = 1.2,
+        sel_delta = 0.1,
+        catchability = 0,
+        p_explt = 1
+      ),
+      "skipjack" = Metier$new(
+        critter = fauna$skipjack,
+        price = 8,
+        sel_form = "logistic",
+        sel_start = 0.5,
+        sel_delta = 0.2,
+        catchability = 0,
+        p_explt = 2
+      )
+    ),
+    ports = ports,
+    base_effort = patches,
+    resolution = resolution,
+    spatial_allocation = "ppue",
+    fleet_model = "open_access",
+    cr_ratio = 1,
+    travel_fraction = 0.5
+  )
+)
+
+fleets_so <- fleets_oa
+fleets_so$longline$fleet_model <- "sole_owner"
+fleets_so$handline$fleet_model <- "sole_owner"
+
+fleets_oa <- tune_fleets(fauna, fleets_oa, tune_type = "depletion")
+fleets_so <- tune_fleets(fauna, fleets_so, tune_type = "depletion")
+```
+
+Now we run both simulations side by side.
+
+```{r scenario-4-run}
+years_4 <- 50  # longer run to let both fleet models reach equilibrium
+
+time_4a <- system.time({
+  sim_4a <- simmar(fauna = fauna, fleets = fleets_oa, years = years_4)
+})
+
+time_4b <- system.time({
+  sim_4b <- simmar(fauna = fauna, fleets = fleets_so, years = years_4)
+})
+
+proc_4a <- process_marlin(sim_4a, time_step = time_step)
+proc_4b <- process_marlin(sim_4b, time_step = time_step)
+```
+
+The key comparison is the trajectory of total effort and profits over time. The open access fleet should converge to zero profits, while the sole owner should stabilize at lower effort with positive profits.
+
+```{r scenario-4-effort-time, fig.width = 9, fig.height = 5}
+effort_ts <- bind_rows(
+  proc_4a$fleets %>%
+    group_by(step, fleet) %>%
+    summarise(effort = sum(effort), .groups = "drop") %>%
+    mutate(model = "open_access"),
+  proc_4b$fleets %>%
+    group_by(step, fleet) %>%
+    summarise(effort = sum(effort), .groups = "drop") %>%
+    mutate(model = "sole_owner")
+)
+
+ggplot(effort_ts, aes(step * time_step, effort, color = model)) +
+  geom_line() +
+  facet_wrap(~fleet) +
+  scale_x_continuous(name = "Year") +
+  scale_y_continuous(name = "Total Effort", limits = c(0, NA)) +
+  labs(title = "Total Effort: Open Access vs Sole Owner",
+       color = "Fleet Model")
+```
+
+The sole owner settles at lower effort than open access for both fleets, because it stops expanding when marginal returns hit zero rather than waiting for average returns to be exhausted.
+
+We can also compare profits over time. Open access should converge toward zero, while the sole owner retains positive profits at equilibrium (the hallmark of MEY).
+
+```{r scenario-4-profits, fig.width = 9, fig.height = 5}
+profit_ts <- bind_rows(
+  proc_4a$fleets %>%
+    group_by(step, fleet) %>%
+    summarise(revenue = sum(revenue), catch = sum(catch), .groups = "drop") %>%
+    mutate(model = "open_access"),
+  proc_4b$fleets %>%
+    group_by(step, fleet) %>%
+    summarise(revenue = sum(revenue), catch = sum(catch), .groups = "drop") %>%
+    mutate(model = "sole_owner")
+)
+
+ggplot(profit_ts, aes(step * time_step, revenue, color = model)) +
+  geom_line() +
+  facet_wrap(~fleet) +
+  scale_x_continuous(name = "Year") +
+  labs(title = "Revenue: Open Access vs Sole Owner",
+       color = "Fleet Model",
+       y = "Revenue")
+```
+
+Finally, compare the spatial effort and biomass footprints at the end of each simulation.
+
+```{r scenario-4-space}
+plot_effort(sim_4a, "longline", "Longline Effort (open_access)")
+plot_effort(sim_4b, "longline", "Longline Effort (sole_owner)")
+plot_biomass(proc_4a, "SSB — open_access")
+plot_biomass(proc_4b, "SSB — sole_owner")
+```
+
+The sole owner leaves more biomass in the water because it fishes less intensively. This is the fundamental tradeoff: open access maximizes effort and dissipates rents, while the sole owner restrains effort to maximize total profit, resulting in higher biomass and positive economic returns.
+
 ## Runtime Comparison
 
-The `marginal_profit` strategy requires computing numerical derivatives of the profit function via `calc_marginal_value` at every time step, which adds extra `go_fish` evaluations (one per fleet at minimum). This makes it meaningfully slower than the other allocation strategies, which only need the quantities already computed by the standard `go_fish` call.
+The `marginal_profit` spatial allocation strategy and the `sole_owner` fleet model both require computing numerical derivatives of the profit function via `calc_marginal_value` at every time step, which adds extra `go_fish` evaluations (one per fleet at minimum). This makes them meaningfully slower than strategies that only need the quantities already computed by the standard `go_fish` call.
 
 ```{r runtime}
 runtime <- tibble(
-  scenario = c("rpue / revenue", "ppue / profit", "marginal_profit / rpue"),
-  seconds = c(time_1["elapsed"], time_2["elapsed"], time_3["elapsed"])
+  scenario = c("rpue / revenue", "ppue / profit", "marginal_profit / rpue",
+               "open_access (ppue)", "sole_owner (ppue)"),
+  seconds = c(time_1["elapsed"], time_2["elapsed"], time_3["elapsed"],
+              time_4a["elapsed"], time_4b["elapsed"]),
+  years_run = c(rep(years, 3), years_4, years_4)
 ) %>%
   mutate(
-    relative = round(seconds / min(seconds), 1)
+    sec_per_year = round(seconds / years_run, 2),
+    relative = round(sec_per_year / min(sec_per_year), 1)
   )
 
 knitr::kable(runtime,
-             col.names = c("Scenario (longline / handline)", "Seconds", "Relative to fastest"),
-             digits = 1,
-             caption = "Wall-clock time for simmar() by allocation strategy pairing.")
+             col.names = c("Scenario", "Seconds", "Years", "Sec/Year", "Relative to fastest"),
+             digits = 2,
+             caption = "Wall-clock time for simmar() by scenario. Sec/Year normalizes for different run lengths.")
 ```
 
 ## Summary Comparison
 
-To see all five strategies side by side, we extract final-step effort across all scenarios and compare in a single figure.
+To see all five spatial allocation strategies side by side, we extract final-step effort across Scenarios 1–3 and compare in a single figure.
 
 ```{r comparison-effort, fig.width = 10, fig.height = 10}
 extract_effort <- function(sim, fleet_name, label) {
@@ -429,5 +589,6 @@ Some patterns to look for across these panels:
 - **`rpue` vs `revenue`**: The per-unit strategy (`rpue`) tends to spread effort more evenly, while the total strategy (`revenue`) concentrates effort in high-biomass patches. Since neither accounts for travel costs, effort extends freely into remote patches.
 - **`ppue` vs `profit`**: Adding travel costs shifts effort toward ports. The per-unit version (`ppue`) is especially reluctant to send effort far from port, creating biomass refugia in remote areas.
 - **`marginal_profit`**: Produces the smoothest effort surface among cost-aware strategies, because it directly penalizes diminishing returns from effort concentration. This leads to the most spatially uniform depletion.
+- **`sole_owner` vs `open_access`**: With the same spatial allocation (`ppue`), the sole owner reaches equilibrium at lower total effort and higher biomass than open access, retaining positive profits where open access dissipates them. This is the classic MEY vs. open-access result, now playing out in a spatially explicit setting.
 
 The choice of `spatial_allocation` can substantially change the spatial footprint of fishing, which in turn affects local depletion patterns, the effectiveness of spatial management tools like MPAs, and the economic outcomes of the fishery. See the `port-distance` and `fleet-management` vignettes for more on how these fleet options interact with other `marlin` features.
