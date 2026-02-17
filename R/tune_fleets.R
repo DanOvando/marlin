@@ -1,11 +1,11 @@
 #' Deep-clone all metiers in a fleet list
 #'
 #' Creates independent copies of all metier R6 objects so that
-#' modifications during tuning don't mutate the caller's fleet objects.
+#' modifications during tuning do not mutate the caller's fleet objects.
 #'
-#' @param fleets a fleet object (list of fleets)
+#' @param fleets A fleet list (output of \code{\link{create_fleet}}).
 #'
-#' @return cloned fleet list
+#' @return A deep-cloned copy of \code{fleets} with independent metier objects.
 #' @keywords internal
 clone_fleet_metiers <- function(fleets) {
   tfleets <- fleets
@@ -18,18 +18,18 @@ clone_fleet_metiers <- function(fleets) {
 }
 
 
-#' Link function mapping raw catchability to (0, 1)
+#' Logistic link function mapping positive reals to (0, 1)
 #'
-#' Applies the transformation \code{q = raw_q / (1 + raw_q)}, which is
-#' equivalent to \code{plogis(log(raw_q))}. This smoothly maps positive
-#' real values to (0, 1), approximately preserving values much less than 1
-#' (when \code{raw_q << 1}, \code{q ≈ raw_q}) while preventing q from
-#' ever reaching or exceeding 1. The smooth gradient avoids the flat
-#' boundary regions that hard clamping would create for the optimizer.
+#' Applies the transformation \code{q = raw_q / (1 + raw_q)}, equivalent to
+#' \code{plogis(log(raw_q))}. This smoothly maps positive real values to
+#' (0, 1), approximately preserving values much less than 1 (when
+#' \code{raw_q << 1}, \code{q ≈ raw_q}) while preventing q from ever
+#' reaching or exceeding 1. Used during numerical optimisation of
+#' catchability to maintain smooth gradients near the constraint boundary.
 #'
-#' @param raw_q positive numeric, the unconstrained catchability value
+#' @param raw_q Positive numeric; unconstrained catchability value.
 #'
-#' @return numeric in (0, 1)
+#' @return Numeric in (0, 1).
 #' @keywords internal
 q_link <- function(raw_q) {
   raw_q / (1 + raw_q)
@@ -41,32 +41,32 @@ q_link <- function(raw_q) {
 #' Applies the transformation \code{raw_q = q / (1 - q)}, the inverse of
 #' \code{\link{q_link}}.
 #'
-#' @param q numeric in (0, 1)
+#' @param q Numeric in (0, 1).
 #'
-#' @return positive numeric
+#' @return Positive numeric.
 #' @keywords internal
 q_link_inv <- function(q) {
-
   q / (1 - q)
 }
 
 
 #' Set catchability for a single fleet-species metier
 #'
-#' Assigns scalar catchability, rescales the spatial catchability vector
-#' to have the correct mean, and rebuilds \code{vul_p_a}. Catchability
+#' Assigns scalar catchability to a metier, rescales its spatial catchability
+#' vector to have the correct mean, and rebuilds \code{vul_p_a}. Catchability
 #' is enforced to lie in (0, 1).
 #'
-#' @param metier a metier R6 object (modified in place)
-#' @param q_value the target scalar catchability. Must be in [0, 1] when
-#'   \code{use_link = FALSE}. When \code{use_link = TRUE}, can be any
-#'   non-negative value and will be mapped to (0, 1) via \code{\link{q_link}}.
-#' @param use_link logical; if TRUE, applies \code{\link{q_link}} to map
-#'   \code{q_value} from the positive reals into (0, 1). Use this during
-#'   numerical optimization to ensure smooth gradients. If FALSE (default),
-#'   \code{q_value} is used directly and must already be in [0, 1].
+#' @param metier A \code{\link{Metier}} R6 object (modified in place via R6
+#'   reference semantics).
+#' @param q_value Numeric. Target scalar catchability. Must be in \code{[0, 1]}
+#'   when \code{use_link = FALSE}. When \code{use_link = TRUE}, any
+#'   non-negative value is accepted and mapped to (0, 1) via
+#'   \code{\link{q_link}}.
+#' @param use_link Logical. If \code{TRUE}, applies \code{\link{q_link}} to map
+#'   \code{q_value} from the positive reals into (0, 1). Use during numerical
+#'   optimisation to ensure smooth gradients. Default \code{FALSE}.
 #'
-#' @return the (modified) metier, invisibly
+#' @return The modified metier, invisibly.
 #' @keywords internal
 set_metier_catchability <- function(metier, q_value, use_link = FALSE) {
 
@@ -91,8 +91,6 @@ set_metier_catchability <- function(metier, q_value, use_link = FALSE) {
 
   metier$catchability <- q
 
-  # If spatial_catchability is all zeros (e.g. from a prior zeroed-out metier),
-  # reset to a uniform vector so it can be rescaled
   if (all(metier$spatial_catchability == 0)) {
     metier$spatial_catchability <- rep(1, length(metier$spatial_catchability))
   }
@@ -110,17 +108,15 @@ set_metier_catchability <- function(metier, q_value, use_link = FALSE) {
 
 #' Compute effective effort per fleet
 #'
-#' For each fleet, calculates the share of base effort that overlaps with
-#' viable habitat (\code{b0_p > 0}) within the fleet's fishing grounds.
-#' Effort is a fleet-level quantity (not species-specific): a fleet exerts
-#' one pool of effort that affects each species differently through
-#' catchability. Any single species' habitat can be used for the overlap
-#' calculation.
+#' For each fleet, calculates the share of \code{base_effort} that overlaps
+#' with viable habitat (\code{b0_p > 0}) within the fleet's fishing grounds.
+#' Effort is a fleet-level quantity (not species-specific): a fleet exerts one
+#' pool of effort that affects each species differently through catchability.
 #'
-#' @param fauna_species a single fauna element (used only for \code{b0_p})
-#' @param fleets a fleet object (list of fleets)
+#' @param fauna_species A single fauna element (used only for \code{b0_p}).
+#' @param fleets A fleet list (output of \code{\link{create_fleet}}).
 #'
-#' @return named numeric vector of effective effort per fleet
+#' @return Named numeric vector of effective effort per fleet.
 #' @keywords internal
 compute_effort_by_fleet <- function(fauna_species, fleets) {
 
@@ -138,32 +134,30 @@ compute_effort_by_fleet <- function(fauna_species, fleets) {
 
 #' Calibrate cost parameters from equilibrium simulation output
 #'
-#' Extracts revenue and effort from an equilibrium time step, then solves
-#' for \code{cost_per_unit_effort} and \code{effort_reference} for each
-#' fleet so that costs match the target cost-to-revenue ratio.
+#' Extracts revenue and effort from an equilibrium time step, then solves for
+#' \code{cost_per_unit_effort} and \code{effort_reference} for each fleet so
+#' that costs match the target cost-to-revenue ratio.
 #'
 #' The calibration formula is:
-#' \deqn{c0 = \frac{\text{cr\_ratio} \times \text{revenue}}{E^{ref} \times P \times (1 + \theta)}}
+#' \deqn{c_0 = \frac{\text{cr\_ratio} \times R}{E^{ref} \times P \times (1 + \theta)}}
 #'
-#' The effort cost exponent \eqn{\gamma} does not appear in the inversion
-#' because tuning runs under constant effort, which distributes effort
-#' roughly uniformly across open patches. With \eqn{E_l / E^{ref} \approx 1}
-#' everywhere, \eqn{1^\gamma = 1} regardless of \eqn{\gamma}, so the
-#' exponent drops out.
+#' The effort cost exponent \eqn{\gamma} drops out because tuning runs under
+#' constant effort, distributing effort roughly uniformly (\eqn{E_l / E^{ref}
+#' \approx 1}, so \eqn{1^\gamma = 1}).
 #'
-#' @param eq a single equilibrium time step from \code{\link{simmar}} output
-#'   (i.e. \code{sim[[length(sim)]]})
-#' @param fleets a fleet object (list of fleets)
+#' @param eq A single equilibrium time step from \code{\link{simmar}} output
+#'   (i.e. \code{sim[[length(sim)]]}).
+#' @param fleets A fleet list (output of \code{\link{create_fleet}}).
 #'
-#' @return a data.frame with columns: fleet, cost_per_unit_effort,
-#'   effort_reference, revenue, total_effort, n_open_patches, cr_ratio,
-#'   travel_weight, implied_cr
+#' @return A data frame with columns: \code{fleet},
+#'   \code{cost_per_unit_effort}, \code{effort_reference}, \code{revenue},
+#'   \code{total_effort}, \code{n_open_patches}, \code{cr_ratio},
+#'   \code{travel_weight}, \code{implied_cr}.
 #' @keywords internal
 calibrate_fleet_costs <- function(eq, fleets) {
 
   fleet_names <- names(fleets)
 
-  # Revenue: sum across species, by fleet
   revenue <-
     purrr::map(
       eq,
@@ -176,7 +170,6 @@ calibrate_fleet_costs <- function(eq, fleets) {
     dplyr::group_by(fleet) |>
     dplyr::summarise(revenue = sum(revenue), .groups = "drop")
 
-  # Effort by patch and fleet (same for all critters; use first)
   effort <-
     purrr::map(
       eq[1],
@@ -189,7 +182,6 @@ calibrate_fleet_costs <- function(eq, fleets) {
       values_to = "effort"
     )
 
-  # Fleet-level parameters needed for calibration
   fleet_params <-
     purrr::map(
       fleets,
@@ -200,7 +192,6 @@ calibrate_fleet_costs <- function(eq, fleets) {
     ) |>
     purrr::list_rbind(names_to = "fleet")
 
-  # Fishing grounds mask (to identify open patches)
   fishing_grounds <-
     purrr::map(
       fleets,
@@ -211,7 +202,6 @@ calibrate_fleet_costs <- function(eq, fleets) {
     ) |>
     purrr::list_rbind(names_to = "fleet")
 
-  # Effort statistics: mean effort per open patch (where fishing is allowed)
   effort_stats <- effort |>
     dplyr::left_join(fishing_grounds, by = c("fleet", "patch")) |>
     dplyr::filter(fishing_ground > 0) |>
@@ -225,7 +215,6 @@ calibrate_fleet_costs <- function(eq, fleets) {
       effort_reference = total_effort / n_open_patches
     )
 
-  # Solve for c0 and validate
   cost_calibration <- effort_stats |>
     dplyr::left_join(revenue, by = "fleet") |>
     dplyr::left_join(fleet_params, by = "fleet") |>
@@ -240,40 +229,79 @@ calibrate_fleet_costs <- function(eq, fleets) {
 }
 
 
-#' Tune fleet catchability to achieve target initial conditions
+#' Tune Fleet Catchability and Costs to Target Initial Conditions
 #'
+#' @description
 #' Adjusts the catchability coefficient of each fleet's metiers so that the
-#' simulated fishery reaches either a target fishing mortality rate or a
-#' target depletion level (B/B0). Optionally tunes cost parameters to match
-#' a target cost-to-revenue ratio.
+#' simulated fishery reaches either a target fishing mortality rate or a target
+#' depletion level (B/B0). Optionally tunes \code{cost_per_unit_effort} for
+#' each fleet to match a target cost-to-revenue ratio (\code{cr_ratio}).
 #'
-#' Catchability is enforced to lie in (0, 1). In the \code{"f"} path,
-#' infeasible values (q >= 1) produce an error. In the \code{"depletion"}
-#' path, a logistic link function (\code{q = raw_q / (1 + raw_q)})
-#' smoothly maps the optimizer's unconstrained catchability proposals
-#' into (0, 1), preserving smooth gradients and avoiding hard boundary
-#' issues during numerical solution.
+#' This function should be called after \code{\link{create_fleet}} and before
+#' passing fleets to \code{\link{simmar}}; the tuned fleet list is returned
+#' and should replace the original.
 #'
-#' When \code{tune_type = "depletion"} and \code{tune_costs = TRUE}, cost
-#' calibration uses a two-pass approach: (1) initial calibration using a
-#' heuristic (F = 1 - depletion) before the depletion solver runs, then
-#' (2) refined calibration using the actual equilibrium after depletion
-#' tuning converges. This ensures costs accurately reflect the final
-#' equilibrium conditions.
+#' @details
+#' ## Tuning type
+#' \describe{
+#'   \item{\code{"f"} (or \code{"explt"})}{Sets catchability directly from each
+#'     critter's \code{init_explt} and the metier's \code{p_explt} share.
+#'     Analytical; no numerical solver required. Fast but does not guarantee a
+#'     precise equilibrium depletion.}
+#'   \item{\code{"depletion"}}{Uses a two-phase Broyden solver via
+#'     \code{nleqslv} to find catchabilities that produce the target
+#'     depletion specified in each critter's \code{depletion} field. A
+#'     logistic link function keeps catchabilities in (0, 1) throughout
+#'     optimisation. Post-solve validation warns if achieved depletion differs
+#'     from the target by more than \code{depl_tol}.}
+#' }
 #'
-#' Note that tuning is approximate: post-tuning values will not perfectly
-#' match inputs since some tuning steps depend on prior steps.
+#' When \code{tune_costs = TRUE} and \code{tune_type = "depletion"}, a
+#' two-pass cost calibration is used: an initial heuristic pass before the
+#' depletion solver, then a refined pass using the actual equilibrium. This
+#' ensures costs accurately reflect final equilibrium conditions.
 #'
-#' @param fauna a fauna object
-#' @param fleets a fleet object
-#' @param years the number of years to simulate during tuning
-#' @param tune_type one of \code{"f"} (or \code{"explt"}) to tune to a target
-#'   fishing mortality rate, or \code{"depletion"} to tune to a target B/B0
-#' @param tune_costs logical; if TRUE, tune cost_per_unit_effort to match each
-#'   fleet's target cost-to-revenue ratio
+#' Note that tuning is approximate: post-tuning values will not perfectly match
+#' targets because some calibration steps depend on earlier steps.
 #'
-#' @return tuned fleet object
+#' @param fauna A named list of fauna objects from \code{\link{create_critter}}.
+#' @param fleets A named list of fleet objects from \code{\link{create_fleet}}.
+#' @param years Integer. Number of years to simulate during tuning runs.
+#'   Longer values ensure equilibrium is reached. Default \code{50}.
+#' @param tune_type Character. One of \code{"f"} / \code{"explt"} (tune to
+#'   fishing mortality rate) or \code{"depletion"} (tune to B/B0). See Details.
+#' @param tune_costs Logical. If \code{TRUE} (default), calibrate
+#'   \code{cost_per_unit_effort} for each fleet so that equilibrium costs
+#'   match the fleet's \code{cr_ratio}.
+#' @param depl_tol Numeric. Relative tolerance for the depletion-tuning
+#'   convergence check. A warning is issued if any species' achieved depletion
+#'   differs from the target by more than this fraction. Default \code{0.025}
+#'   (2.5\%).
+#'
+#' @return A tuned copy of \code{fleets} with updated \code{catchability},
+#'   \code{spatial_catchability}, \code{vul_p_a}, and (if
+#'   \code{tune_costs = TRUE}) \code{cost_per_unit_effort} and
+#'   \code{effort_reference} fields for each metier.
+#'
+#' @seealso \code{\link{create_fleet}}, \code{\link{simmar}},
+#'   \code{\link{create_critter}}
+#'
 #' @export
+#'
+#' @examples
+#' \dontrun{
+#' fauna  <- list(tuna = create_critter("Thunnus albacares",
+#'                                      resolution = c(10, 10),
+#'                                      fished_depletion = 0.4))
+#' fleets <- list(fleet = create_fleet(metiers   = list(tuna = met),
+#'                                     resolution = c(10, 10)))
+#'
+#' # Tune catchability to achieve target depletion
+#' fleets <- tune_fleets(fauna, fleets, tune_type = "depletion")
+#'
+#' # Then run the simulation
+#' sim <- simmar(fauna = fauna, fleets = fleets, years = 50)
+#' }
 tune_fleets <- function(fauna,
                         fleets,
                         years = 50,

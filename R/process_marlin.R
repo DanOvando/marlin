@@ -1,21 +1,80 @@
-#' Process Marlin
+#' Tidy Simulation Output from simmar
 #'
-#' tidy arrays of outputs from marlin::simmar
+#' @description
+#' Converts the nested list output of \code{\link{simmar}} into two tidy
+#' tibbles: one for population state (\code{$fauna}) and one for fleet
+#' outcomes (\code{$fleets}). This is the primary post-processing step before
+#' plotting or analysis.
 #'
-#' @param sim  the output from simmar
-#' @param steps_to_keep  which steps you'd like to keep
-#' @param time_step the time step interval, as fractions of a year
-#' @param keep_age TRUE keeps age structure, FALSE adds up across ages
+#' @details
+#' ## Output columns
 #'
-#' @return a tidy dataframe of population results
+#' **\code{$fauna}** — one row per critter × patch × age × step:
+#' \itemize{
+#'   \item \code{critter}: species name
+#'   \item \code{patch}: patch index
+#'   \item \code{x}, \code{y}: spatial coordinates
+#'   \item \code{age}: age class (numeric)
+#'   \item \code{mean_length}: mean length at age (from life history)
+#'   \item \code{step}: decimal year (e.g. 5.75 = year 5, season 4 of 4)
+#'   \item \code{n}: numbers at age
+#'   \item \code{b}: biomass at age
+#'   \item \code{ssb}: spawning stock biomass at age
+#'   \item \code{c}: catch in numbers at age
+#' }
+#'
+#' **\code{$fleets}** — one row per critter × patch × age × fleet × step:
+#' \itemize{
+#'   \item \code{critter}, \code{patch}, \code{x}, \code{y}, \code{age},
+#'     \code{fleet}, \code{step}, \code{mean_length}: as above
+#'   \item \code{catch}: catch in numbers
+#'   \item \code{revenue}: revenue
+#'   \item \code{effort}: effort units
+#'   \item \code{cpue}: catch per unit effort (\code{NA} where effort = 0)
+#' }
+#'
+#' When \code{keep_age = FALSE}, age classes are summed and a single
+#' \code{age = "all"} row is returned per spatial unit per step.
+#'
+#' @param sim Named list returned by \code{\link{simmar}}. Step names should
+#'   follow the \code{"year_season"} convention (with optional \code{"step_"}
+#'   prefix, which is automatically stripped).
+#' @param steps_to_keep Character or integer vector of step names / indices to
+#'   include in the output. Useful for reducing memory use when only the final
+#'   years are needed. Default \code{NULL} keeps all steps.
+#' @param time_step Numeric. Fraction of a year per step (e.g. \code{0.25} for
+#'   quarterly seasons). When \code{NULL}, inferred from the step names in
+#'   \code{sim} (requires at least two steps).
+#' @param keep_age Logical. If \code{TRUE} (default), return age-structured
+#'   output. If \code{FALSE}, aggregate across all ages before returning.
+#'
+#' @return A named list with two elements:
+#' \describe{
+#'   \item{\code{fauna}}{Tibble of population state; see Details.}
+#'   \item{\code{fleets}}{Tibble of fleet outcomes; see Details.}
+#' }
+#'
+#' @seealso \code{\link{simmar}}, \code{\link{plot_marlin}}
+#'
 #' @export
 #'
 #' @examples
 #' \dontrun{
+#' sim <- simmar(fauna = fauna, fleets = fleets, years = 50)
 #'
-#' processed_marlin <- process_marlin(sim, steps_to_keep = 100, time_step = 0.25)
+#' # Full output (all steps, all ages)
+#' proc <- process_marlin(sim, time_step = 1)
+#'
+#' # Last 10 years only, aggregated across ages
+#' last_steps <- tail(names(sim), 10)
+#' proc_last  <- process_marlin(sim,
+#'                              steps_to_keep = last_steps,
+#'                              time_step     = 1,
+#'                              keep_age      = FALSE)
+#'
+#' # Plot SSB over time
+#' plot_marlin(proc, plot_var = "ssb", plot_type = "time")
 #' }
-#'
 process_marlin <- function(sim,
                                 steps_to_keep = NULL,
                                 time_step = NULL,

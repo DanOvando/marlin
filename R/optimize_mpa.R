@@ -1,18 +1,86 @@
-#' Optimize MPA network
+#' Iteratively Optimise an MPA Network
 #'
-#' @param fauna fauna object
-#' @param fleets fleet object
-#' @param alpha the weight given to conservation relative to economics (range 0 to 1)
-#' @param max_prop_mpa max proportion of cells to place in MPA
-#' @param resolution the resolution of the simulated system
-#' @param prop_sampled the proportion of cells to sample in each SIR iteration
-#' @param workers number of workers for parallel process
-#' @param starting_conditions starting conditions of the simmar object
-#' @param objective one of max_ssb to maximize spawning stock biomass or min_loss to prioritize not having any losses
+#' @description
+#' Uses a stochastic importance-resampling (SIR) algorithm to identify an
+#' MPA network that maximises a weighted combination of biodiversity and
+#' economic objectives. At each iteration the function evaluates the marginal
+#' value of toggling individual patches in or out of the MPA, then expands
+#' or contracts the network by the patch(es) with the highest marginal
+#' objective value.
 #'
-#' @return a list with results of MPA optimization
+#' @details
+#' ## Algorithm
+#' When \code{work_backwards = TRUE} (recommended), the algorithm starts with
+#' 100\% MPA coverage and iteratively removes the patch whose removal most
+#' improves the weighted objective. This "reverse greedy" approach tends to
+#' produce more stable networks than the forward greedy (start empty, add
+#' patches) because it avoids early lock-in to suboptimal configurations.
+#'
+#' The composite objective at each iteration is:
+#' \deqn{obj = \alpha \cdot \tilde{B} + (1 - \alpha) \cdot \tilde{E}}
+#' where \eqn{\tilde{B}} and \eqn{\tilde{E}} are percent-rank-scaled
+#' biodiversity and economic outcomes, respectively. Scaling by percent ranks
+#' means \eqn{\alpha} strictly controls the weight given to biodiversity
+#' relative to economic rank, not their absolute magnitudes.
+#'
+#' Parallel evaluation of candidate patches uses \code{furrr::future_map};
+#' set \code{workers} to control the number of parallel sessions.
+#'
+#' @param fauna Named list of fauna objects from \code{\link{create_critter}}.
+#' @param fleets Named list of fleet objects from \code{\link{create_fleet}},
+#'   tuned with \code{\link{tune_fleets}}.
+#' @param starting_conditions Initial population state, typically
+#'   \code{sim[[length(sim)]]} from a prior \code{\link{simmar}} run.
+#'   Passed as \code{initial_conditions} to each inner \code{simmar} call.
+#' @param alpha Numeric in [0, 1]. Weight on biodiversity (SSB/SSB0) in the
+#'   composite objective. \code{alpha = 1} ignores economics; \code{alpha = 0}
+#'   ignores biology. Default \code{0.33}.
+#' @param max_prop_mpa Numeric in (0, 1]. Maximum proportion of patches that
+#'   can be designated as MPA. Setting this below 1 forces
+#'   \code{work_backwards = FALSE} automatically. Default \code{1}.
+#' @param resolution Integer scalar or length-2 vector \code{c(nx, ny)}.
+#'   Must match the resolution of \code{fauna} and \code{fleets}.
+#' @param prop_sampled Numeric in (0, 1]. Proportion of candidate patches
+#'   to evaluate at each iteration. Lower values speed up computation but
+#'   increase stochasticity. Default \code{0.2}.
+#' @param max_delta Numeric. Unused; kept for backwards compatibility.
+#' @param workers Integer. Number of parallel workers for
+#'   \code{future::multisession}. Default \code{6}.
+#' @param bio_objective Character. Biodiversity sub-objective:
+#'   \describe{
+#'     \item{\code{"max_ssb"}}{(default) Sum of SSB/SSB0 across species;
+#'       favours absolute biodiversity gains.}
+#'     \item{\code{"min_loss"}}{Count of species that do not decline relative
+#'       to baseline; favours preventing any losses.}
+#'   }
+#' @param econ_objective Character. Economic sub-objective used to evaluate
+#'   each candidate patch:
+#'   \describe{
+#'     \item{\code{"yield"}}{(default) Total catch across species.}
+#'     \item{\code{"revenue"}}{Total revenue.}
+#'     \item{\code{"profits"}}{Total profit.}
+#'   }
+#' @param work_backwards Logical. If \code{TRUE} (default and recommended),
+#'   start at full MPA coverage and iteratively remove patches. Set to
+#'   \code{FALSE} to grow the network from empty.
+#' @param patches_at_a_time Integer. Number of patches to toggle per
+#'   iteration. Default \code{1}.
+#'
+#' @return A named list:
+#' \describe{
+#'   \item{\code{outcomes}}{Tibble of biodiversity and economic outcomes at
+#'     each MPA size level.}
+#'   \item{\code{objective}}{Tibble of the composite objective value
+#'     (\code{obj}) at each MPA size, plus component scores (\code{ssb},
+#'     \code{econ}, \code{yield}).}
+#'   \item{\code{mpa_network}}{Tibble mapping each iteration (proportion
+#'     protected) to the corresponding MPA location data frame.}
+#' }
+#'
+#' @seealso \code{\link{simmar}}, \code{\link{create_critter}},
+#'   \code{\link{create_fleet}}
+#'
 #' @export
-#'
 optimize_mpa <-
   function(fauna,
            fleets,

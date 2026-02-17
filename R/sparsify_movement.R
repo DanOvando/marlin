@@ -1,33 +1,36 @@
-# -----------------------------------------------------------------------------
-# sparsify_transition()
-#
-# Purpose:
-# Convert a dense transition matrix T (patch × patch, column-stochastic)
-# into a sparse matrix while preserving ≥ retain fraction of outgoing
-# probability mass from each origin patch.
-#
-# Conceptually:
-#   Each column = distribution of where individuals starting in patch "from"
-#   move after one time step.
-#
-# Algorithm:
-#   For each origin patch (column):
-#     1. Sort destination probabilities from largest → smallest
-#     2. Keep the minimum number of destinations needed to reach cumulative
-#        probability ≥ retain (e.g. 0.999)
-#     3. Renormalize kept values so column sums exactly to 1
-#     4. Store only those entries → sparse matrix
-#
-# Guarantees:
-#   - No probability mass leakage (columns always sum to 1)
-#   - Dominant dispersal kernel structure preserved
-#   - Long-distance tiny tails removed (→ sparsity)
-#
-# Assumptions:
-#   - T is non-negative
-#   - Columns of T approximately sum to 1 (post expm movement matrix)
-# -----------------------------------------------------------------------------
-
+#' Sparsify a Dense Transition Matrix
+#'
+#' @description
+#' Converts a dense, column-stochastic transition matrix (output of
+#' \code{expm::expm}) into a sparse matrix by retaining only the largest
+#' destination probabilities for each origin patch, until the cumulative
+#' retained mass reaches the \code{retain} threshold. The kept values are
+#' renormalised so each column still sums to exactly 1.
+#'
+#' @details
+#' This operation dramatically reduces memory use and speeds up subsequent
+#' matrix-vector multiplications for large grids. By default (\code{retain =
+#' 0.999}), at most 0.1\% of probability mass is dropped per patch, so
+#' movement dynamics are essentially unchanged.
+#'
+#' Called internally by \code{\link{simmar}} after computing the
+#' discrete-time transition matrix via matrix exponentiation.
+#'
+#' @param T_dense Numeric matrix (patches x patches). Dense column-stochastic
+#'   transition matrix; each column gives the distribution of destinations
+#'   for individuals starting in that patch.
+#' @param retain Numeric in (0, 1]. Minimum cumulative probability mass to
+#'   retain per origin patch. Higher values preserve more of the tails of
+#'   the movement distribution at the cost of denser storage. Default
+#'   \code{0.999}.
+#'
+#' @return A sparse matrix (class \code{"dgCMatrix"}) with the same
+#'   dimensions as \code{T_dense}, with near-zero off-diagonal entries
+#'   dropped and columns renormalised to sum to 1.
+#'
+#' @seealso \code{\link{prep_movement}}, \code{\link{simmar}}
+#'
+#' @keywords internal
 sparsify_transition <- function(trans_mat, retain = 0.999) {
 
   P <- nrow(trans_mat)

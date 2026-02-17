@@ -2,13 +2,14 @@
 % Please edit documentation in R/allocate_effort.R
 \name{allocate_effort}
 \alias{allocate_effort}
-\title{Allocate Fishing Effort Using Multiplicative Velocity-Field Update}
+\title{Allocate Fishing Effort Across Patches Using a Multiplicative Velocity-Field Update}
 \usage{
 allocate_effort(
   effort_by_patch,
-  objective_by_patch,
+  total_effort_by_fleet = NULL,
+  buffet,
+  fleets,
   open_patch,
-  eta = 0.2,
   clip_z = 5,
   scale = c("mad", "iqr", "sd"),
   eps_mix = 0,
@@ -19,110 +20,138 @@ allocate_effort(
 )
 }
 \arguments{
-\item{effort_by_patch}{Numeric vector of effort by patch.}
+\item{effort_by_patch}{Numeric matrix of effort by patch (rows) and fleet
+(columns). Column names should match fleet names.}
 
-\item{objective_by_patch}{Numeric vector of objective signal by patch
-(e.g., profit, marginal profit, RPUE).}
+\item{total_effort_by_fleet}{Numeric vector of total effort per fleet.
+When \code{NULL} (default), computed as \code{colSums(effort_by_patch)}.
+Provides a way to update total effort independently of the current
+spatial distribution.}
 
-\item{open_patch}{Logical vector indicating which patches are open to fishing.}
+\item{buffet}{Named list returned by \code{\link{go_fish}} with
+\code{output_format = "matrix"}. Must contain: \code{r_p_fl},
+\code{c_p_fl}, \code{prof_p_fl}, \code{rpue_p_fl}, \code{cpue_p_fl},
+\code{ppue_p_fl}. For \code{"marginal_profit"} / \code{"marginal_revenue"}
+fleets, must also contain \code{mp_p_fl} / \code{mr_p_fl} from
+\code{\link{calc_marginal_value}}.}
 
-\item{eta}{Numeric responsiveness parameter controlling magnitude of effort
-movement (default: 0.2). Higher values = faster adjustment to incentives.}
+\item{fleets}{Named list of fleet objects. Each fleet must have
+\code{$spatial_allocation} set to one of: \code{"revenue"},
+\code{"catch"}, \code{"profit"}, \code{"rpue"}, \code{"cpue"},
+\code{"ppue"}, \code{"marginal_revenue"}, \code{"marginal_profit"},
+\code{"manual"}, or \code{"uniform"}.}
 
-\item{clip_z}{Numeric maximum absolute standardized objective value allowed
-(default: 5). Prevents extreme updates from outliers.}
+\item{open_patch}{Logical matrix (patches x fleets) or logical vector
+(shared across all fleets) indicating which patches are currently open.
+Closed patches receive zero effort. Allows fleet-specific closures
+(e.g. different fishing grounds per fleet).}
 
-\item{scale}{Character string specifying method to scale the objective:
-"mad" (median absolute deviation, default), "iqr" (interquartile range),
-or "sd" (standard deviation). MAD is most robust to outliers.}
+\item{clip_z}{Numeric. Maximum absolute standardised objective value;
+prevents extreme updates from outliers. Default \code{5}.}
 
-\item{eps_mix}{Numeric optional exploration mixing fraction between 0 and 1
-(default: 0). When > 0, mixes optimal allocation with uniform distribution
-to allow re-entry into abandoned patches.}
+\item{scale}{Character. Method to scale the objective before computing
+the velocity field: \code{"mad"} (median absolute deviation; default,
+most robust to outliers), \code{"iqr"}, or \code{"sd"}.}
 
-\item{floor_frac}{Numeric optional fractional effort floor relative to mean
-open-patch effort (default: 0). Prevents complete abandonment of patches.}
+\item{eps_mix}{Numeric in \link{0, 1}. Exploration mixing fraction. When > 0,
+blends the optimal allocation with a uniform distribution to allow
+re-entry into temporarily abandoned patches. Default \code{0}.}
 
-\item{flatness_tol}{Numeric threshold for detecting flat objectives using
-coefficient of variation (default: 1e-4 = 0.01\%).}
+\item{floor_frac}{Numeric. Fractional effort floor relative to the mean
+open-patch effort. Prevents complete abandonment of any patch.
+Default \code{0} (no floor).}
 
-\item{min_scale_abs}{Numeric absolute minimum scale value to prevent
-division by tiny numbers (default: 1e-10).}
+\item{flatness_tol}{Numeric. Range-based CV threshold for detecting a flat
+objective (range / |median|). Below this threshold, effort is distributed
+uniformly. Default \code{1e-3} (0.1\\%).}
 
-\item{adaptive_floor_pct}{Numeric percentage of median for adaptive scale floor
-(default: 0.01 = 1\%).}
+\item{min_scale_abs}{Numeric. Absolute minimum scale value to prevent
+division by near-zero numbers. Default \code{1e-10}.}
+
+\item{adaptive_floor_pct}{Numeric. Percentage of the median objective
+used as an adaptive minimum scale floor. Default \code{0.01} (1\\%).}
 }
 \value{
-A list with:
+A named list:
 \describe{
-\item{effort_new}{Numeric vector of updated effort by patch}
-\item{velocity_by_patch}{Numeric vector of the velocity field (centered
-standardized objective). Zero everywhere when flat.}
-\item{z_by_patch}{Numeric vector of standardized objective values}
-\item{flat_objective}{Logical flag: TRUE if the objective was detected as
-flat (CV < flatness_tol), meaning no reallocation was warranted}
-\item{cv}{Numeric coefficient of variation of the objective across open patches}
-\item{obj_range}{Numeric range (max - min) of the objective across open patches}
+\item{\code{effort_new}}{Numeric matrix of updated effort (patches x
+fleets), with column names preserved.}
+\item{\code{velocity_by_patch}}{Numeric matrix of velocity fields
+(patches x fleets).}
+\item{\code{z_by_patch}}{Numeric matrix of standardised objective values
+(patches x fleets).}
+\item{\code{flat_objective}}{Named logical vector (one per fleet):
+\code{TRUE} if the objective was flat for that fleet (effort
+distributed uniformly). \code{NA} for manual/uniform fleets.}
+\item{\code{cv}}{Named numeric vector: range-based CV of the objective
+across open patches (used for flatness detection).}
+\item{\code{obj_range}}{Named numeric vector: range of the objective
+across open patches.}
 }
 }
 \description{
-Updates patch-level effort using a multiplicative (replicator-style) gradient-flow
-heuristic derived from an objective signal (e.g., profit, marginal profit, RPUE).
+Updates patch-level effort for one or more fleets using a replicator-style
+gradient-flow heuristic derived from an objective signal (the "buffet")
+returned by \code{\link{go_fish}}. Each fleet's objective is selected
+automatically from the buffet based on its \code{spatial_allocation}
+setting.
 
-The allocator interprets the objective as a \strong{velocity field} rather than a
-target distribution. Effort changes proportionally according to:
+Called automatically by \code{\link{simmar}} each time step; can also be
+used directly for custom allocation scenarios.
+}
+\details{
+\subsection{Algorithm}{
 
-\deqn{e_{new} \propto e_{old} \exp(\eta v)}
+For each fleet:
+\enumerate{
+\item \strong{Flatness detection}: If the objective is nearly uniform across patches
+(range-based CV < \code{flatness_tol}), effort is distributed uniformly
+across open patches. This avoids spurious edge concentration when there
+is no meaningful gradient.
+\item \strong{Standardise}: The objective is centred (median-subtracted) and scaled
+(by MAD, IQR, or SD) to produce a \eqn{z} score, clipped to
+\code{[-clip_z, clip_z]}.
+\item \strong{Velocity field}: The centered \eqn{z} score becomes a velocity
+\eqn{v = z - \bar{z}}, where \eqn{\bar{z}} is the mean across open
+patches.
+\item \strong{Multiplicative update}:
+\deqn{e_{new,p} \propto e_{old,p} \exp(\eta \, v_p)}
+Closed patches receive zero effort. Total effort is conserved.
+}
+}
 
-where \eqn{v} is a centered, scaled, and clipped version of the objective.
+\subsection{Special cases}{
 
-This is a \strong{single-step response}: the fleet observes the current objective
-landscape and makes one reallocation decision. Convergence to equilibrium
-emerges from the bioeconomic feedback loop in \code{\link{simmar}}, where
-effort decisions play out through population dynamics and generate updated
-objective signals at each timestep.
-
-This approach guarantees:
-\itemize{
-\item Non-negative effort
-\item Conservation of total effort
-\item No change when incentives are equal across open patches
-\item High numerical stability via log-space updates
-\item Stable behavior when objective is flat (no spurious edge concentration)
+\describe{
+\item{\code{spatial_allocation = "manual"}}{Effort is distributed
+proportionally to the continuous weights in
+\code{fishing_grounds$fishing_ground}. The optimizer is bypassed
+entirely; \code{buffet} values are not used for this fleet.}
+\item{\code{spatial_allocation = "uniform"}}{Effort is spread equally
+across all open patches regardless of the objective or weights.}
+\item{MPA closures}{Patches flagged as closed in \code{open_patch}
+receive zero effort. When a fleet's \code{mpa_response = "leave"},
+the concentrator vector in \code{\link{simmar}} zeros out MPA patches
+before calling this function.}
+}
 }
 }
 \examples{
 \dontrun{
-# Fleet responds to profit signal
+buffet <- go_fish(e_p_fl, fauna, n_p_a, fleets, output_format = "matrix")
+
 result <- allocate_effort(
-  effort_by_patch = current_effort,
-  objective_by_patch = profit_by_patch,
-  open_patch = fishable_patches
+  effort_by_patch = e_p_fl,
+  buffet          = buffet,
+  fleets          = fleets,
+  open_patch      = fleet_fishable
 )
 
-# Use updated effort for next timestep
-next_effort <- result$effort_new
-
-# Check if objective was effectively flat (no reallocation needed)
-if (result$flat_objective) {
-  message("Objective flat across patches - effort unchanged")
+e_p_fl_new <- result$effort_new  # Updated effort for next step
+result$flat_objective            # Which fleets saw a flat objective?
 }
-
-# Higher responsiveness for faster-adapting fleet
-result <- allocate_effort(
-  effort_by_patch = current_effort,
-  objective_by_patch = profit_by_patch,
-  open_patch = fishable_patches,
-  eta = 0.5
-)
-
-# With exploration to prevent patch abandonment
-result <- allocate_effort(
-  effort_by_patch = current_effort,
-  objective_by_patch = profit_by_patch,
-  open_patch = fishable_patches,
-  eps_mix = 0.02  # 2\% uniform exploration
-)
 }
-
+\seealso{
+\code{\link{go_fish}}, \code{\link{calc_marginal_value}},
+\code{\link{simmar}}
 }

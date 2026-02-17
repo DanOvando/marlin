@@ -22,10 +22,24 @@ find_msy(effort_mult, fauna, fleets, opt = TRUE, target_critter)
 \value{
 nothing at the moment
 
+When \code{opt = TRUE}: a negative numeric scalar (negative total
+yield for the target critter, for minimisation). When \code{opt = FALSE}:
+a \code{\link{process_marlin}} output list at the given effort level.
+
 MSY conditions
 }
 \description{
 Deprecated and likely not to come back, only really possible with one fleet, one critter, and no space, so in other words not what \code{marlin} is intended for
 
-Note that this is mostly an internal function to \code{assign_ref_points}
+Estimates maximum sustainable yield (MSY) conditions for one species by
+running a simulation under a scaled effort level and returning either the
+negative total yield (for minimisation by \code{optim}) or the full
+\code{\link{process_marlin}} output at that effort level.
+
+Mostly an internal helper for \code{\link{assign_ref_points}}, but
+exported for use in custom MSY calculations.
+}
+\seealso{
+\code{\link{assign_ref_points}}, \code{\link{simmar}},
+\code{\link{process_marlin}}
 }

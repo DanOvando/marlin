@@ -2,11 +2,19 @@
 % Please edit documentation in R/metier_class.R
 \name{Metier}
 \alias{Metier}
-\title{R6 Class Representing a fishing fleet}
+\title{R6 Class Representing a Fishing Metier (Fleet-Species Interaction)}
 \description{
-A fleet object has all the required characteristics of a fishing fleet
+A \code{Metier} object specifies how one fleet interacts with one species:
+its price, selectivity, catchability, and spatial distribution of effort.
+A list of metiers (one per species) is passed to \code{\link{create_fleet}}
+as the \code{metiers} argument.
 }
 \details{
+
+}
+\seealso{
+\code{\link{create_fleet}}, \code{\link{tune_fleets}},
+\code{\link{simmar}}
 creates fleet object with spaces for selectivity, mpa response, etc.
 }
 \section{Methods}{

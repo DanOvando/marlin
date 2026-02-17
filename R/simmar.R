@@ -1,24 +1,140 @@
-#' simmar is the wrapper function for the marlin package
+#' Run the marlin Spatially Explicit Fisheries Simulation
 #'
-#' when passed fauna and fleet objects, simmar will advance
-#' the population for a number of steps
+#' @description
+#' \code{simmar} is the main simulation engine for the marlin package.
+#' Given initialised \code{fauna} and \code{fleets} objects, it advances the
+#' age-structured, spatially explicit population forward in time for a
+#' specified number of years, applying fishing mortality, natural mortality,
+#' movement, and recruitment each time step.
 #'
-#' @param fauna a list of fauna objects
-#' @param fleets a list of fleet objects
-#' @param habitat a list of habitat over time
-#' @param years the number of years to run the simulation
-#' @param initial_conditions initial conditions for the simulation, in the form simmar()[[final step]]
-#' @param starting_step  the step to start the simulation from, used to keep track of steps across multiple runs of simmar
-#' @param keep_starting_step should the starting step by kept (TRUE) or dropped (FALSE)
-#' @param manager a list of management actions
-#' @param steps the number of steps to run, as an alternative to years
-#' @param starting_season the starting season for the simulation
-#' @param log_rec_devs externally supplied log recruitment deviates
-#' @param cor_rec correlation matrix in recruitment deviates across species
+#' @details
+#' ## Simulation loop (per time step)
+#' \enumerate{
+#'   \item **Effort dynamics**: For each fleet, total effort for this step is
+#'     determined by the fleet model (\code{"constant_effort"},
+#'     \code{"open_access"}, \code{"sole_owner"}, or \code{"manual"}).
+#'     Open-access and sole-owner fleets use a tanh-based normalised
+#'     profitability signal derived from the previous step's revenues and costs.
+#'   \item **Spatial allocation**: \code{\link{allocate_effort}} redistributes
+#'     each fleet's total effort across patches using a multiplicative
+#'     velocity-field update driven by the chosen \code{spatial_allocation}
+#'     metric (\code{"rpue"}, \code{"profit"}, etc.) from the previous step's
+#'     buffet.
+#'   \item **Fishing & population dynamics**: For each critter,
+#'     age-structured fishing mortality \eqn{F_{p,a}} is applied, followed by
+#'     natural mortality, movement, and Beverton-Holt recruitment.
+#'   \item **Yield accounting**: \code{\link{allocate_yields}} and
+#'     \code{\link{aggregate_yields}} build the per-fleet buffet of catch,
+#'     revenue, profit, and CPUE by patch.
+#'   \item **Marginal values (if needed)**: When any fleet uses
+#'     \code{spatial_allocation = "marginal_profit"} or
+#'     \code{"marginal_revenue"}, or \code{fleet_model = "sole_owner"},
+#'     \code{\link{calc_marginal_value}} appends patch-level marginal returns
+#'     to the buffet.
+#'   \item **Quota enforcement**: If \code{manager$quotas} is set for a
+#'     species, a scalar effort multiplier is solved via \code{optim} to keep
+#'     total catch at or below the quota.
+#' }
 #'
-#' @return a list containing the results of the simulation
+#' ## Step naming
+#' Steps are named \code{"year_season"} (e.g. \code{"5_3"} = year 5, season
+#' 3). Use \code{\link{clean_steps}} to strip any \code{"step_"} prefix.
+#'
+#' ## Initial conditions
+#' By default the simulation starts from the unfished equilibrium embedded in
+#' each critter object. Pass \code{initial_conditions = sim[[length(sim)]]}
+#' from a prior run to chain simulations (e.g. a baseline followed by an MPA
+#' scenario).
+#'
+#' @param fauna Named list of critter objects from \code{\link{create_critter}}.
+#'   All critters must share the same \code{time_step} (i.e. the same number
+#'   of \code{seasons}).
+#' @param fleets Named list of fleet objects from \code{\link{create_fleet}},
+#'   tuned with \code{\link{tune_fleets}}.
+#' @param manager Named list of management actions. Supported elements:
+#'   \describe{
+#'     \item{\code{mpas}}{List with \code{$locations} (a data frame with
+#'       columns \code{x}, \code{y}, \code{mpa}; \code{mpa = TRUE} = closed)
+#'       and \code{$mpa_year} (integer year when closures are activated).}
+#'     \item{\code{quotas}}{Named numeric vector of annual catch caps per
+#'       species (names match \code{fauna}). Effort is scaled down by an
+#'       optimised multiplier when the cap would be exceeded.}
+#'     \item{\code{effort_cap}}{Named numeric vector capping total effort per
+#'       fleet in open-access / sole-owner models.}
+#'     \item{\code{closed_seasons}}{Named list of integer vectors specifying
+#'       which seasons are closed to fishing for each critter.}
+#'   }
+#' @param habitat Named list (one entry per critter) of time-varying habitat.
+#'   Each entry is a list of \code{[ny, nx]} matrices (one per year or per
+#'   time step). When provided, the movement matrix is updated each step based
+#'   on the difference in habitat quality between adjacent patches.
+#' @param years Numeric. Number of years to simulate. Ignored when \code{steps}
+#'   is provided.
+#' @param steps Integer. Alternative to \code{years}: number of time steps to
+#'   simulate. Takes precedence over \code{years} when not \code{NA}.
+#' @param starting_season Integer. Starting season within a year. Rarely
+#'   needed; used when chaining partial-year runs.
+#' @param initial_conditions Initial population state, typically
+#'   \code{sim[[length(sim)]]} from a previous \code{simmar} call. Defaults to
+#'   the unfished equilibrium embedded in each critter object.
+#' @param starting_step Character. Step name of the form \code{"year_season"}
+#'   to start from. Controls step labelling when chaining runs.
+#' @param keep_starting_step Logical. If \code{TRUE} (default), the starting
+#'   (initial-conditions) step is included in the output.
+#' @param log_rec_devs Numeric matrix of pre-generated log recruitment
+#'   deviates with rows = steps and columns = critters (names must match
+#'   \code{fauna}). When \code{NULL} (default), deviates are generated
+#'   internally using each critter's \code{sigma_rec} and \code{ac_rec}.
+#' @param cor_rec Numeric \eqn{n \times n} correlation matrix for recruitment
+#'   deviates across species. Default \code{diag(length(fauna))} (independent
+#'   recruitment).
+#'
+#' @return A named list of length \code{years / time_step} (or \code{steps}),
+#'   where each element is named \code{"year_season"} and contains a named
+#'   sub-list (one per critter) with the population state at that step.
+#'   Each critter's state includes:
+#'   \describe{
+#'     \item{\code{n_p_a}}{Numbers by patch and age (matrix).}
+#'     \item{\code{b_p_a}}{Biomass by patch and age (matrix).}
+#'     \item{\code{ssb_p_a}}{Spawning stock biomass by patch and age (matrix).}
+#'     \item{\code{c_p_a}}{Catch in numbers by patch and age (matrix).}
+#'     \item{\code{c_p_fl}}{Catch by patch and fleet (matrix).}
+#'     \item{\code{r_p_fl}}{Revenue by patch and fleet (matrix).}
+#'     \item{\code{prof_p_fl}}{Profit by patch and fleet (matrix).}
+#'     \item{\code{e_p_fl}}{Effort by patch and fleet (data frame).}
+#'   }
+#'   Pass output to \code{\link{process_marlin}} for tidying.
+#'
+#' @seealso \code{\link{process_marlin}}, \code{\link{plot_marlin}},
+#'   \code{\link{create_critter}}, \code{\link{create_fleet}},
+#'   \code{\link{tune_fleets}}, \code{\link{go_fish}},
+#'   \code{\link{allocate_effort}}
+#'
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#' # Basic run
+#' sim <- simmar(fauna = fauna, fleets = fleets, years = 50)
+#'
+#' # With MPA starting in year 10
+#' mpa_locs <- expand_grid(x = 1:10, y = 1:10) |>
+#'   mutate(mpa = x <= 5)
+#' sim_mpa <- simmar(
+#'   fauna   = fauna,
+#'   fleets  = fleets,
+#'   years   = 50,
+#'   manager = list(
+#'     mpas = list(locations = mpa_locs, mpa_year = 10)
+#'   )
+#' )
+#'
+#' # Chain: baseline + policy scenario
+#' sim_base    <- simmar(fauna = fauna, fleets = fleets, years = 50)
+#' sim_policy  <- simmar(fauna = fauna, fleets = fleets, years = 20,
+#'                       initial_conditions = sim_base[[length(sim_base)]],
+#'                       manager = list(quotas = list(tuna = 500)))
+#' }
 simmar <- function(fauna = list(),
                    fleets = list(),
                    manager = list(),

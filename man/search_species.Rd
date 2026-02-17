@@ -2,7 +2,7 @@
 % Please edit documentation in R/search_species.R
 \name{search_species}
 \alias{search_species}
-\title{Search species: Ported from https://github.com/James-Thorson-NOAA/FishLife/blob/main/R/Search_species.R}
+\title{Search FishLife Taxonomy for the Closest Species Match}
 \usage{
 search_species(
   Class = "predictive",
@@ -16,29 +16,57 @@ search_species(
 )
 }
 \arguments{
-\item{Class}{Character input for taxonomic class}
+\item{Class}{Character. Taxonomic class. Default \code{"predictive"}.}
 
-\item{Order}{Character input for taxonomic class}
+\item{Order}{Character. Taxonomic order. Default \code{"predictive"}.}
 
-\item{Family}{Character input for taxonomic class}
+\item{Family}{Character. Taxonomic family. Default \code{"predictive"}.}
 
-\item{Genus}{Character input for taxonomic class}
+\item{Genus}{Character. Genus name. Default \code{"predictive"}.}
 
-\item{Species}{Character input for taxonomic class}
+\item{Species}{Character. Species epithet. Default \code{"predictive"}.}
 
-\item{add_ancestors}{Boolean whether to add ancestors for matching species or not}
+\item{add_ancestors}{Logical. If \code{TRUE} (default), returns row
+indices for all ancestor taxa as well as the matched taxon. Used by
+FishLife's hierarchical prediction.}
 
-\item{ParentChild_gz}{vector providing index of parent-taxon for every child-taxa}
+\item{Database}{List. The FishLife database to search; defaults to
+\code{marlin::FishBase_and_RAM}.}
+
+\item{ParentChild_gz}{Data frame. The parent-child taxonomy table from
+\code{Database}; extracted automatically.}
 }
 \value{
-integer of row numbers of \code{ParentChild_gz} matching \code{genus_species}
+A named list with three elements:
+\describe{
+\item{\code{GroupNum}}{Integer vector of row indices in
+\code{ParentChild_gz} for the matched taxon and its ancestors.}
+\item{\code{match_taxonomy}}{Character vector of matched taxon strings
+(in \code{"Genus_Species_predictive_..."} format).}
+\item{\code{closest_match}}{Character. The best-matching taxon string.}
+}
 }
 \description{
-Match taxonomic inputs to a given row of \code{ParentChild_gz} or its closest ancestor
+Matches taxonomic inputs against the \code{ParentChild_gz} taxonomy tree
+in the FishLife database, returning the row number(s) of the closest
+ancestor match. Ported and adapted from the FishLife package by James
+Thorson.
 }
 \details{
-This function attempts to do a smart match to elements of \code{ParentChild_gz}.  It sweeps from Order to Species
-and ignores any taxonomic input listed as \code{"predictive"} until it finds something else.  It then appends
-\code{"predictive"} to any lower taxonomic level that is missing, and checks whether this specification yields a single,
-unique taxon.  If it does, it then returns the row number and potentially any ancestors (higher taxonomic levels)
+The function queries WORMS (World Register of Marine Species) via
+\code{taxize} to resolve the full taxonomy for the supplied genus/species,
+then sweeps from Order down to Species looking for the closest match in
+FishLife's \code{ParentChild_gz}. Unspecified levels are padded with
+\code{"predictive"} and the function falls back to the nearest ancestor
+if an exact species match is not found.
+
+This function requires an internet connection. It is called internally
+by \code{\link{get_traits}} and \code{\link{create_critter}}.
+}
+\references{
+Thorson, J.T. (FishLife R package).
+\url{https://github.com/James-Thorson-NOAA/FishLife}
+}
+\seealso{
+\code{\link{get_traits}}, \code{\link{create_critter}}
 }

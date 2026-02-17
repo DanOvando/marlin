@@ -2,32 +2,40 @@
 % Please edit documentation in R/find_neighbords.R
 \name{find_neighbors}
 \alias{find_neighbors}
-\title{Find 4-neighbor (rook) adjacency on an X-by-Y grid with an optional water mask}
+\title{Find 4-Neighbour (Rook) Adjacency Matrix for a Spatial Grid}
 \usage{
 find_neighbors(resolution, water_mask)
 }
 \arguments{
-\item{resolution}{Integer-ish length-2 vector c(X, Y):
-X = number of columns (x-direction), Y = number of rows (y-direction).}
+\item{resolution}{Integer vector of length 2: \code{c(X, Y)}, where
+\code{X} is the number of columns (x-direction) and \code{Y} the number
+of rows (y-direction).}
 
-\item{water_mask}{Logical vector length P = X\emph{Y in patch order (TRUE = water, FALSE = land).
-If you want "no mask", pass rep(TRUE, X}Y).}
+\item{water}{Logical vector of length \code{X * Y} in patch order
+(\code{TRUE} = water/open, \code{FALSE} = land/closed). Pass
+\code{rep(TRUE, X * Y)} for a fully open grid.}
 }
 \value{
-A symmetric sparse matrix (class "dgCMatrix") with dimnames "1","2",...,"P"
-so it can be compared directly to dense dist() baselines via identical().
+A symmetric sparse matrix (class \code{"dgCMatrix"}) of dimensions
+\eqn{P \times P} (where \eqn{P = X \times Y}) with dimnames
+\code{"1"}, \code{"2"}, ..., \code{"P"}.
 }
 \description{
-Builds a sparse adjacency matrix A (P x P, P = X*Y) where:
-\itemize{
-\item A\link{p, q} = 1 if patches p and q are adjacent (share an edge)
-\item A\link{p, q} = 0 otherwise
-\item adjacency respects a water mask: edges are kept only if \emph{both} endpoints are water
-}
+Builds a sparse adjacency matrix \eqn{A} (patches x patches) where
+\eqn{A[p, q] = 1} if patches \eqn{p} and \eqn{q} share an edge (rook
+adjacency), and 0 otherwise. An optional water mask restricts edges so that
+land patches are excluded from the adjacency structure.
 }
 \details{
-Patch indexing matches marlin / your baseline:
-p = (x - 1) * Y + y   (y varies fastest)
-This is the same ordering produced by:
-tidyr::expand_grid(x = 1:X, y = 1:Y) \%>\% mutate(patch = 1:n())
+Patch indexing follows the marlin convention:
+\deqn{p = (x - 1) \times Y + y \quad \text{(y varies fastest)}}
+which matches the ordering produced by
+\code{tidyr::expand_grid(x = 1:X, y = 1:Y) |> mutate(patch = 1:n())}.
+
+Used internally during movement-matrix construction in
+\code{\link{simmar}} to identify which patches are adjacent when
+updating habitat taxis.
+}
+\seealso{
+\code{\link{prep_movement}}, \code{\link{simmar}}
 }

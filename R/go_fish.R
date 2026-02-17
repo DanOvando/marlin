@@ -1,23 +1,73 @@
-#' Go Fishing applies a given matrix of effort by patch and fleet to determine the
-#' returns from fishing of that effort. This does not actually affect the population, this is
-#' essentially an exploratory fishing step used to allocate fishing effort in space.
+#' Exploratory Fishing Step (No Population Effect)
 #'
-#' @param e_p_fl a matrix of effort by patch and fleet
-#' @param fauna a list of fauna objects
-#' @param fleets a list of fleet objects
-#' @param groupers the resolution to return the outputs at (used when output_format = "tidy")
-#' @param output_format character: "tidy" (default) returns list of tidy data frames
-#'   with species summed and effort joined; "matrix" returns list of patches x fleets
-#'   matrices (species summed, no effort column). Matrix format is designed for
-#'   direct use with \code{\link{allocate_effort}}.
-#' @param n_p_a a list of length(fauna) with the numbers by patch and age to go fish
+#' @description
+#' Applies a given matrix of effort by patch and fleet to determine the
+#' potential returns from fishing without modifying the underlying population.
+#' This is an exploratory step used internally by \code{\link{simmar}} to
+#' build the "buffet" that \code{\link{allocate_effort}} uses for spatial
+#' effort reallocation.
 #'
-#' @returns a list with six elements: raw catch (\code{c_p_fl}), revenue
-#'   (\code{r_p_fl}), profit (\code{prof_p_fl}), and their per-unit-effort
-#'   counterparts (\code{cpue_p_fl}, \code{rpue_p_fl}, \code{ppue_p_fl}).
-#'   Format depends on \code{output_format}.
+#' @details
+#' \code{go_fish} runs a single, movement-free time step (\code{move_fish = 0})
+#' for each critter in \code{fauna} using the supplied population state
+#' \code{n_p_a}, then aggregates catch, revenue, and profit across species
+#' via \code{\link{aggregate_yields}}.
+#'
+#' The function is also useful for "what-if" analyses: you can probe the
+#' revenue surface under different effort distributions before committing to a
+#' simulation run.
+#'
+#' @param e_p_fl Numeric matrix of effort by patch (rows) and fleet (columns),
+#'   with column names matching fleet names. Typically the current step's
+#'   effort matrix from \code{\link{simmar}}.
+#' @param fauna Named list of fauna objects from \code{\link{create_critter}}.
+#' @param n_p_a Named list (one element per species in \code{fauna}) of
+#'   numbers-at-age matrices \code{[patch, age]}, representing the current
+#'   population state to fish against. Typically extracted from
+#'   \code{sim[[step]][[critter]]$n_p_a}.
+#' @param fleets Named list of fleet objects from \code{\link{create_fleet}}.
+#' @param groupers Character vector. Grouping columns for tidy output format
+#'   (default: \code{c("fleet", "patch")}). Ignored when
+#'   \code{output_format = "matrix"}.
+#' @param output_format Character. Output format:
+#'   \describe{
+#'     \item{\code{"tidy"}}{(default) Returns a list of tidy data frames
+#'       with species summed across and effort joined.}
+#'     \item{\code{"matrix"}}{Returns a list of patches x fleets matrices
+#'       (species summed). Designed for direct use with
+#'       \code{\link{allocate_effort}}. Substantially faster.}
+#'   }
+#'
+#' @return A named list with six elements, each summed across species:
+#' \describe{
+#'   \item{\code{c_p_fl}}{Catch by patch and fleet}
+#'   \item{\code{r_p_fl}}{Revenue by patch and fleet}
+#'   \item{\code{prof_p_fl}}{Profit by patch and fleet}
+#'   \item{\code{cpue_p_fl}}{Catch per unit effort (\code{NA} where effort = 0)}
+#'   \item{\code{rpue_p_fl}}{Revenue per unit effort (\code{NA} where effort = 0)}
+#'   \item{\code{ppue_p_fl}}{Profit per unit effort (\code{NA} where effort = 0)}
+#' }
+#' Format of each element depends on \code{output_format}.
+#'
+#' @seealso \code{\link{allocate_effort}}, \code{\link{calc_marginal_value}},
+#'   \code{\link{simmar}}, \code{\link{aggregate_yields}}
+#'
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#' # Probe the revenue surface under current effort
+#' n_p_a_now <- lapply(fauna, function(cr) cr$n_p_a_0)
+#' buffet <- go_fish(e_p_fl, fauna, n_p_a_now, fleets, output_format = "matrix")
+#'
+#' # Use with allocate_effort to redistribute effort spatially
+#' result <- allocate_effort(
+#'   effort_by_patch = e_p_fl,
+#'   buffet          = buffet,
+#'   fleets          = fleets,
+#'   open_patch      = open_patches
+#' )
+#' }
 go_fish <- function(e_p_fl, fauna, n_p_a, fleets, groupers = c("fleet", "patch"),
                     output_format = c("tidy", "matrix")) {
 

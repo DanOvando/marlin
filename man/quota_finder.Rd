@@ -2,7 +2,7 @@
 % Please edit documentation in R/quota_finder.R
 \name{quota_finder}
 \alias{quota_finder}
-\title{Title}
+\title{Objective Function for Quota-Constrained Fishing Mortality}
 \usage{
 quota_finder(
   fmult,
@@ -21,25 +21,54 @@ quota_finder(
 )
 }
 \arguments{
-\item{fmult}{multiplier on fishing mortality}
+\item{fmult}{Numeric in \link{0, 1}. Effort multiplier applied uniformly to
+\code{f_p_a} before simulating the population.}
 
-\item{quota}{target quota}
+\item{quota}{Numeric. Target total catch (in numbers) that must not be
+exceeded.}
 
-\item{fauna}{fauna object}
+\item{fauna}{Named list of fauna objects.}
 
-\item{current_season}{current season}
+\item{current_season}{Integer. Current season index.}
 
-\item{movement}{movement matrix}
+\item{movement}{List of movement matrices (one per season block).}
 
-\item{f_p_a}{fishing mortality rate at patch and age}
+\item{f_p_a}{Numeric matrix \code{[patches, ages]} of baseline fishing
+mortality before quota reduction.}
 
-\item{last_n_p_a}{last numbers at patch and age}
+\item{last_n_p_a}{Numeric matrix \code{[patches, ages]} of numbers at the
+start of the current step.}
 
-\item{f_p_a_fl}{fishing mortality rate by patch age and fleet}
+\item{f_p_a_fl}{3-D array \code{[patches, ages, fleets]} of proportional
+fishing mortality share by fleet.}
+
+\item{critter}{Character. Name of the target species.}
+
+\item{rec_devs}{Numeric vector of recruitment deviates (length = patches).}
+
+\item{patches}{Integer. Number of patches.}
+
+\item{ages}{Integer. Number of age classes.}
+
+\item{fleets}{Named list of fleet objects.}
 }
 \value{
-sum of squares of catch relative to quota
+Numeric scalar: squared deviation of total catch from \code{quota}.
+Minimised by \code{optim} to find the binding effort multiplier.
 }
 \description{
-Title
+Computes the squared difference between realised total catch and a target
+quota under a uniformly scaled fishing mortality. Used as the objective
+for \code{optim} inside \code{\link{simmar}} whenever a species-level
+catch quota is active and would be exceeded.
 }
+\details{
+When a quota is binding, \code{\link{simmar}} calls \code{optim} with this
+function to find the scalar \code{fmult} in \link{0, 1} that reduces the
+fishing mortality matrix \code{f_p_a} (and hence catch) to exactly the
+quota level. All fleets experience the same proportional reduction.
+}
+\seealso{
+\code{\link{simmar}}
+}
+\keyword{internal}

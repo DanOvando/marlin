@@ -2,8 +2,7 @@
 % Please edit documentation in R/plot_marlin.R
 \name{plot_marlin}
 \alias{plot_marlin}
-\title{Plot Marlin
-generates time series, spatial, or length composition plots from marlin run}
+\title{Plot marlin Simulation Results}
 \usage{
 plot_marlin(
   ...,
@@ -17,35 +16,88 @@ plot_marlin(
 )
 }
 \arguments{
-\item{...}{named or unnamed outputs of process_marlin}
+\item{...}{One or more named \code{\link{process_marlin}} outputs.
+Names appear in the plot legend. If unnamed, letters a, b, c, ... are
+used. Each argument should be the full list returned by
+\code{process_marlin} (i.e. with \code{$fauna} and \code{$fleets}
+elements).}
 
-\item{steps_to_plot}{which steps to include in the plot}
+\item{steps_to_plot}{Numeric or character vector. Which steps to include.
+Default \code{NA} uses all available steps.}
 
-\item{plot_var}{the primary plotting variable, one of "c" (catch) "n" (numbers),"b" (biomass),"ssb" (spawning stock biomass)}
+\item{plot_var}{Character. Quantity to plot. One of:
+\describe{
+\item{\code{"ssb"}}{Spawning stock biomass (default)}
+\item{\code{"b"}}{Total biomass}
+\item{\code{"c"}}{Catch in numbers}
+\item{\code{"n"}}{Abundance in numbers}
+}}
 
-\item{plot_type}{the plot type, one of "time", "length", or "space"}
+\item{plot_type}{Character. Type of plot. One of \code{"time"} (default),
+\code{"space"}, \code{"length"}, or \code{"age"}.}
 
-\item{fauna}{a fauna object corresponding to the critters in process_marlin outputs}
+\item{fauna}{A \code{fauna} list from \code{\link{create_critter}}. Required
+only when \code{plot_type = "length"} (used to access the length-at-age key).}
 
-\item{drop_recruits}{TRUE to drop recruits from length composition plots}
+\item{drop_recruits}{Logical. If \code{TRUE} (default), drops the youngest
+10\\% of lengths from length composition plots to exclude recruit-dominated
+length classes that can dominate the axis scale.}
+
+\item{plots}{Character. One of \code{"fauna"} (default; plots population
+state from \code{$fauna}) or \code{"fleets"} (plots fleet outcomes from
+\code{$fleets}).}
+
+\item{max_scale}{Logical. If \code{TRUE} (default for \code{"time"} and
+\code{"space"}), normalises each series by its maximum so that values
+are expressed as a proportion of the maximum observed value.}
 }
 \value{
-a plot
+A \code{ggplot2} object. Print it to render the plot, or save
+with \code{ggplot2::ggsave()}.
 }
 \description{
-Plot Marlin
-generates time series, spatial, or length composition plots from marlin run
+Generates time series, spatial, length composition, or age composition
+plots from one or more \code{\link{process_marlin}} outputs. Multiple
+scenarios can be overlaid by passing them as named arguments.
+}
+\details{
+\subsection{Plot types}{
+
+\describe{
+\item{\code{"time"}}{Line chart of the chosen \code{plot_var} summed
+across patches and ages over time, faceted by species. When
+\code{max_scale = TRUE}, each series is normalised by its own maximum
+so that all fits share a \link{0, 1} scale and cross-species comparisons
+are straightforward.}
+\item{\code{"space"}}{Tile map of \code{plot_var} at the last step in
+\code{steps_to_plot}, summed across ages, faceted by species and fit.}
+\item{\code{"length"}}{Density plot of length composition at specified
+steps, derived by projecting age-specific abundances through the
+critter's length-at-age key. Requires \code{fauna}. A maximum of 10
+steps can be plotted simultaneously.}
+\item{\code{"age"}}{Density plot of age composition at the last step in
+\code{steps_to_plot}.}
+}
+}
 }
 \examples{
 \dontrun{
+# Compare two scenarios
+proc_base <- process_marlin(sim_base)
+proc_mpa  <- process_marlin(sim_mpa)
 
-plot_marlin(
-  `MPA: Sharks Offshore` = proc_offshore_mpa,
-  `No MPA` = proc_nearshore,
-  `MPA: Sharks Nearshore` = proc_nearshore_mpa,
-  # 'steps_to_plot = NA,
-  # 'plot_var = "b"
-)
+# Time series of SSB
+plot_marlin(`No MPA` = proc_base, `With MPA` = proc_mpa,
+            plot_var = "ssb", plot_type = "time")
+
+# Spatial biomass map at final time step
+plot_marlin(proc_mpa, plot_var = "b", plot_type = "space")
+
+# Length composition (requires fauna)
+plot_marlin(proc_base, plot_type = "length", fauna = fauna)
 }
-
+}
+\seealso{
+\code{\link{process_marlin}}, \code{\link{simmar}},
+\code{\link{theme_marlin}}
 }

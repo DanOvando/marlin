@@ -2,65 +2,56 @@
 % Please edit documentation in R/marlin_pal.R
 \name{marlin_pal}
 \alias{marlin_pal}
-\title{marlin pal palette}
+\title{marlin Colour Palettes}
 \usage{
 marlin_pal(palette = "fish_scales", reverse = FALSE, ...)
 }
 \arguments{
-\item{palette}{the palette}
+\item{palette}{Character. Name of the palette; see Details.
+Default \code{"fish_scales"}.}
 
-\item{reverse}{flip it}
+\item{reverse}{Logical. If \code{TRUE}, reverses the palette colour order.
+Default \code{FALSE}.}
 
-\item{...}{}
+\item{...}{Additional arguments passed to \code{colorRampPalette}.}
 }
 \value{
-color palletes
+A \code{colorRampPalette} function that accepts an integer \code{n}
+and returns \code{n} hex colour strings.
 }
 \description{
-marlin pal palette
+Returns a \code{colorRampPalette} function for one of seven marlin-themed
+colour palettes, all derived from the colours of a blue marlin
+(\emph{Makaira nigricans}).
+}
+\details{
+Available palettes:
+\describe{
+\item{\code{"fish_scales"}}{11-colour sequential palette spanning the
+full dorsal-to-ventral colour range of the fish.}
+\item{\code{"diverging_fish"}}{7-colour diverging palette suitable for
+difference maps or comparisons between two treatments.}
+\item{\code{"lateral_lines"}}{8-colour palette inspired by the lateral
+line markings.}
+\item{\code{"dark_blues"}}{4-colour palette of deep blues from the dorsal
+and fin regions.}
+\item{\code{"sea_blues"}}{5-colour palette of mid-range blues.}
+\item{\code{"sky_blues"}}{4-colour palette of lighter blues and
+grey-blues from the ventral region.}
+\item{\code{"sands"}}{4-colour palette of warm sandy neutrals.}
+}
 }
 \examples{
-image(1:11, 9:10, as.matrix(1:11),
-  col = marlin_pal("fish_scales")(11),
-  xlim = c(-4.5, 12), ylim = c(0, 10),
-  xlab = "", ylab = "", xaxt = "n", yaxt = "n", bty = "n"
-)
-text(-1.8, 9.5, 'marlin_pal("fish_scales")', cex = 0.7)
-image(1:7, 7.5:8.5, as.matrix(1:7),
-  col = marlin_pal("diverging_fish")(7),
-  xlim = c(-4.5, 12), ylim = c(0, 10),
-  xlab = "", ylab = "", xaxt = "n", yaxt = "n", bty = "n", add = TRUE
-)
-text(-1.8, 8, 'marlin_pal("diverging_fish")', cex = 0.7)
-image(1:11, 6:7, as.matrix(1:11),
-  col = marlin_pal("lateral_lines")(11),
-  xlim = c(-4.5, 12), ylim = c(0, 10),
-  xlab = "", ylab = "", xaxt = "n", yaxt = "n", bty = "n", add = TRUE
-)
-text(-1.8, 6.5, 'marlin_pal("lateral_lines")', cex = 0.7)
-image(1:11, 4.5:5.5, as.matrix(1:11),
-  col = marlin_pal("dark_blues")(11),
-  xlim = c(-4.5, 9), ylim = c(0, 10),
-  xlab = "", ylab = "", xaxt = "n", yaxt = "n", bty = "n", add = TRUE
-)
-text(-1.8, 5, 'marlin_pal("dark_blues")', cex = 0.7)
-image(1:11, 3:4, as.matrix(1:11),
-  col = marlin_pal("sea_blues")(11),
-  xlim = c(-4.5, 9), ylim = c(0, 10),
-  xlab = "", ylab = "", xaxt = "n", yaxt = "n", bty = "n", add = TRUE
-)
-text(-1.8, 3.5, 'marlin_pal("sea_blues")', cex = 0.7)
-image(1:11, 1.5:2.5, as.matrix(1:11),
-  col = marlin_pal("sky_blues")(11),
-  xlim = c(-4.5, 9), ylim = c(0, 10),
-  xlab = "", ylab = "", xaxt = "n", yaxt = "n", bty = "n", add = TRUE
-)
-text(-1.8, 2, 'marlin_pal("sky_blues")', cex = 0.7)
-image(1:11, 0:1, as.matrix(1:11),
-  col = marlin_pal("sands")(11),
-  xlim = c(-4.5, 9), ylim = c(0, 10),
-  xlab = "", ylab = "", xaxt = "n", yaxt = "n", bty = "n", add = TRUE
-)
-text(-1.8, 0.5, 'marlin_pal("sands")', cex = 0.7)
+# 5-colour diverging palette
+cols <- marlin_pal("diverging_fish")(5)
+scales::show_col(cols)
 
+# Use in a ggplot
+library(ggplot2)
+ggplot(mtcars, aes(mpg, wt, colour = factor(cyl))) +
+  geom_point() +
+  scale_colour_manual(values = marlin_pal("sea_blues")(3))
+}
+\seealso{
+\code{\link{theme_marlin}}, \code{\link{plot_marlin}}
 }

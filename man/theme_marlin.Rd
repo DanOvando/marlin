@@ -2,23 +2,29 @@
 % Please edit documentation in R/theme_marlin.R
 \name{theme_marlin}
 \alias{theme_marlin}
-\title{ggplot2 theme for marlin}
+\title{ggplot2 Theme for marlin}
 \usage{
 theme_marlin(base_size = 14, ...)
 }
 \arguments{
-\item{...}{}
+\item{base_size}{Numeric. Base font size in points. Default \code{14}.}
+
+\item{...}{Additional arguments passed to \code{ggplot2::theme_classic}.}
 }
 \value{
-nothing
+A \code{ggplot2} \code{theme} object. Add to a ggplot with \code{+}.
 }
 \description{
-ggplot2 theme for marlin
+A clean \code{ggplot2} theme based on \code{theme_classic} with marlin
+styling: bordered panel, light dashed gridlines, bold-italic titles, dark
+blue facet strip backgrounds, and italicised legend text.
 }
 \examples{
-
-ggplot(mtcars, aes(mpg)) +
-  geom_histogram() +
-  marlin::theme_marlin()
-
+library(ggplot2)
+ggplot(mtcars, aes(mpg, wt)) +
+  geom_point() +
+  theme_marlin()
+}
+\seealso{
+\code{\link{plot_marlin}}, \code{\link{marlin_pal}}
 }

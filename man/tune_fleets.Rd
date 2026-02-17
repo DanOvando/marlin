@@ -2,30 +2,94 @@
 % Please edit documentation in R/tune_fleets.R
 \name{tune_fleets}
 \alias{tune_fleets}
-\title{tune_fleets tunes parameters of the fleet model to achieve desired initial conditions.
-note that this is not exact: post-tuning values will not perfectly match inputs since
-for example some tuning steps depend on prior tuning step, making it difficult to tune everything
-at once.}
+\title{Tune Fleet Catchability and Costs to Target Initial Conditions}
 \usage{
-tune_fleets(fauna, fleets, years = 50, tune_type = "f", tune_costs = TRUE)
+tune_fleets(
+  fauna,
+  fleets,
+  years = 50,
+  tune_type = "f",
+  tune_costs = TRUE,
+  depl_tol = 0.025
+)
 }
 \arguments{
-\item{fauna}{a fauna object}
+\item{fauna}{A named list of fauna objects from \code{\link{create_critter}}.}
 
-\item{fleets}{a fleet object}
+\item{fleets}{A named list of fleet objects from \code{\link{create_fleet}}.}
 
-\item{years}{the number of years to tune over}
+\item{years}{Integer. Number of years to simulate during tuning runs.
+Longer values ensure equilibrium is reached. Default \code{50}.}
 
-\item{tune_type}{one of 'f' or 'depletion' to tune catchability to achieve a desired fishing mortality rate (f) or a target depletion (B/B0)}
+\item{tune_type}{Character. One of \code{"f"} / \code{"explt"} (tune to
+fishing mortality rate) or \code{"depletion"} (tune to B/B0). See Details.}
 
-\item{tune_costs}{TRUE or FALSE to tune costs to a target cost to revenue ratio}
+\item{tune_costs}{Logical. If \code{TRUE} (default), calibrate
+\code{cost_per_unit_effort} for each fleet so that equilibrium costs
+match the fleet's \code{cr_ratio}.}
+
+\item{depl_tol}{Numeric. Relative tolerance for the depletion-tuning
+convergence check. A warning is issued if any species' achieved depletion
+differs from the target by more than this fraction. Default \code{0.025}
+(2.5\\%).}
 }
 \value{
-tuned fleet object
+A tuned copy of \code{fleets} with updated \code{catchability},
+\code{spatial_catchability}, \code{vul_p_a}, and (if
+\code{tune_costs = TRUE}) \code{cost_per_unit_effort} and
+\code{effort_reference} fields for each metier.
 }
 \description{
-tune_fleets tunes parameters of the fleet model to achieve desired initial conditions.
-note that this is not exact: post-tuning values will not perfectly match inputs since
-for example some tuning steps depend on prior tuning step, making it difficult to tune everything
-at once.
+Adjusts the catchability coefficient of each fleet's metiers so that the
+simulated fishery reaches either a target fishing mortality rate or a target
+depletion level (B/B0). Optionally tunes \code{cost_per_unit_effort} for
+each fleet to match a target cost-to-revenue ratio (\code{cr_ratio}).
+
+This function should be called after \code{\link{create_fleet}} and before
+passing fleets to \code{\link{simmar}}; the tuned fleet list is returned
+and should replace the original.
+}
+\details{
+\subsection{Tuning type}{
+
+\describe{
+\item{\code{"f"} (or \code{"explt"})}{Sets catchability directly from each
+critter's \code{init_explt} and the metier's \code{p_explt} share.
+Analytical; no numerical solver required. Fast but does not guarantee a
+precise equilibrium depletion.}
+\item{\code{"depletion"}}{Uses a two-phase Broyden solver via
+\code{nleqslv} to find catchabilities that produce the target
+depletion specified in each critter's \code{depletion} field. A
+logistic link function keeps catchabilities in (0, 1) throughout
+optimisation. Post-solve validation warns if achieved depletion differs
+from the target by more than \code{depl_tol}.}
+}
+
+When \code{tune_costs = TRUE} and \code{tune_type = "depletion"}, a
+two-pass cost calibration is used: an initial heuristic pass before the
+depletion solver, then a refined pass using the actual equilibrium. This
+ensures costs accurately reflect final equilibrium conditions.
+
+Note that tuning is approximate: post-tuning values will not perfectly match
+targets because some calibration steps depend on earlier steps.
+}
+}
+\examples{
+\dontrun{
+fauna  <- list(tuna = create_critter("Thunnus albacares",
+                                     resolution = c(10, 10),
+                                     fished_depletion = 0.4))
+fleets <- list(fleet = create_fleet(metiers   = list(tuna = met),
+                                    resolution = c(10, 10)))
+
+# Tune catchability to achieve target depletion
+fleets <- tune_fleets(fauna, fleets, tune_type = "depletion")
+
+# Then run the simulation
+sim <- simmar(fauna = fauna, fleets = fleets, years = 50)
+}
+}
+\seealso{
+\code{\link{create_fleet}}, \code{\link{simmar}},
+\code{\link{create_critter}}
 }

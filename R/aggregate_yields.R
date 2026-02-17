@@ -1,54 +1,63 @@
-#' Aggregate Yields Across Species
+#' Aggregate Per-Species Yield Outputs Into Fleet-Level Totals
 #'
 #' @description
-#' Takes per-species yield outputs (from \code{\link{allocate_yields}}) and sums
-#' catch, revenue, and profit across species to produce fleet-level totals.
-#' Also computes per-unit-effort versions of each. This is the step that
-#' builds the \code{buffet} that \code{\link{allocate_effort}} selects from.
+#' Sums catch, revenue, and profit across species from the outputs of
+#' \code{\link{allocate_yields}} to produce a fleet-level "buffet" of spatial
+#' yield metrics. Also computes per-unit-effort (PUE) counterparts.
+#' This is the final step that builds the buffet consumed by
+#' \code{\link{allocate_effort}}.
 #'
-#' Can be used in two contexts:
-#' \itemize{
-#'   \item Inside \code{\link{go_fish}} to aggregate exploratory fishing results
-#'   \item Inside the \code{\link{simmar}} step loop after \code{allocate_yields}
-#'     has been called for each species
+#' @details
+#' Used in two contexts:
+#' \enumerate{
+#'   \item Inside \code{\link{go_fish}}, to aggregate exploratory fishing
+#'     results across species before returning the buffet.
+#'   \item Inside the \code{\link{simmar}} step loop, after
+#'     \code{\link{allocate_yields}} has been called for each species.
 #' }
 #'
-#' @param yields Named list of per-species yield outputs. Each element should be
-#'   the output of \code{\link{allocate_yields}} and must contain matrices
-#'   \code{r_p_fl}, \code{c_p_fl}, and \code{prof_p_fl} (patches x fleets).
-#'   Names should be species names.
-#' @param e_p_fl Numeric matrix of effort by patch (rows) and fleet (columns).
-#'   Used to compute per-unit-effort metrics. Column names should be fleet names.
-#' @param output_format Character: \code{"matrix"} (default) returns list of
-#'   patches x fleets matrices; \code{"tidy"} returns list of tidy data frames
-#'   with species summed and effort joined.
-#' @param groupers Character vector of grouping columns for tidy output
+#' @param yields Named list of per-species yield outputs (one element per
+#'   species). Each element must be the output of \code{\link{allocate_yields}}
+#'   and contain patches x fleets matrices: \code{r_p_fl}, \code{c_p_fl},
+#'   and \code{prof_p_fl}. Names should match species names in \code{fauna}.
+#' @param e_p_fl Numeric matrix of effort by patch (rows) and fleet (columns),
+#'   with fleet names as column names. Used to compute per-unit-effort metrics.
+#' @param output_format Character. Output format:
+#'   \describe{
+#'     \item{\code{"matrix"}}{(default) Returns list of patches x fleets
+#'       matrices with fleet names as column names. Fast; designed for
+#'       internal use in \code{\link{simmar}}.}
+#'     \item{\code{"tidy"}}{Returns list of tidy data frames with species
+#'       summed and effort joined. Slower; used inside \code{\link{go_fish}}
+#'       for user-facing output.}
+#'   }
+#' @param groupers Character vector. Grouping columns for tidy format
 #'   (default: \code{c("fleet", "patch")}). Ignored when
 #'   \code{output_format = "matrix"}.
 #'
-#' @return A named list with six elements:
+#' @return A named list with six elements (summed across all species):
 #' \describe{
-#'   \item{r_p_fl}{Revenue by patch and fleet (summed across species)}
-#'   \item{c_p_fl}{Catch by patch and fleet (summed across species)}
-#'   \item{prof_p_fl}{Profit by patch and fleet (summed across species)}
-#'   \item{rpue_p_fl}{Revenue per unit effort by patch and fleet (NA where effort = 0)}
-#'   \item{cpue_p_fl}{Catch per unit effort by patch and fleet (NA where effort = 0)}
-#'   \item{ppue_p_fl}{Profit per unit effort by patch and fleet (NA where effort = 0)}
+#'   \item{\code{r_p_fl}}{Revenue by patch and fleet}
+#'   \item{\code{c_p_fl}}{Catch by patch and fleet}
+#'   \item{\code{prof_p_fl}}{Profit by patch and fleet}
+#'   \item{\code{rpue_p_fl}}{Revenue per unit effort (\code{NA} where effort = 0)}
+#'   \item{\code{cpue_p_fl}}{Catch per unit effort (\code{NA} where effort = 0)}
+#'   \item{\code{ppue_p_fl}}{Profit per unit effort (\code{NA} where effort = 0)}
 #' }
 #'
-#' Format of each element depends on \code{output_format}.
+#' @seealso \code{\link{allocate_yields}}, \code{\link{go_fish}},
+#'   \code{\link{simmar}}, \code{\link{allocate_effort}}
 #'
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#' # Inside simmar, after the fauni loop:
-#' buffet <- aggregate_yields(yields, e_p_fl)
+#' # Inside simmar after the species loop:
+#' buffet <- aggregate_yields(yields_this_step, updated_e_p_f)
 #'
-#' # Inside go_fish:
+#' # Inside go_fish with tidy output:
 #' buffet <- aggregate_yields(yields, e_p_fl, output_format = "tidy")
 #' }
-#'
 aggregate_yields <- function(
     yields,
     e_p_fl,

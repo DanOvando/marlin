@@ -1,9 +1,50 @@
-#' R6 Class Representing a fishing fleet
+#' R6 Class Representing a Fishing Metier (Fleet-Species Interaction)
 #'
 #' @description
-#' A fleet object has all the required characteristics of a fishing fleet
+#' A \code{Metier} object specifies how one fleet interacts with one species:
+#' its price, selectivity, catchability, and spatial distribution of effort.
+#' A list of metiers (one per species) is passed to \code{\link{create_fleet}}
+#' as the \code{metiers} argument.
 #'
 #' @details
+#' ## Key fields
+#' \describe{
+#'   \item{\code{price}}{Numeric. Price per unit catch for this
+#'     fleet-species combination.}
+#'   \item{\code{sel_form}}{Character. Selectivity form: \code{"logistic"},
+#'     \code{"dome"}, or \code{"knife"}.}
+#'   \item{\code{sel_start}}{Numeric. Start of selectivity as a proportion of
+#'     the species' \code{linf} (asymptotic length). E.g. \code{0.3} means
+#'     selectivity begins at 30\% of \code{linf}.}
+#'   \item{\code{sel_delta}}{Numeric. Width parameter for the selectivity
+#'     ogive (for \code{"logistic"} and \code{"dome"} forms).}
+#'   \item{\code{catchability}}{Numeric in (0, 1). Scalar catchability
+#'     coefficient. Calibrated by \code{\link{tune_fleets}}.}
+#'   \item{\code{spatial_catchability}}{Numeric vector \code{[patches]}.
+#'     Spatial variation in catchability; rescaled to have mean =
+#'     \code{catchability}. Allows patches to be more or less fishable.}
+#'   \item{\code{sel_at_age}}{Numeric vector of selectivity at each age
+#'     class, computed from \code{sel_form}, \code{sel_start}, and
+#'     \code{sel_delta}.}
+#'   \item{\code{vul_p_a}}{Matrix \code{[patches, ages]} = outer product of
+#'     \code{spatial_catchability} and \code{sel_at_age}. This is the
+#'     vulnerability matrix used directly in the fishing mortality calculation
+#'     inside \code{\link{simmar}}: \eqn{F_{p,a} = e_p \cdot q_{p,a}}.}
+#'   \item{\code{p_explt}}{Numeric in [0, 1]. Proportion of this species'
+#'     total exploitation attributed to this fleet. Used during catchability
+#'     tuning in \code{\link{tune_fleets}} to split exploitation across fleets.
+#'     Values are normalised to sum to 1 across all fleets for each species.}
+#' }
+#'
+#' ## Usage
+#' Create metiers with \code{Metier$new(...)} and collect them into a named
+#' list (one per species) to pass to \code{\link{create_fleet}}. When copying
+#' metiers across fleets, always use \code{$clone(deep = TRUE)} to avoid
+#' mutating the original.
+#'
+#' @seealso \code{\link{create_fleet}}, \code{\link{tune_fleets}},
+#'   \code{\link{simmar}}
+
 #' creates fleet object with spaces for selectivity, mpa response, etc.
 
 Metier <- R6::R6Class("metier",

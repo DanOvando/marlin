@@ -1,3 +1,55 @@
+#' Allocate Catches, Revenue, and Profit by Fleet
+#'
+#' @description
+#' Distributes the population-level catch matrix \code{c_p_a} (patch x age)
+#' produced by a critter's \code{swim()} method across fleets, then
+#' calculates revenue and profit for each fleet-patch combination.
+#'
+#' @details
+#' The fishing-mortality share of each fleet in each patch-age cell is given
+#' by \code{f_p_a_fl / f_p_a} (already normalised). Total catch in each cell
+#' is then multiplied by this share to give fleet-specific catch. Revenue is
+#' calculated as catch times price (\code{p_p_a_fl}). Profit is revenue minus
+#' the patch-level cost, where costs follow the formula:
+#' \deqn{C_{l,p} = c_{0,l} \, E^{ref}_l \left[\left(\frac{E_{l,p}/n_{sp}}{E^{ref}_l}\right)^{\gamma_l} + \theta_l \, \tilde{d}_{l,p} \, \frac{E_{l,p}/n_{sp}}{E^{ref}_l}\right]}
+#' Note that effort is divided by the number of species (\eqn{n_{sp}}) to
+#' avoid double-counting costs across the species loop in \code{\link{simmar}}.
+#'
+#' This is an internal helper called once per critter per time step inside
+#' \code{\link{simmar}} and \code{\link{go_fish}}.
+#'
+#' @param f_p_a_fl 3-D numeric array \code{[patches, ages, fleets]} of
+#'   proportional fishing mortality by fleet (normalised to sum to 1 across
+#'   fleets for each patch-age cell).
+#' @param p_p_a_fl 3-D numeric array \code{[patches, ages, fleets]} of price
+#'   per unit catch, by patch, age, and fleet.
+#' @param e_p_fl Numeric matrix of effort by patch (rows) and fleet (columns).
+#' @param critter Character. Name of the species being processed (used to
+#'   index \code{fauna}).
+#' @param pop List returned by \code{critter$swim()}, including \code{c_p_a}
+#'   (catch by patch and age).
+#' @param patches Integer. Total number of patches.
+#' @param ages Integer. Number of age classes for this species.
+#' @param fleets Named list of fleet objects from \code{\link{create_fleet}}.
+#' @param fauna Named list of fauna objects from \code{\link{create_critter}}.
+#'
+#' @return A named list:
+#' \describe{
+#'   \item{\code{c_p_a_fl}}{3-D array \code{[patches, ages, fleets]} of
+#'     catch in numbers.}
+#'   \item{\code{r_p_a_fl}}{3-D array \code{[patches, ages, fleets]} of
+#'     revenue.}
+#'   \item{\code{r_p_fl}}{Matrix \code{[patches, fleets]} of revenue summed
+#'     across ages.}
+#'   \item{\code{c_p_fl}}{Matrix \code{[patches, fleets]} of catch summed
+#'     across ages.}
+#'   \item{\code{prof_p_fl}}{Matrix \code{[patches, fleets]} of profit
+#'     (revenue minus cost).}
+#' }
+#'
+#' @keywords internal
+#' @seealso \code{\link{aggregate_yields}}, \code{\link{go_fish}},
+#'   \code{\link{simmar}}
 allocate_yields <- function(f_p_a_fl,p_p_a_fl, e_p_fl, critter, pop, patches, ages, fleets, fauna) {
   c_p_a_fl <- f_p_a_fl * array(
     pop$c_p_a,
