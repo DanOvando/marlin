@@ -320,6 +320,15 @@ simmar <- function(fauna = list(),
     last_e_p_f <- initial_effort$effort_new
   }
 
+  # pre_quota_e_p_f stores the fleet's "intended" effort before any quota
+
+  # reduction. For constant_effort fleets, this is used as the starting point
+
+  # each step so that quota reductions are transient rather than permanent.
+  # For open_access / sole_owner fleets, effort rebounds naturally via
+  # profitability dynamics so they use last_e_p_f (realized effort) instead.
+  pre_quota_e_p_f <- last_e_p_f
+
   r_p_f <- matrix(0, patches, length(fauni))
   e_p_f <- matrix(0, patches, length(fauni))
   f_q <- rep(0, length(fauni))
@@ -376,7 +385,14 @@ simmar <- function(fauna = list(),
 
       if (fleets[[l]]$fleet_model == "manual") {
         total_effort <- fleets[[l]]$effort[s - 1]
+      } else if (fleets[[l]]$fleet_model == "constant_effort") {
+        # Use pre-quota effort so that quota reductions are transient:
+        # the fleet "tries" its full intended effort each step, and only
+        # gets reduced if the quota binds again this step.
+        total_effort <- sum(pre_quota_e_p_f[,l] * fleet_concentrator[[l]])
       } else {
+        # open_access / sole_owner: use realized effort; their dynamics
+        # naturally allow effort to rebound via profitability signals
         total_effort <- sum(last_e_p_f[,l] * fleet_concentrator[[l]])
       }
 
@@ -533,7 +549,6 @@ simmar <- function(fauna = list(),
         multiplier <- pmax(m_min_step, pmin(m_max_step, multiplier))
 
         # --- Apply effort update ---
-        browser()
         total_effort <- pmin(effort_cap_val, total_effort * multiplier)
       }
 
@@ -558,6 +573,10 @@ simmar <- function(fauna = list(),
       }
 
     } # close loop over fleets
+
+    # Snapshot the intended effort before any quota reductions.
+    # This is what fleets "wanted" to deploy this step.
+    pre_quota_e_p_f_step <- updated_e_p_f
 
     for (f in seq_along(fauni)) {
 
@@ -775,6 +794,17 @@ simmar <- function(fauna = list(),
     buffet <- aggregate_yields(yields_this_step, updated_e_p_f)
 
     last_e_p_f <- updated_e_p_f
+
+    # Update pre_quota_e_p_f: for constant_effort fleets, preserve the
+    # pre-quota intended effort so next step starts from full effort.
+    # For dynamic fleets (OA/SO), use realized effort (they rebound naturally).
+    for (l in seq_along(fleet_names)) {
+      if (fleets[[l]]$fleet_model == "constant_effort") {
+        pre_quota_e_p_f[, l] <- pre_quota_e_p_f_step[, l]
+      } else {
+        pre_quota_e_p_f[, l] <- updated_e_p_f[, l]
+      }
+    }
 
     # --- Marginal value signals for effort allocation -------------------------
     # Check if any fleet uses marginal-value allocation before paying the cost
