@@ -15,7 +15,7 @@
 #' gradients, while \code{1.0} produces patchy, rapidly decorrelating maps.
 #'
 #' Cross-species correlations are drawn uniformly from
-#' \code{[-max_abs_cor, -min_abs_cor] \cup [min_abs_cor, max_abs_cor]} when
+#' \eqn{[-max\_abs\_cor, -min\_abs\_cor] \cup [min\_abs\_cor, max\_abs\_cor]} when
 #' \code{critter_correlations = NA}. Supply a full \eqn{n \times n} correlation
 #' matrix to fix species correlations exactly.
 #'

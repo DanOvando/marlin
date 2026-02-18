@@ -10,12 +10,11 @@
   FishLife package on 2022/03/06, as loading FishLife itself generated
   far too many dependencies. Will consider fix at later date
 - [`Metier`](https://danovando.github.io/marlin/reference/Metier.md) :
-  R6 Class Representing a Fishing Metier (Fleet-Species Interaction)
+  R6 class: fishing metier (fleet–species interaction)
 - [`aggregate_yields()`](https://danovando.github.io/marlin/reference/aggregate_yields.md)
   : Aggregate Per-Species Yield Outputs Into Fleet-Level Totals
 - [`allocate_effort()`](https://danovando.github.io/marlin/reference/allocate_effort.md)
-  : Allocate Fishing Effort Across Patches Using a Multiplicative
-  Velocity-Field Update
+  : Allocate fishing effort across patches
 - [`assign_ref_points()`](https://danovando.github.io/marlin/reference/assign_ref_points.md)
   : Assign MSY-Based Reference Points to Each Species
 - [`assign_ssbmsy()`](https://danovando.github.io/marlin/reference/assign_ssbmsy.md)
@@ -69,4 +68,4 @@
 - [`tune_diffusion()`](https://danovando.github.io/marlin/reference/tune_diffusion.md)
   : Tune Diffusion
 - [`tune_fleets()`](https://danovando.github.io/marlin/reference/tune_fleets.md)
-  : Tune Fleet Catchability and Costs to Target Initial Conditions
+  : Tune fleet parameters to match targets

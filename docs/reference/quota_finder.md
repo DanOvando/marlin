@@ -30,8 +30,8 @@ quota_finder(
 
 - fmult:
 
-  Numeric in 0, 1. Effort multiplier applied uniformly to `f_p_a` before
-  simulating the population.
+  Numeric in `[0, 1]`. Effort multiplier applied uniformly to `f_p_a`
+  before simulating the population.
 
 - quota:
 
@@ -93,7 +93,7 @@ by `optim` to find the binding effort multiplier.
 
 When a quota is binding,
 [`simmar`](https://danovando.github.io/marlin/reference/simmar.md) calls
-`optim` with this function to find the scalar `fmult` in 0, 1 that
+`optim` with this function to find the scalar `fmult` in `[0, 1]` that
 reduces the fishing mortality matrix `f_p_a` (and hence catch) to
 exactly the quota level. All fleets experience the same proportional
 reduction.

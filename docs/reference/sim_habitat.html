@@ -179,7 +179,7 @@ smoothness \(n = 1\). The rate parameter <code>kp</code> controls the spatial
 decorrelation length: a value of <code>0.1</code> produces broad, smooth habitat
 gradients, while <code>1.0</code> produces patchy, rapidly decorrelating maps.</p>
 <p>Cross-species correlations are drawn uniformly from
-<code>[-max_abs_cor, -min_abs_cor]  [min_abs_cor, max_abs_cor]</code> when
+\([-max\_abs\_cor, -min\_abs\_cor] \cup [min\_abs\_cor, max\_abs\_cor]\) when
 <code>critter_correlations = NA</code>. Supply a full \(n \times n\) correlation
 matrix to fix species correlations exactly.</p>
 <p>When <code>output = "list"</code>, habitat matrices are returned in <code>[ny, nx]</code>

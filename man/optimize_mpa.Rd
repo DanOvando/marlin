@@ -30,7 +30,7 @@ tuned with \code{\link{tune_fleets}}.}
 \code{sim[[length(sim)]]} from a prior \code{\link{simmar}} run.
 Passed as \code{initial_conditions} to each inner \code{simmar} call.}
 
-\item{alpha}{Numeric in \link{0, 1}. Weight on biodiversity (SSB/SSB0) in the
+\item{alpha}{Numeric in \code{[0, 1]}. Weight on biodiversity (SSB/SSB0) in the
 composite objective. \code{alpha = 1} ignores economics; \code{alpha = 0}
 ignores biology. Default \code{0.33}.}
 

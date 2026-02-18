@@ -21,7 +21,7 @@ quota_finder(
 )
 }
 \arguments{
-\item{fmult}{Numeric in \link{0, 1}. Effort multiplier applied uniformly to
+\item{fmult}{Numeric in \code{[0, 1]}. Effort multiplier applied uniformly to
 \code{f_p_a} before simulating the population.}
 
 \item{quota}{Numeric. Target total catch (in numbers) that must not be
@@ -64,7 +64,7 @@ catch quota is active and would be exceeded.
 }
 \details{
 When a quota is binding, \code{\link{simmar}} calls \code{optim} with this
-function to find the scalar \code{fmult} in \link{0, 1} that reduces the
+function to find the scalar \code{fmult} in \code{[0, 1]} that reduces the
 fishing mortality matrix \code{f_p_a} (and hence catch) to exactly the
 quota level. All fleets experience the same proportional reduction.
 }

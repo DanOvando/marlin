@@ -9,15 +9,21 @@ find_msy(effort_mult, fauna, fleets, opt = TRUE, target_critter)
 find_msy(effort_mult, fauna, fleets, opt = TRUE, target_critter)
 }
 \arguments{
-\item{effort_mult}{the multiplier on the base effort in fleet (assumes fleet model is already tuned)}
+\item{effort_mult}{Numeric. Scalar multiplier applied to the first fleet's
+\code{base_effort} in \code{fleets}. The optimiser searches over this
+value to find the effort that maximises yield.}
 
-\item{fauna}{a list of critters}
+\item{fauna}{Named list of fauna objects from \code{\link{create_critter}}.}
 
-\item{fleets}{a list of fleets}
+\item{fleets}{Named list of fleet objects from \code{\link{create_fleet}},
+already tuned with \code{\link{tune_fleets}}.}
 
-\item{opt}{TRUE = optimize, FALSE = return MSY conditions}
+\item{opt}{Logical. If \code{TRUE} (default), returns negative total yield
+(scalar) for use as an \code{optim} objective. If \code{FALSE}, returns
+the full \code{\link{process_marlin}} output at the given effort level.}
 
-\item{target_critter}{the name of the critter to find MSY for}
+\item{target_critter}{Character. Name of the species whose yield is
+maximised. Must match a name in \code{fauna}.}
 }
 \value{
 nothing at the moment
@@ -25,8 +31,6 @@ nothing at the moment
 When \code{opt = TRUE}: a negative numeric scalar (negative total
 yield for the target critter, for minimisation). When \code{opt = FALSE}:
 a \code{\link{process_marlin}} output list at the given effort level.
-
-MSY conditions
 }
 \description{
 Deprecated and likely not to come back, only really possible with one fleet, one critter, and no space, so in other words not what \code{marlin} is intended for

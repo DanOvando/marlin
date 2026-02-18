@@ -138,7 +138,7 @@ coastline_sim <- simmar(
 )
 
 Sys.time() - start_time
-#> Time difference of 8.083718 secs
+#> Time difference of 36.57742 secs
 
 
 processed_coastline <- process_marlin(coastline_sim, keep_age = FALSE)

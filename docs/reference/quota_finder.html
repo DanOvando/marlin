@@ -88,7 +88,7 @@ catch quota is active and would be exceeded.</p>
 
 
 <dl><dt id="arg-fmult">fmult<a class="anchor" aria-label="anchor" href="#arg-fmult"></a></dt>
-<dd><p>Numeric in 0, 1. Effort multiplier applied uniformly to
+<dd><p>Numeric in <code>[0, 1]</code>. Effort multiplier applied uniformly to
 <code>f_p_a</code> before simulating the population.</p></dd>
 
 
@@ -152,7 +152,7 @@ Minimised by <code>optim</code> to find the binding effort multiplier.</p>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>When a quota is binding, <code><a href="simmar.html">simmar</a></code> calls <code>optim</code> with this
-function to find the scalar <code>fmult</code> in 0, 1 that reduces the
+function to find the scalar <code>fmult</code> in <code>[0, 1]</code> that reduces the
 fishing mortality matrix <code>f_p_a</code> (and hence catch) to exactly the
 quota level. All fleets experience the same proportional reduction.</p>
     </div>

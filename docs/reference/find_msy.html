@@ -85,23 +85,29 @@ exported for use in custom MSY calculations.</p>
 
 
 <dl><dt id="arg-effort-mult">effort_mult<a class="anchor" aria-label="anchor" href="#arg-effort-mult"></a></dt>
-<dd><p>the multiplier on the base effort in fleet (assumes fleet model is already tuned)</p></dd>
+<dd><p>Numeric. Scalar multiplier applied to the first fleet's
+<code>base_effort</code> in <code>fleets</code>. The optimiser searches over this
+value to find the effort that maximises yield.</p></dd>
 
 
 <dt id="arg-fauna">fauna<a class="anchor" aria-label="anchor" href="#arg-fauna"></a></dt>
-<dd><p>a list of critters</p></dd>
+<dd><p>Named list of fauna objects from <code><a href="create_critter.html">create_critter</a></code>.</p></dd>
 
 
 <dt id="arg-fleets">fleets<a class="anchor" aria-label="anchor" href="#arg-fleets"></a></dt>
-<dd><p>a list of fleets</p></dd>
+<dd><p>Named list of fleet objects from <code><a href="create_fleet.html">create_fleet</a></code>,
+already tuned with <code><a href="tune_fleets.html">tune_fleets</a></code>.</p></dd>
 
 
 <dt id="arg-opt">opt<a class="anchor" aria-label="anchor" href="#arg-opt"></a></dt>
-<dd><p>TRUE = optimize, FALSE = return MSY conditions</p></dd>
+<dd><p>Logical. If <code>TRUE</code> (default), returns negative total yield
+(scalar) for use as an <code>optim</code> objective. If <code>FALSE</code>, returns
+the full <code><a href="process_marlin.html">process_marlin</a></code> output at the given effort level.</p></dd>
 
 
 <dt id="arg-target-critter">target_critter<a class="anchor" aria-label="anchor" href="#arg-target-critter"></a></dt>
-<dd><p>the name of the critter to find MSY for</p></dd>
+<dd><p>Character. Name of the species whose yield is
+maximised. Must match a name in <code>fauna</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -110,7 +116,6 @@ exported for use in custom MSY calculations.</p>
 <p>When <code>opt = TRUE</code>: a negative numeric scalar (negative total
 yield for the target critter, for minimisation). When <code>opt = FALSE</code>:
 a <code><a href="process_marlin.html">process_marlin</a></code> output list at the given effort level.</p>
-<p>MSY conditions</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

@@ -110,10 +110,278 @@ the <em>marginal</em> return of adding one more unit of effort to a
 patch. This is the most economically sophisticated option: a patch with
 high total profit but diminishing returns will be less attractive than
 one where the next unit of effort still pays off.</li>
+<li>
+<strong><code>cpue</code></strong> /
+<strong><code>catch</code></strong>: catch-based variants (not
+price-weighted).</li>
+<li>
+<strong><code>marginal_revenue</code></strong>: like
+<code>marginal_profit</code> but ignoring costs.</li>
+<li>
+<strong><code>manual</code></strong>: effort distributed
+proportionally to continuous weights in
+<code>fishing_grounds$fishing_ground</code>.</li>
+<li>
+<strong><code>uniform</code></strong>: effort spread equally across
+all open patches.</li>
 </ul>
-<p>This vignette demonstrates each of these options using a shared
-two-species, two-fleet system with fishing ports, so that the spatial
-cost structure matters for the cost-aware strategies.</p>
+<p>The mechanics of how effort is redistributed in response to these
+objectives is explained in detail in the “How spatial allocation works”
+section below. This vignette then demonstrates each option using a
+shared two-species, two-fleet system with fishing ports, so that the
+spatial cost structure matters for the cost-aware strategies.</p>
+<div class="section level2">
+<h2 id="how-spatial-allocation-works-the-algorithm">How spatial allocation works: the algorithm<a class="anchor" aria-label="anchor" href="#how-spatial-allocation-works-the-algorithm"></a>
+</h2>
+<p>Spatial effort allocation in <code>marlin</code> is handled by the
+<code>allocate_effort</code> function, which uses a multiplicative
+velocity-field update to redistribute a fleet’s total effort across
+patches in response to an economic signal (the “objective”). The
+algorithm is designed to be robust, gradient-based, and numerically
+stable even when patches differ wildly in profitability.</p>
+<div class="section level3">
+<h3 id="step-by-step-procedure">Step-by-step procedure<a class="anchor" aria-label="anchor" href="#step-by-step-procedure"></a>
+</h3>
+<p>For each fleet at each time step:</p>
+<p><strong>1. Flatness detection</strong><br>
+Before attempting to optimize, the algorithm checks whether the
+objective is effectively uniform across patches. If the range-based
+coefficient of variation is below a threshold (default 0.1%):</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mtext mathvariant="normal">CV</mtext><mtext mathvariant="normal">range</mtext></msub><mo>=</mo><mfrac><mrow><mo>max</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>O</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mo>min</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>O</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mo stretchy="true" form="prefix">|</mo><mtext mathvariant="normal">median</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mi>O</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">|</mo></mrow></mfrac><mo>&lt;</mo><mtext mathvariant="normal">flatness_tol</mtext></mrow><annotation encoding="application/x-tex">\text{CV}_{\text{range}} = \frac{\max(O) - \min(O)}{|\text{median}(O)|} &lt; \text{flatness\_tol}</annotation></semantics></math></p>
+<p>then effort is distributed uniformly across all open patches and the
+optimization is skipped. This prevents spurious concentration along
+edges when there is no meaningful gradient to follow.</p>
+<p><strong>2. Standardization</strong><br>
+The objective
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>O</mi><mi>p</mi></msub><annotation encoding="application/x-tex">O_p</annotation></semantics></math>
+in each patch
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>
+is centered and scaled to produce a
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>-score:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>z</mi><mi>p</mi></msub><mo>=</mo><mfrac><mrow><msub><mi>O</mi><mi>p</mi></msub><mo>−</mo><mtext mathvariant="normal">median</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mi>O</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mtext mathvariant="normal">scale</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mi>O</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow></mfrac></mrow><annotation encoding="application/x-tex">z_p = \frac{O_p - \text{median}(O)}{\text{scale}(O)}</annotation></semantics></math></p>
+<p>where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">scale</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mi>O</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\text{scale}(O)</annotation></semantics></math>
+can be the median absolute deviation (default, most robust),
+interquartile range, or standard deviation. The
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>
+scores are then clipped to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">[</mo><mi>−</mi><mi>c</mi><mo>,</mo><mi>c</mi><mo stretchy="true" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">[-c, c]</annotation></semantics></math>
+(default
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><mo>=</mo><mn>5</mn></mrow><annotation encoding="application/x-tex">c = 5</annotation></semantics></math>)
+to prevent extreme updates from outliers:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>z</mi><mi>p</mi></msub><mo>←</mo><mo>max</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>−</mi><mi>c</mi><mo>,</mo><mo>min</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>c</mi><mo>,</mo><msub><mi>z</mi><mi>p</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">z_p \leftarrow \max(-c, \min(c, z_p))</annotation></semantics></math></p>
+<p>Closed patches have
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>z</mi><mi>p</mi></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">z_p = 0</annotation></semantics></math>.</p>
+<p><strong>3. Velocity field</strong><br>
+The standardized objective becomes a velocity after removing the mean
+across open patches:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>v</mi><mi>p</mi></msub><mo>=</mo><msub><mi>z</mi><mi>p</mi></msub><mo>−</mo><msub><mover><mi>z</mi><mo accent="true">‾</mo></mover><mtext mathvariant="normal">open</mtext></msub></mrow><annotation encoding="application/x-tex">v_p = z_p - \bar{z}_{\text{open}}</annotation></semantics></math></p>
+<p>This ensures that the velocity field integrates to zero over the open
+domain, which is necessary for conserving total effort. Patches with
+above-average objectives have
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>v</mi><mi>p</mi></msub><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">v_p &gt; 0</annotation></semantics></math>
+(attracting effort), and patches with below-average objectives have
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>v</mi><mi>p</mi></msub><mo>&lt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">v_p &lt; 0</annotation></semantics></math>
+(repelling effort).</p>
+<p><strong>4. Multiplicative update</strong><br>
+Current effort
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>p</mi></msub><annotation encoding="application/x-tex">e_p</annotation></semantics></math>
+is updated via:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>e</mi><mi>p</mi><mtext mathvariant="normal">new</mtext></msubsup><mo>∝</mo><msub><mi>e</mi><mi>p</mi></msub><mo>exp</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>η</mi><mspace width="0.167em"></mspace><msub><mi>v</mi><mi>p</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">e_p^{\text{new}} \propto e_p \exp(\eta \, v_p)</annotation></semantics></math></p>
+<p>where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>η</mi><annotation encoding="application/x-tex">\eta</annotation></semantics></math>
+(default 1.0) controls the step size. The proportionality constant is
+chosen to conserve total effort:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>e</mi><mi>p</mi><mtext mathvariant="normal">new</mtext></msubsup><mo>=</mo><msub><mi>e</mi><mi>p</mi></msub><mo>exp</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>η</mi><mspace width="0.167em"></mspace><msub><mi>v</mi><mi>p</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>×</mo><mfrac><msub><mi>E</mi><mtext mathvariant="normal">total</mtext></msub><mrow><munder><mo>∑</mo><mi>p</mi></munder><msub><mi>e</mi><mi>p</mi></msub><mo>exp</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>η</mi><mspace width="0.167em"></mspace><msub><mi>v</mi><mi>p</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow></mfrac></mrow><annotation encoding="application/x-tex">e_p^{\text{new}} = e_p \exp(\eta \, v_p) \times \frac{E_{\text{total}}}{\sum_p e_p \exp(\eta \, v_p)}</annotation></semantics></math></p>
+<p>This is implemented in log-space for numerical stability. Closed
+patches receive
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>e</mi><mi>p</mi><mtext mathvariant="normal">new</mtext></msubsup><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">e_p^{\text{new}} = 0</annotation></semantics></math>.</p>
+<p><strong>5. Optional exploration mixing</strong><br>
+If <code>eps_mix</code> &gt; 0, the result is blended with a uniform
+distribution to allow re-entry into temporarily abandoned patches:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>e</mi><mi>p</mi><mtext mathvariant="normal">final</mtext></msubsup><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ϵ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mspace width="0.167em"></mspace><msubsup><mi>e</mi><mi>p</mi><mtext mathvariant="normal">new</mtext></msubsup><mo>+</mo><mi>ϵ</mi><mspace width="0.167em"></mspace><mfrac><msub><mi>E</mi><mtext mathvariant="normal">total</mtext></msub><msub><mi>N</mi><mtext mathvariant="normal">open</mtext></msub></mfrac></mrow><annotation encoding="application/x-tex">e_p^{\text{final}} = (1 - \epsilon) \, e_p^{\text{new}} + \epsilon \, \frac{E_{\text{total}}}{N_{\text{open}}}</annotation></semantics></math></p>
+</div>
+<div class="section level3">
+<h3 id="why-this-algorithm">Why this algorithm?<a class="anchor" aria-label="anchor" href="#why-this-algorithm"></a>
+</h3>
+<p>The multiplicative update has several desirable properties:</p>
+<ul>
+<li>
+<strong>Gradient-based</strong>: Effort flows “uphill” toward
+high-value patches along the objective gradient.</li>
+<li>
+<strong>Effort-conserving</strong>: Total effort
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>∑</mo><mi>p</mi></msub><msub><mi>e</mi><mi>p</mi></msub></mrow><annotation encoding="application/x-tex">\sum_p e_p</annotation></semantics></math>
+is exactly preserved.</li>
+<li>
+<strong>Non-negative</strong>: Effort cannot become negative
+(provided it starts non-negative).</li>
+<li>
+<strong>Smooth transitions</strong>: The exponential update avoids
+discontinuous jumps, making the dynamics more realistic.</li>
+<li>
+<strong>Scale-invariant</strong>: The standardization step ensures
+that the update magnitude is comparable across fleets and time steps
+regardless of absolute objective values.</li>
+</ul>
+<p>The algorithm is related to replicator dynamics from evolutionary
+game theory and gradient flow on the simplex. In the limit of small
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>η</mi><annotation encoding="application/x-tex">\eta</annotation></semantics></math>,
+the continuous-time equivalent is:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mrow><mi>d</mi><msub><mi>e</mi><mi>p</mi></msub></mrow><mrow><mi>d</mi><mi>t</mi></mrow></mfrac><mo>=</mo><msub><mi>e</mi><mi>p</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>v</mi><mi>p</mi></msub><mo>−</mo><mo stretchy="false" form="prefix">⟨</mo><mi>v</mi><mo stretchy="false" form="postfix">⟩</mo><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\frac{de_p}{dt} = e_p \left( v_p - \langle v \rangle \right)</annotation></semantics></math></p>
+<p>where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">⟨</mo><mi>v</mi><mo stretchy="false" form="postfix">⟩</mo><mo>=</mo><msub><mo>∑</mo><mi>p</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>e</mi><mi>p</mi></msub><mi>/</mi><msub><mi>E</mi><mtext mathvariant="normal">total</mtext></msub><mo stretchy="true" form="postfix">)</mo></mrow><msub><mi>v</mi><mi>p</mi></msub></mrow><annotation encoding="application/x-tex">\langle v \rangle = \sum_p (e_p / E_{\text{total}}) v_p</annotation></semantics></math>
+is the effort-weighted average velocity. This is a stable dynamical
+system that converges to a Nash equilibrium where effort is concentrated
+in patches with the highest objective values.</p>
+</div>
+<div class="section level3">
+<h3 id="objectives-available">Objectives available<a class="anchor" aria-label="anchor" href="#objectives-available"></a>
+</h3>
+<p>The objective
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>O</mi><mi>p</mi></msub><annotation encoding="application/x-tex">O_p</annotation></semantics></math>
+is drawn from the “buffet” returned by <code>go_fish</code>, which
+computes prospective catch, revenue, and profit for each patch without
+actually removing fish. The <code>spatial_allocation</code> setting maps
+to:</p>
+<table class="table">
+<colgroup>
+<col width="25%">
+<col width="25%">
+<col width="25%">
+<col width="25%">
+</colgroup>
+<thead><tr class="header">
+<th><code>spatial_allocation</code></th>
+<th>Objective
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>O</mi><mi>p</mi></msub><annotation encoding="application/x-tex">O_p</annotation></semantics></math>
+</th>
+<th>Description</th>
+<th>Economic interpretation</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>rpue</code></td>
+<td>Revenue per unit effort</td>
+<td>Value-weighted catch rate</td>
+<td>Effort shifts toward patches that produce higher revenue per unit
+effort. This reflects fleets choosing locations where each unit of
+effort generates more revenue on average, without explicitly accounting
+for how crowding reduces returns.</td>
+</tr>
+<tr class="even">
+<td><code>revenue</code></td>
+<td>Total revenue</td>
+<td>Value-weighted catch</td>
+<td>Effort shifts toward patches that produce the highest total revenue.
+This reflects fleets targeting areas with the highest overall value of
+catch, regardless of operating costs or how returns change as more
+vessels enter the area.</td>
+</tr>
+<tr class="odd">
+<td><code>ppue</code></td>
+<td>Profit per unit effort</td>
+<td>Revenue net of costs per effort</td>
+<td>Effort shifts toward patches that produce higher profit per unit
+effort. This reflects fleets choosing locations where each unit of
+effort generates more net profit on average, accounting for travel and
+operating costs.</td>
+</tr>
+<tr class="even">
+<td><code>profit</code></td>
+<td>Total profit</td>
+<td>Revenue minus costs</td>
+<td>Effort shifts toward patches that produce the highest total profit.
+This reflects fleets targeting areas with the highest overall net
+returns, without explicitly accounting for how additional effort changes
+profitability.</td>
+</tr>
+<tr class="odd">
+<td><code>cpue</code></td>
+<td>Catch per unit effort</td>
+<td>Biomass-weighted catch rate</td>
+<td>Effort shifts toward patches that produce higher catch per unit
+effort. This reflects fleets choosing locations where each unit of
+effort generates more catch on average, regardless of price.</td>
+</tr>
+<tr class="even">
+<td><code>catch</code></td>
+<td>Total catch</td>
+<td>Biomass-weighted catch</td>
+<td>Effort shifts toward patches that produce the highest total catch.
+This reflects fleets targeting areas with the highest total biomass or
+catch, regardless of economic value.</td>
+</tr>
+<tr class="odd">
+<td><code>marginal_profit</code></td>
+<td>Marginal profit</td>
+<td>Change in total profit from the next unit of effort (finite
+difference)</td>
+<td>Effort shifts toward patches where adding a small amount of
+additional effort would increase total profit the most. Over time,
+effort tends to distribute so that the last unit of effort earns similar
+profit across all actively fished patches. This is the closest
+approximation to the <strong>Ideal Free Distribution (IFD)</strong>,
+where effort distributes so that no vessel can increase profit by moving
+effort to another patch.</td>
+</tr>
+<tr class="even">
+<td><code>marginal_revenue</code></td>
+<td>Marginal revenue</td>
+<td>Change in total revenue from the next unit (finite difference)</td>
+<td>Effort shifts toward patches where adding a small amount of effort
+would increase total revenue the most. Over time, effort tends to
+distribute so that the last unit of effort generates similar revenue
+across actively fished patches. This reflects the production-driven
+component of the <strong>Ideal Free Distribution (IFD)</strong>, but
+does not fully account for costs.</td>
+</tr>
+<tr class="odd">
+<td><code>manual</code></td>
+<td>User weights</td>
+<td>Proportional to <code>fishing_grounds$fishing_ground</code>
+</td>
+<td>Effort follows externally specified spatial preferences (e.g.,
+fishing traditions, regulations, or predefined fishing grounds), rather
+than responding directly to economic outcomes.</td>
+</tr>
+<tr class="even">
+<td><code>uniform</code></td>
+<td>None</td>
+<td>Equal effort across open patches</td>
+<td>Effort is spread evenly across space. Useful as a baseline
+representing no spatial preference or complete uncertainty about
+conditions.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Choosing a strategy for your use case:</strong></p>
+<ul>
+<li>
+<strong>Unregulated open-access fishery?</strong> →
+<code>revenue</code> or <code>rpue</code> (strong
+tragedy-of-commons)</li>
+<li>
+<strong>Limited-entry or regulated fishery with individual
+decisions?</strong> → <code>ppue</code> (moderate, cost-aware)</li>
+<li>
+<strong>Cooperative, ITQ system, or single-owner fleet?</strong> →
+<code>marginal_profit</code> (sole-owner optimum)</li>
+<li>
+<strong>Transitional or mixed governance?</strong> →
+<code>profit</code> or <code>marginal_revenue</code>
+</li>
+<li>
+<strong>Exploring spatial management or MPA impacts across
+behavioral regimes?</strong> → Run multiple scenarios to bracket
+uncertainty</li>
+</ul>
+<p>The marginal variants require <code>calc_marginal_value</code> to
+compute finite-difference derivatives each step, which adds
+computational cost but produces more economically sophisticated spatial
+behavior (especially for sole-owner fleets).</p>
+</div>
+</div>
 <div class="section level2">
 <h2 id="shared-setup">Shared Setup<a class="anchor" aria-label="anchor" href="#shared-setup"></a>
 </h2>
@@ -205,7 +473,7 @@ mobile and less depleted.</p>
 <span>      recruit_home_range <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>      density_dependence <span class="op">=</span> <span class="st">"local_habitat"</span>,</span>
 <span>      seasons <span class="op">=</span> <span class="va">seasons</span>,</span>
-<span>      fished_depletion <span class="op">=</span> <span class="fl">0.5</span>,</span>
+<span>      depletion <span class="op">=</span> <span class="fl">0.5</span>,</span>
 <span>      init_explt <span class="op">=</span> <span class="fl">0.2</span>,</span>
 <span>      explt_type <span class="op">=</span> <span class="st">"f"</span>,</span>
 <span>      resolution <span class="op">=</span> <span class="va">resolution</span>,</span>
@@ -220,7 +488,7 @@ mobile and less depleted.</p>
 <span>      recruit_home_range <span class="op">=</span> <span class="fl">8</span>,</span>
 <span>      density_dependence <span class="op">=</span> <span class="st">"local_habitat"</span>,</span>
 <span>      seasons <span class="op">=</span> <span class="va">seasons</span>,</span>
-<span>      fished_depletion <span class="op">=</span> <span class="fl">0.6</span>,</span>
+<span>      depletion <span class="op">=</span> <span class="fl">0.6</span>,</span>
 <span>      init_explt <span class="op">=</span> <span class="fl">0.15</span>,</span>
 <span>      explt_type <span class="op">=</span> <span class="st">"f"</span>,</span>
 <span>      resolution <span class="op">=</span> <span class="va">resolution</span>,</span>
@@ -690,38 +958,38 @@ for different run lengths.</caption>
 <tbody>
 <tr class="odd">
 <td align="left">rpue / revenue</td>
-<td align="right">0.17</td>
+<td align="right">0.64</td>
 <td align="right">20</td>
-<td align="right">0.01</td>
-<td align="right">1</td>
+<td align="right">0.03</td>
+<td align="right">1.0</td>
 </tr>
 <tr class="even">
 <td align="left">ppue / profit</td>
-<td align="right">0.12</td>
+<td align="right">0.62</td>
 <td align="right">20</td>
-<td align="right">0.01</td>
-<td align="right">1</td>
+<td align="right">0.03</td>
+<td align="right">1.0</td>
 </tr>
 <tr class="odd">
 <td align="left">marginal_profit / rpue</td>
-<td align="right">0.35</td>
+<td align="right">1.61</td>
 <td align="right">20</td>
-<td align="right">0.02</td>
-<td align="right">2</td>
+<td align="right">0.08</td>
+<td align="right">2.7</td>
 </tr>
 <tr class="even">
 <td align="left">open_access (ppue)</td>
-<td align="right">0.26</td>
+<td align="right">1.51</td>
 <td align="right">50</td>
-<td align="right">0.01</td>
-<td align="right">1</td>
+<td align="right">0.03</td>
+<td align="right">1.0</td>
 </tr>
 <tr class="odd">
 <td align="left">sole_owner (ppue)</td>
-<td align="right">0.86</td>
+<td align="right">3.85</td>
 <td align="right">50</td>
-<td align="right">0.02</td>
-<td align="right">2</td>
+<td align="right">0.08</td>
+<td align="right">2.7</td>
 </tr>
 </tbody>
 </table>

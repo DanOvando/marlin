@@ -1,4 +1,8 @@
-# Allocate Fishing Effort Across Patches Using a Multiplicative Velocity-Field Update
+# Allocate fishing effort across patches
+
+Updates patch-level effort for one or more fleets based on an objective
+signal contained in the `buffet` output from
+[`go_fish`](https://danovando.github.io/marlin/reference/go_fish.md).
 
 ## Usage
 
@@ -23,155 +27,76 @@ allocate_effort(
 
 - effort_by_patch:
 
-  Numeric matrix of effort by patch (rows) and fleet (columns). Column
-  names should match fleet names.
+  Numeric matrix with patches in rows and fleets in columns.
 
 - total_effort_by_fleet:
 
-  Numeric vector of total effort per fleet. When `NULL` (default),
-  computed as `colSums(effort_by_patch)`. Provides a way to update total
-  effort independently of the current spatial distribution.
+  Optional numeric vector of total effort per fleet. If `NULL`, totals
+  are computed from `effort_by_patch`.
 
 - buffet:
 
-  Named list returned by
+  Named list from
   [`go_fish`](https://danovando.github.io/marlin/reference/go_fish.md)
-  with `output_format = "matrix"`. Must contain: `r_p_fl`, `c_p_fl`,
-  `prof_p_fl`, `rpue_p_fl`, `cpue_p_fl`, `ppue_p_fl`. For
-  `"marginal_profit"` / `"marginal_revenue"` fleets, must also contain
-  `mp_p_fl` / `mr_p_fl` from
-  [`calc_marginal_value`](https://danovando.github.io/marlin/reference/calc_marginal_value.md).
+  with matrix outputs (for example `r_p_fl`, `c_p_fl`, `prof_p_fl`, and
+  per-unit variants).
 
 - fleets:
 
-  Named list of fleet objects. Each fleet must have
-  `$spatial_allocation` set to one of: `"revenue"`, `"catch"`,
-  `"profit"`, `"rpue"`, `"cpue"`, `"ppue"`, `"marginal_revenue"`,
-  `"marginal_profit"`, `"manual"`, or `"uniform"`.
+  Named list of fleet objects (each with `$spatial_allocation`).
 
 - open_patch:
 
-  Logical matrix (patches x fleets) or logical vector (shared across all
-  fleets) indicating which patches are currently open. Closed patches
-  receive zero effort. Allows fleet-specific closures (e.g. different
-  fishing grounds per fleet).
+  Logical matrix (patches x fleets) indicating where each fleet may
+  fish.
 
 - clip_z:
 
-  Numeric. Maximum absolute standardised objective value; prevents
-  extreme updates from outliers. Default `5`.
+  Numeric scalar controlling how strongly extreme objective values
+  affect the update.
 
 - scale:
 
-  Character. Method to scale the objective before computing the velocity
-  field: `"mad"` (median absolute deviation; default, most robust to
-  outliers), `"iqr"`, or `"sd"`.
+  Character; method used to scale the objective before updating effort.
 
 - eps_mix:
 
-  Numeric in 0, 1. Exploration mixing fraction. When \> 0, blends the
-  optimal allocation with a uniform distribution to allow re-entry into
-  temporarily abandoned patches. Default `0`.
+  Numeric between 0 and 1; mix-in fraction for uniform exploration.
 
 - floor_frac:
 
-  Numeric. Fractional effort floor relative to the mean open-patch
-  effort. Prevents complete abandonment of any patch. Default `0` (no
-  floor).
+  Numeric; optional effort floor applied across open patches.
 
 - flatness_tol:
 
-  Numeric. Range-based CV threshold for detecting a flat objective
-  (range / \|median\|). Below this threshold, effort is distributed
-  uniformly. Default `1e-3` (0.1\\
+  Numeric; threshold for treating the objective as flat across patches.
 
-  min_scale_absNumeric. Absolute minimum scale value to prevent division
-  by near-zero numbers. Default `1e-10`.
+- min_scale_abs:
 
-  adaptive_floor_pctNumeric. Percentage of the median objective used as
-  an adaptive minimum scale floor. Default `0.01` (1\\ A named list:
+  Numeric; minimum scale to avoid division by near-zero values.
 
-  `effort_new`
+- adaptive_floor_pct:
 
-  :   Numeric matrix of updated effort (patches x fleets), with column
-      names preserved.
+  Numeric; fraction of the median objective used as an adaptive scale
+  floor.
 
-  `velocity_by_patch`
+## Value
 
-  :   Numeric matrix of velocity fields (patches x fleets).
+A named list containing the updated effort matrix (`effort_new`) and
+additional diagnostic matrices/vectors used to track the update (for
+example standardised objectives and flatness indicators).
 
-  `z_by_patch`
+## Details
 
-  :   Numeric matrix of standardised objective values (patches x
-      fleets).
+This helper is called by
+[`simmar`](https://danovando.github.io/marlin/reference/simmar.md) each
+time step. For each fleet, it converts the selected objective (e.g.
+revenue, catch, profit, or a per-unit variant) into a smooth
+multiplicative update so that higher-objective patches receive more
+effort, subject to `open_patch`.
 
-  `flat_objective`
+## See also
 
-  :   Named logical vector (one per fleet): `TRUE` if the objective was
-      flat for that fleet (effort distributed uniformly). `NA` for
-      manual/uniform fleets.
-
-  `cv`
-
-  :   Named numeric vector: range-based CV of the objective across open
-      patches (used for flatness detection).
-
-  `obj_range`
-
-  :   Named numeric vector: range of the objective across open patches.
-
-  Updates patch-level effort for one or more fleets using a
-  replicator-style gradient-flow heuristic derived from an objective
-  signal (the "buffet") returned by
-  [`go_fish`](https://danovando.github.io/marlin/reference/go_fish.md).
-  Each fleet's objective is selected automatically from the buffet based
-  on its `spatial_allocation` setting.Called automatically by
-  [`simmar`](https://danovando.github.io/marlin/reference/simmar.md)
-  each time step; can also be used directly for custom allocation
-  scenarios.
-
-  ### Algorithm
-
-  For each fleet:
-
-  1.  **Flatness detection**: If the objective is nearly uniform across
-      patches (range-based CV \< `flatness_tol`), effort is distributed
-      uniformly across open patches. This avoids spurious edge
-      concentration when there is no meaningful gradient.
-
-  2.  **Standardise**: The objective is centred (median-subtracted) and
-      scaled (by MAD, IQR, or SD) to produce a \\z\\ score, clipped to
-      `[-clip_z, clip_z]`.
-
-  3.  **Velocity field**: The centered \\z\\ score becomes a velocity
-      \\v = z - \bar{z}\\, where \\\bar{z}\\ is the mean across open
-      patches.
-
-  4.  **Multiplicative update**: \$\$e\_{new,p} \propto e\_{old,p}
-      \exp(\eta \\ v_p)\$\$ Closed patches receive zero effort. Total
-      effort is conserved.
-
-  ### Special cases
-
-  `spatial_allocation = "manual"`
-
-  :   Effort is distributed proportionally to the continuous weights in
-      `fishing_grounds$fishing_ground`. The optimizer is bypassed
-      entirely; `buffet` values are not used for this fleet.
-
-  `spatial_allocation = "uniform"`
-
-  :   Effort is spread equally across all open patches regardless of the
-      objective or weights.
-
-  MPA closures
-
-  :   Patches flagged as closed in `open_patch` receive zero effort.
-      When a fleet's `mpa_response = "leave"`, the concentrator vector
-      in
-      [`simmar`](https://danovando.github.io/marlin/reference/simmar.md)
-      zeros out MPA patches before calling this function.
-
-  [`go_fish`](https://danovando.github.io/marlin/reference/go_fish.md),
-  [`calc_marginal_value`](https://danovando.github.io/marlin/reference/calc_marginal_value.md),
-  [`simmar`](https://danovando.github.io/marlin/reference/simmar.md)
+[`go_fish`](https://danovando.github.io/marlin/reference/go_fish.md),
+[`calc_marginal_value`](https://danovando.github.io/marlin/reference/calc_marginal_value.md),
+[`simmar`](https://danovando.github.io/marlin/reference/simmar.md)

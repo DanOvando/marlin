@@ -2,20 +2,25 @@
 % Please edit documentation in R/metier_class.R
 \name{Metier}
 \alias{Metier}
-\title{R6 Class Representing a Fishing Metier (Fleet-Species Interaction)}
+\title{R6 class: fishing metier (fleet–species interaction)}
 \description{
-A \code{Metier} object specifies how one fleet interacts with one species:
-its price, selectivity, catchability, and spatial distribution of effort.
-A list of metiers (one per species) is passed to \code{\link{create_fleet}}
-as the \code{metiers} argument.
+The \code{Metier} R6 class stores the parameters that define how a single fleet
+interacts with a single species (e.g., price, selectivity, and catchability).
+A named list of metiers (one per species) is passed to \code{\link{create_fleet}}
+via the \code{metiers} argument.
 }
 \details{
+This class is primarily used internally by \code{marlin}, but it can be created
+directly with \code{Metier$new(...)}, then placed into a named list (one element
+per species).
 
+Common fields include \code{price}, \code{sel_form}, \code{sel_start},
+\code{sel_delta}, \code{catchability}, \code{spatial_catchability}, and
+derived quantities such as selectivity-at-age and vulnerability matrices used by
+\code{\link{simmar}}.
 }
 \seealso{
-\code{\link{create_fleet}}, \code{\link{tune_fleets}},
-\code{\link{simmar}}
-creates fleet object with spaces for selectivity, mpa response, etc.
+\code{\link{create_fleet}}, \code{\link{tune_fleets}}, \code{\link{simmar}}
 }
 \section{Methods}{
 \subsection{Public methods}{

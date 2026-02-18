@@ -3,29 +3,36 @@
 `marlin` allows for a wide range of options to govern both the
 management and internal dynamics of fishing fleets.
 
-Things you can adjust include
+Things you can adjust include:
 
-- The `fleet_model` option, which at the moment supports
-  `constant effort`, in which total fishing effort remains constant, and
-  `open access` where total effort increases or decreases in response to
-  profits.
+- **Fleet models**: `fleet_model` controls effort dynamics. Options are:
 
-- Closed fishing seasons per critter, for example enforcing a closed
-  season for species X but not species Y
+  - `"constant_effort"`: total effort fixed at `base_effort` each time
+    step
+  - `"open_access"`: effort adjusts based on average profitability,
+    equilibrating where total profits = 0
+  - `"sole_owner"`: effort adjusts based on marginal profitability,
+    equilibrating at maximum economic yield (MEY) where marginal profit
+    = 0
+  - `"manual"`: effort taken from a user-supplied vector
 
-- Catch quotas per species
+- **Closed fishing seasons** per species (e.g. enforcing a closed season
+  for species X but not species Y)
 
-- Effort caps per fleet
+- **Catch quotas** per species
 
-- Size limits and selectivity forms per metier and critter
+- **Effort caps** per fleet
 
-- no-take Marine Protected Areas
+- **Size limits and selectivity** forms per metier and species
 
-You can mix and match most of these options (e.g. an open-access fleet
-subjected to a total quota for some species but not for others).
+- **No-take marine protected areas** (MPAs)
 
-First, let’s set up the system and the critters we will deal with, in
-this case a simple example of one bigeye tuna population.
+You can mix and match most of these options — for example, running an
+open-access fleet subject to a total quota for some species but not
+others.
+
+First, let’s set up the system and the species. In this case we use a
+simple example with one bigeye tuna population.
 
 ``` r
 library(marlin)
@@ -34,7 +41,7 @@ library(tidyverse)
 
 theme_set(theme_marlin(base_size = 14) + theme(legend.position = "top"))
 
-resolution <- 10 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches 
+resolution <- 10 # resolution is in squared patches, so 10 implies a 10x10 system, i.e. 100 patches
 
 years <- 50
 
@@ -51,7 +58,7 @@ fauna <-
       adult_diffusion = 10,
       density_dependence = "post_dispersal", 
       seasons = seasons,
-      fished_depletion = 0.8,
+      depletion = 0.8,
       resolution = resolution,
       steepness = 0.6,
       ssb0 = 1000
@@ -68,60 +75,91 @@ fauna$bigeye$m_at_age
 #> [43] 0.3605564 0.3580146 0.3556173 0.3533547 0.3512180 0.3491988 0.3472895
 ```
 
-## Open Access
+## Open access
 
-Let’s set up two fleets, one open access, one constant effort. open
-access dynamics are based around the profitability of the fishery, and
-so require a few more parameters, though reasonable defaults are
-provided.
+Let’s set up two fleets: one open access, one constant effort.
+Open-access dynamics are based on the profitability of the fishery and
+require a few more parameters, though reasonable defaults are provided.
 
-The open access fleet model is
+### Open-access effort dynamics
 
-``` math
-E_{t+1,f} = E_{t,f} \times e^{\theta log(R_{t,f} / C_{t,f})} 
-```
-
-where *E* is total effort in time *t* for fleet *f*. $`\theta`$ controls
-the responsiveness of effort to the ratio of revenues *R* to costs *C*
-in log space. A value of 0.1 means that a 1 unit increase in the revenue
-to cost ratio results in a roughly 10% increase in effort.
-
-Revenue is defined as
+Total effort adjusts each time step in response to a normalised
+profitability signal:
 
 ``` math
-R_{t,f} = \sum_{s=1}^Sp_{f,s}Catch_{f,s}
+E_{t+1,f} = E_{t,f} \times \exp\left(\rho \cdot \tanh\left(\frac{s_t}{k}\right)\right)
 ```
-where *p* is the price and *Catch* is the catch for species *s* caught
-by fleet *f*
 
-Costs are defined as
+where the profitability signal $`s_t`$ is:
 
 ``` math
-C_{t,f} = \sum_{p=1}^P \gamma_f (E_{t,p,f}^{\beta_f} + \eta_{f,p} E_{t,p})
+s_t = \frac{R_t - C_t}{|R_t| + C_t}
 ```
 
-where
+and $`R_t`$ and $`C_t`$ are total revenue and total cost in the previous
+step, respectively. This signal is bounded in $`[-1, 1]`$, handles
+negative revenue safely, and is invariant to rescaling.
+
+The parameters control entry/exit dynamics:
+
+- $`\rho`$ (`oa_rho_year`): annual effort adjustment rate. A value of
+  0.5 means effort can grow or shrink by roughly 50% per year under
+  strong profit or loss signals.
+- $`k`$ (`oa_signal_half`): signal value at which the tanh response
+  reaches half its maximum. Lower values make fleets more responsive.
+  Typical range 0.15–0.4; default 0.3.
+- `oa_max_growth_per_year`: maximum fractional increase in effort per
+  year under highly profitable conditions (e.g. 0.5 = +50% per year).
+- `oa_max_decline_per_year`: maximum fractional decrease in effort per
+  year under highly unprofitable conditions (e.g. 0.5 = -50% per year).
+
+The tanh function ensures that:
+
+- Entry/exit speed saturates under extreme profits or losses (avoiding
+  unrealistic boom/bust cycles).
+- Response is approximately linear near break-even profitability.
+- Effort converges to an equilibrium where total profits equal zero (the
+  classic open-access outcome).
+
+### Revenue and costs
+
+Revenue is:
+
 ``` math
-\gamma_f
+R_{t,f} = \sum_{s=1}^S p_{f,s} \, \text{Catch}_{f,s}
 ```
-is the base cost per unit effort for fleet *f*, $`\beta`$ allows for
-thec cost of effort to scale non-linearly, and $`\eta`$ is the cost of
-fishing in each patch *p*, allowing for the model to account for travel
-costs for different patches.
 
-Many of these parameters are intuitive and easy to set (e.g. price), but
-others are not. In particular, the cost per unit effort parameter
-$`\gamma`$ can be difficult to adjust as it depends on the units of
-effort and biomass to work correctly.
+where $`p`$ is price and Catch is catch for species $`s`$ by fleet
+$`f`$.
 
-As such, the model works bets when specifying a `cr_ratio` rather than a
-$`\gamma`$. The `cr_ratio` specifies the ratio of costs to revenue at
-equilibrium conditions. So, a value of 1 means that profits are zero at
-equilibrium, \>1 that profits are negative, \< 1 that profits are
-positive.
+Costs are:
 
-The function `tune_fleets` then takes these parameters and finds the
-cost parameters that results in the desired equilibrium `cr_ratio`.
+``` math
+C_{t,f} = c_0 \, E^{\text{ref}} \sum_{l=1}^P \left[\left(\frac{E_{t,l,f}}{E^{\text{ref}}}\right)^\gamma + \theta \, \tilde{d}_l \, \frac{E_{t,l,f}}{E^{\text{ref}}}\right]
+```
+
+where:
+
+- $`c_0`$ (`cost_per_unit_effort`): base cost per unit of effort
+- $`E^{\text{ref}}`$: reference effort per patch (typically
+  `base_effort / n_patches`)
+- $`\gamma`$ (`effort_cost_exponent`): exponent controlling
+  congestion/convexity. Values \> 1 make additional units of effort
+  progressively more expensive. Default 1.2.
+- $`\theta`$ (`travel_weight`): derived internally from
+  `travel_fraction`
+- $`\tilde{d}_l`$: normalised distance from patch $`l`$ to the nearest
+  port
+
+### Calibrating costs with `cr_ratio`
+
+Rather than setting $`c_0`$ manually, specify a target cost-to-revenue
+ratio (`cr_ratio`) at equilibrium. A value of 1 means zero profits at
+equilibrium (classic open access), \> 1 means losses, \< 1 means
+positive profits.
+
+`tune_fleets(..., tune_costs = TRUE)` then solves for the $`c_0`$ that
+achieves the desired `cr_ratio` at the tuned depletion level.
 
 ``` r
 
@@ -141,7 +179,10 @@ fleets <- list(
     resolution = resolution,
     cr_ratio = 1,
     travel_fraction = 0.5,
-    fleet_model = "open access")
+    fleet_model = "open_access",
+    oa_max_growth_per_year = 0.5,
+    oa_max_decline_per_year = 0.5,
+    oa_signal_half = 0.3)
 ,
 "handline" = create_fleet(
   list("bigeye" = Metier$new(
@@ -156,11 +197,11 @@ fleets <- list(
   ),
   base_effort = resolution ^ 2,
   resolution = resolution,
-  fleet_model = "constant effort",
+  fleet_model = "constant_effort",
   cost_per_unit_effort = 2
 ))
 
-fleets <- tune_fleets(fauna, fleets, tune_type = "depletion") 
+fleets <- tune_fleets(fauna, fleets, tune_type = "depletion", tune_costs = TRUE) 
 ```
 
 We can now run our simulation and examine the resulting fleet dynamics
@@ -189,20 +230,23 @@ proc_sim$fleets %>%
 
 ![](fleet-management_files/figure-html/unnamed-chunk-3-2.png)
 
-## Open Access and MPAs
+## Open access and MPAs
 
-To see the effect of the fleet model choices, let’s examine the
-trajectory of each fleet after the addition of an MPA. Under the default
-constant effort with reallocation dynamics of the model, when an MPA is
-put in place, the total effort in the fishery remains the same but is
-reallocated to from inside the MPA to the remaining fishable patches.
-Under the open access model, effort reacts to the MPA in accordance to
-the MPAs impacts on fishing profits.
+The fleet model choice determines how effort responds to an MPA. Under
+the default **constant effort with reallocation** dynamics, total effort
+stays fixed but is redistributed from inside the MPA to the remaining
+fishable patches. Under the **open access** model, effort responds
+dynamically to how the MPA affects profitability.
 
-As a result, when the MPA is put in place effort decreases rapidly,
-until profits increase some due to spillover from the MPA, at which time
-effort increases until a new open access equilibrium of zero profits
-with the MPAs is achieved.
+When an MPA is implemented, the open-access fleet initially loses access
+to productive fishing grounds inside the closure. This reduces catch
+while costs remain the same, driving down profits and triggering effort
+contraction. As the MPA matures, spillover effects (adult movement and
+larval export from the protected area) can increase catch rates in
+adjacent patches, improving profitability and allowing effort to
+partially recover. Eventually the fleet settles at a new zero-profit
+equilibrium where the benefits of spillover are balanced against the
+lost access inside the MPA.
 
 ``` r
 
@@ -230,15 +274,51 @@ proc_mpa_sim$fleets %>%
 
 ![](fleet-management_files/figure-html/unnamed-chunk-4-1.png)
 
+## Sole owner
+
+The `"sole_owner"` fleet model is identical to open access in its effort
+adjustment mechanics, but uses the *marginal* profit signal rather than
+the *average* profit signal. This causes the fleet to equilibrate at
+maximum economic yield (MEY), where marginal profit equals zero, rather
+than at the open-access equilibrium where total profit equals zero.
+
+Marginal profit is computed via finite-difference perturbations (see
+[`?calc_marginal_value`](https://danovando.github.io/marlin/reference/calc_marginal_value.md)).
+This requires additional computation each step, so `"sole_owner"` fleets
+run slightly slower than `"open_access"` fleets. The equilibrium outcome
+typically features lower effort and higher biomass than open access,
+since the fleet stops expanding when the *next* unit of effort would no
+longer be profitable, rather than waiting until *all* effort is
+unprofitable.
+
+To use sole owner dynamics:
+
+``` r
+fleets <- list(
+  "longline" = create_fleet(
+    list("bigeye" = Metier$new(...)),
+    fleet_model = "sole_owner",
+    cr_ratio = 0.8,  # MEY typically has positive profits, so cr_ratio < 1
+    ...
+  )
+)
+```
+
 ## Quotas
 
-We can also layer quotas onto the fleet model. Here, we will impose a
-total quota of 100 tons of bigeye caught across all fleets. Notice that
-quotas impose a *cap*, not a requirement, on catch. So, in the early
-days of the fishery when catches would have been high, the quota is in
-effect. However, in the later days of the fishery, the fleets have no
-incentive to catch up to the quota, and so catch less than the allowable
-amount.
+Quotas can be layered onto any fleet model. Here we impose a total catch
+quota of 8 units of bigeye across all fleets. The quota is enforced each
+time step by solving for a scalar effort multiplier that keeps total
+catch at or below the quota.
+
+**Important:** quotas impose a *cap*, not a requirement. In the early
+days of the fishery when catches would naturally exceed the quota, the
+quota is binding and effort is reduced proportionally. However, in later
+years when the population has declined and effort dynamics (especially
+under open access) would produce catches below the quota anyway, the
+fleet is unconstrained and the quota has no effect. This reflects
+real-world quota fisheries where economic or biological conditions can
+make quotas non-binding.
 
 ``` r
 sim_quota <- simmar(fauna = fauna,
@@ -251,7 +331,7 @@ proc_sim_quota <- process_marlin(sim_quota)
 plot_marlin(proc_sim_quota, plot_var = "c", max_scale = FALSE)
 ```
 
-![](fleet-management_files/figure-html/unnamed-chunk-5-1.png)
+![](fleet-management_files/figure-html/unnamed-chunk-6-1.png)
 
 ``` r
 
@@ -263,7 +343,7 @@ proc_sim_quota$fleets %>%
     scale_x_continuous(name = "Year")
 ```
 
-![](fleet-management_files/figure-html/unnamed-chunk-5-2.png)
+![](fleet-management_files/figure-html/unnamed-chunk-6-2.png)
 
 ``` r
 
@@ -276,26 +356,27 @@ proc_sim_quota$fleets %>%
     scale_x_continuous(name = "Year")
 ```
 
-![](fleet-management_files/figure-html/unnamed-chunk-5-3.png)
+![](fleet-management_files/figure-html/unnamed-chunk-6-3.png)
 
-## Effort Caps
+## Effort caps
 
-Another management option is to set a maximum amount of effort per
-fleet. This could reflect regulation, or reality. For example, if the
-user wishes to think of effort in terms of “days fished per year” by a
-fixed number of vessels, clearly there are limits.
+Another management option is to set a maximum total effort per fleet.
+This could reflect regulation (e.g. limited entry permits) or physical
+reality (e.g. if effort is measured in “days fished per year” by a fixed
+number of vessels, there is a natural ceiling).
 
-Users set this by
+Set effort caps via
 `manager = list(effort_cap = list(FLEET_NAME = EFFORT_CAP))`, where
-`FLEET_NAME` is filled in with the name of the fleet to apply a given
-total `EFFORT_CAP` to.
+`FLEET_NAME` is the name of the fleet and `EFFORT_CAP` is the maximum
+total effort allowed.
 
-Note that effort caps only really apply when
-`fleet_model == "open access`; when `fleet_model == "constant effort"`
-effort it already capped. Under open access though, the effort cap
-ensures that while open access dynamics might **reduce** the total
-amount of effort, effort will never expand beyond the supplied cap for
-that fleet.
+**Note:** effort caps are only meaningful when
+`fleet_model == "open_access"` or `"sole_owner"`. For constant-effort
+fleets, effort is already fixed at `base_effort`. Under open-access or
+sole-owner dynamics, the cap ensures that while profitability signals
+can *reduce* total effort, effort can never expand beyond the cap. The
+fleet can still contract below the cap if losses warrant it, but
+profitable conditions will not drive effort above the ceiling.
 
 ``` r
 
@@ -311,7 +392,7 @@ proc_sim_effort <- process_marlin(sim_effort)
 plot_marlin(proc_sim_effort, plot_var = "c", max_scale = FALSE)
 ```
 
-![](fleet-management_files/figure-html/unnamed-chunk-6-1.png)
+![](fleet-management_files/figure-html/unnamed-chunk-7-1.png)
 
 ``` r
 
@@ -323,7 +404,7 @@ proc_sim_effort$fleets %>%
     scale_x_continuous(name = "Year")
 ```
 
-![](fleet-management_files/figure-html/unnamed-chunk-6-2.png)
+![](fleet-management_files/figure-html/unnamed-chunk-7-2.png)
 
 ``` r
 
@@ -340,13 +421,20 @@ proc_sim_effort$fleets %>%
   scale_y_continuous(limits = c(0, NA))
 ```
 
-![](fleet-management_files/figure-html/unnamed-chunk-6-3.png)
+![](fleet-management_files/figure-html/unnamed-chunk-7-3.png)
 
-## Manual Effort
+## Manual effort
 
-As another option, you can manually specify the effort in each time step
-for each fleet. Inside the `fleet` object, set `fleet_model = "manual"`,
-and then provide a timeseries of effort in each time step.
+As an alternative to model-driven effort dynamics, you can manually
+specify total effort for each time step. Set `fleet_model = "manual"`
+and provide a vector of effort values in the fleet object’s `effort`
+field. The vector must have length equal to `years * seasons`.
+
+This is useful when you want to impose an exogenous effort trajectory —
+for example, to simulate the historical expansion of a fishery, test the
+effects of a known effort time series, or explore counterfactual
+scenarios where effort follows a prescribed pattern rather than
+responding endogenously to economic signals.
 
 ``` r
 time_steps <- years * seasons
@@ -368,7 +456,7 @@ proc_sim_effort <- process_marlin(sim_effort)
 plot_marlin(proc_sim_effort, plot_var = "c", max_scale = FALSE)
 ```
 
-![](fleet-management_files/figure-html/unnamed-chunk-7-1.png)
+![](fleet-management_files/figure-html/unnamed-chunk-8-1.png)
 
 ``` r
 
@@ -380,7 +468,7 @@ proc_sim_effort$fleets %>%
   scale_x_continuous(name = "Year")
 ```
 
-![](fleet-management_files/figure-html/unnamed-chunk-7-2.png)
+![](fleet-management_files/figure-html/unnamed-chunk-8-2.png)
 
 ``` r
 
@@ -393,4 +481,4 @@ proc_sim_effort$fleets %>%
   scale_x_continuous(name = "Year")
 ```
 
-![](fleet-management_files/figure-html/unnamed-chunk-7-3.png)
+![](fleet-management_files/figure-html/unnamed-chunk-8-3.png)

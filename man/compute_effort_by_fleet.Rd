@@ -16,7 +16,7 @@ Named numeric vector of effective effort per fleet.
 }
 \description{
 For each fleet, calculates the share of \code{base_effort} that overlaps
-with viable habitat (\code{b0_p > 0}) within the fleet's fishing grounds.
+with viable habitat (\code{b0_p > 0}) within the fleet\'s fishing grounds.
 Effort is a fleet-level quantity (not species-specific): a fleet exerts one
 pool of effort that affects each species differently through catchability.
 }

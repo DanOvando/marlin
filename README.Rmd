@@ -65,7 +65,7 @@ devtools::install_github("DanOvando/marlin")
 ### Installation troubleshooting
 
 - Start with a fresh R session (**Session > Restart R**) before attempting the install.
-- R version 4.0 or higher is required.
+- R version 4.1 or higher is required.
 - If you encounter an error, try updating all installed packages first, then retry.
 - `marlin` requires R compiler tools:
   - **Windows**: install the appropriate version of [Rtools](https://cran.r-project.org/bin/windows/Rtools/) for your R version (e.g. Rtools44 for R 4.4). When prompted, check the box to add Rtools to the PATH.

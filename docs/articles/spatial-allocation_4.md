@@ -25,10 +25,167 @@ system.
   economically sophisticated option: a patch with high total profit but
   diminishing returns will be less attractive than one where the next
   unit of effort still pays off.
+- **`cpue`** / **`catch`**: catch-based variants (not price-weighted).
+- **`marginal_revenue`**: like `marginal_profit` but ignoring costs.
+- **`manual`**: effort distributed proportionally to continuous weights
+  in `fishing_grounds$fishing_ground`.
+- **`uniform`**: effort spread equally across all open patches.
 
-This vignette demonstrates each of these options using a shared
-two-species, two-fleet system with fishing ports, so that the spatial
-cost structure matters for the cost-aware strategies.
+The mechanics of how effort is redistributed in response to these
+objectives is explained in detail in the “How spatial allocation works”
+section below. This vignette then demonstrates each option using a
+shared two-species, two-fleet system with fishing ports, so that the
+spatial cost structure matters for the cost-aware strategies.
+
+## How spatial allocation works: the algorithm
+
+Spatial effort allocation in `marlin` is handled by the
+`allocate_effort` function, which uses a multiplicative velocity-field
+update to redistribute a fleet’s total effort across patches in response
+to an economic signal (the “objective”). The algorithm is designed to be
+robust, gradient-based, and numerically stable even when patches differ
+wildly in profitability.
+
+### Step-by-step procedure
+
+For each fleet at each time step:
+
+**1. Flatness detection**  
+Before attempting to optimize, the algorithm checks whether the
+objective is effectively uniform across patches. If the range-based
+coefficient of variation is below a threshold (default 0.1%):
+
+``` math
+\text{CV}_{\text{range}} = \frac{\max(O) - \min(O)}{|\text{median}(O)|} < \text{flatness\_tol}
+```
+
+then effort is distributed uniformly across all open patches and the
+optimization is skipped. This prevents spurious concentration along
+edges when there is no meaningful gradient to follow.
+
+**2. Standardization**  
+The objective $`O_p`$ in each patch $`p`$ is centered and scaled to
+produce a $`z`$-score:
+
+``` math
+z_p = \frac{O_p - \text{median}(O)}{\text{scale}(O)}
+```
+
+where $`\text{scale}(O)`$ can be the median absolute deviation (default,
+most robust), interquartile range, or standard deviation. The $`z`$
+scores are then clipped to $`[-c, c]`$ (default $`c = 5`$) to prevent
+extreme updates from outliers:
+
+``` math
+z_p \leftarrow \max(-c, \min(c, z_p))
+```
+
+Closed patches have $`z_p = 0`$.
+
+**3. Velocity field**  
+The standardized objective becomes a velocity after removing the mean
+across open patches:
+
+``` math
+v_p = z_p - \bar{z}_{\text{open}}
+```
+
+This ensures that the velocity field integrates to zero over the open
+domain, which is necessary for conserving total effort. Patches with
+above-average objectives have $`v_p > 0`$ (attracting effort), and
+patches with below-average objectives have $`v_p < 0`$ (repelling
+effort).
+
+**4. Multiplicative update**  
+Current effort $`e_p`$ is updated via:
+
+``` math
+e_p^{\text{new}} \propto e_p \exp(\eta \, v_p)
+```
+
+where $`\eta`$ (default 1.0) controls the step size. The proportionality
+constant is chosen to conserve total effort:
+
+``` math
+e_p^{\text{new}} = e_p \exp(\eta \, v_p) \times \frac{E_{\text{total}}}{\sum_p e_p \exp(\eta \, v_p)}
+```
+
+This is implemented in log-space for numerical stability. Closed patches
+receive $`e_p^{\text{new}} = 0`$.
+
+**5. Optional exploration mixing**  
+If `eps_mix` \> 0, the result is blended with a uniform distribution to
+allow re-entry into temporarily abandoned patches:
+
+``` math
+e_p^{\text{final}} = (1 - \epsilon) \, e_p^{\text{new}} + \epsilon \, \frac{E_{\text{total}}}{N_{\text{open}}}
+```
+
+### Why this algorithm?
+
+The multiplicative update has several desirable properties:
+
+- **Gradient-based**: Effort flows “uphill” toward high-value patches
+  along the objective gradient.
+- **Effort-conserving**: Total effort $`\sum_p e_p`$ is exactly
+  preserved.
+- **Non-negative**: Effort cannot become negative (provided it starts
+  non-negative).
+- **Smooth transitions**: The exponential update avoids discontinuous
+  jumps, making the dynamics more realistic.
+- **Scale-invariant**: The standardization step ensures that the update
+  magnitude is comparable across fleets and time steps regardless of
+  absolute objective values.
+
+The algorithm is related to replicator dynamics from evolutionary game
+theory and gradient flow on the simplex. In the limit of small $`\eta`$,
+the continuous-time equivalent is:
+
+``` math
+\frac{de_p}{dt} = e_p \left( v_p - \langle v \rangle \right)
+```
+
+where $`\langle v \rangle = \sum_p (e_p / E_{\text{total}}) v_p`$ is the
+effort-weighted average velocity. This is a stable dynamical system that
+converges to a Nash equilibrium where effort is concentrated in patches
+with the highest objective values.
+
+### Objectives available
+
+The objective $`O_p`$ is drawn from the “buffet” returned by `go_fish`,
+which computes prospective catch, revenue, and profit for each patch
+without actually removing fish. The `spatial_allocation` setting maps
+to:
+
+| `spatial_allocation` | Objective $`O_p`$ | Description | Economic interpretation |
+|----|----|----|----|
+| `rpue` | Revenue per unit effort | Value-weighted catch rate | Effort shifts toward patches that produce higher revenue per unit effort. This reflects fleets choosing locations where each unit of effort generates more revenue on average, without explicitly accounting for how crowding reduces returns. |
+| `revenue` | Total revenue | Value-weighted catch | Effort shifts toward patches that produce the highest total revenue. This reflects fleets targeting areas with the highest overall value of catch, regardless of operating costs or how returns change as more vessels enter the area. |
+| `ppue` | Profit per unit effort | Revenue net of costs per effort | Effort shifts toward patches that produce higher profit per unit effort. This reflects fleets choosing locations where each unit of effort generates more net profit on average, accounting for travel and operating costs. |
+| `profit` | Total profit | Revenue minus costs | Effort shifts toward patches that produce the highest total profit. This reflects fleets targeting areas with the highest overall net returns, without explicitly accounting for how additional effort changes profitability. |
+| `cpue` | Catch per unit effort | Biomass-weighted catch rate | Effort shifts toward patches that produce higher catch per unit effort. This reflects fleets choosing locations where each unit of effort generates more catch on average, regardless of price. |
+| `catch` | Total catch | Biomass-weighted catch | Effort shifts toward patches that produce the highest total catch. This reflects fleets targeting areas with the highest total biomass or catch, regardless of economic value. |
+| `marginal_profit` | Marginal profit | Change in total profit from the next unit of effort (finite difference) | Effort shifts toward patches where adding a small amount of additional effort would increase total profit the most. Over time, effort tends to distribute so that the last unit of effort earns similar profit across all actively fished patches. This is the closest approximation to the **Ideal Free Distribution (IFD)**, where effort distributes so that no vessel can increase profit by moving effort to another patch. |
+| `marginal_revenue` | Marginal revenue | Change in total revenue from the next unit (finite difference) | Effort shifts toward patches where adding a small amount of effort would increase total revenue the most. Over time, effort tends to distribute so that the last unit of effort generates similar revenue across actively fished patches. This reflects the production-driven component of the **Ideal Free Distribution (IFD)**, but does not fully account for costs. |
+| `manual` | User weights | Proportional to `fishing_grounds$fishing_ground` | Effort follows externally specified spatial preferences (e.g., fishing traditions, regulations, or predefined fishing grounds), rather than responding directly to economic outcomes. |
+| `uniform` | None | Equal effort across open patches | Effort is spread evenly across space. Useful as a baseline representing no spatial preference or complete uncertainty about conditions. |
+
+**Choosing a strategy for your use case:**
+
+- **Unregulated open-access fishery?** → `revenue` or `rpue` (strong
+  tragedy-of-commons)
+- **Limited-entry or regulated fishery with individual decisions?** →
+  `ppue` (moderate, cost-aware)
+- **Cooperative, ITQ system, or single-owner fleet?** →
+  `marginal_profit` (sole-owner optimum)
+- **Transitional or mixed governance?** → `profit` or `marginal_revenue`
+- **Exploring spatial management or MPA impacts across behavioral
+  regimes?** → Run multiple scenarios to bracket uncertainty
+
+The marginal variants require `calc_marginal_value` to compute
+finite-difference derivatives each step, which adds computational cost
+but produces more economically sophisticated spatial behavior
+(especially for sole-owner fleets).
 
 ## Shared Setup
 
@@ -125,7 +282,7 @@ fauna <-
       recruit_home_range = 10,
       density_dependence = "local_habitat",
       seasons = seasons,
-      fished_depletion = 0.5,
+      depletion = 0.5,
       init_explt = 0.2,
       explt_type = "f",
       resolution = resolution,
@@ -140,7 +297,7 @@ fauna <-
       recruit_home_range = 8,
       density_dependence = "local_habitat",
       seasons = seasons,
-      fished_depletion = 0.6,
+      depletion = 0.6,
       init_explt = 0.15,
       explt_type = "f",
       resolution = resolution,
@@ -657,11 +814,11 @@ knitr::kable(runtime,
 
 | Scenario               | Seconds | Years | Sec/Year | Relative to fastest |
 |:-----------------------|--------:|------:|---------:|--------------------:|
-| rpue / revenue         |    0.17 |    20 |     0.01 |                   1 |
-| ppue / profit          |    0.12 |    20 |     0.01 |                   1 |
-| marginal_profit / rpue |    0.35 |    20 |     0.02 |                   2 |
-| open_access (ppue)     |    0.26 |    50 |     0.01 |                   1 |
-| sole_owner (ppue)      |    0.86 |    50 |     0.02 |                   2 |
+| rpue / revenue         |    0.64 |    20 |     0.03 |                 1.0 |
+| ppue / profit          |    0.62 |    20 |     0.03 |                 1.0 |
+| marginal_profit / rpue |    1.61 |    20 |     0.08 |                 2.7 |
+| open_access (ppue)     |    1.51 |    50 |     0.03 |                 1.0 |
+| sole_owner (ppue)      |    3.85 |    50 |     0.08 |                 2.7 |
 
 Wall-clock time for simmar() by scenario. Sec/Year normalizes for
 different run lengths.

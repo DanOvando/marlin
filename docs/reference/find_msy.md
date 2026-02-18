@@ -26,24 +26,33 @@ find_msy(effort_mult, fauna, fleets, opt = TRUE, target_critter)
 
 - effort_mult:
 
-  the multiplier on the base effort in fleet (assumes fleet model is
-  already tuned)
+  Numeric. Scalar multiplier applied to the first fleet's `base_effort`
+  in `fleets`. The optimiser searches over this value to find the effort
+  that maximises yield.
 
 - fauna:
 
-  a list of critters
+  Named list of fauna objects from
+  [`create_critter`](https://danovando.github.io/marlin/reference/create_critter.md).
 
 - fleets:
 
-  a list of fleets
+  Named list of fleet objects from
+  [`create_fleet`](https://danovando.github.io/marlin/reference/create_fleet.md),
+  already tuned with
+  [`tune_fleets`](https://danovando.github.io/marlin/reference/tune_fleets.md).
 
 - opt:
 
-  TRUE = optimize, FALSE = return MSY conditions
+  Logical. If `TRUE` (default), returns negative total yield (scalar)
+  for use as an `optim` objective. If `FALSE`, returns the full
+  [`process_marlin`](https://danovando.github.io/marlin/reference/process_marlin.md)
+  output at the given effort level.
 
 - target_critter:
 
-  the name of the critter to find MSY for
+  Character. Name of the species whose yield is maximised. Must match a
+  name in `fauna`.
 
 ## Value
 
@@ -53,8 +62,6 @@ When `opt = TRUE`: a negative numeric scalar (negative total yield for
 the target critter, for minimisation). When `opt = FALSE`: a
 [`process_marlin`](https://danovando.github.io/marlin/reference/process_marlin.md)
 output list at the given effort level.
-
-MSY conditions
 
 ## See also
 

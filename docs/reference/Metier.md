@@ -1,19 +1,27 @@
-# R6 Class Representing a Fishing Metier (Fleet-Species Interaction)
+# R6 class: fishing metier (fleet–species interaction)
 
-A `Metier` object specifies how one fleet interacts with one species:
-its price, selectivity, catchability, and spatial distribution of
-effort. A list of metiers (one per species) is passed to
+The `Metier` R6 class stores the parameters that define how a single
+fleet interacts with a single species (e.g., price, selectivity, and
+catchability). A named list of metiers (one per species) is passed to
 [`create_fleet`](https://danovando.github.io/marlin/reference/create_fleet.md)
-as the `metiers` argument.
+via the `metiers` argument.
 
 ## Details
+
+This class is primarily used internally by `marlin`, but it can be
+created directly with `Metier$new(...)`, then placed into a named list
+(one element per species).
+
+Common fields include `price`, `sel_form`, `sel_start`, `sel_delta`,
+`catchability`, `spatial_catchability`, and derived quantities such as
+selectivity-at-age and vulnerability matrices used by
+[`simmar`](https://danovando.github.io/marlin/reference/simmar.md).
 
 ## See also
 
 [`create_fleet`](https://danovando.github.io/marlin/reference/create_fleet.md),
 [`tune_fleets`](https://danovando.github.io/marlin/reference/tune_fleets.md),
 [`simmar`](https://danovando.github.io/marlin/reference/simmar.md)
-creates fleet object with spaces for selectivity, mpa response, etc.
 
 ## Methods
 

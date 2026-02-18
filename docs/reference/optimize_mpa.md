@@ -49,9 +49,9 @@ optimize_mpa(
 
 - alpha:
 
-  Numeric in 0, 1. Weight on biodiversity (SSB/SSB0) in the composite
-  objective. `alpha = 1` ignores economics; `alpha = 0` ignores biology.
-  Default `0.33`.
+  Numeric in `[0, 1]`. Weight on biodiversity (SSB/SSB0) in the
+  composite objective. `alpha = 1` ignores economics; `alpha = 0`
+  ignores biology. Default `0.33`.
 
 - max_prop_mpa:
 

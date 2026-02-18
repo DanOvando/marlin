@@ -97,8 +97,8 @@ A `ggplot2` object. Print it to render the plot, or save with
 
   Line chart of the chosen `plot_var` summed across patches and ages
   over time, faceted by species. When `max_scale = TRUE`, each series is
-  normalised by its own maximum so that all fits share a 0, 1 scale and
-  cross-species comparisons are straightforward.
+  normalised by its own maximum so that all fits share a `[0, 1]` scale
+  and cross-species comparisons are straightforward.
 
 - `"space"`:
 

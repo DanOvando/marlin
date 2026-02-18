@@ -11,7 +11,7 @@
 #'   \item{\code{"time"}}{Line chart of the chosen \code{plot_var} summed
 #'     across patches and ages over time, faceted by species. When
 #'     \code{max_scale = TRUE}, each series is normalised by its own maximum
-#'     so that all fits share a [0, 1] scale and cross-species comparisons
+#'     so that all fits share a \code{[0, 1]} scale and cross-species comparisons
 #'     are straightforward.}
 #'   \item{\code{"space"}}{Tile map of \code{plot_var} at the last step in
 #'     \code{steps_to_plot}, summed across ages, faceted by species and fit.}
