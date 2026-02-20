@@ -65,7 +65,8 @@ sim_habitat(
 - max_delta:
 
   Positive numeric. Upper bound of habitat after rescaling; passed to
-  [`rescale`](https://rdrr.io/pkg/scales/man/rescale.html). Default `3`.
+  [`rescale`](https://scales.r-lib.org/reference/rescale.html). Default
+  `3`.
 
 - max_abs_cor:
 

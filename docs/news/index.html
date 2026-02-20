@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">marlin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -52,6 +52,25 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="1.0.0" id="marlin-100">marlin 1.0.0<a class="anchor" aria-label="anchor" href="#marlin-100"></a></h2>
+<div class="section level3">
+<h3 id="breaking-changes-1-0-0">Breaking Changes<a class="anchor" aria-label="anchor" href="#breaking-changes-1-0-0"></a></h3>
+<ul><li><p>Travel costs are now set by <code>travel_fraction</code>, which species the proportion of the total costs that come from travel. cost_per_distance is now deprecated and may cause breaks</p></li>
+<li><p>Old open access parameters no longer work. see <code><a href="../reference/create_fleet.html">?create_fleet</a></code> for new parameters</p></li>
+</ul></div>
+<div class="section level3">
+<h3 id="improvements-1-0-0">Improvements<a class="anchor" aria-label="anchor" href="#improvements-1-0-0"></a></h3>
+<ul><li><p>Movement is now dealt with via sparse matrices, vastly increasing speed and memory efficiency in most cases</p></li>
+<li><p><code>process_marlin</code> now works vis <code>data.table</code>, is orders of magnitude faster</p></li>
+<li><p>fleet spatial allocation strategies are now much more stable and consistent</p></li>
+</ul></div>
+<div class="section level3">
+<h3 id="new-capabilities-1-0-0">New Capabilities<a class="anchor" aria-label="anchor" href="#new-capabilities-1-0-0"></a></h3>
+<ul><li><p>Added calculation of marginal revenues and marginal profits in space and time by fleet, allowing for spatial allocation models <code>marginal_profit</code> and <code>marginal_revenue</code>, as well as fleet_model <code>sole_owner</code></p></li>
+<li><p>Added flexible patch areas</p></li>
+</ul></div>
+</div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.8.0" id="marlin-080">marlin 0.8.0<a class="anchor" aria-label="anchor" href="#marlin-080"></a></h2>
 </div>
     <div class="section level2">
@@ -79,7 +98,7 @@
 <h2 class="pkg-version" data-toc-text="1.0.1" id="marlin-101">marlin 1.0.1<a class="anchor" aria-label="anchor" href="#marlin-101"></a></h2>
 </div>
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="1.0.0" id="marlin-100">marlin 1.0.0<a class="anchor" aria-label="anchor" href="#marlin-100"></a></h2>
+<h2 class="pkg-version" data-toc-text="1.0.0" id="marlin-100-1">marlin 1.0.0<a class="anchor" aria-label="anchor" href="#marlin-100-1"></a></h2>
 </div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.0.0.9000" id="marlin-0009000">marlin 0.0.0.9000<a class="anchor" aria-label="anchor" href="#marlin-0009000"></a></h2>

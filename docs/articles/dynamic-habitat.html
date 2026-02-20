@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">marlin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -234,8 +234,17 @@ steps, the model treats the supplied habitat list as being seasonal.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_continuous</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"latitude"</span><span class="op">)</span></span>
 <span></span>
 <span></span>
-<span><span class="fu"><a href="https://gganimate.com/reference/animate.html" class="external-link">animate</a></span><span class="op">(</span><span class="va">spawning_agg</span>, nframes <span class="op">=</span> <span class="fl">100</span>, fps <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
-<p><img src="dynamic-habitat_files/figure-html/setup-1.gif"><!-- --></p>
+<span><span class="fu"><a href="https://rdrr.io/r/base/files2.html" class="external-link">dir.create</a></span><span class="op">(</span><span class="st">"images"</span>, showWarnings <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="va">spawning_gif</span> <span class="op">&lt;-</span> <span class="fu">gganimate</span><span class="fu">::</span><span class="fu"><a href="https://gganimate.com/reference/animate.html" class="external-link">animate</a></span><span class="op">(</span></span>
+<span>  <span class="va">spawning_agg</span>,</span>
+<span>  nframes <span class="op">=</span> <span class="fl">100</span>,</span>
+<span>  fps <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>  renderer <span class="op">=</span> <span class="fu">gganimate</span><span class="fu">::</span><span class="fu"><a href="https://gganimate.com/reference/renderers.html" class="external-link">gifski_renderer</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu">gganimate</span><span class="fu">::</span><span class="fu"><a href="https://gganimate.com/reference/anim_save.html" class="external-link">anim_save</a></span><span class="op">(</span><span class="st">"images/spawning-agg.gif"</span>, animation <span class="op">=</span> <span class="va">spawning_gif</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/include_graphics.html" class="external-link">include_graphics</a></span><span class="op">(</span><span class="st">"images/spawning-agg.gif"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="images/spawning-agg.gif"><!-- --></p>
 </div>
 <div class="section level2">
 <h2 id="range-shifts">Range Shifts<a class="anchor" aria-label="anchor" href="#range-shifts"></a>
@@ -299,11 +308,17 @@ around a land mass.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"top"</span><span class="op">)</span></span>
 <span></span>
 <span></span>
-<span><span class="fu"><a href="https://gganimate.com/reference/animate.html" class="external-link">animate</a></span><span class="op">(</span><span class="va">range_shift</span>, nframes <span class="op">=</span> <span class="fl">100</span>, fps <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span></code></pre></div>
-<p><img src="dynamic-habitat_files/figure-html/unnamed-chunk-2-1.gif"><!-- --></p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="co"># anim_save(filename = "ctmc.gif", animation = animate(range_shift, nframes = 100, fps = 4))</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/files2.html" class="external-link">dir.create</a></span><span class="op">(</span><span class="st">"images"</span>, showWarnings <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="va">range_shift_gif</span> <span class="op">&lt;-</span> <span class="fu">gganimate</span><span class="fu">::</span><span class="fu"><a href="https://gganimate.com/reference/animate.html" class="external-link">animate</a></span><span class="op">(</span></span>
+<span>  <span class="va">range_shift</span>,</span>
+<span>  nframes <span class="op">=</span> <span class="fl">100</span>,</span>
+<span>  fps <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>  renderer <span class="op">=</span> <span class="fu">gganimate</span><span class="fu">::</span><span class="fu"><a href="https://gganimate.com/reference/renderers.html" class="external-link">gifski_renderer</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu">gganimate</span><span class="fu">::</span><span class="fu"><a href="https://gganimate.com/reference/anim_save.html" class="external-link">anim_save</a></span><span class="op">(</span><span class="st">"images/range-shift.gif"</span>, animation <span class="op">=</span> <span class="va">range_shift_gif</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/include_graphics.html" class="external-link">include_graphics</a></span><span class="op">(</span><span class="st">"images/range-shift.gif"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="images/range-shift.gif"><!-- --></p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

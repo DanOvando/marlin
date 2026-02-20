@@ -157,10 +157,19 @@ spawning_agg <- processed_spawning_grounds$fauna %>%
   scale_y_continuous(name = "latitude")
 
 
-animate(spawning_agg, nframes = 100, fps = 2)
+dir.create("images", showWarnings = FALSE)
+spawning_gif <- gganimate::animate(
+  spawning_agg,
+  nframes = 100,
+  fps = 2,
+  renderer = gganimate::gifski_renderer()
+)
+gganimate::anim_save("images/spawning-agg.gif", animation = spawning_gif)
+
+knitr::include_graphics("images/spawning-agg.gif")
 ```
 
-![](dynamic-habitat_files/figure-html/setup-1.gif)
+![](images/spawning-agg.gif)
 
 ## Range Shifts
 
@@ -225,12 +234,16 @@ range_shift <- processed_marlin$fauna %>%
   theme(legend.position = "top")
 
 
-animate(range_shift, nframes = 100, fps = 4)
+dir.create("images", showWarnings = FALSE)
+range_shift_gif <- gganimate::animate(
+  range_shift,
+  nframes = 100,
+  fps = 4,
+  renderer = gganimate::gifski_renderer()
+)
+gganimate::anim_save("images/range-shift.gif", animation = range_shift_gif)
+
+knitr::include_graphics("images/range-shift.gif")
 ```
 
-![](dynamic-habitat_files/figure-html/unnamed-chunk-2-1.gif)
-
-``` r
-
-# anim_save(filename = "ctmc.gif", animation = animate(range_shift, nframes = 100, fps = 4))
-```
+![](images/range-shift.gif)

@@ -2,7 +2,6 @@
 *.DS_Store
 marlin-notebook.Rmd
 scratch.R
-*.gif
 misc
 *.zip
 # History files

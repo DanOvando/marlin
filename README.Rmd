@@ -36,6 +36,9 @@ Ovando, D., Bradley, D., Burns, E., Thomas, L., & Thorson, J. (2023). Simulating
 Ovando, D. (2025). Predicted effects of marine protected areas on conservation and catches are sensitive to model structure. *Theoretical Ecology*, 18(1), 7. https://doi.org/10.1007/s12080-024-00602-7
 
 
+See [Getting Started with marlin](docs/articles/getting-started.html) for examples of how to get started with `marlin`. 
+
+
 ## What is `marlin` for?
 
 `marlin` is best suited to asking *what if* questions rather than *what will* questions.
