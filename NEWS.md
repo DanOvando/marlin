@@ -1,3 +1,5 @@
+# marlin 1.0.0
+
 # marlin 0.8.0
 
 # marlin 0.7.0
