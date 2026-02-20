@@ -2,22 +2,23 @@ pandoc: 3.6.3
 pkgdown: 2.2.0
 pkgdown_sha: ~
 articles:
+  articles/big-seas: big-seas.html
   articles/dynamic-habitat: dynamic-habitat.html
   articles/fleet-management: fleet-management.html
-  articles/flexible_patch_area: flexible_patch_area.html
   getting-started: getting-started.html
   articles/Invertebrates: Invertebrates.html
   articles/manual_fleets: manual_fleets.html
   articles/measure_gradients: measure_gradients.html
   articles/movement-rates: movement-rates.html
   articles/MSE: MSE.html
+  articles/objective_function: objective_function.html
   articles/port-distance: port-distance.html
+  articles/recruitment-dynamics: recruitment-dynamics.html
   articles/rectifier: rectifier.html
   articles/Setting-Selectivity: Setting-Selectivity.html
-  articles/spatial-allocation_4: spatial-allocation_4.html
-  articles/tune_home_range: tune_home_range.html
+  articles/spatial-allocation: spatial-allocation.html
   articles/Working-with-Recruitment-Deviates: Working-with-Recruitment-Deviates.html
-last_built: 2026-02-18T06:40Z
+last_built: 2026-02-20T19:17Z
 urls:
   reference: https://danovando.github.io/marlin/reference
   article: https://danovando.github.io/marlin/articles

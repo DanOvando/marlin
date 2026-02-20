@@ -30,7 +30,27 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="active nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
+<li class="active nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
+<li><a class="dropdown-item" href="../articles/big-seas.html">Simulating large spatial extents with marlin</a></li>
+    <li><a class="dropdown-item" href="../articles/dynamic-habitat.html">Set Dynamic Habitats</a></li>
+    <li><a class="dropdown-item" href="../articles/fleet-management.html">Manage Catch and Effort of Fleets</a></li>
+    <li><a class="dropdown-item" href="../articles/getting-started.html">Getting Started with marlin</a></li>
+    <li><a class="dropdown-item" href="../articles/Invertebrates.html">Invertebrates</a></li>
+    <li><a class="dropdown-item" href="../articles/manual_fleets.html">Manual Fishing Grounds and Effort Allocation</a></li>
+    <li><a class="dropdown-item" href="../articles/measure_gradients.html">Measure MPA Gradients</a></li>
+    <li><a class="dropdown-item" href="../articles/movement-rates.html">Movement: From CTMC Theory to Home Range</a></li>
+    <li><a class="dropdown-item" href="../articles/MSE.html">Management Strategy Evaluation (sort of)</a></li>
+    <li><a class="dropdown-item" href="../articles/objective_function.html">The Objective Function of the Fleet</a></li>
+    <li><a class="dropdown-item" href="../articles/port-distance.html">Setting and Using Distance from Port</a></li>
+    <li><a class="dropdown-item" href="../articles/recruitment-dynamics.html">Recruitment, Dispersal, and MPA Performance</a></li>
+    <li><a class="dropdown-item" href="../articles/rectifier.html">Don't Be a Square</a></li>
+    <li><a class="dropdown-item" href="../articles/Setting-Selectivity.html">Setting Selectivity</a></li>
+    <li><a class="dropdown-item" href="../articles/spatial-allocation.html">Spatial Allocation Strategies</a></li>
+    <li><a class="dropdown-item" href="../articles/Working-with-Recruitment-Deviates.html">Working with Recruitment Deviates</a></li>
+  </ul>
+</li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
@@ -344,7 +364,7 @@ difference produces a sensible multiplier.</p>
 <span><span class="va">habitat_diff_raw</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/outer.html" class="external-link">outer</a></span><span class="op">(</span><span class="va">habitat</span>, <span class="va">habitat</span>, <span class="st">"-"</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Rescale so max taxis multiplier is 3x diffusion</span></span>
-<span><span class="va">new_habitat</span> <span class="op">&lt;-</span> <span class="fu">scales</span><span class="fu">::</span><span class="fu"><a href="https://scales.r-lib.org/reference/rescale.html" class="external-link">rescale</a></span><span class="op">(</span><span class="va">habitat</span>, to <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">3</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">new_habitat</span> <span class="op">&lt;-</span> <span class="fu">scales</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/scales/man/rescale.html" class="external-link">rescale</a></span><span class="op">(</span><span class="va">habitat</span>, to <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">3</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">habitat_multiplier</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/outer.html" class="external-link">outer</a></span><span class="op">(</span><span class="va">new_habitat</span>, <span class="va">new_habitat</span>, <span class="st">"-"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>

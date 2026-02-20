@@ -85,33 +85,22 @@ fleets <- list(
     base_effort = 2 * resolution^2,
     resolution = resolution,
     fishing_grounds = fishing_grounds,
-    spatial_allocation = "rpue",
-    eta = 0.084
+    spatial_allocation = "marginal_revenue",
+    eta = 0.075
   ),
   "commercial" = create_fleet(
     list("snapper" = Metier$new(
       critter = fauna$snapper,
       p_explt = 10
     )),
-    eta = 0.084,
+    eta = 0.075,
     base_effort = 10*resolution^2,
     resolution = resolution,
-    spatial_allocation = "ppue"
+    spatial_allocation = "marginal_profit"
   )
 )
 
 fleets <- tune_fleets(fauna, fleets, tune_type = "depletion")
-#> Warning: nleqslv solver did not converge (termination code: 3). Depletion
-#> targets may not have been achieved. Check whether target depletion is plausible
-#> given supplied selectivities, fishing grounds, and p_explt.
-
-fleets$artisanal$metiers$snapper$catchability
-#>   artisanal 
-#> 0.007383882
-
-fleets$commercial$metiers$snapper$catchability
-#> commercial 
-#> 0.01825749
 ```
 
 We’ll then run the simulation forward and examine the results, noting

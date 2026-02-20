@@ -30,7 +30,27 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="active nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
+<li class="active nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
+<li><a class="dropdown-item" href="../articles/big-seas.html">Simulating large spatial extents with marlin</a></li>
+    <li><a class="dropdown-item" href="../articles/dynamic-habitat.html">Set Dynamic Habitats</a></li>
+    <li><a class="dropdown-item" href="../articles/fleet-management.html">Manage Catch and Effort of Fleets</a></li>
+    <li><a class="dropdown-item" href="../articles/getting-started.html">Getting Started with marlin</a></li>
+    <li><a class="dropdown-item" href="../articles/Invertebrates.html">Invertebrates</a></li>
+    <li><a class="dropdown-item" href="../articles/manual_fleets.html">Manual Fishing Grounds and Effort Allocation</a></li>
+    <li><a class="dropdown-item" href="../articles/measure_gradients.html">Measure MPA Gradients</a></li>
+    <li><a class="dropdown-item" href="../articles/movement-rates.html">Movement: From CTMC Theory to Home Range</a></li>
+    <li><a class="dropdown-item" href="../articles/MSE.html">Management Strategy Evaluation (sort of)</a></li>
+    <li><a class="dropdown-item" href="../articles/objective_function.html">The Objective Function of the Fleet</a></li>
+    <li><a class="dropdown-item" href="../articles/port-distance.html">Setting and Using Distance from Port</a></li>
+    <li><a class="dropdown-item" href="../articles/recruitment-dynamics.html">Recruitment, Dispersal, and MPA Performance</a></li>
+    <li><a class="dropdown-item" href="../articles/rectifier.html">Don't Be a Square</a></li>
+    <li><a class="dropdown-item" href="../articles/Setting-Selectivity.html">Setting Selectivity</a></li>
+    <li><a class="dropdown-item" href="../articles/spatial-allocation.html">Spatial Allocation Strategies</a></li>
+    <li><a class="dropdown-item" href="../articles/Working-with-Recruitment-Deviates.html">Working with Recruitment Deviates</a></li>
+  </ul>
+</li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
@@ -213,7 +233,7 @@ Simulated Species Habitat
 <span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span>, tune_type <span class="op">=</span> <span class="va">tune_type</span><span class="op">)</span> <span class="co"># tunes the catchability by fleet to achieve target depletion</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 3.451664 secs</span></span>
+<span><span class="co">#&gt; Time difference of 3.766673 secs</span></span>
 <span></span>
 <span><span class="co"># run simulations</span></span>
 <span></span>
@@ -226,7 +246,7 @@ Simulated Species Habitat
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.04261899 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.04042602 secs</span></span>
 <span></span>
 <span></span>
 <span></span>
@@ -271,7 +291,7 @@ Simulated Species Habitat
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">a</span></span>
-<span><span class="co">#&gt; Time difference of 0.08981609 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.276017 secs</span></span>
 <span></span>
 <span><span class="va">proc_mpa_spillover</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">mpa_spillover</span>, time_step <span class="op">=</span> <span class="va">fauna</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">time_step</span><span class="op">)</span></span>
 <span></span>
@@ -460,8 +480,8 @@ Negative distance means inside the MPA.
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; SAMPLING FOR MODEL 'continuous' NOW (CHAIN 1).</span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
-<span><span class="co">#&gt; Chain 1: Gradient evaluation took 0.000219 seconds</span></span>
-<span><span class="co">#&gt; Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 2.19 seconds.</span></span>
+<span><span class="co">#&gt; Chain 1: Gradient evaluation took 3.1e-05 seconds</span></span>
+<span><span class="co">#&gt; Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.31 seconds.</span></span>
 <span><span class="co">#&gt; Chain 1: Adjust your expectations accordingly!</span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
@@ -478,9 +498,9 @@ Negative distance means inside the MPA.
 <span><span class="co">#&gt; Chain 1: Iteration: 1800 / 2000 [ 90%]  (Sampling)</span></span>
 <span><span class="co">#&gt; Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)</span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
-<span><span class="co">#&gt; Chain 1:  Elapsed Time: 0.02 seconds (Warm-up)</span></span>
-<span><span class="co">#&gt; Chain 1:                0.025 seconds (Sampling)</span></span>
-<span><span class="co">#&gt; Chain 1:                0.045 seconds (Total)</span></span>
+<span><span class="co">#&gt; Chain 1:  Elapsed Time: 0.019 seconds (Warm-up)</span></span>
+<span><span class="co">#&gt; Chain 1:                0.024 seconds (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1:                0.043 seconds (Total)</span></span>
 <span><span class="co">#&gt; Chain 1:</span></span>
 <span></span>
 <span><span class="va">response_ratio</span> <span class="op">&lt;-</span> <span class="fu">tidybayes</span><span class="fu">::</span><span class="fu"><a href="https://mjskay.github.io/tidybayes/reference/tidy_draws.html" class="external-link">tidy_draws</a></span><span class="op">(</span><span class="va">response_ratio_model</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -490,7 +510,7 @@ Negative distance means inside the MPA.
 <span><span class="va">response_ratio</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">response_ratio</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html" class="external-link">geom_histogram</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>labels <span class="op">=</span> <span class="fu">scales</span><span class="fu">::</span><span class="va"><a href="https://scales.r-lib.org/reference/percent_format.html" class="external-link">percent</a></span>, name <span class="op">=</span> <span class="st">"Response Ratio"</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>labels <span class="op">=</span> <span class="fu">scales</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/scales/man/percent_format.html" class="external-link">percent</a></span>, name <span class="op">=</span> <span class="st">"Response Ratio"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; `stat_bin()` using `bins = 30`. Pick better value `binwidth`.</span></span></code></pre></div>
 <p><img src="measure_gradients_files/figure-html/unnamed-chunk-5-1.png" class="r-plt" alt="" width="700"></p>
 <div class="section level3">
@@ -614,8 +634,8 @@ predicted</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; SAMPLING FOR MODEL 'continuous' NOW (CHAIN 1).</span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
-<span><span class="co">#&gt; Chain 1: Gradient evaluation took 7.6e-05 seconds</span></span>
-<span><span class="co">#&gt; Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.76 seconds.</span></span>
+<span><span class="co">#&gt; Chain 1: Gradient evaluation took 2.4e-05 seconds</span></span>
+<span><span class="co">#&gt; Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.24 seconds.</span></span>
 <span><span class="co">#&gt; Chain 1: Adjust your expectations accordingly!</span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
@@ -632,9 +652,9 @@ predicted</p>
 <span><span class="co">#&gt; Chain 1: Iteration: 1800 / 2000 [ 90%]  (Sampling)</span></span>
 <span><span class="co">#&gt; Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)</span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
-<span><span class="co">#&gt; Chain 1:  Elapsed Time: 0.031 seconds (Warm-up)</span></span>
-<span><span class="co">#&gt; Chain 1:                0.03 seconds (Sampling)</span></span>
-<span><span class="co">#&gt; Chain 1:                0.061 seconds (Total)</span></span>
+<span><span class="co">#&gt; Chain 1:  Elapsed Time: 0.032 seconds (Warm-up)</span></span>
+<span><span class="co">#&gt; Chain 1:                0.031 seconds (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1:                0.063 seconds (Total)</span></span>
 <span><span class="co">#&gt; Chain 1:</span></span>
 <span></span>
 <span></span>
@@ -670,9 +690,9 @@ predicted</p>
 <span><span class="co">#&gt; Chain 1: Iteration: 1800 / 2000 [ 90%]  (Sampling)</span></span>
 <span><span class="co">#&gt; Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)</span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
-<span><span class="co">#&gt; Chain 1:  Elapsed Time: 0.032 seconds (Warm-up)</span></span>
-<span><span class="co">#&gt; Chain 1:                0.032 seconds (Sampling)</span></span>
-<span><span class="co">#&gt; Chain 1:                0.064 seconds (Total)</span></span>
+<span><span class="co">#&gt; Chain 1:  Elapsed Time: 0.031 seconds (Warm-up)</span></span>
+<span><span class="co">#&gt; Chain 1:                0.031 seconds (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1:                0.062 seconds (Total)</span></span>
 <span><span class="co">#&gt; Chain 1:</span></span>
 <span></span>
 <span><span class="va">effort_gradient_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://mc-stan.org/rstanarm/reference/stan_glm.html" class="external-link">stan_glm</a></span><span class="op">(</span></span>
@@ -703,9 +723,9 @@ predicted</p>
 <span><span class="co">#&gt; Chain 1: Iteration: 1800 / 2000 [ 90%]  (Sampling)</span></span>
 <span><span class="co">#&gt; Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)</span></span>
 <span><span class="co">#&gt; Chain 1: </span></span>
-<span><span class="co">#&gt; Chain 1:  Elapsed Time: 0.037 seconds (Warm-up)</span></span>
-<span><span class="co">#&gt; Chain 1:                0.047 seconds (Sampling)</span></span>
-<span><span class="co">#&gt; Chain 1:                0.084 seconds (Total)</span></span>
+<span><span class="co">#&gt; Chain 1:  Elapsed Time: 0.036 seconds (Warm-up)</span></span>
+<span><span class="co">#&gt; Chain 1:                0.046 seconds (Sampling)</span></span>
+<span><span class="co">#&gt; Chain 1:                0.082 seconds (Total)</span></span>
 <span><span class="co">#&gt; Chain 1:</span></span>
 <span></span>
 <span><span class="fu"><a href="https://mc-stan.org/bayesplot/reference/MCMC-distributions.html" class="external-link">mcmc_hist</a></span><span class="op">(</span><span class="va">b_gradient_model</span>, pars <span class="op">=</span> <span class="st">"distance_to_mpa_edge"</span><span class="op">)</span></span>

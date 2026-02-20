@@ -81,7 +81,7 @@ devtools::install_github("DanOvando/marlin")
 
 - Start with a fresh R session (**Session \> Restart R**) before
   attempting the install.
-- R version 4.0 or higher is required.
+- R version 4.1 or higher is required.
 - If you encounter an error, try updating all installed packages first,
   then retry.
 - `marlin` requires R compiler tools:
@@ -271,7 +271,7 @@ example_sim <- simmar(
 )
 
 Sys.time() - start_time
-#> Time difference of 0.04742098 secs
+#> Time difference of 0.03541207 secs
 ```
 
 `process_marlin` tidies the raw simulation output into data frames;
@@ -386,7 +386,7 @@ fauna <-
     )
   )
 Sys.time() - a
-#> Time difference of 1.646941 secs
+#> Time difference of 1.484487 secs
 
 # Each fleet contains one metier per species.
 # price = price per unit weight; sel_form = "logistic" or "dome"
@@ -467,7 +467,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets)
 
 Sys.time() - a
-#> Time difference of 0.194587 secs
+#> Time difference of 0.3020539 secs
 
 
 # Run the simulation
@@ -480,7 +480,7 @@ sim3 <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.08545399 secs
+#> Time difference of 0.06755996 secs
 # a <- Sys.time()
 
 processed_marlin <- process_marlin(sim = sim3, time_step = time_step, keep_age = TRUE)
@@ -650,7 +650,7 @@ fleets <- tune_fleets(fauna, fleets, tune_type = tune_type, tune_costs = TRUE,ye
 # fleets$longline$metiers$`Yellowfin Tuna`$spatial_catchability
 
 Sys.time() - a
-#> Time difference of 1.805549 secs
+#> Time difference of 1.845309 secs
 
 # Run the nearshore baseline (no MPA)
 a <- Sys.time()
@@ -662,7 +662,7 @@ nearshore <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.2482579 secs
+#> Time difference of 0.2155411 secs
 
 proc_nearshore <- process_marlin(nearshore, time_step = fauna[[1]]$time_step)
 
@@ -713,7 +713,7 @@ nearshore_mpa <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.324347 secs
+#> Time difference of 0.4688671 secs
 
 proc_nearshore_mpa <- process_marlin(nearshore_mpa, time_step = fauna[[1]]$time_step)
 
@@ -776,14 +776,14 @@ fauna$`Shortfin Mako`$plot()
 ``` r
 fleets$longline$metiers$`Shortfin Mako`$catchability
 #>   longline 
-#> 0.05372525
+#> 0.05342734
 new_fleets <- tune_fleets(fauna, fleets, tune_type = tune_type,tune_costs = FALSE, years = floor(years * .5)) # tunes the catchability by fleet to achieve target depletion
 new_fleets$longline$metiers$`Shortfin Mako`$catchability
 #>  longline 
-#> 0.6746465
+#> 0.3206818
 new_fleets$longline$metiers$`Yellowfin Tuna`$catchability
 #>   longline 
-#> 0.09864704
+#> 0.09775678
 
 
 # Run the offshore baseline (no MPA)
@@ -796,7 +796,7 @@ offshore <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.2163219 secs
+#> Time difference of 0.22843 secs
 
 proc_offshore <- process_marlin(offshore, time_step = fauna[[1]]$time_step)
 
@@ -813,7 +813,7 @@ offshore_mpa_sim <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.4657841 secs
+#> Time difference of 0.3269551 secs
 
 
 proc_offshore_mpa <- process_marlin(offshore_mpa_sim, time_step = fauna[[1]]$time_step)
@@ -964,7 +964,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
-#> Time difference of 0.1189001 secs
+#> Time difference of 0.1259069 secs
 
 # Run the simulation
 negative_prices <- simmar(
