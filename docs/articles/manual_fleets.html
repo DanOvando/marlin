@@ -30,26 +30,7 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="active nav-item dropdown">
-  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/dynamic-habitat.html">Set Dynamic Habitats</a></li>
-    <li><a class="dropdown-item" href="../articles/fleet-management.html">Manage Catch and Effort of Fleets</a></li>
-    <li><a class="dropdown-item" href="../articles/flexible_patch_area.html">Setting flexible patch areas</a></li>
-    <li><a class="dropdown-item" href="../articles/getting-started.html">Getting Started with marlin</a></li>
-    <li><a class="dropdown-item" href="../articles/Invertebrates.html">Invertebrates</a></li>
-    <li><a class="dropdown-item" href="../articles/manual_fleets.html">Manual Fishing Grounds and Effort Allocation</a></li>
-    <li><a class="dropdown-item" href="../articles/measure_gradients.html">Measure MPA Gradients</a></li>
-    <li><a class="dropdown-item" href="../articles/movement-rates.html">Setting &amp; Understanding Movement Rates</a></li>
-    <li><a class="dropdown-item" href="../articles/MSE.html">Management Strategy Evaluation (sort of)</a></li>
-    <li><a class="dropdown-item" href="../articles/port-distance.html">Setting and Using Distance from Port</a></li>
-    <li><a class="dropdown-item" href="../articles/rectifier.html">Don't Be a Square</a></li>
-    <li><a class="dropdown-item" href="../articles/Setting-Selectivity.html">Setting Selectivity</a></li>
-    <li><a class="dropdown-item" href="../articles/spatial-allocation_4.html">Spatial Allocation Strategies</a></li>
-    <li><a class="dropdown-item" href="../articles/tune_home_range.html">Tune Home Range</a></li>
-    <li><a class="dropdown-item" href="../articles/Working-with-Recruitment-Deviates.html">Working with Recruitment Deviates</a></li>
-  </ul>
-</li>
+<li class="active nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
@@ -156,33 +137,22 @@ their fishing grounds.</p>
 <span>    base_effort <span class="op">=</span> <span class="fl">2</span> <span class="op">*</span> <span class="va">resolution</span><span class="op">^</span><span class="fl">2</span>,</span>
 <span>    resolution <span class="op">=</span> <span class="va">resolution</span>,</span>
 <span>    fishing_grounds <span class="op">=</span> <span class="va">fishing_grounds</span>,</span>
-<span>    spatial_allocation <span class="op">=</span> <span class="st">"rpue"</span>,</span>
-<span>    eta <span class="op">=</span> <span class="fl">0.084</span></span>
+<span>    spatial_allocation <span class="op">=</span> <span class="st">"marginal_revenue"</span>,</span>
+<span>    eta <span class="op">=</span> <span class="fl">0.075</span></span>
 <span>  <span class="op">)</span>,</span>
 <span>  <span class="st">"commercial"</span> <span class="op">=</span> <span class="fu"><a href="../reference/create_fleet.html">create_fleet</a></span><span class="op">(</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"snapper"</span> <span class="op">=</span> <span class="va"><a href="../reference/Metier.html">Metier</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>      critter <span class="op">=</span> <span class="va">fauna</span><span class="op">$</span><span class="va">snapper</span>,</span>
 <span>      p_explt <span class="op">=</span> <span class="fl">10</span></span>
 <span>    <span class="op">)</span><span class="op">)</span>,</span>
-<span>    eta <span class="op">=</span> <span class="fl">0.084</span>,</span>
+<span>    eta <span class="op">=</span> <span class="fl">0.075</span>,</span>
 <span>    base_effort <span class="op">=</span> <span class="fl">10</span><span class="op">*</span><span class="va">resolution</span><span class="op">^</span><span class="fl">2</span>,</span>
 <span>    resolution <span class="op">=</span> <span class="va">resolution</span>,</span>
-<span>    spatial_allocation <span class="op">=</span> <span class="st">"ppue"</span></span>
+<span>    spatial_allocation <span class="op">=</span> <span class="st">"marginal_profit"</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span>, tune_type <span class="op">=</span> <span class="st">"depletion"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: nleqslv solver did not converge (termination code: 3). Depletion</span></span>
-<span><span class="co">#&gt; targets may not have been achieved. Check whether target depletion is plausible</span></span>
-<span><span class="co">#&gt; given supplied selectivities, fishing grounds, and p_explt.</span></span>
-<span></span>
-<span><span class="va">fleets</span><span class="op">$</span><span class="va">artisanal</span><span class="op">$</span><span class="va">metiers</span><span class="op">$</span><span class="va">snapper</span><span class="op">$</span><span class="va">catchability</span></span>
-<span><span class="co">#&gt;   artisanal </span></span>
-<span><span class="co">#&gt; 0.007383882</span></span>
-<span></span>
-<span><span class="va">fleets</span><span class="op">$</span><span class="va">commercial</span><span class="op">$</span><span class="va">metiers</span><span class="op">$</span><span class="va">snapper</span><span class="op">$</span><span class="va">catchability</span></span>
-<span><span class="co">#&gt; commercial </span></span>
-<span><span class="co">#&gt; 0.01825749</span></span></code></pre></div>
+<span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span>, tune_type <span class="op">=</span> <span class="st">"depletion"</span><span class="op">)</span></span></code></pre></div>
 <p>We’ll then run the simulation forward and examine the results, noting
 that the artisinal fleet only applies fishing effort in its defined
 fishing grounds.</p>

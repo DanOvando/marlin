@@ -2,3 +2,11 @@ url: https://danovando.github.io/marlin
 template:
   bootstrap: 5
   bootswatch: cerulean
+articles:
+  - title: "Start here"
+    contents:
+      - getting-started
+
+  - title: "Detailed Examples"
+    contents:
+      - starts_with("")

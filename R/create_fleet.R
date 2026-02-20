@@ -173,7 +173,7 @@ create_fleet <-
            patch_area = 1,
            base_effort = NULL,
            fishing_grounds = NULL,
-           eta = 0.1) {
+           eta = 0.05) {
 
     fleet_model <- stringr::str_replace_all(fleet_model, " ", "_") # in case someone used spaces accidentally (like dumbass old dan)
 

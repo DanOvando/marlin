@@ -64,26 +64,24 @@ fleets <- list(
     base_effort = 2 * resolution^2,
     resolution = resolution,
     fishing_grounds = fishing_grounds,
-    spatial_allocation = "rpue",
-    eta = 0.084
+    spatial_allocation = "marginal_revenue",
+    eta = 0.075
   ),
   "commercial" = create_fleet(
     list("snapper" = Metier$new(
       critter = fauna$snapper,
       p_explt = 10
     )),
-    eta = 0.084,
+    eta = 0.075,
     base_effort = 10*resolution^2,
     resolution = resolution,
-    spatial_allocation = "ppue"
+    spatial_allocation = "marginal_profit"
   )
 )
 
 fleets <- tune_fleets(fauna, fleets, tune_type = "depletion")
 
-fleets$artisanal$metiers$snapper$catchability
 
-fleets$commercial$metiers$snapper$catchability
 
 
 ```

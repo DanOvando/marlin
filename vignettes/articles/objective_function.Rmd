@@ -1,7 +1,13 @@
 ---
-title: "Objective Function"
-format: html
+title: "The Objective Function of the Fleet"
 ---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
 
 ## Objective function
 
@@ -177,5 +183,3 @@ The optimization is subject to:
   E_{l,f} \ge 0
   $$
 - Fleet-specific spatial closures, enforced by setting \(E_{l,f} = 0\) in closed patches.
-
-
