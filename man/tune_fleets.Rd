@@ -2,10 +2,7 @@
 % Please edit documentation in R/tune_fleets.R
 \name{tune_fleets}
 \alias{tune_fleets}
-\title{tune_fleets tunes parameters of the fleet model to achieve desired initial conditions.
-note that this is not exact: post-tuning values will not perfectly match inputs since
-for example some tuning steps depend on prior tuning step, making it difficult to tune everything
-at once.}
+\title{Tune fleet parameters to match targets}
 \usage{
 tune_fleets(
   fauna,
@@ -13,28 +10,27 @@ tune_fleets(
   years = 50,
   tune_type = "f",
   tune_costs = TRUE,
-  fine_tune_costs = TRUE
+  depl_tol = 0.025
 )
 }
 \arguments{
-\item{fauna}{a fauna object}
+\item{fleets}{Named list of fleet objects to tune.}
 
-\item{fleets}{a fleet object}
-
-\item{years}{the number of years to tune over}
-
-\item{tune_type}{one of 'f' or 'depletion' to tune catchability to achieve a desired fishing mortality rate (f) or a target depletion (B/B0)}
-
-\item{tune_costs}{TRUE or FALSE to tune costs to a target cost to revenue ratio}
-
-\item{fine_tune_costs}{TRUE or FALSE}
+\item{...}{Additional arguments controlling what to tune, target values, and how the
+tuning is performed (see function body for supported options).}
 }
 \value{
-tuned fleet object
+A list containing the updated fleet objects and any tuning diagnostics produced by the routine.
 }
 \description{
-tune_fleets tunes parameters of the fleet model to achieve desired initial conditions.
-note that this is not exact: post-tuning values will not perfectly match inputs since
-for example some tuning steps depend on prior tuning step, making it difficult to tune everything
-at once.
+Convenience wrapper to adjust one or more fleet parameters so simulated quantities
+(for example catch, effort, or revenue summaries) better match user-specified targets.
+}
+\details{
+This function is intended for quick calibration workflows. It evaluates model output
+under the current fleet settings, updates the requested parameters using the chosen
+tuning rule, and returns the updated fleet objects along with diagnostics.
+}
+\seealso{
+\code{\link{create_fleet}}, \code{\link{simmar}}
 }

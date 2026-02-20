@@ -2,7 +2,7 @@
 % Please edit documentation in R/sim_habitat.R
 \name{sim_habitat}
 \alias{sim_habitat}
-\title{Simulate species habitats with correlations across space and among species}
+\title{Simulate Spatially Correlated Species Habitat}
 \usage{
 sim_habitat(
   critters,
@@ -13,38 +13,106 @@ sim_habitat(
   rescale_habitat = TRUE,
   max_delta = 3,
   max_abs_cor = 1,
+  min_abs_cor = 0,
   output = "df"
 )
 }
 \arguments{
-\item{critters}{a vector of critters names of length n_species representing the number of species to be simulated}
+\item{critters}{Character vector of species names (length \eqn{n}).
+Names are carried through to the output list.}
 
-\item{kp}{a rate parameter that governs the rate at which spatial cells become decorrelated with distance. Lower values mean a smoother (more correlated) habitat map}
+\item{kp}{Positive numeric. Matern spatial range parameter. Lower values
+produce smoother, more correlated spatial distributions; higher values
+produce patchier maps. Typical values: \code{0.05}--\code{0.5}.}
 
-\item{critter_correlations}{leave as NA to randomly simulate correlations across species. Otherwise, a n_species x n_species correlation matrix}
+\item{critter_correlations}{\eqn{n \times n} numeric correlation matrix
+specifying inter-species correlations in habitat quality, or \code{NA}
+(default) to draw random correlations. Diagonal must be 1; off-diagonal
+entries must be in \code{(-1, 1)}.}
 
-\item{resolution}{the resolution of the system}
+\item{resolution}{Integer scalar or length-2 integer vector \code{c(nx, ny)}
+giving grid dimensions. Matches the \code{resolution} argument of
+\code{\link{create_critter}}.}
 
-\item{patch_area}{}
+\item{patch_area}{Numeric. Area of each patch (km^2). Used to compute
+inter-patch distances in km.}
+
+\item{rescale_habitat}{Logical. If \code{TRUE} (default), rescales all
+habitat values to \code{[0, log(max_delta)]}. The log scale means
+that values drive movement taxis multiplicatively.}
+
+\item{max_delta}{Positive numeric. Upper bound of habitat after rescaling;
+passed to \code{\link[scales]{rescale}}. Default \code{3}.}
+
+\item{max_abs_cor}{Numeric in (0, 1]. Maximum absolute value of randomly
+generated inter-species correlations. Must exceed \code{min_abs_cor}.}
+
+\item{min_abs_cor}{Numeric in [0, 1). Minimum absolute value of randomly
+generated inter-species correlations. Default \code{0}.}
+
+\item{output}{Character. One of \code{"df"} (default) or \code{"list"}.
+\describe{
+\item{\code{"df"}}{Returns a data frame with columns
+\code{critter}, \code{patch}, \code{x}, \code{y}, and
+\code{habitat}.}
+\item{\code{"list"}}{Returns a named list (one entry per species) of
+\code{[ny, nx]} habitat matrices suitable for direct use as the
+\code{habitat} argument to \code{\link{create_critter}}.}
+}}
 }
 \value{
-a list with simulated critter habitats
+A list with three elements:
+\describe{
+\item{\code{critter_distributions}}{Either a long data frame (when
+\code{output = "df"}) or a named list of \code{[ny, nx]} habitat
+matrices (when \code{output = "list"}).}
+\item{\code{critter_correlations}}{An \eqn{n \times n} correlation
+matrix of the realised inter-species habitat correlations.}
+\item{\code{wtf}}{The input or generated correlation matrix (before
+nearest positive-definite projection).}
+}
 }
 \description{
-Simulate species habitats with correlations across space and among species
+Generates a set of spatially correlated habitat-quality surfaces for one or
+more species using a Matern covariance function (following Thorson &
+Barnett, 2017). Habitat values can be positively or negatively correlated
+across species, reflecting ecological affinities or competitive exclusion.
+The resulting matrices are the primary input for the \code{habitat} argument
+of \code{\link{create_critter}}.
+}
+\details{
+Spatial correlation among patches follows a Matern covariance with
+smoothness \eqn{n = 1}. The rate parameter \code{kp} controls the spatial
+decorrelation length: a value of \code{0.1} produces broad, smooth habitat
+gradients, while \code{1.0} produces patchy, rapidly decorrelating maps.
+
+Cross-species correlations are drawn uniformly from
+\eqn{[-max\_abs\_cor, -min\_abs\_cor] \cup [min\_abs\_cor, max\_abs\_cor]} when
+\code{critter_correlations = NA}. Supply a full \eqn{n \times n} correlation
+matrix to fix species correlations exactly.
+
+When \code{output = "list"}, habitat matrices are returned in \code{[ny, nx]}
+format with column names \code{1:nx} and row names \code{1:ny}, matching
+the convention expected by \code{\link{create_critter}}.
 }
 \examples{
+# Simulate habitat for 3 species on a 10x10 grid
+hab <- sim_habitat(
+  critters   = c("tuna", "grouper", "snapper"),
+  kp         = 0.1,
+  resolution = c(10, 10),
+  patch_area = 4,
+  output     = "list"
+)
 
-n_species <- 6
-
-critters <- paste0(fruit[1:n_species], "_fish")
-
-resolution <- c(4, 20)
-
-patch_area <- 4
-
-kp <- .1
-
-
-species_distributions <- sim_habitat(critters = critters, resolution = resolution, patch_area = patch_area, kp = kp)
+# hab$critter_distributions$tuna  # [10, 10] matrix
+}
+\references{
+Thorson, J.T. & Barnett, L.A.K. (2017). Comparing estimates of abundance
+trends and distribution shifts using single- and multispecies models of
+fishes and biogenic habitat. \emph{ICES Journal of Marine Science}, 74(5),
+1311--1321. \doi{10.1093/icesjms/fsw193}
+}
+\seealso{
+\code{\link{create_critter}}, \code{\link{simmar}}
 }

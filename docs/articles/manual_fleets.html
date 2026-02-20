@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">marlin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -33,17 +33,21 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/dynamic-habitat.html">Set Dynamic Habitats</a></li>
+<li><a class="dropdown-item" href="../articles/big-seas.html">Simulating large spatial extents with marlin</a></li>
+    <li><a class="dropdown-item" href="../articles/dynamic-habitat.html">Set Dynamic Habitats</a></li>
     <li><a class="dropdown-item" href="../articles/fleet-management.html">Manage Catch and Effort of Fleets</a></li>
+    <li><a class="dropdown-item" href="../articles/getting-started.html">Getting Started with marlin</a></li>
     <li><a class="dropdown-item" href="../articles/Invertebrates.html">Invertebrates</a></li>
     <li><a class="dropdown-item" href="../articles/manual_fleets.html">Manual Fishing Grounds and Effort Allocation</a></li>
     <li><a class="dropdown-item" href="../articles/measure_gradients.html">Measure MPA Gradients</a></li>
-    <li><a class="dropdown-item" href="../articles/movement-rates.html">Setting &amp; Understanding Movement Rates</a></li>
+    <li><a class="dropdown-item" href="../articles/movement-rates.html">Movement: From CTMC Theory to Home Range</a></li>
     <li><a class="dropdown-item" href="../articles/MSE.html">Management Strategy Evaluation (sort of)</a></li>
+    <li><a class="dropdown-item" href="../articles/objective_function.html">The Objective Function of the Fleet</a></li>
     <li><a class="dropdown-item" href="../articles/port-distance.html">Setting and Using Distance from Port</a></li>
+    <li><a class="dropdown-item" href="../articles/recruitment-dynamics.html">Recruitment, Dispersal, and MPA Performance</a></li>
     <li><a class="dropdown-item" href="../articles/rectifier.html">Don't Be a Square</a></li>
     <li><a class="dropdown-item" href="../articles/Setting-Selectivity.html">Setting Selectivity</a></li>
-    <li><a class="dropdown-item" href="../articles/tune_home_range.html">Tune Home Range</a></li>
+    <li><a class="dropdown-item" href="../articles/spatial-allocation.html">Spatial Allocation Strategies</a></li>
     <li><a class="dropdown-item" href="../articles/Working-with-Recruitment-Deviates.html">Working with Recruitment Deviates</a></li>
   </ul>
 </li>
@@ -81,11 +85,11 @@
 <span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org" class="external-link">tidyverse</a></span><span class="op">)</span></span>
 <span><span class="co">#&gt; ── <span style="font-weight: bold;">Attaching core tidyverse packages</span> ──────────────────────── tidyverse 2.0.0 ──</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">dplyr    </span> 1.1.4     <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">readr    </span> 2.1.6</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">dplyr    </span> 1.2.0     <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">readr    </span> 2.1.6</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">forcats  </span> 1.0.1     <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">stringr  </span> 1.6.0</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">ggplot2  </span> 4.0.1     <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">tibble   </span> 3.3.0</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">ggplot2  </span> 4.0.2     <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">tibble   </span> 3.3.1</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">lubridate</span> 1.9.4     <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">tidyr    </span> 1.3.2</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">purrr    </span> 1.2.0     </span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">purrr    </span> 1.2.1     </span></span>
 <span><span class="co">#&gt; ── <span style="font-weight: bold;">Conflicts</span> ────────────────────────────────────────── tidyverse_conflicts() ──</span></span>
 <span><span class="co">#&gt; <span style="color: #BB0000;">✖</span> <span style="color: #0000BB;">dplyr</span>::<span style="color: #00BB00;">filter()</span> masks <span style="color: #0000BB;">stats</span>::filter()</span></span>
 <span><span class="co">#&gt; <span style="color: #BB0000;">✖</span> <span style="color: #0000BB;">dplyr</span>::<span style="color: #00BB00;">lag()</span>    masks <span style="color: #0000BB;">stats</span>::lag()</span></span>
@@ -126,7 +130,7 @@ to result in the desired amount of depletion.</p>
 <span>    <span class="st">"snapper"</span> <span class="op">=</span> <span class="fu"><a href="../reference/create_critter.html">create_critter</a></span><span class="op">(</span></span>
 <span>      scientific_name <span class="op">=</span> <span class="st">"lutjanus griseus"</span>,</span>
 <span>      adult_diffusion <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>      fished_depletion <span class="op">=</span> <span class="fl">.25</span>,</span>
+<span>      fished_depletion <span class="op">=</span> <span class="fl">.5</span>,</span>
 <span>      resolution <span class="op">=</span> <span class="va">resolution</span></span>
 <span>    <span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
@@ -150,19 +154,21 @@ their fishing grounds.</p>
 <span>      critter <span class="op">=</span> <span class="va">fauna</span><span class="op">$</span><span class="va">snapper</span>,</span>
 <span>      p_explt <span class="op">=</span> <span class="fl">1</span></span>
 <span>    <span class="op">)</span><span class="op">)</span>,</span>
-<span>    base_effort <span class="op">=</span> <span class="va">resolution</span><span class="op">^</span><span class="fl">2</span>,</span>
+<span>    base_effort <span class="op">=</span> <span class="fl">2</span> <span class="op">*</span> <span class="va">resolution</span><span class="op">^</span><span class="fl">2</span>,</span>
 <span>    resolution <span class="op">=</span> <span class="va">resolution</span>,</span>
 <span>    fishing_grounds <span class="op">=</span> <span class="va">fishing_grounds</span>,</span>
-<span>    spatial_allocation <span class="op">=</span> <span class="st">"rpue"</span></span>
+<span>    spatial_allocation <span class="op">=</span> <span class="st">"marginal_revenue"</span>,</span>
+<span>    eta <span class="op">=</span> <span class="fl">0.075</span></span>
 <span>  <span class="op">)</span>,</span>
 <span>  <span class="st">"commercial"</span> <span class="op">=</span> <span class="fu"><a href="../reference/create_fleet.html">create_fleet</a></span><span class="op">(</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"snapper"</span> <span class="op">=</span> <span class="va"><a href="../reference/Metier.html">Metier</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
 <span>      critter <span class="op">=</span> <span class="va">fauna</span><span class="op">$</span><span class="va">snapper</span>,</span>
-<span>      p_explt <span class="op">=</span> <span class="fl">1</span></span>
+<span>      p_explt <span class="op">=</span> <span class="fl">10</span></span>
 <span>    <span class="op">)</span><span class="op">)</span>,</span>
-<span>    base_effort <span class="op">=</span> <span class="va">resolution</span><span class="op">^</span><span class="fl">2</span>,</span>
+<span>    eta <span class="op">=</span> <span class="fl">0.075</span>,</span>
+<span>    base_effort <span class="op">=</span> <span class="fl">10</span><span class="op">*</span><span class="va">resolution</span><span class="op">^</span><span class="fl">2</span>,</span>
 <span>    resolution <span class="op">=</span> <span class="va">resolution</span>,</span>
-<span>    spatial_allocation <span class="op">=</span> <span class="st">"rpue"</span></span>
+<span>    spatial_allocation <span class="op">=</span> <span class="st">"marginal_profit"</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -181,6 +187,12 @@ fishing grounds.</p>
 <span><span class="va">proc_sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">fishing_ground_sim</span><span class="op">)</span></span>
 <span></span>
 <span></span>
+<span><span class="fu"><a href="../reference/plot_marlin.html">plot_marlin</a></span><span class="op">(</span><span class="va">proc_sim</span>, plot_type <span class="op">=</span> <span class="st">"space"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning in plot_marlin(proc_sim, plot_type = "space"): Can only plot one time</span></span>
+<span><span class="co">#&gt; step for spatial plots, defaulting to last of the supplied steps</span></span></code></pre></div>
+<p><img src="manual_fleets_files/figure-html/unnamed-chunk-4-1.png" class="r-plt" alt="" width="700"></p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
 <span><span class="va">fleet_summary</span> <span class="op">&lt;-</span> <span class="va">proc_sim</span><span class="op">$</span><span class="va">fleets</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">step</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">step</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">fleet</span>, <span class="va">x</span>, <span class="va">y</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -189,15 +201,19 @@ fishing grounds.</p>
 <span>    effort <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">effort</span><span class="op">)</span></span>
 <span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>cpue <span class="op">=</span> <span class="va">catch</span> <span class="op">/</span> <span class="va">effort</span><span class="op">)</span></span>
-<span><span class="co">#&gt; `summarise()` has grouped output by 'fleet', 'x'. You can override using the</span></span>
-<span><span class="co">#&gt; `.groups` argument.</span></span>
+<span><span class="co">#&gt; `summarise()` has regrouped the output.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Summaries were computed grouped by <span style="color: #0000BB;">fleet</span>, <span style="color: #0000BB;">x</span>, and <span style="color: #0000BB;">y</span>.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Output is grouped by <span style="color: #0000BB;">fleet</span> and <span style="color: #0000BB;">x</span>.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Use `summarise(.groups = "drop_last")` to silence this message.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Use `summarise(.by = c(fleet, x, y))` for per-operation grouping</span></span>
+<span><span class="co">#&gt;   (`?dplyr::dplyr_by`) instead.</span></span>
 <span></span>
 <span><span class="va">fleet_summary</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, fill <span class="op">=</span> <span class="va">effort</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_tile</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">fleet</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_viridis.html" class="external-link">scale_fill_viridis_c</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="manual_fleets_files/figure-html/unnamed-chunk-4-1.png" class="r-plt" alt="" width="700"></p>
+<p><img src="manual_fleets_files/figure-html/unnamed-chunk-4-2.png" class="r-plt" alt="" width="700"></p>
 </div>
 <div class="section level2">
 <h2 id="manual-effort">Manual Effort<a class="anchor" aria-label="anchor" href="#manual-effort"></a>
@@ -218,9 +234,10 @@ specify a random distribution of effort for the artisanal fleet. Note
 that the commercial fleet’s behavior also changes as a result through
 due to the manual distribution of the artisanal fleet changing the
 distribution of revenues in space available to the commercial fleet.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fishing_grounds</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">resolution</span>, y <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">resolution</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>fishing_ground <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>fishing_ground <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>fishing_ground <span class="op">=</span> <span class="va">fishing_ground</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">fishing_ground</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span></span>
 <span></span>
@@ -242,7 +259,7 @@ distribution of revenues in space available to the commercial fleet.</p>
 <span>    <span class="op">)</span><span class="op">)</span>,</span>
 <span>    base_effort <span class="op">=</span> <span class="va">resolution</span><span class="op">^</span><span class="fl">2</span>,</span>
 <span>    resolution <span class="op">=</span> <span class="va">resolution</span>,</span>
-<span>    spatial_allocation <span class="op">=</span> <span class="st">"rpue"</span></span>
+<span>    spatial_allocation <span class="op">=</span> <span class="st">"ppue"</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -266,8 +283,12 @@ distribution of revenues in space available to the commercial fleet.</p>
 <span>    effort <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">effort</span><span class="op">)</span></span>
 <span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>cpue <span class="op">=</span> <span class="va">catch</span> <span class="op">/</span> <span class="va">effort</span><span class="op">)</span></span>
-<span><span class="co">#&gt; `summarise()` has grouped output by 'fleet', 'x'. You can override using the</span></span>
-<span><span class="co">#&gt; `.groups` argument.</span></span>
+<span><span class="co">#&gt; `summarise()` has regrouped the output.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Summaries were computed grouped by <span style="color: #0000BB;">fleet</span>, <span style="color: #0000BB;">x</span>, and <span style="color: #0000BB;">y</span>.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Output is grouped by <span style="color: #0000BB;">fleet</span> and <span style="color: #0000BB;">x</span>.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Use `summarise(.groups = "drop_last")` to silence this message.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Use `summarise(.by = c(fleet, x, y))` for per-operation grouping</span></span>
+<span><span class="co">#&gt;   (`?dplyr::dplyr_by`) instead.</span></span>
 <span></span>
 <span></span>
 <span></span>

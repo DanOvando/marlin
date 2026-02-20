@@ -2,12 +2,57 @@
 % Please edit documentation in R/fish_class.R
 \name{Fish}
 \alias{Fish}
-\title{R6 Class Representing a Fish}
+\title{R6 Class Representing a Fish Population}
 \description{
-A fish object has all the life history data needed to model a finfish population
+The core population object in marlin. Stores all life-history parameters,
+spatial structure, and state variables for an age-structured fish
+population on a 2-D grid. Instances are created via
+\code{\link{create_critter}}; users rarely need to call \code{Fish$new()}
+directly.
 }
 \details{
-Fish like to swim
+\subsection{Key public fields (after initialisation)}{
+
+\describe{
+\item{\code{n_p_a_0}}{Matrix \code{[patches, ages]} of numbers at
+unfished equilibrium. Used as \code{initial_conditions} in
+\code{\link{simmar}}.}
+\item{\code{ssb0}}{Unfished spawning stock biomass (summed across
+patches and ages). Reference point for depletion calculations.}
+\item{\code{b0}}{Unfished total biomass.}
+\item{\code{b0_p}}{Vector of unfished biomass per patch.}
+\item{\code{movement_matrix}}{List of sparse transition matrices (one
+per season block), each \code{[patches, patches]}, column-stochastic.
+Built from the diffusion-taxis process during initialisation.}
+\item{\code{length_at_age}}{Numeric vector of mean length at each age
+class, computed from the growth model.}
+\item{\code{sel_at_age}}{Default selectivity at age (used only as a
+reference; actual selectivity is set per-metier).}
+\item{\code{ages}}{Numeric vector of age classes.}
+\item{\code{resolution}}{Integer vector \code{c(nx, ny)}.}
+\item{\code{patches}}{Total number of patches (\code{nx * ny}).}
+\item{\code{time_step}}{Fraction of a year per time step
+(\code{1 / seasons}).}
+\item{\code{depletion}}{Target B/B0 at the start of the simulation.}
+\item{\code{init_explt}}{Initial exploitation rate.}
+\item{\code{sigma_rec}}{Standard deviation of log recruitment deviates.}
+\item{\code{ac_rec}}{First-order autocorrelation of log recruitment
+deviates.}
+\item{\code{grid}}{Data frame with \code{x}, \code{y}, and
+\code{patch_area} columns defining the spatial grid.}
+}
+}
+
+\subsection{\code{swim()} method}{
+
+The main per-step update method. Given a fishing mortality matrix
+\code{f_p_a}, applies Baranov-style mortality, natural mortality, movement,
+and Beverton-Holt recruitment, returning updated population arrays.
+}
+}
+\seealso{
+\code{\link{create_critter}}, \code{\link{simmar}},
+\code{\link{Metier}}
 }
 \section{Methods}{
 \subsection{Public methods}{
@@ -208,7 +253,7 @@ biomass and recruits are then distributed in space proportional to spawning biom
 
 \item{\code{resolution}}{a vector of length two with number of patches in X and Y dimensions}
 
-\item{\code{patch_area}}{area of each patch (e.g. KM2)}
+\item{\code{patch_area}}{area of each patch (e.g. KM2). Either a scaler, a matrix, or a vector. If vector must be in correct patch order (arrange(x,y))}
 
 \item{\code{habitat}}{a matrix with dimensions X and Y specifying quality of adult (non-recruit) habitat. Determines taxis matrix}
 
@@ -294,7 +339,8 @@ Swim advances the population one time step
   last_n_p_a = NULL,
   adult_movement = NULL,
   tune_unfished = 0,
-  rec_devs = NA
+  rec_devs = NA,
+  move_fish = 1
 )}\if{html}{\out{</div>}}
 }
 
@@ -314,6 +360,8 @@ Swim advances the population one time step
 \item{\code{tune_unfished}}{boolean indicating whether to tune unfished}
 
 \item{\code{rec_devs}}{externally supplied recruitment deviates}
+
+\item{\code{move_fish}}{1 means fish move, 0 means they do not. Only set to 0 when running exploratory fishing}
 }
 \if{html}{\out{</div>}}
 }

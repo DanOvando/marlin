@@ -2,7 +2,7 @@
 % Please edit documentation in R/create_critter.R
 \name{create_critter}
 \alias{create_critter}
-\title{Create Critter}
+\title{Create a Critter (Species) Object}
 \usage{
 create_critter(
   common_name = NA,
@@ -31,66 +31,189 @@ create_critter(
   patch_area = 1,
   spawning_seasons = NA,
   density_dependence = "global_habitat",
+  steepness = 0.8,
   growth_model = "von_bertalanffy",
   ...
 )
 }
 \arguments{
-\item{common_name}{the common name of the species}
+\item{common_name}{Character. Common name of the species (e.g.
+\code{"yellowfin tuna"}). Used to look up life history from FishLife when
+\code{scientific_name} is not supplied.}
 
-\item{scientific_name}{the scientific name of the species, preferable to common name}
+\item{scientific_name}{Character. Scientific name (e.g.
+\code{"Thunnus albacares"}). Preferred over \code{common_name} for
+FishLife lookup; case-insensitive.}
 
-\item{get_common_name}{TRUE or FALSE to lookup common name from scientific name. Requires internet connection}
+\item{get_common_name}{Logical. If \code{TRUE}, resolves the common name
+from \code{scientific_name} via an internet lookup. Default \code{FALSE}.}
 
-\item{critter_type}{placeholder for someday if non-Fish objects are implemented}
+\item{critter_type}{Character. Currently only \code{"fish"} is supported.
+Placeholder for future non-fish implementations.}
 
-\item{habitat}{a list with adult habitat per season}
+\item{habitat}{List of habitat-quality matrices (one per season block).
+Each matrix must be \code{[ny, nx]}. Values represent relative habitat
+quality on a log scale; they drive movement taxis and, depending on
+\code{density_dependence}, recruit distribution. Generate with
+\code{\link{sim_habitat}}.}
 
-\item{season_blocks}{a list with seasons per block}
+\item{season_blocks}{List of integer vectors specifying which seasons belong
+to each habitat block (e.g. \code{list(1:2, 3:4)} for a two-block,
+four-season year). Must align with \code{habitat}.}
 
-\item{recruit_habitat}{habitat for recruitment}
+\item{recruit_habitat}{Matrix or \code{NA}. Habitat matrix used to
+distribute new recruits. Defaults to adult habitat of the first season
+block when \code{NA}.}
 
-\item{seasons}{number of seasons per year (integer)}
+\item{seasons}{Integer. Number of seasons per year. Sets
+\code{time_step = 1 / seasons}. All critters in a \code{fauna} list must
+share the same value.}
 
-\item{lorenzen_c}{rate of the lorenzen curve, defaults to -1}
+\item{lorenzen_c}{Numeric. Exponent in the Lorenzen (1996) size-dependent
+natural mortality function. Negative values (default \code{-1}) give
+higher mortality for smaller fish.}
 
-\item{fec_form}{one of "weight" or "pups"}
+\item{fec_form}{Character. Fecundity form: \code{"weight"} (fecundity
+proportional to body weight; default) or \code{"pups"} (fixed litter
+size, e.g. for elasmobranchs).}
 
-\item{adult_diffusion}{adult diffusion rate}
+\item{adult_home_range}{Numeric or \code{NULL}. Characteristic adult home range
+(km). When not \code{NULL}, this is used to derive the adult diffusion
+coefficient and takes precedence over \code{adult_diffusion}. Set to
+\code{NULL} to use \code{adult_diffusion} directly.}
 
-\item{recruit_diffusion}{recruit diffusion rate}
+\item{recruit_home_range}{Numeric or \code{NULL}. Characteristic recruit home
+range (km). When not \code{NULL}, this is used to derive the recruit
+diffusion coefficient and takes precedence over \code{recruit_diffusion}.
+Set to \code{NULL} to use \code{recruit_diffusion} directly.}
 
-\item{depletion}{depletion (biomass / unfished biomass) at start of simulation}
+\item{adult_diffusion}{Numeric or \code{NULL}. Adult diffusion rate
+(km^2 per time step). Used only when \code{adult_home_range} is \code{NULL}.}
 
-\item{init_explt}{initial annual exploitation rate (fraction of exploitable population killed)}
+\item{recruit_diffusion}{Numeric or \code{NULL}. Recruit diffusion rate.
+Used only when \code{recruit_home_range} is \code{NULL}.}
 
-\item{explt_type}{f or fmsy}
+\item{depletion}{Numeric in (0, 1]. Target spawning stock biomass relative
+to unfished SSB (B/B0) at the start of the simulation.}
 
-\item{burn_years}{number of years to burn in the simulation prior to starting things}
+\item{fished_depletion}{Numeric. Alias for \code{depletion}; takes
+precedence when both are supplied.}
 
-\item{weight_a}{alpha parameter in the allometric weight function alpha x length ^ beta}
+\item{init_explt}{Numeric. Initial annual exploitation rate (fraction of the
+exploitable population removed per year).}
 
-\item{fec_expo}{exponent for fecundity relationship. >1 means hyperallometric fecundity}
+\item{f}{Numeric. Alias for \code{init_explt}.}
 
-\item{resolution}{the resolution of the system, either an integer or a vector integers of length two specifying the dimensions of the system in width and height (e.g. \code{c(10,100)})}
+\item{explt_type}{Character. One of \code{"f"} (instantaneous fishing
+mortality; default) or \code{"fmsy"} (as a multiple of Fmsy).}
 
-\item{patch_area}{the area of each patch}
+\item{burn_years}{Integer. Number of years to burn in the unfished
+population to equilibrium before starting the simulation. Default 50.}
 
-\item{spawning_seasons}{which seasons spawning occurs}
+\item{weight_a}{Numeric or \code{NA}. Intercept alpha in the allometric
+weight-at-length relationship \eqn{W = \alpha L^\beta}. Looked up from
+FishLife when \code{NA}.}
 
-\item{density_dependence}{one of 'global_habitat','local_habitat','pre_dispersal','post_dispersal','global_ssb'}
+\item{fec_expo}{Numeric. Exponent for the fecundity-weight relationship.
+Values > 1 produce hyperallometric fecundity. Default \code{1}.}
 
-\item{growth_model}{one of "von_bertalanffy", "power", "growth_cessation"}
+\item{resolution}{Integer scalar or length-2 integer vector \code{c(nx, ny)}
+giving grid dimensions. A scalar is replicated to a square grid.}
 
-\item{...}{additional parameters passed to \code{Fish} class, see \code{?Fish}}
+\item{patch_area}{Numeric. Area of each patch (km^2). Used to scale
+diffusion and compute density-dependent quantities.}
+
+\item{spawning_seasons}{Integer vector. Which seasons spawning occurs in.
+Defaults to all seasons when \code{NA}.}
+
+\item{density_dependence}{Character. Density dependence form; see Details.
+One of \code{"global_habitat"}, \code{"local_habitat"},
+\code{"pre_dispersal"}, \code{"post_dispersal"}, \code{"global_ssb"}.}
+
+\item{steepness}{Numeric in (0.2, 1). Beverton-Holt steepness parameter
+\eqn{h} governing the shape of the spawner-recruit relationship.}
+
+\item{growth_model}{Character. Growth model for length-at-age:
+\code{"von_bertalanffy"} (default), \code{"power"}, or
+\code{"growth_cessation"}.}
+
+\item{...}{Additional parameters forwarded to the \code{\link{Fish}} R6
+class constructor. Common options include \code{k}, \code{linf},
+\code{t0}, \code{m}, \code{age_mature}, \code{weight_b}, \code{ssb0},
+\code{sigma_rec} (recruitment standard deviation), and \code{ac_rec}
+(recruitment autocorrelation). See \code{?Fish} for the full list.}
+}
+\value{
+An R6 \code{Fish} object containing the age-structured population
+state at unfished equilibrium, movement matrices, life-history schedules,
+and reference points. Pass inside a named list as \code{fauna} to
+\code{\link{simmar}}.
 }
 \description{
-Creates a critter object. If only a scientific name is provided
-create_critter will try and look up relevant life history from
-FishLife
+Constructs a critter (species population) object for use in
+\code{\link{simmar}}. Life history parameters (growth, maturity, natural
+mortality, weight-at-age) are looked up from FishLife when
+\code{scientific_name} is supplied, or can be passed manually via \code{...}.
+The returned object is an R6 \code{Fish} instance initialised to unfished
+equilibrium and burned in for \code{burn_years} years.
 }
 \details{
-Critical inputs are adult_movement, adult_movement_sigma, and resolution
+\subsection{Spatial setup}{
 
-See ?Fish for documentation of all possible parameters
+\code{resolution} determines the 2-D grid: \code{c(nx, ny)} produces
+\code{nx * ny} patches indexed by \code{expand_grid(x, y)} (x varies
+slowest). \code{habitat} should be a list (one matrix per season block) of
+\code{[ny, nx]} habitat-quality matrices; these drive adult movement taxis
+and, optionally, recruit distribution.
+}
+
+\subsection{Movement}{
+
+Adult and recruit movement is modelled via diffusion-taxis. If
+\code{adult_home_range} / \code{recruit_home_range} are provided (km), they
+are used to derive diffusion coefficients automatically and take precedence
+over \code{adult_diffusion} / \code{recruit_diffusion}. If a home range is
+\code{NULL}, the corresponding diffusion value is used directly.
+}
+
+\subsection{Density dependence options}{
+
+\describe{
+\item{\code{"global_habitat"}}{Beverton-Holt spawner-recruit using global
+SSB; recruits distributed proportionally to habitat.}
+\item{\code{"local_habitat"}}{Recruitment density dependence acts locally
+within each patch.}
+\item{\code{"pre_dispersal"}}{Competition occurs before larval dispersal.}
+\item{\code{"post_dispersal"}}{Competition occurs after larval dispersal.}
+\item{\code{"global_ssb"}}{Beverton-Holt using global SSB with uniform
+spatial recruit distribution.}
+}
+}
+}
+\examples{
+\dontrun{
+# Minimal: look up life history from FishLife
+tuna <- create_critter(
+  scientific_name = "Thunnus albacares",
+  resolution      = c(10, 10),
+  seasons         = 4
+)
+
+# With explicit spatial structure
+snapper <- create_critter(
+  scientific_name    = "Lutjanus campechanus",
+  adult_home_range   = 10,
+  recruit_home_range = 20,
+  resolution         = c(10, 10),
+  seasons            = 1,
+  density_dependence = "global_habitat",
+  fished_depletion   = 0.4
+)
+
+fauna <- list(snapper = snapper)
+}
+}
+\seealso{
+\code{\link{simmar}}, \code{\link{create_fleet}},
+\code{\link{tune_fleets}}, \code{\link{sim_habitat}}, \code{\link{Fish}}
 }

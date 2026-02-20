@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">marlin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -33,17 +33,21 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/dynamic-habitat.html">Set Dynamic Habitats</a></li>
+<li><a class="dropdown-item" href="../articles/big-seas.html">Simulating large spatial extents with marlin</a></li>
+    <li><a class="dropdown-item" href="../articles/dynamic-habitat.html">Set Dynamic Habitats</a></li>
     <li><a class="dropdown-item" href="../articles/fleet-management.html">Manage Catch and Effort of Fleets</a></li>
+    <li><a class="dropdown-item" href="../articles/getting-started.html">Getting Started with marlin</a></li>
     <li><a class="dropdown-item" href="../articles/Invertebrates.html">Invertebrates</a></li>
     <li><a class="dropdown-item" href="../articles/manual_fleets.html">Manual Fishing Grounds and Effort Allocation</a></li>
     <li><a class="dropdown-item" href="../articles/measure_gradients.html">Measure MPA Gradients</a></li>
-    <li><a class="dropdown-item" href="../articles/movement-rates.html">Setting &amp; Understanding Movement Rates</a></li>
+    <li><a class="dropdown-item" href="../articles/movement-rates.html">Movement: From CTMC Theory to Home Range</a></li>
     <li><a class="dropdown-item" href="../articles/MSE.html">Management Strategy Evaluation (sort of)</a></li>
+    <li><a class="dropdown-item" href="../articles/objective_function.html">The Objective Function of the Fleet</a></li>
     <li><a class="dropdown-item" href="../articles/port-distance.html">Setting and Using Distance from Port</a></li>
+    <li><a class="dropdown-item" href="../articles/recruitment-dynamics.html">Recruitment, Dispersal, and MPA Performance</a></li>
     <li><a class="dropdown-item" href="../articles/rectifier.html">Don't Be a Square</a></li>
     <li><a class="dropdown-item" href="../articles/Setting-Selectivity.html">Setting Selectivity</a></li>
-    <li><a class="dropdown-item" href="../articles/tune_home_range.html">Tune Home Range</a></li>
+    <li><a class="dropdown-item" href="../articles/spatial-allocation.html">Spatial Allocation Strategies</a></li>
     <li><a class="dropdown-item" href="../articles/Working-with-Recruitment-Deviates.html">Working with Recruitment Deviates</a></li>
   </ul>
 </li>
@@ -70,7 +74,7 @@
       <h1>Setting and Using Distance from Port</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/danovando/marlin/blob/HEAD/vignettes/port-distance.Rmd" class="external-link"><code>vignettes/port-distance.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/danovando/marlin/blob/HEAD/vignettes/articles/port-distance.Rmd" class="external-link"><code>vignettes/articles/port-distance.Rmd</code></a></small>
       <div class="d-none name"><code>port-distance.Rmd</code></div>
     </div>
 
@@ -134,10 +138,10 @@ locations.</p>
 <span>    ports <span class="op">=</span> <span class="va">ports</span>,</span>
 <span>    base_effort <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/prod.html" class="external-link">prod</a></span><span class="op">(</span><span class="va">resolution</span><span class="op">)</span>,</span>
 <span>    resolution <span class="op">=</span> <span class="va">resolution</span>,</span>
-<span>    spatial_allocation <span class="op">=</span> <span class="st">"ppue"</span>,</span>
+<span>    spatial_allocation <span class="op">=</span> <span class="st">"marginal_profit"</span>,</span>
 <span>    cost_per_unit_effort <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>    cost_per_distance <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>    fleet_model <span class="op">=</span> <span class="st">"open access"</span></span>
+<span>    travel_fraction <span class="op">=</span> <span class="fl">.5</span>,</span>
+<span>    fleet_model <span class="op">=</span> <span class="st">"open_access"</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -145,7 +149,7 @@ locations.</p>
 <span><span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span>, tune_costs <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">fleets</span><span class="op">$</span><span class="va">longline</span><span class="op">$</span><span class="va">cost_per_unit_effort</span></span>
-<span><span class="co">#&gt; [1] 0.02504577</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 0.5108651</span></span></code></pre></div>
 <p>From there, run simulation and see how the fleet concentrates around
 the ports.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">

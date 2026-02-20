@@ -2,18 +2,29 @@
 % Please edit documentation in R/process_step.R
 \name{process_step}
 \alias{process_step}
-\title{Process Step
-Convert step_YEAR_SEASON notation into YEAR_SEASON, YEAR, and SEASON}
+\title{Parse a Step Name into Year, Season, and Decimal Year}
 \usage{
 process_step(step)
 }
 \arguments{
-\item{step}{}
+\item{step}{Character. Step name, e.g. \code{"step_5_3"} or \code{"5_3"}.}
 }
 \value{
-a list with year_season, year, and season
+A named list with:
+\describe{
+\item{\code{year_season}}{Character. Clean \code{"year_season"} string
+(any \code{"step_"} prefix removed).}
+\item{\code{year}}{Integer. The year component.}
+\item{\code{season}}{Integer. The season component.}
+}
 }
 \description{
-Process Step
-Convert step_YEAR_SEASON notation into YEAR_SEASON, YEAR, and SEASON
+Converts a step name of the form \code{"step_YEAR_SEASON"} or
+\code{"YEAR_SEASON"} (as returned by \code{\link{simmar}}) into a named
+list containing the clean year-season string, the integer year, the integer
+season, and the decimal year used in \code{\link{process_marlin}} output.
+}
+\seealso{
+\code{\link{clean_steps}}, \code{\link{simmar}},
+\code{\link{process_marlin}}
 }

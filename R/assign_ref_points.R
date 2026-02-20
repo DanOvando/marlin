@@ -1,3 +1,31 @@
+#' Assign MSY-Based Reference Points to Each Species
+#'
+#' @description
+#' Finds the effort level that maximises yield for each species in \code{fauna}
+#' by calling \code{optim} on \code{\link{find_msy}}, then stores the
+#' resulting MSY, SSBmsy, Bmsy, and Umsy in each critter's \code{ref_points}
+#' field.
+#'
+#' @details
+#' The optimisation searches over a scalar effort multiplier applied to the
+#' first fleet's \code{base_effort} (range 0.001--10). MSY is estimated for
+#' each species independently (i.e. holding all else equal; no joint
+#' multi-species MSY is computed). Results are stored in each critter's
+#' \code{ref_points} data frame with columns \code{ssb_msy}, \code{b_msy},
+#' \code{n_msy}, \code{msy}, \code{u_msy}, \code{base_e_msy_mult}, and
+#' \code{base_e_msy}.
+#'
+#' @param fauna Named list of fauna objects from \code{\link{create_critter}}.
+#' @param fleets Named list of fleet objects from \code{\link{create_fleet}},
+#'   already tuned with \code{\link{tune_fleets}}.
+#'
+#' @return A copy of \code{fauna} with the \code{ref_points} field populated
+#'   for each species.
+#'
+#' @seealso \code{\link{find_msy}}, \code{\link{create_critter}},
+#'   \code{\link{tune_fleets}}
+#'
+#' @export
 #' Assign References Points
 #'
 #' @param fauna a list of critters

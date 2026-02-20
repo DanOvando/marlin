@@ -1,283 +1,291 @@
-#' R6 Class Representing a fishing fleet
+#' R6 class: fishing metier (fleet–species interaction)
 #'
 #' @description
-#' A fleet object has all the required characteristics of a fishing fleet
+#' The \code{Metier} R6 class stores the parameters that define how a single fleet
+#' interacts with a single species (e.g., price, selectivity, and catchability).
+#' A named list of metiers (one per species) is passed to \code{\link{create_fleet}}
+#' via the \code{metiers} argument.
 #'
 #' @details
-#' creates fleet object with spaces for selectivity, mpa response, etc.
+#' This class is primarily used internally by \code{marlin}, but it can be created
+#' directly with \code{Metier$new(...)}, then placed into a named list (one element
+#' per species).
+#'
+#' Common fields include \code{price}, \code{sel_form}, \code{sel_start},
+#' \code{sel_delta}, \code{catchability}, \code{spatial_catchability}, and
+#' derived quantities such as selectivity-at-age and vulnerability matrices used by
+#' \code{\link{simmar}}.
+#'
+#' @seealso \code{\link{create_fleet}}, \code{\link{tune_fleets}}, \code{\link{simmar}}
 
 Metier <- R6::R6Class("metier",
-  lock_objects = FALSE,
-  public = list(
-    #' @description
-    #' Parameters for specific metier of a given fleet
-    #'
-    #' @param critter the name of the critter in the fauna object this metier applies to
-    #' @param price the price per unit weight of the critter in question
-    #' @param sel_form the selectivity form, one of "logistic", "dome","uniform", or "manual"
-    #' @param sel_unit the unit of selectivity, one of "p_of_mat" which means selectivity is in proportion of age at maturity, or "length" where selectivity is in units of length
-    #' @param sel_start the value of sel_unit at which selectivity "starts"
-    #' @param sel_delta the delta parameter in the selectivity function
-    #' @param catchability the catchability per uni effort pararmeter, generally overwritten by tune_fleet
-    #' @param spatial_catchability a matrix of spatial q
-    #' @param sel_at_age a manual vector of gear (contact) selectivity at age, where values are between 0 and 1
-    #' @param sel05_anchor lower anchor at which (contact) selectivity is 0.05, either length or p_of_mat
-    #' @param sel_at_linf contact selectivity at linf
-    #' @param p_explt the proportion of total exploitation for a given critter coming from this metier. This value is relative to all other p_explt values for the critter in question. Set to 0 to have metier not catch critter at all
-    initialize = function(critter = NA, # this might be redundant
-                          price = 10,
-                          sel_form = "logistic",
-                          sel_unit = "p_of_mat",
-                          sel_start = 1,
-                          sel_delta = .1,
-                          sel05_anchor = NULL,
-                          sel_at_linf = NULL,
-                          catchability = 0.2,
-                          spatial_catchability = NULL,
-                          p_explt = 1,
-                          sel_at_age = NULL) {
-      catchability <- pmax(1e-9, catchability)
+                      lock_objects = FALSE,
+                      public = list(
+                        #' @description
+                        #' Parameters for specific metier of a given fleet
+                        #'
+                        #' @param critter the name of the critter in the fauna object this metier applies to
+                        #' @param price the price per unit weight of the critter in question
+                        #' @param sel_form the selectivity form, one of "logistic", "dome","uniform", or "manual"
+                        #' @param sel_unit the unit of selectivity, one of "p_of_mat" which means selectivity is in proportion of age at maturity, or "length" where selectivity is in units of length
+                        #' @param sel_start the value of sel_unit at which selectivity "starts"
+                        #' @param sel_delta the delta parameter in the selectivity function
+                        #' @param catchability the catchability per uni effort pararmeter, generally overwritten by tune_fleet
+                        #' @param spatial_catchability a matrix of spatial q
+                        #' @param sel_at_age a manual vector of gear (contact) selectivity at age, where values are between 0 and 1
+                        #' @param sel05_anchor lower anchor at which (contact) selectivity is 0.05, either length or p_of_mat
+                        #' @param sel_at_linf contact selectivity at linf
+                        #' @param p_explt the proportion of total exploitation for a given critter coming from this metier. This value is relative to all other p_explt values for the critter in question. Set to 0 to have metier not catch critter at all
+                        initialize = function(critter = NA, # this might be redundant
+                                              price = 10,
+                                              sel_form = "logistic",
+                                              sel_unit = "p_of_mat",
+                                              sel_start = 1,
+                                              sel_delta = .1,
+                                              sel05_anchor = NULL,
+                                              sel_at_linf = NULL,
+                                              catchability = 0.2,
+                                              spatial_catchability = NULL,
+                                              p_explt = 1,
+                                              sel_at_age = NULL) {
+                          catchability <- pmax(1e-9, catchability)
 
-      self$price <- price
+                          self$price <- price
 
-      self$sel_form <- sel_form
+                          self$sel_form <- sel_form
 
-      self$sel_start <- sel_start
+                          self$sel_start <- sel_start
 
-      self$sel_delta <- sel_delta
+                          self$sel_delta <- sel_delta
 
-      self$catchability <- catchability
+                          self$catchability <- catchability
 
-      self$p_explt <- p_explt
+                          self$p_explt <- p_explt
 
-      self$port_distance <- NA
+                          self$port_distance <- NA
 
-      self$sel_at_length <- NULL
+                          self$sel_at_length <- NULL
 
 
-      length_bins <-
-        as.numeric(colnames(critter$length_at_age_key))
+                          length_bins <-
+                            as.numeric(colnames(critter$length_at_age_key))
 
-      ages <- length(critter$ages)
+                          ages <- length(critter$ages)
 
-     if (!is.null(sel_at_age)){
-       sel_form = "manual"
-     }
+                          if (!is.null(sel_at_age)) {
+                            sel_form <- "manual"
+                          }
 
-      if (sel_unit == "p_of_mat") {
-        l_50_sel <-
-          critter$length_50_mature * sel_start
+                          if (sel_unit == "p_of_mat") {
+                            l_50_sel <-
+                              critter$length_50_mature * sel_start
 
-        l_95_sel <-
-          critter$length_50_mature * (sel_start + sel_delta)
+                            l_95_sel <-
+                              critter$length_50_mature * (sel_start + sel_delta)
 
-        length_at_sel05 <- critter$length_50_mature * sel05_anchor
-      } else if (sel_unit == "length") {
-        l_50_sel <- sel_start
+                            length_at_sel05 <- critter$length_50_mature * sel05_anchor
+                          } else if (sel_unit == "length") {
+                            l_50_sel <- sel_start
 
-        l_95_sel <- sel_start + sel_delta
+                            l_95_sel <- sel_start + sel_delta
 
-        length_at_sel05 <- sel05_anchor
-      }
+                            length_at_sel05 <- sel05_anchor
+                          }
 
-      if (sel_form == "logistic") {
-        sel_at_bin <- ((1 / (1 + exp(
-          -log(19) * ((length_bins - l_50_sel) / (l_95_sel - l_50_sel))
-        ))))
+                          if (sel_form == "logistic") {
+                            sel_at_bin <- ((1 / (1 + exp(
+                              -log(19) * ((length_bins - l_50_sel) / (l_95_sel - l_50_sel))
+                            ))))
 
-        p_sel_at_age <-
-          as.matrix(critter$length_at_age_key) %*% sel_at_bin
+                            p_sel_at_age <-
+                              as.matrix(critter$length_at_age_key) %*% sel_at_bin
 
-        sel_at_age <- p_sel_at_age
+                            sel_at_age <- p_sel_at_age
 
-        self$sel_at_age <- as.numeric(sel_at_age)
+                            self$sel_at_age <- as.numeric(sel_at_age)
 
-        self$sel_at_length <- sel_at_bin
-      }
+                            self$sel_at_length <- sel_at_bin
+                          }
 
-      if (sel_form == "dome") { # close logistic form if
+                          if (sel_form == "dome") { # close logistic form if
 
-        sel_at_bin <- dnorm(length_bins, l_50_sel, sd = (l_95_sel - l_50_sel))
+                            sel_at_bin <- dnorm(length_bins, l_50_sel, sd = (l_95_sel - l_50_sel))
 
-        p_sel_at_age <-
-          (as.matrix(critter$length_at_age_key) %*% sel_at_bin)
+                            p_sel_at_age <-
+                              (as.matrix(critter$length_at_age_key) %*% sel_at_bin)
 
-        sel_at_age <- p_sel_at_age / max(p_sel_at_age)
+                            sel_at_age <- p_sel_at_age / max(p_sel_at_age)
 
-        self$sel_at_age <- as.numeric(sel_at_age)
+                            self$sel_at_age <- as.numeric(sel_at_age)
 
-        self$sel_at_length <- sel_at_bin / max(sel_at_bin)
-      }
+                            self$sel_at_length <- sel_at_bin / max(sel_at_bin)
+                          }
 
-      if (sel_form == "double_normal") {
-        # Based on carruthers et al. 2014
+                          if (sel_form == "double_normal") {
+                            # Based on carruthers et al. 2014
 
-        tune_double_normal <- function(log_sigmas,
-                                       l_95_sel,
-                                       ls,
-                                       len_sel05 = 1,
-                                       linf_sel = 0,
-                                       output = "sigmas") {
-          # sigma_asc = 0.2
-          #
-          # sigma_dsc = 10
-          #
-          # ls <- seq(0,100)
-          #
-          # len_sel05 = 1
-          #
-          # linf_sel = 0
-          #
-          # l_95_sel <- 42
+                            tune_double_normal <- function(log_sigmas,
+                                                           l_95_sel,
+                                                           ls,
+                                                           len_sel05 = 1,
+                                                           linf_sel = 0,
+                                                           output = "sigmas") {
+                              # sigma_asc = 0.2
+                              #
+                              # sigma_dsc = 10
+                              #
+                              # ls <- seq(0,100)
+                              #
+                              # len_sel05 = 1
+                              #
+                              # linf_sel = 0
+                              #
+                              # l_95_sel <- 42
 
-          sigma_asc <- exp(log_sigmas[1])
+                              sigma_asc <- exp(log_sigmas[1])
 
-          sigma_dsc <- exp(log_sigmas[2])
+                              sigma_dsc <- exp(log_sigmas[2])
 
-          asc <- dnorm(ls, l_95_sel, sigma_asc)
+                              asc <- dnorm(ls, l_95_sel, sigma_asc)
 
-          asc <- asc / max(asc)
-
-          dsc <- dnorm(ls, l_95_sel, sigma_dsc)
-
-          dsc <- dsc / max(dsc)
-
-          sel <- ifelse(ls <= l_95_sel, asc, dsc)
+                              asc <- asc / max(asc)
 
-          out <- data.frame(length = ls, selectivity = sel)
+                              dsc <- dnorm(ls, l_95_sel, sigma_dsc)
 
-          sel05_hat <- sel[which.min((ls - len_sel05)^2)]
+                              dsc <- dsc / max(dsc)
 
-          linf_sel_hat <- sel[length(sel)]
+                              sel <- ifelse(ls <= l_95_sel, asc, dsc)
 
-          if (output == "sigmas") {
-            out <- (sel05_hat - 0.05)^2 + (linf_sel_hat - linf_sel)^2
-          }
+                              out <- data.frame(length = ls, selectivity = sel)
 
-          return(out)
-        }
+                              sel05_hat <- sel[which.min((ls - len_sel05)^2)]
 
-        if (length_at_sel05 >= l_95_sel) {
-          stop("length at sel05 must by less than length at peak selectivity")
-        }
-        tuned_sigmas <- optim(
-          log(c(100, 100)),
-          tune_double_normal,
-          l_95_sel = l_95_sel,
-          len_sel05 = length_at_sel05,
-          linf_sel = sel_at_linf,
-          ls = length_bins
-        )
+                              linf_sel_hat <- sel[length(sel)]
 
-        sel_at_bin <- tune_double_normal(tuned_sigmas$par, l_95_sel = l_95_sel, len_sel05 = length_at_sel05, linf_sel = sel_at_linf, ls = length_bins, output = "sels")
+                              if (output == "sigmas") {
+                                out <- (sel05_hat - 0.05)^2 + (linf_sel_hat - linf_sel)^2
+                              }
 
-        p_sel_at_age <-
-          (as.matrix(critter$length_at_age_key) %*% sel_at_bin$selectivity)
+                              return(out)
+                            }
 
-        sel_at_age <- p_sel_at_age / max(p_sel_at_age)
-
-        self$sel_at_age <- as.numeric(sel_at_age)
-
-        self$sel_at_length <- sel_at_bin$selectivity
-      }
-
-      if (sel_form == "manual") {
-        if (is.null(sel_at_age)) {
-          stop("sel_form = 'manual' but no manual sel_at_age provided")
-        }
-
-        self$sel_at_age <- sel_at_age
-      }
-
-      if (sel_form == "uniform") {
-        self$sel_at_age <- rep(1, ages)
-
-        self$sel_at_length <- rep(1, length(length_bins))
-      } # close sel_form things
-
-      self$ages <- critter$ages
-
-      self$length_bins <- length_bins
-
-      self$resolution <- critter$resolution
-
-      if ((is.null(spatial_catchability))) {
-        self$spatial_catchability <- rep(catchability, critter$patches)
-      } else {
-        if (unique(dim(spatial_catchability)) != sqrt(critter$patches)) {
-          stop(
-            glue::glue(
-              "spatial_catchability must either be NA or a {sqrt(critter$patches}) by {sqrt(critter$patches)} matrix"
-            )
-          )
-        } # close dim check
-
-
-        if (any(spatial_catchability < 0)) {
-          spatial_catchability <- spatial_catchability - min(spatial_catchability)
-        }
-
-        tmp <- spatial_catchability %>%
-          as.data.frame() %>%
-          dplyr::mutate(x = 1:nrow(.)) %>%
-          tidyr::pivot_longer(
-            -x,
-            names_to = "y",
-            values_to = "catchability",
-            names_prefix = "V"
-          ) %>%
-          dplyr::mutate(catchability = catchability / mean(catchability))
-
-        self$spatial_catchability <- tmp$catchability * catchability
-      } # close deal with spatial q
-    }, # close initialize
-    #' plot selectivity
-    #'    #'
-    #' @return a plot of selectivity at age for the metier
-    plot_selectivity = function() {
-      a <- data.frame(
-        measure = self$ages, selectivity = self$sel_at_age,
-        unit = "Age"
-      )
-
-      if (is.null(self$sel_at_length)){
-
-        sel_at_length <- rep(NA, length(self$length_bins))
-
-      } else {
-
-        sel_at_length <- self$sel_at_length
-
-      }
-
-      b <- data.frame(
-        measure = self$length_bins, selectivity = sel_at_length,
-        unit = "Length"
-      )
-
-      d <- rbind(a, b)
-
-      out <- d |>
-        ggplot2::ggplot(aes(measure, selectivity)) +
-        ggplot2::geom_line() +
-        ggplot2::facet_wrap(~unit, nrow = 2, scales = "free_x") +
-        ggplot2::scale_y_continuous(limits = c(0, 1))
-
-
-      out
-    },
-    #' plot selectivity
-    #'    #'
-    #' @return a plot of selectivity at age for the metier
-    plot_catchability = function() {
-
-      out <- tidyr::expand_grid(x = 1:self$resolution[1], y = 1:self$resolution[2]) |>
-        dplyr::arrange(x, y) |>
-        dplyr::mutate(catchability = self$spatial_catchability) |>
-        ggplot2::ggplot(aes(x, y, fill = catchability)) +
-        ggplot2::geom_tile()
-
-      out
-    }
-  ) # close public
+                            if (length_at_sel05 >= l_95_sel) {
+                              stop("length at sel05 must by less than length at peak selectivity")
+                            }
+                            tuned_sigmas <- optim(
+                              log(c(100, 100)),
+                              tune_double_normal,
+                              l_95_sel = l_95_sel,
+                              len_sel05 = length_at_sel05,
+                              linf_sel = sel_at_linf,
+                              ls = length_bins
+                            )
+
+                            sel_at_bin <- tune_double_normal(tuned_sigmas$par, l_95_sel = l_95_sel, len_sel05 = length_at_sel05, linf_sel = sel_at_linf, ls = length_bins, output = "sels")
+
+                            p_sel_at_age <-
+                              (as.matrix(critter$length_at_age_key) %*% sel_at_bin$selectivity)
+
+                            sel_at_age <- p_sel_at_age / max(p_sel_at_age)
+
+                            self$sel_at_age <- as.numeric(sel_at_age)
+
+                            self$sel_at_length <- sel_at_bin$selectivity
+                          }
+
+                          if (sel_form == "manual") {
+                            if (is.null(sel_at_age)) {
+                              stop("sel_form = 'manual' but no manual sel_at_age provided")
+                            }
+
+                            self$sel_at_age <- sel_at_age
+                          }
+
+                          if (sel_form == "uniform") {
+                            self$sel_at_age <- rep(1, ages)
+
+                            self$sel_at_length <- rep(1, length(length_bins))
+                          } # close sel_form things
+
+                          self$ages <- critter$ages
+
+                          self$length_bins <- length_bins
+
+                          self$resolution <- critter$resolution
+
+
+                          if ((is.null(spatial_catchability))) {
+                            self$spatial_catchability <- rep(catchability, critter$patches)
+                          } else {
+                            if (unique(dim(spatial_catchability)) != sqrt(critter$patches)) {
+                              stop(
+                                glue::glue(
+                                  "spatial_catchability must either be NA or a {sqrt(critter$patches}) by {sqrt(critter$patches)} matrix"
+                                )
+                              )
+                            } # close dim check
+
+
+                            if (any(spatial_catchability < 0)) {
+                              spatial_catchability <- spatial_catchability - min(spatial_catchability)
+                            }
+
+                            tmp <- as.data.frame(spatial_catchability) |>
+                              dplyr::mutate(y = dplyr::n():1) |>
+                              tidyr::pivot_longer(-y, values_to = "catchability") |>
+                              dplyr::group_by(y) |>
+                              dplyr::mutate(x = dplyr::row_number()) |>
+                              dplyr::ungroup() |>
+                              dplyr::arrange(x, y) |>
+                              dplyr::mutate(catchability = catchability / mean(catchability))
+
+                            self$spatial_catchability <- tmp$catchability * catchability
+                          } # close deal with spatial q
+
+                          self$vul_p_a <- outer(self$spatial_catchability, self$sel_at_age, `*`)
+                        }, # close initialize
+                        #' plot selectivity
+                        #'    #'
+                        #' @return a plot of selectivity at age for the metier
+                        plot_selectivity = function() {
+                          a <- data.frame(
+                            measure = self$ages, selectivity = self$sel_at_age,
+                            unit = "Age"
+                          )
+
+                          if (is.null(self$sel_at_length)) {
+                            sel_at_length <- rep(NA, length(self$length_bins))
+                          } else {
+                            sel_at_length <- self$sel_at_length
+                          }
+
+                          b <- data.frame(
+                            measure = self$length_bins, selectivity = sel_at_length,
+                            unit = "Length"
+                          )
+
+                          d <- rbind(a, b)
+
+                          out <- d |>
+                            ggplot2::ggplot(aes(measure, selectivity)) +
+                            ggplot2::geom_line() +
+                            ggplot2::facet_wrap(~unit, nrow = 2, scales = "free_x") +
+                            ggplot2::scale_y_continuous(limits = c(0, 1))
+
+
+                          out
+                        },
+                        #' plot selectivity
+                        #'    #'
+                        #' @return a plot of selectivity at age for the metier
+                        plot_catchability = function() {
+                          out <- tidyr::expand_grid(x = 1:self$resolution[1], y = 1:self$resolution[2]) |>
+                            dplyr::arrange(x, y) |>
+                            dplyr::mutate(catchability = self$spatial_catchability) |>
+                            ggplot2::ggplot(aes(x, y, fill = catchability)) +
+                            ggplot2::geom_tile()
+
+                          out
+                        }
+                      ) # close public
 ) # close class

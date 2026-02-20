@@ -2,20 +2,26 @@
 % Please edit documentation in R/clean_steps.R
 \name{clean_steps}
 \alias{clean_steps}
-\title{A small function to trim any characters from step names in the output of \code{marlin::simmar}}
+\title{Clean Step Names from simmar Output}
 \usage{
 clean_steps(step)
 }
 \arguments{
-\item{step}{The name of the step in question}
+\item{step}{Character. Step name to clean, e.g. \code{"step_5_3"} or
+\code{"5_3"}.}
 }
 \value{
-the step in units of {year}_{season index}
+Character string in \code{"year_season"} format.
 }
 \description{
-A small function to trim any characters from step names in the output of \code{marlin::simmar}
+Strips any \code{"step_"} prefix from step names in the output of
+\code{\link{simmar}}, returning clean \code{"year_season"} format strings
+(e.g. \code{"5_3"} for year 5, season 3).
 }
 \examples{
-clean_steps("step_1_2")
-
+clean_steps("step_1_2")  # Returns "1_2"
+clean_steps("10_4")      # Returns "10_4" (no-op)
+}
+\seealso{
+\code{\link{simmar}}, \code{\link{process_marlin}}
 }

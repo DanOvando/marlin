@@ -10,6 +10,7 @@ knitr::opts_chunk$set(
 ```
 
 
+
 Fish populations are often characterized by variation, particularly in the process known as "recruitment", the entry of new individuals to the population through reproduction (as opposed to immigration). 
 
 `marlin` allows users a range of options for simulating variability in the recruitment process. At the most basic, users can specify the variation of  "recruitment deviations", deviations in the value of recruitment away from the mean level of recruitment, for example the number of recruits given spawning stock biomass (SSB) given a Beverton-Holt spawner-recruit relationship. From there, users can specify whether recruitment deviations are autocorrelated, and lastly the degree of correlation in recruitment deviates among species. 

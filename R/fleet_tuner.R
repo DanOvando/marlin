@@ -1,62 +1,42 @@
-#' fleet tuner
+#' Objective function for depletion-based fleet tuning
 #'
-#' finds catchability (q) by fleet such that
-#' target fished depletion is achieved
+#' Given a vector of log fishing mortalities (one per species), sets
+#' fleet catchabilities accordingly (via the logistic link function to
+#' keep q in (0, 1)), runs a forward simulation, and returns log-ratio
+#' residuals between achieved and target depletion.
 #'
-#' @param fauna fauna object
-#' @param years number of years to tune
-#' @param fleets fleet object
-#' @param log_fs log instantaneous fishing mortality per critter
-#' @param e_fl baseline effort per fleet
+#' Used as the objective function for \code{\link[nleqslv]{nleqslv}}
+#' inside \code{\link{tune_fleets}}.
 #'
-#' @return objective function of fleet tuner
+#' @param log_fs numeric vector of log instantaneous fishing mortality,
+#'   one element per species in \code{fauna}
+#' @param fauna a fauna object
+#' @param fleets a fleet object (already set to constant effort)
+#' @param e_fl numeric vector of effective effort per fleet
+#' @param years number of years to simulate
+#'
+#' @return numeric vector of residuals (log achieved depletion - log target
+#'   depletion), one per species
+#' @keywords internal
 #' @export
-#'
-fleet_tuner <- function(log_fs, fauna, fleets,e_fl, years = 50) {
+fleet_tuner <- function(log_fs, fauna, fleets, e_fl, years = 50) {
 
   fs <- exp(log_fs)
 
-  tfleets <- fleets
+  tfleets <- clone_fleet_metiers(fleets)
 
-  for (i in length(tfleets)){
-
-
-    for (j in 1:length(tfleets[[i]]$metiers)){
-
-      tfleets[[i]]$metiers[[j]] <- fleets[[i]]$metiers[[j]]$clone(deep = TRUE)
-
-    }
-
-  }
-
-
+  # Set catchabilities for every fleet x species combination
+  # using the link function to keep q in (0, 1)
   for (f in seq_along(tfleets)) {
     for (ff in seq_along(fauna)) {
 
       f_critter <- fs[ff]
+      f_metier <- tfleets[[f]]$metiers[[ff]]$p_explt * f_critter
+      raw_q <- f_metier / e_fl[f]
 
-      f_metier <-  tfleets[[f]]$metiers[[ff]]$p_explt * f_critter
+      if (!is.finite(raw_q)) raw_q <- 0
 
-      metier_q <- f_metier / e_fl[f]
-
-      # print(e_fl)
-      #
-      # print(metier_q)
-
-      tfleets[[f]]$metiers[[ff]]$catchability <- metier_q
-
-      if (all(tfleets[[f]]$metiers[[ff]]$spatial_catchability == 0)) {
-        # annoying step: if q = 0 from earlier, then this will be a matrix of zeros and can't get updated
-        tfleets[[f]]$metiers[[ff]]$spatial_catchability <-
-          rep(1, length(tfleets[[f]]$metiers[[ff]]$spatial_catchability))
-      }
-
-      mean_q <- mean(tfleets[[f]]$metiers[[ff]]$spatial_catchability)
-
-      mean_q <- ifelse(mean_q == 0, 1e-9, mean_q)
-
-      tfleets[[f]]$metiers[[ff]]$spatial_catchability <- tfleets[[f]]$metiers[[ff]]$spatial_catchability / mean_q * metier_q
-
+      set_metier_catchability(tfleets[[f]]$metiers[[ff]], raw_q, use_link = TRUE)
     }
   }
 
@@ -66,11 +46,11 @@ fleet_tuner <- function(log_fs, fauna, fleets,e_fl, years = 50) {
     years = years
   )
 
-  # tmp <- purrr::map_dfr(storage[[length(storage)]], ~as.data.frame(.x$ssb_p_a), .id = "fauna")
-
-  tmp <- purrr::map(storage[[length(storage)]], ~ as.data.frame(.x$ssb_p_a)) |>
+  tmp <- purrr::map(
+    storage[[length(storage)]],
+    ~ as.data.frame(.x$ssb_p_a)
+  ) |>
     purrr::list_rbind(names_to = "fauna")
-
 
   b_p <- rowSums(tmp[, 2:ncol(tmp)], na.rm = TRUE)
 
@@ -81,18 +61,19 @@ fleet_tuner <- function(log_fs, fauna, fleets,e_fl, years = 50) {
     dplyr::arrange(fauna)
 
   ssb0s <- purrr::map_dbl(fauna, "ssb0")
-
   ssb0s <- ssb0s[sort(names(ssb0s))]
 
   target_depletion <- purrr::map_dbl(fauna, "depletion")
-
   target_depletion <- target_depletion[sort(names(target_depletion))]
 
   tmp$depletion <- tmp$ssb / ssb0s
 
-  ss <- sum((log(tmp$depletion) - log(target_depletion))^2)
+  r <- log(pmax(tmp$depletion, 1e-12)) - log(target_depletion)
 
-  rm(storage)
+  # If something pathological happened, return large residuals instead of stopping
+  if (any(!is.finite(r))) {
+    r <- rep(1e6, length(r))
+  }
 
-  return(ss)
+  r
 }

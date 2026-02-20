@@ -1,10 +1,51 @@
-#' R6 Class Representing a Fish
+#' R6 Class Representing a Fish Population
 #'
 #' @description
-#' A fish object has all the life history data needed to model a finfish population
+#' The core population object in marlin. Stores all life-history parameters,
+#' spatial structure, and state variables for an age-structured fish
+#' population on a 2-D grid. Instances are created via
+#' \code{\link{create_critter}}; users rarely need to call \code{Fish$new()}
+#' directly.
 #'
 #' @details
-#' Fish like to swim
+#' ## Key public fields (after initialisation)
+#' \describe{
+#'   \item{\code{n_p_a_0}}{Matrix \code{[patches, ages]} of numbers at
+#'     unfished equilibrium. Used as \code{initial_conditions} in
+#'     \code{\link{simmar}}.}
+#'   \item{\code{ssb0}}{Unfished spawning stock biomass (summed across
+#'     patches and ages). Reference point for depletion calculations.}
+#'   \item{\code{b0}}{Unfished total biomass.}
+#'   \item{\code{b0_p}}{Vector of unfished biomass per patch.}
+#'   \item{\code{movement_matrix}}{List of sparse transition matrices (one
+#'     per season block), each \code{[patches, patches]}, column-stochastic.
+#'     Built from the diffusion-taxis process during initialisation.}
+#'   \item{\code{length_at_age}}{Numeric vector of mean length at each age
+#'     class, computed from the growth model.}
+#'   \item{\code{sel_at_age}}{Default selectivity at age (used only as a
+#'     reference; actual selectivity is set per-metier).}
+#'   \item{\code{ages}}{Numeric vector of age classes.}
+#'   \item{\code{resolution}}{Integer vector \code{c(nx, ny)}.}
+#'   \item{\code{patches}}{Total number of patches (\code{nx * ny}).}
+#'   \item{\code{time_step}}{Fraction of a year per time step
+#'     (\code{1 / seasons}).}
+#'   \item{\code{depletion}}{Target B/B0 at the start of the simulation.}
+#'   \item{\code{init_explt}}{Initial exploitation rate.}
+#'   \item{\code{sigma_rec}}{Standard deviation of log recruitment deviates.}
+#'   \item{\code{ac_rec}}{First-order autocorrelation of log recruitment
+#'     deviates.}
+#'   \item{\code{grid}}{Data frame with \code{x}, \code{y}, and
+#'     \code{patch_area} columns defining the spatial grid.}
+#' }
+#'
+#' ## \code{swim()} method
+#' The main per-step update method. Given a fishing mortality matrix
+#' \code{f_p_a}, applies Baranov-style mortality, natural mortality, movement,
+#' and Beverton-Holt recruitment, returning updated population arrays.
+#'
+#' @seealso \code{\link{create_critter}}, \code{\link{simmar}},
+#'   \code{\link{Metier}}
+
 
 Fish <- R6::R6Class(
   "Fish",
@@ -65,7 +106,7 @@ Fish <- R6::R6Class(
     #' @param get_common_name TRUE or FALSE to lookup common name from scientific name. Requires internet connection
     #' @param habitat a matrix with dimensions X and Y specifying quality of adult (non-recruit) habitat. Determines taxis matrix
     #' @param spawning_seasons  seasons in which spawning occurs
-    #' @param patch_area  area of each patch (e.g. KM2)
+    #' @param patch_area  area of each patch (e.g. KM2). Either a scaler, a matrix, or a vector. If vector must be in correct patch order (arrange(x,y))
     #' @param max_hab_mult maximum value of that habitat matrix multiplier (to prevent some habitats from being >>> good, defaults to 2)
     #' @param lorenzen_m TRUE or FALSE to use the Lorenzen function to calculate natural mortality at age
     #' @param b0 desired level of unfished biomass
@@ -93,7 +134,7 @@ Fish <- R6::R6Class(
                           cv_len = 0.1,
                           l0 = 18.85,
                           rmax = 37.24,
-                          k =  0.89,
+                          k = 0.89,
                           t50 = 4.57,
                           length_a = .1,
                           length_b = 3,
@@ -185,9 +226,27 @@ Fish <- R6::R6Class(
 
       self$resolution <- resolution
 
+      if (is.matrix(patch_area)) {
+        patch_area_vec <- as.data.frame(patch_area) |>
+          dplyr::mutate(y = dplyr::n():1) |>
+          tidyr::pivot_longer(-y, values_to = "value") |>
+          dplyr::group_by(y) |>
+          dplyr::mutate(x = dplyr::row_number()) |>
+          dplyr::ungroup() |>
+          dplyr::arrange(x, y) |>
+          dplyr::pull(value)
+      } else if (length(patch_area == 1)) {
+        patch_area_vec <- rep(patch_area, prod(resolution))
+      } else if (length(patch_area) == prod(resolution)) {
+        patch_area_vec <- patch_area
+      }
+
       self$grid <- tidyr::expand_grid(x = 1:resolution[[1]], y = 1:resolution[[2]]) |>
-        dplyr::arrange(x,y) |>
-        dplyr::mutate(patch = 1:dplyr::n())
+        dplyr::arrange(x, y) |>
+        dplyr::mutate(
+          patch = 1:dplyr::n(),
+          patch_area = patch_area_vec
+        )
 
       patches <- prod(resolution)
 
@@ -231,22 +290,19 @@ Fish <- R6::R6Class(
       }
 
       if (length(adult_home_range) > 1 &
-          length(adult_home_range) != length(habitat)) {
+        length(adult_home_range) != length(habitat)) {
         stop("As of now adult_home_range and seasonal habitat lists but be same length")
       }
 
       # override diffusion parameters with those based on home range
       if (!is.null(adult_home_range)) {
-        adult_diffusion <- vector(length =  length(adult_home_range) , mode = "list")
+        adult_diffusion <- vector(length = length(adult_home_range), mode = "list")
 
         # deal with possibliity of different movement rates per seasons
 
-        for (i in 1:length(adult_home_range)){
-
+        for (i in 1:length(adult_home_range)) {
           adult_diffusion[[i]] <- tune_diffusion(adult_home_range[[i]])
-
         }
-
       }
 
       if (!is.null(recruit_home_range)) {
@@ -447,13 +503,10 @@ Fish <- R6::R6Class(
           length_a * (ages - t0)^length_b
 
         growth_params <- list(length_a = length_a, length_b = length_b, t0 = t0)
-      } else if (self$growth_model == "growth_cessation"){
-
-
+      } else if (self$growth_model == "growth_cessation") {
         length_at_age <- (l0 + rmax * ((log(exp(-k * t50) + 1) - log(exp(k * (ages - t50)) + 1)) / k + ages))
 
-        growth_params <- list(l0 = l0, rmax = rmax,k = k, t50 = t50)
-
+        growth_params <- list(l0 = l0, rmax = rmax, k = k, t50 = t50)
       }
 
       # process weight
@@ -574,17 +627,13 @@ Fish <- R6::R6Class(
       # }
 
       if (is.null(fec_at_age)) {
-
-      if (fec_form == "pups") {
-        fec_at_age <- rep(pups, length(maturity_at_age))
-
-      } else {
-        fec_at_age <- weight_at_age^fec_expo
-
+        if (fec_form == "pups") {
+          fec_at_age <- rep(pups, length(maturity_at_age))
+        } else {
+          fec_at_age <- weight_at_age^fec_expo
+        }
       }
-
-      }
-        self$fec_at_age <- fec_at_age
+      self$fec_at_age <- fec_at_age
 
       self$maturity_at_age <- maturity_at_age
 
@@ -598,32 +647,74 @@ Fish <- R6::R6Class(
       # create habitat and movement matrices
       taxis_matrix <- habitat
       # reshape to vector, for some reason doesn't work inside function
+      adjacency <- diffusion_edge <- vector(mode = "list", length = length(taxis_matrix))
       for (i in seq_along(taxis_matrix)) {
-
         taxis_matrix[[i]] <- as.data.frame(taxis_matrix[[i]]) |>
           dplyr::mutate(y = dplyr::n():1) |>
           tidyr::pivot_longer(-y, names_to = "x", values_to = "value") |>
           dplyr::mutate(x = match(x, unique(x))) |>
-          dplyr::arrange(x,y)
+          dplyr::arrange(x, y)
 
-        taxis_matrix[[i]] <- as.numeric(taxis_matrix[[i]]$value)
+        h <- as.numeric(taxis_matrix[[i]]$value)
 
-        taxis_matrix[[i]] <- pmin(exp((time_step * outer(taxis_matrix[[i]], taxis_matrix[[i]], "-")) / sqrt(patch_area)), max_hab_mult) # convert habitat gradient into diffusion multiplier
+        water <- is.finite(h)
 
-        }
+        neighbors <- find_neighbors(resolution = resolution, water = water)
+
+        edges <- Matrix::summary(neighbors)
+
+        to <- edges$i
+
+        from <- edges$j
+
+        delta_h <- h[to] - h[from]
+
+        mean_area <- (patch_area_vec[to] + patch_area_vec[from]) / 2 # arithmetic mean of mean area
+
+        mult <- exp((time_step * delta_h) / sqrt(mean_area))
+
+        mult <- pmin(mult, max_hab_mult)
+
+        P <- length(h)
+
+        taxis_matrix[[i]] <- Matrix::sparseMatrix(
+          i = to,
+          j = from,
+          x = mult,
+          dims = c(P, P),
+          dimnames = dimnames(neighbors)
+        )
+
+        diffusion_edge[[i]] <- Matrix::sparseMatrix(
+          i = to,
+          j = from,
+          x = mean_area,
+          dims = c(P, P),
+          dimnames = dimnames(neighbors)
+        )
+
+
+        adjacency[[i]] <- Matrix::sparseMatrix(
+          i = to,
+          j = from,
+          x = 1,
+          dims = c(P, P),
+          dimnames = dimnames(neighbors)
+        )
+      } # close taxis matrix loop
 
       self$taxis_matrix <- taxis_matrix # this is the habitat preference matrix, which is a multiplier of of the diffusion rate
 
 
       # the taxis matrix is used here just to mark of barriers, note x[!is.na(x)] <- 1, it is not double counting taxis
-      diffusion_prep <- function(x, y, time_step, patch_area) {
-        x[!is.na(x)] <- 1 # this is here to allow for barriers; set diffusion to zero if there's a physical barrier
-
-        z <- x * y * (time_step / patch_area)
+      diffusion_prep <- function(x, y, patch_area, time_step) {
+        tmp <- patch_area
+        tmp@x <- time_step / patch_area@x # only touch non-sparse elements
+        z <- x * y * tmp
       }
 
       # this is the non-taxis part of the movement model (dt / dd^2*D), with NAs for land
-      self$diffusion_foundation <- purrr::map2(taxis_matrix, adult_diffusion, diffusion_prep, time_step = time_step, patch_area = patch_area) # prepare adult diffusion matrix account for potential land
+      self$diffusion_foundation <- purrr::pmap(list(x = adjacency, y = adult_diffusion, patch_area = diffusion_edge), diffusion_prep, time_step = time_step) # prepare adult diffusion matrix account for potential land
 
       self$adult_diffusion <- adult_diffusion
 
@@ -644,15 +735,35 @@ Fish <- R6::R6Class(
 
       # ideally, you would set things up with mean environmental conditions, but for now, set up a placeholder for movement ignoring taxis for unfished conditions...
 
+
+      apply_reflective_land <- function(transition_matrix, water_mask) {
+        # Zero probability of landing on land (rows = destination patches)
+
+        if (!all(water_mask)) {
+          transition_matrix[!water_mask, ] <- 0
+        }
+
+
+        # Renormalize each origin column so total probability = 1
+        column_sums <- Matrix::colSums(transition_matrix)
+
+        transition_matrix <- transition_matrix %*%
+          Matrix::Diagonal(x = 1 / column_sums)
+
+        transition_matrix
+      }
+
+
       self$movement_matrix <-
         purrr::map(
           inst_movement_matrix,
-          ~ as.matrix(expm::expm((.x)))
+          ~ apply_reflective_land(sparsify_transition(as.matrix(expm::expm(as.matrix(.x)))), water)
         )
+
 
       self$movement_seasons <- season_blocks
 
-      rec_diff_foundation <- purrr::map2(taxis_matrix, recruit_diffusion, diffusion_prep, time_step = time_step, patch_area = patch_area) # prepare diffusion matrix account for potential land
+      rec_diff_foundation <- purrr::pmap(list(x = adjacency, y = recruit_diffusion, patch_area = diffusion_edge), diffusion_prep, time_step = time_step) # prepare recruit diffusion matrix account for potential land
 
       inst_recruit_move_matrix <-
         prep_movement(
@@ -661,7 +772,7 @@ Fish <- R6::R6Class(
         )
 
       self$recruit_movement_matrix <-
-        as.matrix(expm::expm(inst_recruit_move_matrix))
+        apply_reflective_land(sparsify_transition(as.matrix(expm::expm(as.matrix(inst_recruit_move_matrix)))), water)
 
 
       # set up unfished recruitment by patch
@@ -676,8 +787,10 @@ Fish <- R6::R6Class(
         dplyr::mutate(y = dplyr::n():1) |>
         tidyr::pivot_longer(-y, names_to = "x", values_to = "rec_habitat") |>
         dplyr::mutate(x = match(x, unique(x))) |>
-        dplyr::arrange(x,y) |>
-        dplyr::mutate(rec_habitat = rec_habitat / sum(rec_habitat)) |>
+        dplyr::arrange(x, y) |>
+        dplyr::mutate(
+        rec_habitat = (rec_habitat * (patch_area_vec / max(patch_area_vec))),
+        rec_habitat = rec_habitat / sum(rec_habitat)) |>
         dplyr::select(x, y, rec_habitat) |>
         dplyr::arrange(x, y)
 
@@ -738,7 +851,6 @@ Fish <- R6::R6Class(
       }
 
 
-
       init_pop <- matrix(NA, nrow = patches, ncol = length(m_at_age))
 
       init_pop[, 1] <- local_r0s
@@ -764,7 +876,7 @@ Fish <- R6::R6Class(
 
       self$time_step <- time_step
 
-      self$patch_area <- patch_area
+      self$patch_area <- patch_area_vec
 
       self$seasons <- seasons
 
@@ -831,7 +943,8 @@ Fish <- R6::R6Class(
         tune_unfished = 1,
         rec_form = rec_form,
         spawning_seasons = self$spawning_seasons,
-        rec_devs = rep(1, patches)
+        rec_devs = rep(1, patches),
+        move_fish = 1
       )
 
       unfished$tmppop$ages <- ages
@@ -846,9 +959,9 @@ Fish <- R6::R6Class(
 
       self$ssb0 <- unfished$ssb0
 
-      ssbs <- seq(0,self$ssb0, length.out = 100)
+      ssbs <- seq(0, self$ssb0, length.out = 100)
 
-      self$rec_at_dep <-  (((0.8 * sum(self$r0s) * self$steepness * ssbs) / (0.2 *  self$ssb0  * (1 - self$steepness) + (self$steepness - 0.2) * ssbs)));
+      self$rec_at_dep <- (((0.8 * sum(self$r0s) * self$steepness * ssbs) / (0.2 * self$ssb0 * (1 - self$steepness) + (self$steepness - 0.2) * ssbs)))
 
       self$ssb0_p <- unfished$ssb0_p
 
@@ -886,7 +999,7 @@ Fish <- R6::R6Class(
         ggplot2::scale_fill_manual(values = marlin::marlin_pal("diverging_fish")(length(unique(
           tidy_ogives$trait
         )))) +
-        ggplot2::labs(title = self$common_name)
+        ggplot2::labs(title = ifelse(is.na(self$common_name), self$scientific_name, self$common_name))
     },
     #' plot diffusion
     #'
@@ -897,12 +1010,14 @@ Fish <- R6::R6Class(
       critter <- as.list(self)
 
       grid <- tidyr::expand_grid(x = 1:critter$resolution[[1]], y = 1:critter$resolution[[2]]) |>
-        dplyr::arrange(x,y) |>
-        dplyr::mutate(patch = 1:dplyr::n(),
-                      n = 0,
-                      rec_n = 0)
+        dplyr::arrange(x, y) |>
+        dplyr::mutate(
+          patch = 1:dplyr::n(),
+          n = 0,
+          rec_n = 0
+        )
 
-      middle = which(grid$x == round(mean(grid$x)) & grid$y == round(mean(grid$y)))
+      middle <- which(grid$x == round(mean(grid$x)) & grid$y == round(mean(grid$y)))
 
       x_center <- grid$x[middle]
 
@@ -912,7 +1027,7 @@ Fish <- R6::R6Class(
 
       grid$rec_n[middle] <- 1
 
-      patch_area <- critter$patch_area
+      patch_area <- mean(critter$patch_area)
 
       patch_width <- sqrt(patch_area)
 
@@ -921,46 +1036,40 @@ Fish <- R6::R6Class(
         dist() |>
         as.matrix() * patch_width
 
-        diff_and_tax <- critter$movement_matrix[[1]]
+      diff_and_tax <- critter$movement_matrix[[1]]
 
-        rec_diff_and_tax <- critter$recruit_movement_matrix
+      rec_diff_and_tax <- critter$recruit_movement_matrix
 
       for (i in seq_len(critter$seasons)) {
         grid$n <- as.numeric(grid$n %*% (diff_and_tax)) # calculate the realized diffusion over one time step of the model
 
         grid$rec_n <- as.numeric(grid$rec_n %*% (rec_diff_and_tax)) # calculate the realized diffusion over one time step of the model
-
       }
 
-        if (critter$rec_form == "global_habitat" | critter$rec_form == "local_habitat"){
-
-          grid$rec_n <- critter$r0s / sum(critter$r0s)
-
-        } else if (critter$rec_form == "global_ssb"){
-
-          grid$rec_n <- critter$ssb0_p / sum(critter$ssb0_p)
-
-        }
+      if (critter$rec_form == "global_habitat" | critter$rec_form == "local_habitat") {
+        grid$rec_n <- critter$r0s / sum(critter$r0s)
+      } else if (critter$rec_form == "global_ssb") {
+        grid$rec_n <- critter$ssb0_p / sum(critter$ssb0_p)
+      }
 
 
-        grid <- grid |>
-          tidyr::pivot_longer(c(n, rec_n), names_to = "stage", values_to = "n") |>
-          dplyr::mutate(stage = dplyr::if_else(stage == "n", "Post-Recruits", paste0("Recruits:", "density dependence is ", critter$rec_form)))
+      grid <- grid |>
+        tidyr::pivot_longer(c(n, rec_n), names_to = "stage", values_to = "n") |>
+        dplyr::mutate(stage = dplyr::if_else(stage == "n", "Post-Recruits", paste0("Recruits:", "density dependence is ", critter$rec_form)))
 
       out <- grid |>
-        dplyr::mutate(x = (x - x_center) * patch_width, y = (y - y_center) * patch_width ) |>
-        ggplot2::ggplot(aes(x,y,fill = n)) +
+        dplyr::mutate(x = (x - x_center) * patch_width, y = (y - y_center) * patch_width) |>
+        ggplot2::ggplot(aes(x, y, fill = n)) +
         ggplot2::geom_tile() +
         ggplot2::scale_fill_viridis_c(name = "Density after one year") +
-        ggplot2::scale_x_continuous(name = "KM from center") +
-        ggplot2::scale_y_continuous(name = "KM from center") +
+        ggplot2::scale_x_continuous(name = "Approx KM from center") +
+        ggplot2::scale_y_continuous(name = "Approx KM from center") +
         ggplot2::theme(legend.position = "top") +
-        ggplot2::facet_wrap(~stage , nrow = 2) +
+        ggplot2::facet_wrap(~stage, nrow = 2) +
         marlin::theme_marlin()
 
       out
-    }
-    ,
+    },
     #' Swim
     #'
     #' Swim advances the population one time step
@@ -972,6 +1081,7 @@ Fish <- R6::R6Class(
     #' @param tune_unfished boolean indicating whether to tune unfished
     #' @param adult_movement the adult movement matrix
     #' @param rec_devs externally supplied recruitment deviates
+    #' @param move_fish 1 means fish move, 0 means they do not. Only set to 0 when running exploratory fishing
     #'
     #' @return the population in the next time step
     swim = function(burn_steps = 0,
@@ -980,7 +1090,8 @@ Fish <- R6::R6Class(
                     last_n_p_a = NULL,
                     adult_movement = NULL,
                     tune_unfished = 0,
-                    rec_devs = NA) {
+                    rec_devs = NA,
+                    move_fish = 1) {
       if (is.null(f_p_a)) {
         f_p_a <-
           matrix(0,
@@ -1020,7 +1131,8 @@ Fish <- R6::R6Class(
         tune_unfished = tune_unfished,
         rec_form = self$rec_form,
         spawning_seasons = self$spawning_seasons,
-        rec_devs = rec_devs
+        rec_devs = rec_devs,
+        move_fish = move_fish
       )
       pop$ages <- self$ages
 

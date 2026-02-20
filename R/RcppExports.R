@@ -9,6 +9,10 @@ move_test <- function(seasonal_movement, movement_seasons, season) {
     .Call(`_marlin_move_test`, seasonal_movement, movement_seasons, season)
 }
 
+cpp_allocate_ifd_kkt_fullsolve_fast <- function(Etot_target, alpha_mats, other_mort_mats, biomass_mats, price_s, cost_patch, c0, gamma, fishable_int, time_step, include_costs, n_outer, n_inner, active_tol, flat_tol_sd, flat_tol_abs) {
+    .Call(`_marlin_cpp_allocate_ifd_kkt_fullsolve_fast`, Etot_target, alpha_mats, other_mort_mats, biomass_mats, price_s, cost_patch, c0, gamma, fishable_int, time_step, include_costs, n_outer, n_inner, active_tol, flat_tol_sd, flat_tol_abs)
+}
+
 move <- function(x, m) {
     .Call(`_marlin_move`, x, m)
 }
@@ -17,7 +21,7 @@ cpp_seq <- function(steps, step_size) {
     .Call(`_marlin_cpp_seq`, steps, step_size)
 }
 
-sim_fish <- function(length_at_age, weight_at_age, fec_at_age, maturity_at_age, semelparous, f_p_a, movement_matrix, movement_seasons, recruit_movement_matrix, last_n_p_a, patches, burn_steps, time_step, season, steepness, r0s, ssb0, ssb0_p, m_at_age, tune_unfished, rec_form, spawning_seasons, rec_devs) {
-    .Call(`_marlin_sim_fish`, length_at_age, weight_at_age, fec_at_age, maturity_at_age, semelparous, f_p_a, movement_matrix, movement_seasons, recruit_movement_matrix, last_n_p_a, patches, burn_steps, time_step, season, steepness, r0s, ssb0, ssb0_p, m_at_age, tune_unfished, rec_form, spawning_seasons, rec_devs)
+sim_fish <- function(length_at_age, weight_at_age, fec_at_age, maturity_at_age, semelparous, f_p_a, movement_matrix, movement_seasons, recruit_movement_matrix, last_n_p_a, patches, burn_steps, time_step, season, steepness, r0s, ssb0, ssb0_p, m_at_age, tune_unfished, rec_form, spawning_seasons, rec_devs, move_fish) {
+    .Call(`_marlin_sim_fish`, length_at_age, weight_at_age, fec_at_age, maturity_at_age, semelparous, f_p_a, movement_matrix, movement_seasons, recruit_movement_matrix, last_n_p_a, patches, burn_steps, time_step, season, steepness, r0s, ssb0, ssb0_p, m_at_age, tune_unfished, rec_form, spawning_seasons, rec_devs, move_fish)
 }
 

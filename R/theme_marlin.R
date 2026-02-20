@@ -1,17 +1,25 @@
-#' ggplot2 theme for marlin
+#' ggplot2 Theme for marlin
 #'
-#' @param ...
+#' @description
+#' A clean \code{ggplot2} theme based on \code{theme_classic} with marlin
+#' styling: bordered panel, light dashed gridlines, bold-italic titles, dark
+#' blue facet strip backgrounds, and italicised legend text.
 #'
-#' @return nothing
+#' @param base_size Numeric. Base font size in points. Default \code{14}.
+#' @param ... Additional arguments passed to \code{ggplot2::theme_classic}.
+#'
+#' @return A \code{ggplot2} \code{theme} object. Add to a ggplot with \code{+}.
+#'
+#' @seealso \code{\link{plot_marlin}}, \code{\link{marlin_pal}}
+#'
 #' @export
 #' @importFrom ggplot2 %+replace%
 #'
 #' @examples
-#'
-#' ggplot(mtcars, aes(mpg)) +
-#'   geom_histogram() +
-#'   marlin::theme_marlin()
-#'
+#' library(ggplot2)
+#' ggplot(mtcars, aes(mpg, wt)) +
+#'   geom_point() +
+#'   theme_marlin()
 theme_marlin <- function(base_size = 14, ...) {
   ggplot2::theme_classic(...) %+replace%
     ggplot2::theme(

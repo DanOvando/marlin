@@ -1,23 +1,46 @@
-#' Get Traits
+#' Get Life History Traits from FishLife
 #'
-#' Retrieves life history traits from FishLife
+#' @description
+#' Retrieves mean (un-logged) life history traits for the closest taxonomic
+#' match in the FishLife database. Traits are looked up by matching the
+#' supplied taxonomic hierarchy against the \code{FishBase_and_RAM}
+#' database bundled with marlin.
 #'
-#' This function returns the mean un-logged life history traits for the closest match to the
-#' supplied taxonomic information.
+#' @details
+#' Traits are returned on the natural scale (exponentiated from the log scale
+#' used internally by FishLife), except \code{Temperature} which is returned
+#' as-is. Useful for inspecting the life history that \code{\link{create_critter}}
+#' will use when \code{scientific_name} is supplied, or for populating custom
+#' parameter sets for less well-known species.
 #'
-#' @param Class Character input for taxonomic class
-#' @param Order Character input for taxonomic class
-#' @param Family Character input for taxonomic class
-#' @param Genus Character input for taxonomic class
-#' @param Species Character input for taxonomic class
-#' @param verbose logical where TRUE prints closest match, FALSE does not
+#' @param Class Character. Taxonomic class (e.g. \code{"Actinopterygii"}).
+#'   Default \code{"predictive"} (let FishLife infer from lower ranks).
+#' @param Order Character. Taxonomic order. Default \code{"predictive"}.
+#' @param Family Character. Taxonomic family. Default \code{"predictive"}.
+#' @param Genus Character. Genus name (e.g. \code{"Lutjanus"}). Default
+#'   \code{"predictive"}.
+#' @param Species Character. Species epithet (e.g. \code{"campechanus"}).
+#'   Default \code{"predictive"}. Supply at least \code{Genus} and
+#'   \code{Species} for species-level lookup.
 #'
-#' @return a dataframe of mean trait values
+#' @return A data frame with one row containing mean trait values for the
+#'   closest taxonomic match, including columns for growth parameters
+#'   (\code{K}, \code{Linf}, \code{t0}), natural mortality (\code{M}),
+#'   maturity (\code{tm}), weight-length (\code{a}, \code{b}),
+#'   \code{Temperature}, and \code{closest_taxa_match} (the matched taxon
+#'   string from FishLife).
+#'
+#' @seealso \code{\link{create_critter}}, \code{\link{search_species}}
+#'
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#' life_traits <- Get_traits(Genus = "Lutjanus", Species = "campechanus")
+#' # Look up red snapper traits
+#' traits <- get_traits(Genus = "Lutjanus", Species = "campechanus")
+#' traits$K       # von Bertalanffy growth rate
+#' traits$Linf    # asymptotic length (cm)
+#' traits$M       # natural mortality rate
 #' }
 get_traits <-
   function(Class = "predictive",

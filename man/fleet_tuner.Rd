@@ -2,23 +2,34 @@
 % Please edit documentation in R/fleet_tuner.R
 \name{fleet_tuner}
 \alias{fleet_tuner}
-\title{fleet tuner}
+\title{Objective function for depletion-based fleet tuning}
 \usage{
-fleet_tuner(log_qs, fauna, fleets, years = 50)
+fleet_tuner(log_fs, fauna, fleets, e_fl, years = 50)
 }
 \arguments{
-\item{log_qs}{vector of log catchability coefficients}
+\item{log_fs}{numeric vector of log instantaneous fishing mortality,
+one element per species in \code{fauna}}
 
-\item{fauna}{fauna object}
+\item{fauna}{a fauna object}
 
-\item{fleets}{fleet object}
+\item{fleets}{a fleet object (already set to constant effort)}
 
-\item{years}{number of years to tune}
+\item{e_fl}{numeric vector of effective effort per fleet}
+
+\item{years}{number of years to simulate}
 }
 \value{
-objective function of fleet tuner
+numeric vector of residuals (log achieved depletion - log target
+depletion), one per species
 }
 \description{
-finds catchability (q) by fleet such that
-target fished depletion is achieved
+Given a vector of log fishing mortalities (one per species), sets
+fleet catchabilities accordingly (via the logistic link function to
+keep q in (0, 1)), runs a forward simulation, and returns log-ratio
+residuals between achieved and target depletion.
 }
+\details{
+Used as the objective function for \code{\link[nleqslv]{nleqslv}}
+inside \code{\link{tune_fleets}}.
+}
+\keyword{internal}
