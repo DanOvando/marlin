@@ -1,4 +1,106 @@
-url: https://danovando.github.io/marlin
+url: https://danovando.github.io/marlin/
+
 template:
   bootstrap: 5
   bootswatch: cerulean
+
+navbar:
+  structure:
+    left:  [intro, articles, reference, news]
+    right: [search, github]
+  components:
+    intro:
+      text: Get started
+      href: articles/getting-started.html
+    articles:
+      text: Articles
+      menu:
+        - text: "Fleet behavior"
+        - text: "Spatial Allocation Strategies"
+          href: articles/spatial-allocation.html
+        - text: "Distance from Port"
+          href: articles/port-distance.html
+        - text: "Manage Catch and Effort"
+          href: articles/fleet-management.html
+        - text: "Manual Fishing Grounds"
+          href: articles/manual_fleets.html
+        - text: "Objective Functions"
+          href: articles/objective_function.html
+        - text: "-------"
+        - text: "Species biology"
+        - text: "Movement Rates"
+          href: articles/movement-rates.html
+        - text: "Dynamic Habitats"
+          href: articles/dynamic-habitat.html
+        - text: "Setting Selectivity"
+          href: articles/Setting-Selectivity.html
+        - text: "Recruitment Deviates"
+          href: articles/Working-with-Recruitment-Deviates.html
+        - text: "Recruitment Dynamics"
+          href: articles/recruitment-dynamics.html
+        - text: "Invertebrates"
+          href: articles/Invertebrates.html
+        - text: "-------"
+        - text: "Simulation setup"
+        - text: "Non-square Grids"
+          href: articles/rectifier.html
+        - text: "Big Seas"
+          href: articles/big-seas.html
+        - text: "-------"
+        - text: "Analysis & Applications"
+        - text: "Management Strategy Evaluation"
+          href: articles/MSE.html
+        - text: "Measure MPA Gradients"
+          href: articles/measure_gradients.html
+        - text: "Comparing marlin to Other Models"
+          href: articles/Comparing-marlin-to-other-spatial-simulation-and-planning-models.html
+    github:
+      icon: fab fa-github
+      href: https://github.com/DanOvando/marlin/
+      aria-label: GitHub
+
+articles:
+- title: "Getting Started"
+  navbar: ~
+  contents:
+  - getting-started
+
+- title: "Fleet Behavior"
+  desc: >
+    How fishing fleets decide where and how hard to fish.
+  contents:
+  - articles/spatial-allocation
+  - articles/port-distance
+  - articles/fleet-management
+  - articles/manual_fleets
+  - articles/objective_function
+
+- title: "Species Biology"
+  desc: >
+    Parameterizing species movement, habitat, selectivity, and recruitment.
+  contents:
+  - articles/movement-rates
+  - articles/dynamic-habitat
+  - articles/Setting-Selectivity
+  - articles/Working-with-Recruitment-Deviates
+  - articles/recruitment-dynamics
+  - articles/Invertebrates
+
+- title: "Simulation Setup"
+  desc: >
+    Configuring and calibrating the simulation grid and movement parameters.
+  contents:
+  - articles/rectifier
+  - articles/big-seas
+
+- title: "Analysis & Applications"
+  desc: >
+    Using marlin for management strategy evaluation and spatial analysis.
+  contents:
+  - articles/MSE
+  - articles/measure_gradients
+  - articles/Comparing-marlin-to-other-spatial-simulation-and-planning-models
+
+- title: "Other"
+  contents:
+  - starts_with("")

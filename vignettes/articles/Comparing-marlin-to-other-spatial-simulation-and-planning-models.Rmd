@@ -1,0 +1,75 @@
+---
+title: "Comparing marlin to other spatial simulation and planning models"
+---
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Where Does `marlin` Fit?
+
+The landscape for modelling spatial marine social-ecological systems spans highly detailed end-to-end ecosystem models, fleet-focused individual-based models, spatial prioritization tools, and streamlined analytical frameworks. Each of these tools fills a useful niche. `marlin` occupies a deliberate middle ground. Its defining feature is the ability to simultaneously track multiple age-structured species — each with its own habitat-driven spatial distribution — as they are targeted by multiple fleets with heterogeneous gear selectivities, port locations, and behavioral rules. This combination is what makes `marlin` useful for questions about bycatch, effort displacement, and the distributional consequences of spatial management that neither single-species models nor fleet models with simplified biology can easily reach.
+
+An important note that applies across almost all of these tools, including `marlin`: none of them are *fit* to data in a statistical sense. Parameters are set by the user based on external knowledge, life history databases, and expert judgment, and model outputs are evaluated qualitatively or against broad reference points rather than through formal likelihood-based inference. Species distribution models (SDMs) are the notable exception, as they are explicitly designed to estimate habitat relationships from occurrence or abundance data. For all other model families discussed here, "calibration" means tuning parameters until the model reproduces some desired behavior — a target depletion level, a known catch history, a plausible equilibrium — not estimating them from data with quantified uncertainty.
+
+### End-to-End and Ecosystem Models
+
+**ATLANTIS** (Audzijonyte et al. 2019), **OSMOSE** (Shin & Cury 2001), **SEAPODYM** (Lehodey et al. 2008), and **Ecopath with Ecosim** (Christensen & Walters 2004) represent the most biologically comprehensive tools in the field, integrating trophic dynamics, nutrient cycling, and in some cases physical oceanography into coupled frameworks. These are powerful tools, particularly when the goal is to reproduce detailed social-ecological processes — whether because trophic feedbacks are central to the question, because the application is tactical enough to demand close correspondence with a specific real system, or because the complexity of interactions among fleets, species, and environment resists simpler representation. However, these models require substantial investment: setting up a credible application in a new region can require years of effort and high-quality system-specific data.
+
+`marlin` is not intended to replace these tools but to complement them. It sacrifices some realism — no trophic interactions, no explicit physical oceanographic forcings, no individual-level behavior — in exchange for speed, accessibility, and the ability to rapidly explore how spatially heterogeneous fishing pressure interacts across species with different life histories, habitat affinities, and gear vulnerabilities. For questions where that combination of multi-species, multi-fleet spatial dynamics is the core challenge, and where the investment required by a full end-to-end model is not justified or not yet warranted, `marlin` provides a tractable middle path.
+
+### Spatial Prioritization Tools
+
+**Marxan** and related tools (e.g., Zonation) approach spatial planning as a reserve design optimization problem: given conservation targets and costs, find the set of planning units that meets the targets most efficiently. These tools are widely used in marine spatial planning and are excellent at identifying candidate protected area networks. They are not simulation models, however — they do not represent population dynamics, fishing fleet behavior, or the temporal trajectory of a system under management. They can identify where to draw lines on a map, but cannot predict how fish populations or fishing economies will respond once those lines are in place. `marlin` is complementary: it can be used to evaluate the bio-economic consequences of candidate designs that tools like Marxan generate, projecting outcomes in terms of biomass recovery, yield, bycatch, and distributional equity across fleets.
+
+### Fleet-Focused Individual-Based Models
+
+**DISPLACE** (Bastardie et al. 2014) and **POSEIDON** (Bailey et al. 2019) place their emphasis on the behavior of individual fishing vessels. DISPLACE derives its vessel-level parameters — catch rates, ground selection, fuel consumption — directly from empirical VMS tracking data and logbooks, giving it an unusually tight connection to observed fishing behavior. POSEIDON is explicitly a conceptual model whose agent parameters are tuned rather than estimated; its strength is in capturing qualitative fleet dynamics and testing policy logic. Both models offer vessel-level behavioral resolution that `marlin` does not attempt to match — for questions involving complex regulatory interactions like rights-based management layered with spatial closures and bycatch penalties, that resolution is exactly what is needed.
+
+The models differ most on the ecological side. Both DISPLACE and POSEIDON can represent multi-species fisheries, but in their standard configurations neither resolves the age- and size-dependent processes — mechanistic habitat-driven movement, size-selective mortality, ontogenetic shifts in distribution — that determine where fish of different sizes are and why. DISPLACE relies on external survey data for stock distributions, which makes it powerful in data-rich systems but less suited to exploring how distributions might change under novel conditions. POSEIDON's default ecology is logistic growth with spatial diffusion, though it can be coupled to models like OSMOSE at additional complexity cost.
+
+`marlin` makes the opposite trade-off: simpler fleet dynamics, richer biology. Each species carries full age and size structure and moves according to a continuous-time Markov chain driven by habitat preferences that can vary by life stage. Spatial overlap between species and gears — and therefore bycatch rates and effort displacement consequences — emerge from the intersection of species-specific distributions and gear-specific contact selectivity rather than being specified as inputs. This matters most for questions where the biological structure is doing the work: how does a climate-driven range shift change bycatch composition, or how does an MPA's effect on one species propagate through shared fishing pressure to another?
+
+### Species Distribution Models
+
+Tools like **virtualspecies** (Leroy et al. 2016), **RangeShifter** (Bocedi et al. 2014), and **STEPS** (Visintin et al. 2020) model how species distributions shift in response to environmental gradients. Unlike the simulation models described above, SDMs can be fit statistically to occurrence or abundance data, estimating habitat relationships with quantified uncertainty — a genuine advantage when such data exist. They typically simulate one species at a time, however, without age structure, size-selective mortality, or economic behavior. `marlin`'s movement model, based on the continuous-time Markov chain framework of Thorson et al. (2021), uses scale-free parameters linkable to empirical tagging data and generates mechanistic co-distributions across multiple species in the same spatial domain. When a climate-driven range shift carries one species into greater spatial overlap with fleets targeting another, the bycatch consequences follow directly — without additional model coupling.
+
+### Stylized Analytical Models
+
+Stylized patch models (e.g., Hastings et al. 2017; Cabral et al. 2019; Sala et al. 2021) offer analytical tractability and global applicability, making them well suited to broad-scale policy screening and the derivation of general principles about spatial management. These models necessarily abstract away spatial dynamics, fleet heterogeneity, age structure, and multi-species technical interactions — simplifications that can be appropriate for the questions they are designed to answer. `marlin` is designed for a complementary set of questions where those details matter: for example, `marlin` case studies have shown that MPA outcomes can shift from win-win to lose-lose depending on the spatial allocation behavior of the fleets involved, a result that requires explicitly resolving fleet heterogeneity and multi-species dynamics.
+
+### Summary
+
+marlin's most distinctive contribution is to problems that are inherently multi-species and multi-fleet in space: bycatch, effort displacement, and the distributional consequences of management across species with different habitat affinities and fleets with different economic incentives. These problems can be computationally prohibitive in full end-to-end models and structurally underspecified in simpler frameworks. But the same features that make marlin useful for multi-species questions — age-structured populations, mechanistic habitat-driven movement, economic fleet dynamics, and sub-second run times once a simulation is configured — also make it a practical tool for simpler applications. A single-species, single-fleet MPA evaluation benefits from the same spatial population dynamics and effort reallocation logic; the multi-species machinery is available but not required. marlin can draw life history parameters automatically from FishLife (Thorson 2020), and individual simulation runs typically complete in under a second on a standard laptop, making it feasible to explore large parameter spaces or run Monte Carlo experiments without specialized computing infrastructure. Like all models in this space, its parameters must be set by the user rather than estimated from data — it is a tool for exploring the consequences of assumptions, not for making statistical inferences about them. It is particularly well suited to management strategy evaluation, MPA design, dynamic ocean management, and examining how interacting ecological and economic dynamics shape outcomes across species and fleets.
+
+## References
+
+Audzijonyte, A., Pethybridge, H., Porobic, J., Gorton, R., Kaplan, I., & Fulton, E. A. (2019). Atlantis: A spatially explicit end‐to‐end marine ecosystem model with dynamically integrated physics, ecology and socio‐economic modules. *Methods in Ecology and Evolution*, 10(10), 1814–1819. https://doi.org/10.1111/2041-210X.13272
+
+Bailey, R. M., Carrella, E., Axtell, R., Burgess, M. G., Cabral, R. B., Drexler, M., Dorsett, C., Madsen, J. K., Merkl, A., & Saul, S. (2019). A computational approach to managing coupled human–environmental systems: the POSEIDON model of ocean fisheries. *Sustainability Science*, 14(2), 259–275. https://doi.org/10.1007/s11625-018-0579-9
+
+Bastardie, F., Nielsen, J. R., & Miethe, T. (2014). DISPLACE: a dynamic, individual-based model for spatial fishing planning and effort displacement — integrating underlying fish population models. *Canadian Journal of Fisheries and Aquatic Sciences*, 71(3), 366–386. https://doi.org/10.1139/cjfas-2013-0126
+
+Bocedi, G., Palmer, S. C. F., Pe'er, G., Heikkinen, R. K., Matsinos, Y. G., Watts, K., & Travis, J. M. J. (2014). RangeShifter: a platform for modelling spatial eco-evolutionary dynamics and species' responses to environmental changes. *Methods in Ecology and Evolution*, 5(4), 388–396. https://doi.org/10.1111/2041-210X.12162
+
+Cabral, R. B., Mayorga, J., Clemence, M., Lynham, J., Koeshendrajana, S., Muawanah, U., Nugroho, D., Anna, Z., Mira, Ghofar, A., Zulbainarni, N., Gaines, S. D., & Costello, C. (2019). Rapid and lasting gains from solving illegal fishing. *Nature Ecology & Evolution*, 2(4), 650–658. https://doi.org/10.1038/s41559-018-0499-1
+
+Christensen, V., & Walters, C. J. (2004). Ecopath with Ecosim: methods, capabilities and limitations. *Ecological Modelling*, 172(2–4), 109–139. https://doi.org/10.1016/j.ecolmodel.2003.09.003
+
+Hastings, A., Gaines, S. D., & Costello, C. (2017). Marine reserves solve an important bycatch problem in fisheries. *Proceedings of the National Academy of Sciences*, 114(34), 8927–8934. https://doi.org/10.1073/pnas.1705169114
+
+Lehodey, P., Senina, I., & Murtugudde, R. (2008). A spatial ecosystem and populations dynamics model (SEAPODYM) — modeling of tuna and tuna-like populations. *Progress in Oceanography*, 78(4), 304–318. https://doi.org/10.1016/j.pocean.2008.06.004
+
+Leroy, B., Meynard, C. N., Bellard, C., & Courchamp, F. (2016). virtualspecies, an R package to generate virtual species distributions. *Ecography*, 39(6), 599–607. https://doi.org/10.1111/ecog.01388
+
+Sala, E., Mayorga, J., Bradley, D., Cabral, R. B., Atwood, T. B., Auber, A., Cheung, W., Costello, C., Ferretti, F., Friedlander, A. M., Gaines, S. D., Garilao, C., Goodell, W., Halpern, B. S., Hinson, A., Kaschner, K., Kesner-Reyes, K., Leprieur, F., McGowan, J., … Lubchenco, J. (2021). Protecting the global ocean for biodiversity, food and climate. *Nature*, 592, 397–402. https://doi.org/10.1038/s41586-021-03371-z
+
+Shin, Y.-J., & Cury, P. (2001). Exploring fish community dynamics through size-dependent trophic interactions using a spatialized individual-based model. *Aquatic Living Resources*, 14(2), 65–80. https://doi.org/10.1016/S0990-7440(01)01106-8
+
+Thorson, J. T. (2020). Predicting recruitment density dependence and intrinsic growth rate for all fishes worldwide using a data-integrated life-history model. *Fish and Fisheries*, 21(2), 237–251. https://doi.org/10.1111/faf.12427
+
+Thorson, J. T., Barbeaux, S. J., Goethel, D. R., Kearney, K. A., Laman, E. A., Nielsen, J. K., Siskey, M. R., Siwicke, K., & Thompson, G. G. (2021). Estimating fine-scale movement rates and habitat preferences using continuous-time movement models. *Fish and Fisheries*, 22(5), 1224–1250. https://doi.org/10.1111/faf.12592
+
+Visintin, C., Golding, N., Guillera-Arroita, G., Tingley, R., & McCarthy, M. A. (2020). Fast and accurate simulations of individual-based models using the STEPS software. *Methods in Ecology and Evolution*, 11(1), 139–154. https://doi.org/10.1111/2041-210X.13265
