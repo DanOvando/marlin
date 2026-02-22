@@ -387,4 +387,3 @@ This vignette covered the basics. `marlin` has a lot more to offer — here are 
 
 - [Management Strategy Evaluation](MSE.html) — running `simmar` iteratively with adaptive management
 - [Measure MPA Gradients](measure_gradients.html) — quantifying spillover and edge effects
-- [Tune Home Range](tune_home_range.html) — calibrating movement parameters

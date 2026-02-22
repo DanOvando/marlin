@@ -484,6 +484,3 @@ here are the vignettes to explore next depending on what you need:
 - [Measure MPA
   Gradients](https://danovando.github.io/marlin/articles/measure_gradients.md)
   — quantifying spillover and edge effects
-- [Tune Home
-  Range](https://danovando.github.io/marlin/articles/tune_home_range.md)
-  — calibrating movement parameters

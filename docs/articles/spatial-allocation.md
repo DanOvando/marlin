@@ -814,11 +814,11 @@ knitr::kable(runtime,
 
 | Scenario               | Seconds | Years | Sec/Year | Relative to fastest |
 |:-----------------------|--------:|------:|---------:|--------------------:|
-| rpue / revenue         |    0.12 |    20 |     0.01 |                   1 |
-| ppue / profit          |    0.10 |    20 |     0.01 |                   1 |
-| marginal_profit / rpue |    0.34 |    20 |     0.02 |                   2 |
-| open_access (ppue)     |    0.25 |    50 |     0.01 |                   1 |
-| sole_owner (ppue)      |    0.79 |    50 |     0.02 |                   2 |
+| rpue / revenue         |    0.11 |    20 |     0.01 |                 Inf |
+| ppue / profit          |    0.09 |    20 |     0.00 |                 NaN |
+| marginal_profit / rpue |    0.31 |    20 |     0.02 |                 Inf |
+| open_access (ppue)     |    0.23 |    50 |     0.00 |                 NaN |
+| sole_owner (ppue)      |    0.74 |    50 |     0.01 |                 Inf |
 
 Wall-clock time for simmar() by scenario. Sec/Year normalizes for
 different run lengths.
