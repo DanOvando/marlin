@@ -610,65 +610,6 @@ Total catch over time by scenario. The dashed line marks MPA
 implementation. Catch may decline initially as effort is displaced from
 productive patches, then partially recover as biomass rebuilds.
 
-## Interpreting the Results
-
-The five density dependence forms interact with dispersal distance to
-produce qualitatively different MPA outcomes:
-
-**Global Habitat** (`global_habitat`): Total recruitment depends on
-system-wide SSB, and new recruits are distributed proportionally to
-recruitment habitat quality. Since the MPA protects good recruitment
-habitat, it preserves the patches that receive the most recruits.
-Dispersal distance is irrelevant here because recruit placement is
-determined by habitat, not by larval movement. The MPA acts as a
-“recruitment bank” — biomass builds inside, and the population benefits
-through the global stock-recruit relationship.
-
-**Local Habitat** (`local_habitat`): Each patch has its own
-stock-recruit relationship, and recruits stay in their home patch. This
-is the strongest case for local accumulation: protected patches with
-good recruitment habitat rebuild quickly, but benefits don’t export. The
-MPA functions as a local refuge. Dispersal distance again has limited
-effect since recruits don’t move under this form.
-
-**Pre-dispersal** (`pre_dispersal`): Density-dependent competition
-happens locally (in the spawning patch) *before* larvae disperse. This
-means that the competitive bottleneck is set by local SSB relative to
-local carrying capacity. After competition, surviving recruits spread
-according to `recruit_home_range`. With short dispersal, benefits stay
-local. With long dispersal, the MPA becomes a *larval source* — it
-subsidizes fished patches with recruits that survived competition in a
-productive, unfished environment.
-
-**Post-dispersal** (`post_dispersal`): Larvae disperse *first*, then
-face density-dependent competition at their settlement patch. The key
-difference from pre-dispersal: competition is based on SSB *at the
-destination*, not the origin. With high dispersal, larvae from MPA
-patches spread across the domain and then compete with local spawners
-everywhere. This dilutes the MPA advantage because recruits from
-protected areas face the same competitive environment as those from
-fished areas.
-
-**Global SSB** (`global_ssb`): Total recruitment depends on system-wide
-SSB (like `global_habitat`), but recruits are distributed in proportion
-to the local SSB distribution rather than habitat quality. This creates
-a positive feedback: patches with more SSB get more recruits, which
-creates more SSB. The MPA amplifies this feedback by maintaining high
-SSB inside, attracting a disproportionate share of recruits. Dispersal
-distance doesn’t apply since spatial allocation is based on SSB shares.
-
-### The Key Takeaway
-
-The interaction between *when* density dependence occurs and *how far*
-recruits travel determines whether an MPA acts as a **local refuge**
-(accumulating biomass inside) or a **larval source** (exporting
-recruitment benefits to fished areas). Pre-dispersal density dependence
-with high dispersal is the most favorable scenario for MPA spillover via
-recruitment: competition happens locally where the MPA keeps SSB high,
-and then surviving larvae spread widely. Post-dispersal density
-dependence with high dispersal is less favorable because the MPA’s
-competitive advantage is diluted at settlement.
-
 ## Next Steps
 
 This vignette focused on recruitment mechanics in isolation. In reality,
