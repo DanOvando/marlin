@@ -1014,10 +1014,24 @@ Fish <- R6::R6Class(
         dplyr::mutate(
           patch = 1:dplyr::n(),
           n = 0,
-          rec_n = 0
+          rec_n = 0, 
+          r0s = critter$r0s # add r0s as a proxy for land areas
         )
+      
+        # Calculate total absolute distance from mean 
+      grid <- grid %>% 
+        mutate(dist = abs(grid$x - round(mean(grid$x))) + abs(grid$y - round(mean(grid$y))))
 
-      middle <- which(grid$x == round(mean(grid$x)) & grid$y == round(mean(grid$y)))
+      # Grab the cell that's closest to the middle
+      middle <- which(grid$dist == min(grid$dist))
+      
+      # If this cell contains land, grab a cell that is at least 3 
+      # locations away and does not contain land
+      if(grid$r0s[middle] == 0) { 
+        middle <- which(grid$dist == 3 & grid$r0s > 0)[1]
+      } 
+      
+      grid <- grid %>% select(-r0s)
 
       x_center <- grid$x[middle]
 
@@ -1143,3 +1157,4 @@ Fish <- R6::R6Class(
     } # close swim
   ) # close public
 ) # close object
+
