@@ -180,27 +180,26 @@ create_critter <- function(common_name = NA,
   
   # Create checks for land (NAs) in habitat layers 
   ## Find NAs in adult habitat layers - should be the same for each 
-  ## item in the list
-  habitat_NAs <- purrr::map(.x = 1:length(habitat), 
-                            .f = ~{
-                              df <- habitat[[.x]] |>
-                                as.data.frame() |>
-                                dplyr::mutate(x = 1:dim(habitat[[.x]])[1]) |>
-                                tidyr::pivot_longer(-x, names_to = "y") |>
-                                dplyr::mutate(y = as.numeric(gsub("V", "", y))) |>
-                                dplyr::arrange(x, y) 
-                              
-                              which(is.na(df$value))
-                            }) |> 
-    unlist() |>
-    unique()
+  ## item in the list so we can just use the first item
+  habitat_NAs <- habitat[[1]] |>
+    as.data.frame() |>
+    dplyr::mutate(y = dplyr::n():1) |>
+    tidyr::pivot_longer(-y, values_to = "value") |>
+    dplyr::group_by(y) |>
+    dplyr::mutate(x = dplyr::row_number()) |>
+    dplyr::ungroup() |>
+    dplyr::arrange(x, y)
+  
+  habitat_NAs <- which(is.na(habitat_NAs$value))
   
   ## Find NAs in recruit habitat layer
   recruit_habitat_NAs <- recruit_habitat |>
     as.data.frame() |>
-    dplyr::mutate(x = 1:dim(recruit_habitat)[1]) |>
-    tidyr::pivot_longer(-x, names_to = "y") |>
-    dplyr::mutate(y = as.numeric(gsub("V", "", y))) |>
+    dplyr::mutate(y = dplyr::n():1) |>
+    tidyr::pivot_longer(-y, values_to = "value") |>
+    dplyr::group_by(y) |>
+    dplyr::mutate(x = dplyr::row_number()) |>
+    dplyr::ungroup() |>
     dplyr::arrange(x, y)
   
   recruit_habitat_NAs <- which(is.na(recruit_habitat_NAs$value))
