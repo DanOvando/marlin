@@ -1019,8 +1019,8 @@ Fish <- R6::R6Class(
         )
       
         # Calculate total absolute distance from mean 
-      grid <- grid %>% 
-        mutate(dist = abs(grid$x - round(mean(grid$x))) + abs(grid$y - round(mean(grid$y))))
+      grid <- grid |>
+        dplyr::mutate(dist = abs(grid$x - round(mean(grid$x))) + abs(grid$y - round(mean(grid$y))))
 
       # Grab the cell that's closest to the middle
       middle <- which(grid$dist == min(grid$dist))
@@ -1031,7 +1031,7 @@ Fish <- R6::R6Class(
         middle <- which(grid$dist == 3 & grid$r0s > 0)[1]
       } 
       
-      grid <- grid %>% select(-r0s)
+      grid <- grid |> dplyr::select(-r0s)
 
       x_center <- grid$x[middle]
 
