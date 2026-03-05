@@ -177,6 +177,58 @@ create_critter <- function(common_name = NA,
   if (!is.list(habitat)) {
     habitat <- list(habitat)
   }
+  
+  # Create checks for land (NAs) in habitat layers 
+  ## Find NAs in adult habitat layers - should be the same for each 
+  ## item in the list
+  habitat_NAs <- purrr::map(.x = 1:length(habitat), 
+                            .f = ~{
+                              df <- habitat[[.x]] |>
+                                as.data.frame() |>
+                                dplyr::mutate(x = 1:dim(habitat[[.x]])[1]) |>
+                                tidyr::pivot_longer(-x, names_to = "y") |>
+                                dplyr::mutate(y = as.numeric(gsub("V", "", y))) |>
+                                dplyr::arrange(x, y) 
+                              
+                              which(is.na(df$value))
+                            }) |> 
+    unlist() |>
+    unique()
+  
+  ## Find NAs in recruit habitat layer
+  recruit_habitat_NAs <- recruit_habitat |>
+    as.data.frame() |>
+    dplyr::mutate(x = 1:dim(recruit_habitat)[1]) |>
+    tidyr::pivot_longer(-x, names_to = "y") |>
+    dplyr::mutate(y = as.numeric(gsub("V", "", y))) |>
+    dplyr::arrange(x, y)
+  
+  recruit_habitat_NAs <- which(is.na(recruit_habitat_NAs$value))
+  
+  ## If one has NAs and one doesn't (due to forgetfullness) - 
+  ## add the NAs and add a warning
+  if(length(recruit_habitat_NAs) == 0 & length(habitat_NAs) > 0) { 
+    recruit_habitat[habitat_NAs] <- NA
+    warning("Land areas (NAs) are present in the adult habitat layer, but not the recruit habitat layer. Adding land areas to recruit habitat layer...")
+    recruit_habitat_NAs <- habitat_NAs
+  }
+  
+  if(length(recruit_habitat_NAs) > 0 & length(habitat_NAs) == 0) { 
+    habitat <- purrr::map(.x = 1:length(habitat), 
+                          .f = ~{
+                            habitat[[.x]][recruit_habitat_NAs] <- NA
+                            habitat[[.x]]
+                            })
+    warning("Land areas (NAs) are present in the recruit habitat layer, but not the adult habitat layer. Adding land areas to adult habitat layer...")
+    habitat_NAs <- recruit_habitat_NAs
+  }
+  
+  ## If the locations of NAs are different, throw an error
+  if(length(habitat_NAs) > 0 & length(recruit_habitat_NAs) > 0 & (!identical(sort(habitat_NAs), sort(recruit_habitat_NAs)))) { 
+    stop("Land areas (NAs) must be identical in the supplied adult and recruit habitat layers")
+  }
+
+  
   if (!is.null(f)){
     init_explt = f
   }
