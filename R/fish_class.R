@@ -353,20 +353,24 @@ Fish <- R6::R6Class(
       #
       # es <- prod(resolution)
 
-      if (!is.na(scientific_name) & get_common_name == TRUE) {
-        common_name <-
-          taxize::sci2comm(scientific_name, db = "worms")[[1]][1]
-      }
+      # Taxonomic lookups and FishLife queries are gated by query_fishlife.
+      # When query_fishlife = FALSE, no network calls happen at all.
+      if (query_fishlife) {
+        if (!is.na(scientific_name) & get_common_name == TRUE) {
+          common_name <-
+            taxize::sci2comm(scientific_name, db = "worms")[[1]][1]
+        }
 
-      if (is.na(scientific_name) &
-        !is.na(common_name)) {
-        scientific_name <-
-          taxize::comm2sci(common_name, db = "worms")[[1]][1]
+        if (is.na(scientific_name) &
+          !is.na(common_name)) {
+          scientific_name <-
+            taxize::comm2sci(common_name, db = "worms")[[1]][1]
+        }
       }
 
       # check fishlife -------------
-      if (is.na(scientific_name) == F &
-        query_fishlife == T) {
+      if (!is.na(scientific_name) &
+        query_fishlife == TRUE) {
         sq <- purrr::safely(purrr::quietly(get_traits))
 
 
@@ -475,6 +479,48 @@ Fish <- R6::R6Class(
           m <- fish_life$m
         }
       } # close fishlife query
+
+      # Validate required life-history parameters --------------------------------
+      # Parameters differ by growth model. User-supplied values are never
+      # overwritten; this block only checks that the needed values are present.
+
+      missing_params <- character(0)
+
+      # Growth-model-specific requirements
+      if (growth_model == "von_bertalanffy") {
+        if (is.na(linf)) missing_params <- c(missing_params, "linf")
+        if (is.na(vbk)) missing_params <- c(missing_params, "vbk")
+      }
+      # "power" and "growth_cessation" params have non-NA defaults in the
+      # function signature, so they are always present unless the user
+      # explicitly passes NA.
+
+      # Common requirements
+      if (is.na(weight_a)) missing_params <- c(missing_params, "weight_a")
+      if (is.na(weight_b)) missing_params <- c(missing_params, "weight_b")
+      if (is.null(m_at_age) && is.na(m)) missing_params <- c(missing_params, "m")
+
+      # Maturity: need at least one specification
+      has_maturity <- !is.na(age_mature) ||
+        (!is.na(age_50_mature) && !is.na(age_95_mature)) ||
+        !is.na(length_50_mature)
+      if (!has_maturity) {
+        missing_params <- c(missing_params,
+          "age_mature (or age_50_mature + age_95_mature, or length_50_mature)")
+      }
+
+      if (length(missing_params) > 0) {
+        stop(
+          "The following required life-history parameters are missing: ",
+          paste(missing_params, collapse = ", "), ".\n",
+          if (!query_fishlife) {
+            "Set query_fishlife = TRUE to fill them from FishLife, or supply them manually."
+          } else {
+            "FishLife lookup did not return values for these parameters. Supply them manually."
+          },
+          call. = FALSE
+        )
+      }
 
       # if there still is no max age, guess it based on natural mortality
       if (is.na(max_age)) {

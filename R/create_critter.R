@@ -88,9 +88,38 @@
 #'   Used only when \code{recruit_home_range} is \code{NULL}.
 #' @param burn_years Integer. Number of years to burn in the unfished
 #'   population to equilibrium before starting the simulation. Default 50.
+#' @param query_fishlife Logical. If \code{TRUE} (default), missing life
+#'   history parameters are looked up from FishLife (requires internet for
+#'   taxonomic resolution via taxize). If \code{FALSE}, no external lookups
+#'   are performed; all required parameters must be supplied by the user.
+#'   User-supplied values always take precedence over FishLife regardless of
+#'   this setting.
+#' @param linf Numeric or \code{NA}. Asymptotic length (L-infinity) in a
+#'   von Bertalanffy growth model. Looked up from FishLife when \code{NA}
+#'   and \code{query_fishlife = TRUE}. Required when
+#'   \code{growth_model = "von_bertalanffy"}.
+#' @param vbk Numeric or \code{NA}. Growth rate parameter (k) in a
+#'   von Bertalanffy growth model. Looked up from FishLife when \code{NA}.
+#' @param t0 Numeric. Hypothetical age at length zero. Default \code{-0.5}.
 #' @param weight_a Numeric or \code{NA}. Intercept alpha in the allometric
 #'   weight-at-length relationship \eqn{W = \alpha L^\beta}. Looked up from
 #'   FishLife when \code{NA}.
+#' @param weight_b Numeric or \code{NA}. Exponent beta in the allometric
+#'   weight-at-length relationship. Looked up from FishLife when \code{NA}.
+#' @param m Numeric or \code{NA}. Instantaneous natural mortality rate.
+#'   When \code{lorenzen_m = TRUE} (default in Fish), this is the asymptotic
+#'   natural mortality. Looked up from FishLife when \code{NA}.
+#' @param max_age Numeric or \code{NA}. Maximum age tracked by the model
+#'   (plus group). Looked up from FishLife when \code{NA}; if still missing,
+#'   computed as \code{-log(0.05) / m}.
+#' @param age_mature Numeric or \code{NA}. Age at 50\% maturity (shorthand
+#'   for \code{age_50_mature}). Looked up from FishLife when \code{NA}.
+#'   At least one maturity specification (\code{age_mature},
+#'   \code{age_50_mature + age_95_mature}, or \code{length_50_mature}) is
+#'   required.
+#' @param length_50_mature Numeric or \code{NA}. Length at 50\% maturity.
+#'   Looked up from FishLife when \code{NA}. Used when maturity is
+#'   length-based.
 #' @param fec_expo Numeric. Exponent for the fecundity-weight relationship.
 #'   Values > 1 produce hyperallometric fecundity. Default \code{1}.
 #' @param resolution Integer scalar or length-2 integer vector \code{c(nx, ny)}
@@ -108,10 +137,7 @@
 #'   \code{"von_bertalanffy"} (default), \code{"power"}, or
 #'   \code{"growth_cessation"}.
 #' @param ... Additional parameters forwarded to the \code{\link{Fish}} R6
-#'   class constructor. Common options include \code{k}, \code{linf},
-#'   \code{t0}, \code{m}, \code{age_mature}, \code{weight_b}, \code{ssb0},
-#'   \code{sigma_rec} (recruitment standard deviation), and \code{ac_rec}
-#'   (recruitment autocorrelation). See \code{?Fish} for the full list.
+#'   class constructor. See \code{?Fish} for the full list.
 #'
 #' @return An R6 \code{Fish} object containing the age-structured population
 #'   state at unfished equilibrium, movement matrices, life-history schedules,
@@ -148,6 +174,7 @@
 create_critter <- function(common_name = NA,
                            scientific_name = NA,
                            get_common_name = FALSE,
+                           query_fishlife = TRUE,
                            critter_type = "fish",
                            habitat = list(),
                            season_blocks = list(),
@@ -165,7 +192,15 @@ create_critter <- function(common_name = NA,
                            f = NULL,
                            explt_type = "f",
                            burn_years = 50,
+                           linf = NA,
+                           vbk = NA,
+                           t0 = -0.5,
                            weight_a = NA,
+                           weight_b = NA,
+                           m = NA,
+                           max_age = NA,
+                           age_mature = NA,
+                           length_50_mature = NA,
                            fec_expo = 1,
                            resolution = c(10, 10),
                            patch_area = 1,
@@ -182,84 +217,83 @@ create_critter <- function(common_name = NA,
   ## Find NAs in adult habitat layers - should be the same for each
   ## item in the list so we can just use the first item
 
-  if (!rlang::is_empty(habitat)){
-  habitat_df <- habitat[[1]] |>
-    as.data.frame() |>
-    dplyr::mutate(y = dplyr::n():1) |>
-    tidyr::pivot_longer(-y, values_to = "value") |>
-    dplyr::group_by(y) |>
-    dplyr::mutate(x = dplyr::row_number()) |>
-    dplyr::ungroup() |>
-    dplyr::arrange(x, y)
+  # Reconcile land (NA) cells between habitat and recruit_habitat.
+  # Only run when both habitat and recruit_habitat are real matrices;
+  # when recruit_habitat is NA (the default), Fish$new() will replace it
+  # with a uniform matrix and zero out land cells itself.
+  has_habitat <- !rlang::is_empty(habitat)
+  has_recruit_habitat <- is.matrix(recruit_habitat)
 
-  habitat_NAs <- which(is.na(habitat_df$value))
+  if (has_habitat && has_recruit_habitat) {
+    habitat_df <- habitat[[1]] |>
+      as.data.frame() |>
+      dplyr::mutate(y = dplyr::n():1) |>
+      tidyr::pivot_longer(-y, values_to = "value") |>
+      dplyr::group_by(y) |>
+      dplyr::mutate(x = dplyr::row_number()) |>
+      dplyr::ungroup() |>
+      dplyr::arrange(x, y)
 
-  ## Find NAs in recruit habitat layer
-  recruit_habitat_df <- recruit_habitat |>
-    as.data.frame() |>
-    dplyr::mutate(y = dplyr::n():1) |>
-    tidyr::pivot_longer(-y, values_to = "value") |>
-    dplyr::group_by(y) |>
-    dplyr::mutate(x = dplyr::row_number()) |>
-    dplyr::ungroup() |>
-    dplyr::arrange(x, y)
+    habitat_NAs <- which(is.na(habitat_df$value))
 
-  recruit_habitat_NAs <- which(is.na(recruit_habitat_df$value))
+    ## Find NAs in recruit habitat layer
+    recruit_habitat_df <- recruit_habitat |>
+      as.data.frame() |>
+      dplyr::mutate(y = dplyr::n():1) |>
+      tidyr::pivot_longer(-y, values_to = "value") |>
+      dplyr::group_by(y) |>
+      dplyr::mutate(x = dplyr::row_number()) |>
+      dplyr::ungroup() |>
+      dplyr::arrange(x, y)
 
-  ## If one has NAs and one doesn't (due to forgetfullness) -
-  ## add the NAs and add a warning
-  if(length(recruit_habitat_NAs) == 0 & length(habitat_NAs) > 0) {
-    # Add NAs to the data.frame
-    recruit_habitat_df$value[habitat_NAs] <- NA
+    recruit_habitat_NAs <- which(is.na(recruit_habitat_df$value))
 
-    # Re-arrange for proper matricing
-    recruit_habitat_df <- recruit_habitat_df %>%
-      dplyr::arrange(x, desc(y))
+    ## If one has NAs and the other doesn't (due to forgetfulness) -
+    ## add the NAs and add a warning
+    if (length(recruit_habitat_NAs) == 0 & length(habitat_NAs) > 0) {
+      recruit_habitat_df$value[habitat_NAs] <- NA
 
-    # Overwrite original habitat using the new one
-    recruit_habitat <- matrix(recruit_habitat_df$value,
-                              nrow = length(unique(recruit_habitat_df$y)),
-                              ncol = length(unique(recruit_habitat_df$x)))
+      recruit_habitat_df <- recruit_habitat_df %>%
+        dplyr::arrange(x, desc(y))
 
-    warning("Land areas (NAs) are present in the adult habitat layer, but not the recruit habitat layer. Adding land areas to recruit habitat layer...")
-    recruit_habitat_NAs <- habitat_NAs
-  }
+      recruit_habitat <- matrix(recruit_habitat_df$value,
+                                nrow = length(unique(recruit_habitat_df$y)),
+                                ncol = length(unique(recruit_habitat_df$x)))
 
-  if(length(recruit_habitat_NAs) > 0 & length(habitat_NAs) == 0) {
-    # This one is a little trickier since it can be a list with many layers
-    habitat <- purrr::map(.x = 1:length(habitat),
-                          .f = ~{
-                            temp_df <- habitat |>
-                              as.data.frame() |>
-                              dplyr::mutate(y = dplyr::n():1) |>
-                              tidyr::pivot_longer(-y, values_to = "value") |>
-                              dplyr::group_by(y) |>
-                              dplyr::mutate(x = dplyr::row_number()) |>
-                              dplyr::ungroup() |>
-                              dplyr::arrange(x, y)
+      warning("Land areas (NAs) are present in the adult habitat layer, but not the recruit habitat layer. Adding land areas to recruit habitat layer...")
+      recruit_habitat_NAs <- habitat_NAs
+    }
 
-                            # Add NAs to the data.frame
-                            temp_df$value[recruit_habitat_NAs] <- NA
+    if (length(recruit_habitat_NAs) > 0 & length(habitat_NAs) == 0) {
+      habitat <- purrr::map(.x = seq_along(habitat),
+                            .f = ~{
+                              temp_df <- habitat[[.x]] |>
+                                as.data.frame() |>
+                                dplyr::mutate(y = dplyr::n():1) |>
+                                tidyr::pivot_longer(-y, values_to = "value") |>
+                                dplyr::group_by(y) |>
+                                dplyr::mutate(x = dplyr::row_number()) |>
+                                dplyr::ungroup() |>
+                                dplyr::arrange(x, y)
 
-                            # Re-arrange for proper matricing
-                            temp_df <- temp_df %>%
-                              dplyr::arrange(x, desc(y))
+                              temp_df$value[recruit_habitat_NAs] <- NA
 
-                            # Overwrite original habitat using the new one
-                           matrix(temp_df$value,
-                                  nrow = length(unique(temp_df$y)),
-                                  ncol = length(unique(temp_df$x)))
+                              temp_df <- temp_df %>%
+                                dplyr::arrange(x, desc(y))
+
+                              matrix(temp_df$value,
+                                     nrow = length(unique(temp_df$y)),
+                                     ncol = length(unique(temp_df$x)))
                             })
-    warning("Land areas (NAs) are present in the recruit habitat layer, but not the adult habitat layer. Adding land areas to adult habitat layer...")
-    habitat_NAs <- recruit_habitat_NAs
-  }
+      warning("Land areas (NAs) are present in the recruit habitat layer, but not the adult habitat layer. Adding land areas to adult habitat layer...")
+      habitat_NAs <- recruit_habitat_NAs
+    }
 
-  ## If the locations of NAs are different, throw an error
-  if(length(habitat_NAs) > 0 & length(recruit_habitat_NAs) > 0 & (!identical(sort(habitat_NAs), sort(recruit_habitat_NAs)))) {
-    stop("Land areas (NAs) must be identical in the supplied adult and recruit habitat layers")
+    ## If the locations of NAs are different, throw an error
+    if (length(habitat_NAs) > 0 & length(recruit_habitat_NAs) > 0 & (!identical(sort(habitat_NAs), sort(recruit_habitat_NAs)))) {
+      stop("Land areas (NAs) must be identical in the supplied adult and recruit habitat layers")
+    }
   }
-
-  } # close if there is habitat to evaluate
 
   if (!is.null(f)){
     init_explt = f
@@ -281,6 +315,7 @@ create_critter <- function(common_name = NA,
       marlin::Fish$new(
         common_name = common_name,
         scientific_name = scientific_name,
+        query_fishlife = query_fishlife,
         habitat = habitat,
         season_blocks = season_blocks,
         recruit_habitat = recruit_habitat,
@@ -289,7 +324,15 @@ create_critter <- function(common_name = NA,
         lorenzen_c = lorenzen_c,
         fec_form = fec_form,
         fec_expo = fec_expo,
+        linf = linf,
+        vbk = vbk,
+        t0 = t0,
         weight_a = weight_a,
+        weight_b = weight_b,
+        m = m,
+        max_age = max_age,
+        age_mature = age_mature,
+        length_50_mature = length_50_mature,
         depletion = depletion,
         adult_home_range = adult_home_range,
         recruit_home_range = recruit_home_range,

@@ -679,11 +679,10 @@ plot_marlin(proc_offshore_mpa)
 ```
 
 
+Effects of nearshore MPAs when sharks live nearshore
 
 ```{r}
 plot_marlin(
-  `MPA: Sharks Offshore` = proc_offshore_mpa,
-  `No MPA: Sharks Offshoe` = proc_offshore,
   `No MPA: Sharks Nearshore` = proc_nearshore,
   `MPA: Sharks Nearshore` = proc_nearshore_mpa,
   steps_to_plot = NA,
@@ -691,6 +690,21 @@ plot_marlin(
   max_scale = FALSE
 )
 ```
+
+Effects of nearshore MPAs when sharks live offshore
+
+
+```{r}
+plot_marlin(
+  `MPA: Sharks Offshore` = proc_offshore_mpa,
+  `No MPA: Sharks Offshoe` = proc_offshore,
+  steps_to_plot = NA,
+  plot_var = "ssb",
+  max_scale = FALSE
+)
+```
+
+
 
 ```{r}
 plot_marlin(
