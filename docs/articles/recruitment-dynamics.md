@@ -58,12 +58,12 @@ N_{t,p,a=1} = \left( \frac{0.8 \times r0_p \times h \times \text{SSB}_{t-1,p}}{0
 ```
 
 This is the most spatially conservative form: what happens in a patch
-stays in that patch. Each patch’s carrying capacity is set by its own
-$`r0_p`$ and $`\text{SSB0}_p`$. As with `global_habitat`,
-`recruit_home_range` does not affect the spatial distribution of
-recruits because they are assigned to their home patch. This form is
-appropriate for sedentary species with limited larval dispersal where
-local density dependence is strong.
+stays in that patch from the perspective of recruitment. Each patch’s
+carrying capacity is set by its own $`r0_p`$ and $`\text{SSB0}_p`$. As
+with `global_habitat`, `recruit_home_range` does not affect the spatial
+distribution of recruits because they are assigned to their home patch.
+This form is appropriate for sedentary species with limited larval
+dispersal where local density dependence is strong.
 
 ### 3. Pre-Dispersal (`pre_dispersal`)
 
@@ -76,15 +76,16 @@ N_{t,p,a=1} = \left( \frac{0.8 \times r0_p \times h \times \text{SSB}_{t-1,p}}{0
 ```
 
 The competitive bottleneck is set by conditions at the origin patch.
-This matters for MPAs: a protected patch with high SSB produces recruits
-that survive the local density-dependent filter and then spread to
-neighboring (potentially fished) patches. In the case of an MPA acting
-as a *larval source*. `recruit_home_range` directly controls how far
-that subsidy reaches — short dispersal keeps benefits local, long
-dispersal spreads them across the domain. This timing of density
-dependence might be appropriate for spawning aggregations where density
-dependence happens as a result of predator aggregations on large
-spawning events.
+pre-dispersal density dependence will all else being equal dampen the
+effects of MPAs; as spawning biomass approaches carrying capacity inside
+the MPA, the marginal benefits to recruitment will decrease, as density
+dependent mortality of larvae will increase as the MPA fills up with
+biomass, reducing the value of the MPA as a larval source beyond a given
+point. `recruit_home_range` directly controls how far that subsidy
+reaches — short dispersal keeps dispersal local, long dispersal spreads
+them across the domain. This timing of density dependence might be
+appropriate for spawning aggregations where density dependence happens
+as a result of predator aggregations on large spawning events.
 
 ### 4. Post-Dispersal (`post_dispersal`)
 
@@ -101,7 +102,15 @@ N_{t,p,a=1} = \left( \frac{0.8 \times r0_p \times h \times \text{larv}_{t,p}}{0.
 ```
 
 The key distinction from pre-dispersal: competition is based on SSB at
-the settlement site, not the origin. Larvae from a protected MPA patch
+the settlement site, not the origin. All else being equal, this scenario
+will be more favorable to the ability of MPAs to act as larval sources.
+As biomass builds up inside the MPA, they produce more and more larvae.
+These larvae travel outside the MPA, where the amount that recruit
+depends on spawning biomass in the settlement patches, which are
+potentially outside the MPA. If fishing is heavy outside the MPA,
+driving spawning biomass well below carrying capacity, density dependent
+mortality will be low, so a the MPA can cause a large increase in
+recruitment in these fished patches. Larvae from a protected MPA patch
 disperse outward, but when they arrive at a fished (lower-SSB)
 destination they face the same density-dependent environment as
 locally-produced recruits. This could be a scenario where the key
@@ -218,7 +227,7 @@ indicate better nursery conditions.
 
 We protect the top 30% of patches ranked by recruitment habitat quality.
 This represents an MPA placed deliberately over the best nursery
-grounds, a common strategy in spatial planning.
+grounds.
 
 ``` r
 patches <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) |>
@@ -454,6 +463,7 @@ ggplot(ssb_time, aes(step, mean_ssb, color = mpa_status)) +
     values = c("Inside MPA" = "#1b9e77", "Outside MPA" = "#d95f02"),
     name = NULL
   ) +
+    scale_y_continuous(limits = c(0, NA)) +
   labs(
     x = "Year",
     y = "Mean SSB per patch",
@@ -489,6 +499,7 @@ ggplot(total_ssb, aes(step, total_ssb, color = rhr_label)) +
   geom_vline(xintercept = mpa_year, linetype = "dashed", color = "grey40") +
   facet_wrap(~dd_label, scales = "free_y", ncol = 5) +
   scale_color_brewer(palette = "Set1", name = "Recruit dispersal") +
+    scale_y_continuous(limits = c(0, NA)) +
   labs(
     x = "Year",
     y = "Total SSB (all patches)",
@@ -593,6 +604,7 @@ ggplot(total_catch, aes(step, total_catch, color = rhr_label)) +
   geom_vline(xintercept = mpa_year, linetype = "dashed", color = "grey40") +
   facet_wrap(~dd_label, scales = "free_y", ncol = 5) +
   scale_color_brewer(palette = "Set1", name = "Recruit dispersal") +
+  scale_y_continuous(limits = c(0, NA)) +
   labs(
     x = "Year",
     y = "Total Catch",

@@ -177,10 +177,12 @@ create_critter <- function(common_name = NA,
   if (!is.list(habitat)) {
     habitat <- list(habitat)
   }
-  
-  # Create checks for land (NAs) in habitat layers 
-  ## Find NAs in adult habitat layers - should be the same for each 
+
+  # Create checks for land (NAs) in habitat layers
+  ## Find NAs in adult habitat layers - should be the same for each
   ## item in the list so we can just use the first item
+
+  if (!rlang::is_empty(habitat)){
   habitat_df <- habitat[[1]] |>
     as.data.frame() |>
     dplyr::mutate(y = dplyr::n():1) |>
@@ -189,9 +191,9 @@ create_critter <- function(common_name = NA,
     dplyr::mutate(x = dplyr::row_number()) |>
     dplyr::ungroup() |>
     dplyr::arrange(x, y)
-  
+
   habitat_NAs <- which(is.na(habitat_df$value))
-  
+
   ## Find NAs in recruit habitat layer
   recruit_habitat_df <- recruit_habitat |>
     as.data.frame() |>
@@ -201,31 +203,31 @@ create_critter <- function(common_name = NA,
     dplyr::mutate(x = dplyr::row_number()) |>
     dplyr::ungroup() |>
     dplyr::arrange(x, y)
-  
+
   recruit_habitat_NAs <- which(is.na(recruit_habitat_df$value))
-  
-  ## If one has NAs and one doesn't (due to forgetfullness) - 
+
+  ## If one has NAs and one doesn't (due to forgetfullness) -
   ## add the NAs and add a warning
-  if(length(recruit_habitat_NAs) == 0 & length(habitat_NAs) > 0) { 
+  if(length(recruit_habitat_NAs) == 0 & length(habitat_NAs) > 0) {
     # Add NAs to the data.frame
     recruit_habitat_df$value[habitat_NAs] <- NA
-    
+
     # Re-arrange for proper matricing
-    recruit_habitat_df <- recruit_habitat_df %>% 
+    recruit_habitat_df <- recruit_habitat_df %>%
       dplyr::arrange(x, desc(y))
-    
+
     # Overwrite original habitat using the new one
-    recruit_habitat <- matrix(recruit_habitat_df$value, 
-                              nrow = length(unique(recruit_habitat_df$y)), 
+    recruit_habitat <- matrix(recruit_habitat_df$value,
+                              nrow = length(unique(recruit_habitat_df$y)),
                               ncol = length(unique(recruit_habitat_df$x)))
-    
+
     warning("Land areas (NAs) are present in the adult habitat layer, but not the recruit habitat layer. Adding land areas to recruit habitat layer...")
     recruit_habitat_NAs <- habitat_NAs
   }
-  
-  if(length(recruit_habitat_NAs) > 0 & length(habitat_NAs) == 0) { 
+
+  if(length(recruit_habitat_NAs) > 0 & length(habitat_NAs) == 0) {
     # This one is a little trickier since it can be a list with many layers
-    habitat <- purrr::map(.x = 1:length(habitat), 
+    habitat <- purrr::map(.x = 1:length(habitat),
                           .f = ~{
                             temp_df <- habitat |>
                               as.data.frame() |>
@@ -235,29 +237,30 @@ create_critter <- function(common_name = NA,
                               dplyr::mutate(x = dplyr::row_number()) |>
                               dplyr::ungroup() |>
                               dplyr::arrange(x, y)
-                            
+
                             # Add NAs to the data.frame
                             temp_df$value[recruit_habitat_NAs] <- NA
-                            
+
                             # Re-arrange for proper matricing
-                            temp_df <- temp_df %>% 
+                            temp_df <- temp_df %>%
                               dplyr::arrange(x, desc(y))
-                            
+
                             # Overwrite original habitat using the new one
                            matrix(temp_df$value,
-                                  nrow = length(unique(temp_df$y)), 
+                                  nrow = length(unique(temp_df$y)),
                                   ncol = length(unique(temp_df$x)))
                             })
     warning("Land areas (NAs) are present in the recruit habitat layer, but not the adult habitat layer. Adding land areas to adult habitat layer...")
     habitat_NAs <- recruit_habitat_NAs
   }
-  
+
   ## If the locations of NAs are different, throw an error
-  if(length(habitat_NAs) > 0 & length(recruit_habitat_NAs) > 0 & (!identical(sort(habitat_NAs), sort(recruit_habitat_NAs)))) { 
+  if(length(habitat_NAs) > 0 & length(recruit_habitat_NAs) > 0 & (!identical(sort(habitat_NAs), sort(recruit_habitat_NAs)))) {
     stop("Land areas (NAs) must be identical in the supplied adult and recruit habitat layers")
   }
 
-  
+  } # close if there is habitat to evaluate
+
   if (!is.null(f)){
     init_explt = f
   }

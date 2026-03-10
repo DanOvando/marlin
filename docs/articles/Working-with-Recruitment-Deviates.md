@@ -26,10 +26,10 @@ library(marlin)
 
 library(tidyverse)
 #> ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
-#> ✔ dplyr     1.2.0     ✔ readr     2.1.6
+#> ✔ dplyr     1.2.0     ✔ readr     2.2.0
 #> ✔ forcats   1.0.1     ✔ stringr   1.6.0
 #> ✔ ggplot2   4.0.2     ✔ tibble    3.3.1
-#> ✔ lubridate 1.9.4     ✔ tidyr     1.3.2
+#> ✔ lubridate 1.9.5     ✔ tidyr     1.3.2
 #> ✔ purrr     1.2.1     
 #> ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
 #> ✖ dplyr::filter() masks stats::filter()
@@ -134,7 +134,7 @@ recruitment_sim <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.1466789 secs
+#> Time difference of 0.1602409 secs
 
 sim <- process_marlin(recruitment_sim)
 
@@ -191,7 +191,7 @@ recruitment_sim <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.03935409 secs
+#> Time difference of 0.04309511 secs
 
 sim <- process_marlin(recruitment_sim)
 ```
@@ -257,7 +257,7 @@ recruitment_sim <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.1546321 secs
+#> Time difference of 0.160646 secs
 
 sim <- process_marlin(recruitment_sim)
 ```

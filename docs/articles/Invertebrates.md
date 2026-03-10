@@ -5,10 +5,10 @@ library(marlin)
 
 library(tidyverse)
 #> ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
-#> ✔ dplyr     1.2.0     ✔ readr     2.1.6
+#> ✔ dplyr     1.2.0     ✔ readr     2.2.0
 #> ✔ forcats   1.0.1     ✔ stringr   1.6.0
 #> ✔ ggplot2   4.0.2     ✔ tibble    3.3.1
-#> ✔ lubridate 1.9.4     ✔ tidyr     1.3.2
+#> ✔ lubridate 1.9.5     ✔ tidyr     1.3.2
 #> ✔ purrr     1.2.1     
 #> ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
 #> ✖ dplyr::filter() masks stats::filter()
@@ -168,6 +168,14 @@ fauna <-
       seasons = seasons
     )
   )
+#> Warning in create_critter(spawning_seasons = c(1:20), habitat =
+#> species_distributions$critter_distributions$squishy, : Land areas (NAs) are
+#> present in the recruit habitat layer, but not the adult habitat layer. Adding
+#> land areas to adult habitat layer...
+#> Warning in create_critter(spawning_seasons = c(21:40), habitat =
+#> species_distributions$critter_distributions$squashy, : Land areas (NAs) are
+#> present in the recruit habitat layer, but not the adult habitat layer. Adding
+#> land areas to adult habitat layer...
 
 fleets <- list(
   "artisanal" = create_fleet(list(
@@ -238,7 +246,7 @@ sels |>
 tic()
 squishy_sim <- simmar(fauna, fleets, years = years, cor_rec = critter_correlations)
 toc()
-#> 0.366 sec elapsed
+#> 0.505 sec elapsed
 processed_squishy <- process_marlin(sim = squishy_sim, time_step = time_step)
 ```
 

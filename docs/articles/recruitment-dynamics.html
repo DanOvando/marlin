@@ -157,7 +157,8 @@ Density dependence is purely local, and recruits remain in the patch
 where they were produced:</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>N</mi><mrow><mi>t</mi><mo>,</mo><mi>p</mi><mo>,</mo><mi>a</mi><mo>=</mo><mn>1</mn></mrow></msub><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mrow><mn>0.8</mn><mo>×</mo><mi>r</mi><msub><mn>0</mn><mi>p</mi></msub><mo>×</mo><mi>h</mi><mo>×</mo><msub><mtext mathvariant="normal">SSB</mtext><mrow><mi>t</mi><mo>−</mo><mn>1</mn><mo>,</mo><mi>p</mi></mrow></msub></mrow><mrow><mn>0.2</mn><mo>×</mo><msub><mtext mathvariant="normal">SSB0</mtext><mi>p</mi></msub><mo>×</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>h</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>h</mi><mo>−</mo><mn>0.2</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>×</mo><msub><mtext mathvariant="normal">SSB</mtext><mrow><mi>t</mi><mo>−</mo><mn>1</mn><mo>,</mo><mi>p</mi></mrow></msub></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mo>×</mo><msub><mi>ϵ</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">N_{t,p,a=1} = \left( \frac{0.8 \times r0_p \times h \times \text{SSB}_{t-1,p}}{0.2 \times \text{SSB0}_p \times (1 - h) + (h - 0.2) \times \text{SSB}_{t-1,p}} \right) \times \epsilon_t</annotation></semantics></math></p>
 <p>This is the most spatially conservative form: what happens in a patch
-stays in that patch. Each patch’s carrying capacity is set by its own
+stays in that patch from the perspective of recruitment. Each patch’s
+carrying capacity is set by its own
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><msub><mn>0</mn><mi>p</mi></msub></mrow><annotation encoding="application/x-tex">r0_p</annotation></semantics></math>
 and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mtext mathvariant="normal">SSB0</mtext><mi>p</mi></msub><annotation encoding="application/x-tex">\text{SSB0}_p</annotation></semantics></math>.
@@ -176,15 +177,17 @@ movement matrix
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>𝐝</mi><mi>l</mi></msup><annotation encoding="application/x-tex">\mathbf{d}^l</annotation></semantics></math>:</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>N</mi><mrow><mi>t</mi><mo>,</mo><mi>p</mi><mo>,</mo><mi>a</mi><mo>=</mo><mn>1</mn></mrow></msub><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mrow><mn>0.8</mn><mo>×</mo><mi>r</mi><msub><mn>0</mn><mi>p</mi></msub><mo>×</mo><mi>h</mi><mo>×</mo><msub><mtext mathvariant="normal">SSB</mtext><mrow><mi>t</mi><mo>−</mo><mn>1</mn><mo>,</mo><mi>p</mi></mrow></msub></mrow><mrow><mn>0.2</mn><mo>×</mo><msub><mtext mathvariant="normal">SSB0</mtext><mi>p</mi></msub><mo>×</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>h</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>h</mi><mo>−</mo><mn>0.2</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>×</mo><msub><mtext mathvariant="normal">SSB</mtext><mrow><mi>t</mi><mo>−</mo><mn>1</mn><mo>,</mo><mi>p</mi></mrow></msub></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mo>×</mo><msup><mi>𝐝</mi><mi>l</mi></msup><mo>×</mo><msub><mi>ϵ</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">N_{t,p,a=1} = \left( \frac{0.8 \times r0_p \times h \times \text{SSB}_{t-1,p}}{0.2 \times \text{SSB0}_p \times (1 - h) + (h - 0.2) \times \text{SSB}_{t-1,p}} \right) \times \mathbf{d}^l \times \epsilon_t</annotation></semantics></math></p>
 <p>The competitive bottleneck is set by conditions at the origin patch.
-This matters for MPAs: a protected patch with high SSB produces recruits
-that survive the local density-dependent filter and then spread to
-neighboring (potentially fished) patches. In the case of an MPA acting
-as a <em>larval source</em>. <code>recruit_home_range</code> directly
-controls how far that subsidy reaches — short dispersal keeps benefits
-local, long dispersal spreads them across the domain. This timing of
-density dependence might be appropriate for spawning aggregations where
-density dependence happens as a result of predator aggregations on large
-spawning events.</p>
+pre-dispersal density dependence will all else being equal dampen the
+effects of MPAs; as spawning biomass approaches carrying capacity inside
+the MPA, the marginal benefits to recruitment will decrease, as density
+dependent mortality of larvae will increase as the MPA fills up with
+biomass, reducing the value of the MPA as a larval source beyond a given
+point. <code>recruit_home_range</code> directly controls how far that
+subsidy reaches — short dispersal keeps dispersal local, long dispersal
+spreads them across the domain. This timing of density dependence might
+be appropriate for spawning aggregations where density dependence
+happens as a result of predator aggregations on large spawning
+events.</p>
 </div>
 <div class="section level3">
 <h3 id="post-dispersal-post_dispersal">4. Post-Dispersal (<code>post_dispersal</code>)<a class="anchor" aria-label="anchor" href="#post-dispersal-post_dispersal"></a>
@@ -196,8 +199,16 @@ and then density-dependent recruitment occurs at the
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mtext mathvariant="normal">larv</mtext><mrow><mi>t</mi><mo>,</mo><mi>p</mi></mrow></msub><mo>=</mo><msub><mtext mathvariant="normal">SSB</mtext><mrow><mi>t</mi><mo>−</mo><mn>1</mn><mo>,</mo><mi>p</mi></mrow></msub><mo>×</mo><msup><mi>𝐝</mi><mi>l</mi></msup></mrow><annotation encoding="application/x-tex">\text{larv}_{t,p} = \text{SSB}_{t-1,p} \times \mathbf{d}^l</annotation></semantics></math></p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>N</mi><mrow><mi>t</mi><mo>,</mo><mi>p</mi><mo>,</mo><mi>a</mi><mo>=</mo><mn>1</mn></mrow></msub><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mrow><mn>0.8</mn><mo>×</mo><mi>r</mi><msub><mn>0</mn><mi>p</mi></msub><mo>×</mo><mi>h</mi><mo>×</mo><msub><mtext mathvariant="normal">larv</mtext><mrow><mi>t</mi><mo>,</mo><mi>p</mi></mrow></msub></mrow><mrow><mn>0.2</mn><mo>×</mo><msub><mtext mathvariant="normal">SSB0</mtext><mi>p</mi></msub><mo>×</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>h</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>h</mi><mo>−</mo><mn>0.2</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>×</mo><msub><mtext mathvariant="normal">larv</mtext><mrow><mi>t</mi><mo>,</mo><mi>p</mi></mrow></msub></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mo>×</mo><msub><mi>ϵ</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">N_{t,p,a=1} = \left( \frac{0.8 \times r0_p \times h \times \text{larv}_{t,p}}{0.2 \times \text{SSB0}_p \times (1 - h) + (h - 0.2) \times \text{larv}_{t,p}} \right) \times \epsilon_t</annotation></semantics></math></p>
 <p>The key distinction from pre-dispersal: competition is based on SSB
-at the settlement site, not the origin. Larvae from a protected MPA
-patch disperse outward, but when they arrive at a fished (lower-SSB)
+at the settlement site, not the origin. All else being equal, this
+scenario will be more favorable to the ability of MPAs to act as larval
+sources. As biomass builds up inside the MPA, they produce more and more
+larvae. These larvae travel outside the MPA, where the amount that
+recruit depends on spawning biomass in the settlement patches, which are
+potentially outside the MPA. If fishing is heavy outside the MPA,
+driving spawning biomass well below carrying capacity, density dependent
+mortality will be low, so a the MPA can cause a large increase in
+recruitment in these fished patches. Larvae from a protected MPA patch
+disperse outward, but when they arrive at a fished (lower-SSB)
 destination they face the same density-dependent environment as
 locally-produced recruits. This could be a scenario where the key
 bottleneck in recruitment is available habitat at the time of
@@ -310,7 +321,7 @@ indicate better nursery conditions.
 </h2>
 <p>We protect the top 30% of patches ranked by recruitment habitat
 quality. This represents an MPA placed deliberately over the best
-nursery grounds, a common strategy in spatial planning.</p>
+nursery grounds.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">patches</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tidyr.tidyverse.org/reference/expand_grid.html" class="external-link">expand_grid</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">resolution</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, y <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">resolution</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span></span>
@@ -547,6 +558,7 @@ MPA status.</p>
 <span>    values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Inside MPA"</span> <span class="op">=</span> <span class="st">"#1b9e77"</span>, <span class="st">"Outside MPA"</span> <span class="op">=</span> <span class="st">"#d95f02"</span><span class="op">)</span>,</span>
 <span>    name <span class="op">=</span> <span class="cn">NULL</span></span>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_continuous</a></span><span class="op">(</span>limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="cn">NA</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
 <span>    x <span class="op">=</span> <span class="st">"Year"</span>,</span>
 <span>    y <span class="op">=</span> <span class="st">"Mean SSB per patch"</span>,</span>
@@ -580,6 +592,7 @@ production.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_vline</a></span><span class="op">(</span>xintercept <span class="op">=</span> <span class="va">mpa_year</span>, linetype <span class="op">=</span> <span class="st">"dashed"</span>, color <span class="op">=</span> <span class="st">"grey40"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">dd_label</span>, scales <span class="op">=</span> <span class="st">"free_y"</span>, ncol <span class="op">=</span> <span class="fl">5</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_brewer.html" class="external-link">scale_color_brewer</a></span><span class="op">(</span>palette <span class="op">=</span> <span class="st">"Set1"</span>, name <span class="op">=</span> <span class="st">"Recruit dispersal"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_continuous</a></span><span class="op">(</span>limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="cn">NA</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
 <span>    x <span class="op">=</span> <span class="st">"Year"</span>,</span>
 <span>    y <span class="op">=</span> <span class="st">"Total SSB (all patches)"</span>,</span>
@@ -676,6 +689,7 @@ depend on how recruitment works?</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_vline</a></span><span class="op">(</span>xintercept <span class="op">=</span> <span class="va">mpa_year</span>, linetype <span class="op">=</span> <span class="st">"dashed"</span>, color <span class="op">=</span> <span class="st">"grey40"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">dd_label</span>, scales <span class="op">=</span> <span class="st">"free_y"</span>, ncol <span class="op">=</span> <span class="fl">5</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_brewer.html" class="external-link">scale_color_brewer</a></span><span class="op">(</span>palette <span class="op">=</span> <span class="st">"Set1"</span>, name <span class="op">=</span> <span class="st">"Recruit dispersal"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_continuous</a></span><span class="op">(</span>limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="cn">NA</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
 <span>    x <span class="op">=</span> <span class="st">"Year"</span>,</span>
 <span>    y <span class="op">=</span> <span class="st">"Total Catch"</span>,</span>
