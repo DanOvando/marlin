@@ -126,8 +126,8 @@ Fish <- R6::R6Class(
     #' @param t50 age at the logistic function midpoint in the growth cessation model
     #' @param fec_at_age manual vector of fecundity at age
     #' @param explt_type deprecated
-    initialize = function(common_name = NA,
-                          scientific_name = NA,
+    initialize = function(common_name = NULL,
+                          scientific_name = NULL,
                           linf = NA,
                           vbk = NA,
                           t0 = -0.5,
@@ -151,10 +151,10 @@ Fish <- R6::R6Class(
                           fec_expo = 1,
                           fec_at_age = NULL,
                           length_50_mature = NA,
-                          length_95_mature = NA,
+                          length_95_mature = NULL,
                           delta_mature = .1,
-                          age_50_mature = NA,
-                          age_95_mature = NA,
+                          age_50_mature = NULL,
+                          age_95_mature = NULL,
                           age_mature = NA,
                           semelparous = FALSE,
                           m = NA,
@@ -169,7 +169,7 @@ Fish <- R6::R6Class(
                           recruit_diffusion = 10,
                           adult_home_range = NULL,
                           recruit_home_range = NULL,
-                          query_fishlife = T,
+                          query_fishlife = TRUE,
                           sigma_rec = 0,
                           ac_rec = 0,
                           cores = 4,
@@ -181,14 +181,14 @@ Fish <- R6::R6Class(
                           patch_area = 1,
                           habitat = list(),
                           season_blocks = list(),
-                          recruit_habitat = NA,
+                          recruit_habitat = NULL,
                           depletion = 1,
                           burn_years = 50,
                           seasons = 1,
                           explt_type = "f",
                           init_explt = .1,
                           get_common_name = FALSE,
-                          spawning_seasons = NA,
+                          spawning_seasons = NULL,
                           max_hab_mult = 2,
                           lorenzen_m = TRUE,
                           lorenzen_c = -1) {
@@ -201,7 +201,7 @@ Fish <- R6::R6Class(
         stop("seasons must be greater than or equal to 1")
       }
 
-      if (all(is.na(spawning_seasons))) {
+      if (is.null(spawning_seasons)) {
         spawning_seasons <- 1:seasons
       }
 
@@ -356,20 +356,20 @@ Fish <- R6::R6Class(
       # Taxonomic lookups and FishLife queries are gated by query_fishlife.
       # When query_fishlife = FALSE, no network calls happen at all.
       if (query_fishlife) {
-        if (!is.na(scientific_name) & get_common_name == TRUE) {
+        if (!is.null(scientific_name) & get_common_name == TRUE) {
           common_name <-
             taxize::sci2comm(scientific_name, db = "worms")[[1]][1]
         }
 
-        if (is.na(scientific_name) &
-          !is.na(common_name)) {
+        if (is.null(scientific_name) &
+          !is.null(common_name)) {
           scientific_name <-
             taxize::comm2sci(common_name, db = "worms")[[1]][1]
         }
       }
 
       # check fishlife -------------
-      if (!is.na(scientific_name) &
+      if (!is.null(scientific_name) &
         query_fishlife == TRUE) {
         sq <- purrr::safely(purrr::quietly(get_traits))
 
@@ -502,7 +502,7 @@ Fish <- R6::R6Class(
 
       # Maturity: need at least one specification
       has_maturity <- !is.na(age_mature) ||
-        (!is.na(age_50_mature) && !is.na(age_95_mature)) ||
+        (!is.null(age_50_mature) && !is.null(age_95_mature)) ||
         !is.na(length_50_mature)
       if (!has_maturity) {
         missing_params <- c(missing_params,
@@ -596,9 +596,9 @@ Fish <- R6::R6Class(
         dplyr::select(-age)
 
       # process maturity
-      if ((is.na(age_50_mature) |
-        is.na(age_95_mature)) &
-        is.na(age_mature) == F) {
+      if ((is.null(age_50_mature) |
+        is.null(age_95_mature)) &
+        !is.na(age_mature)) {
         age_50_mature <- age_mature
 
         age_95_mature <-
@@ -625,7 +625,7 @@ Fish <- R6::R6Class(
           length_50_mature <- linf * lmat_to_linf_ratio
         }
 
-        if (!is.na(length_95_mature)) {
+        if (!is.null(length_95_mature)) {
           delta_mature <- length_95_mature - length_50_mature
         }
 
@@ -1045,7 +1045,7 @@ Fish <- R6::R6Class(
         ggplot2::scale_fill_manual(values = marlin::marlin_pal("diverging_fish")(length(unique(
           tidy_ogives$trait
         )))) +
-        ggplot2::labs(title = ifelse(is.na(self$common_name), self$scientific_name, self$common_name))
+        ggplot2::labs(title = if (is.null(self$common_name)) self$scientific_name else self$common_name)
     },
     #' plot diffusion
     #'

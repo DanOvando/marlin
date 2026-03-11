@@ -168,14 +168,6 @@ fauna <-
       seasons = seasons
     )
   )
-#> Warning in create_critter(spawning_seasons = c(1:20), habitat =
-#> species_distributions$critter_distributions$squishy, : Land areas (NAs) are
-#> present in the recruit habitat layer, but not the adult habitat layer. Adding
-#> land areas to adult habitat layer...
-#> Warning in create_critter(spawning_seasons = c(21:40), habitat =
-#> species_distributions$critter_distributions$squashy, : Land areas (NAs) are
-#> present in the recruit habitat layer, but not the adult habitat layer. Adding
-#> land areas to adult habitat layer...
 
 fleets <- list(
   "artisanal" = create_fleet(list(
@@ -246,7 +238,7 @@ sels |>
 tic()
 squishy_sim <- simmar(fauna, fleets, years = years, cor_rec = critter_correlations)
 toc()
-#> 0.505 sec elapsed
+#> 0.456 sec elapsed
 processed_squishy <- process_marlin(sim = squishy_sim, time_step = time_step)
 ```
 

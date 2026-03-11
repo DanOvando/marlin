@@ -12,13 +12,14 @@ instance initialised to unfished equilibrium and burned in for
 
 ``` r
 create_critter(
-  common_name = NA,
-  scientific_name = NA,
+  common_name = NULL,
+  scientific_name = NULL,
   get_common_name = FALSE,
+  query_fishlife = TRUE,
   critter_type = "fish",
   habitat = list(),
   season_blocks = list(),
-  recruit_habitat = NA,
+  recruit_habitat = NULL,
   seasons = 1,
   lorenzen_c = -1,
   fec_form = "weight",
@@ -32,11 +33,19 @@ create_critter(
   f = NULL,
   explt_type = "f",
   burn_years = 50,
+  linf = NA,
+  vbk = NA,
+  t0 = -0.5,
   weight_a = NA,
+  weight_b = NA,
+  m = NA,
+  max_age = NA,
+  age_mature = NA,
+  length_50_mature = NA,
   fec_expo = 1,
   resolution = c(10, 10),
   patch_area = 1,
-  spawning_seasons = NA,
+  spawning_seasons = NULL,
   density_dependence = "global_habitat",
   steepness = 0.8,
   growth_model = "von_bertalanffy",
@@ -48,19 +57,27 @@ create_critter(
 
 - common_name:
 
-  Character. Common name of the species (e.g. `"yellowfin tuna"`). Used
-  to look up life history from FishLife when `scientific_name` is not
-  supplied.
+  Character or `NULL`. Common name of the species (e.g.
+  `"yellowfin tuna"`). Used to look up life history from FishLife when
+  `scientific_name` is not supplied.
 
 - scientific_name:
 
-  Character. Scientific name (e.g. `"Thunnus albacares"`). Preferred
-  over `common_name` for FishLife lookup; case-insensitive.
+  Character or `NULL`. Scientific name (e.g. `"Thunnus albacares"`).
+  Preferred over `common_name` for FishLife lookup; case-insensitive.
 
 - get_common_name:
 
   Logical. If `TRUE`, resolves the common name from `scientific_name`
   via an internet lookup. Default `FALSE`.
+
+- query_fishlife:
+
+  Logical. If `TRUE` (default), missing life history parameters are
+  looked up from FishLife (requires internet for taxonomic resolution
+  via taxize). If `FALSE`, no external lookups are performed; all
+  required parameters must be supplied by the user. User-supplied values
+  always take precedence over FishLife regardless of this setting.
 
 - critter_type:
 
@@ -83,8 +100,8 @@ create_critter(
 
 - recruit_habitat:
 
-  Matrix or `NA`. Habitat matrix used to distribute new recruits.
-  Defaults to adult habitat of the first season block when `NA`.
+  Matrix or `NULL`. Habitat matrix used to distribute new recruits.
+  Defaults to adult habitat of the first season block when `NULL`.
 
 - seasons:
 
@@ -156,11 +173,55 @@ create_critter(
   Integer. Number of years to burn in the unfished population to
   equilibrium before starting the simulation. Default 50.
 
+- linf:
+
+  Numeric or `NA`. Asymptotic length (L-infinity) in a von Bertalanffy
+  growth model. Looked up from FishLife when `NA` and
+  `query_fishlife = TRUE`. Required when
+  `growth_model = "von_bertalanffy"`.
+
+- vbk:
+
+  Numeric or `NA`. Growth rate parameter (k) in a von Bertalanffy growth
+  model. Looked up from FishLife when `NA`.
+
+- t0:
+
+  Numeric. Hypothetical age at length zero. Default `-0.5`.
+
 - weight_a:
 
   Numeric or `NA`. Intercept alpha in the allometric weight-at-length
   relationship \\W = \alpha L^\beta\\. Looked up from FishLife when
   `NA`.
+
+- weight_b:
+
+  Numeric or `NA`. Exponent beta in the allometric weight-at-length
+  relationship. Looked up from FishLife when `NA`.
+
+- m:
+
+  Numeric or `NA`. Instantaneous natural mortality rate. When
+  `lorenzen_m = TRUE` (default in Fish), this is the asymptotic natural
+  mortality. Looked up from FishLife when `NA`.
+
+- max_age:
+
+  Numeric or `NA`. Maximum age tracked by the model (plus group). Looked
+  up from FishLife when `NA`; if still missing, computed as
+  `-log(0.05) / m`.
+
+- age_mature:
+
+  Numeric or `NA`. Age at 50\\ for `age_50_mature`). Looked up from
+  FishLife when `NA`. At least one maturity specification (`age_mature`,
+  `age_50_mature + age_95_mature`, or `length_50_mature`) is required.
+
+- length_50_mature:
+
+  Numeric or `NA`. Length at 50\\ Looked up from FishLife when `NA`.
+  Used when maturity is length-based.
 
 - fec_expo:
 
@@ -179,8 +240,8 @@ create_critter(
 
 - spawning_seasons:
 
-  Integer vector. Which seasons spawning occurs in. Defaults to all
-  seasons when `NA`.
+  Integer vector or `NULL`. Which seasons spawning occurs in. Defaults
+  to all seasons when `NULL`.
 
 - density_dependence:
 
@@ -202,9 +263,7 @@ create_critter(
 
   Additional parameters forwarded to the
   [`Fish`](https://danovando.github.io/marlin/reference/Fish.md) R6
-  class constructor. Common options include `k`, `linf`, `t0`, `m`,
-  `age_mature`, `weight_b`, `ssb0`, `sigma_rec` (recruitment standard
-  deviation), and `ac_rec` (recruitment autocorrelation). See
+  class constructor. See
   [`?Fish`](https://danovando.github.io/marlin/reference/Fish.md) for
   the full list.
 

@@ -35,10 +35,10 @@
 #'     spatial recruit distribution.}
 #' }
 #'
-#' @param common_name Character. Common name of the species (e.g.
-#'   \code{"yellowfin tuna"}). Used to look up life history from FishLife when
-#'   \code{scientific_name} is not supplied.
-#' @param scientific_name Character. Scientific name (e.g.
+#' @param common_name Character or \code{NULL}. Common name of the species
+#'   (e.g. \code{"yellowfin tuna"}). Used to look up life history from FishLife
+#'   when \code{scientific_name} is not supplied.
+#' @param scientific_name Character or \code{NULL}. Scientific name (e.g.
 #'   \code{"Thunnus albacares"}). Preferred over \code{common_name} for
 #'   FishLife lookup; case-insensitive.
 #' @param get_common_name Logical. If \code{TRUE}, resolves the common name
@@ -65,9 +65,9 @@
 #' @param f Numeric. Alias for \code{init_explt}.
 #' @param explt_type Character. One of \code{"f"} (instantaneous fishing
 #'   mortality; default) or \code{"fmsy"} (as a multiple of Fmsy).
-#' @param recruit_habitat Matrix or \code{NA}. Habitat matrix used to
+#' @param recruit_habitat Matrix or \code{NULL}. Habitat matrix used to
 #'   distribute new recruits. Defaults to adult habitat of the first season
-#'   block when \code{NA}.
+#'   block when \code{NULL}.
 #' @param fec_form Character. Fecundity form: \code{"weight"} (fecundity
 #'   proportional to body weight; default) or \code{"pups"} (fixed litter
 #'   size, e.g. for elasmobranchs).
@@ -126,8 +126,8 @@
 #'   giving grid dimensions. A scalar is replicated to a square grid.
 #' @param patch_area Numeric. Area of each patch (km^2). Used to scale
 #'   diffusion and compute density-dependent quantities.
-#' @param spawning_seasons Integer vector. Which seasons spawning occurs in.
-#'   Defaults to all seasons when \code{NA}.
+#' @param spawning_seasons Integer vector or \code{NULL}. Which seasons
+#'   spawning occurs in. Defaults to all seasons when \code{NULL}.
 #' @param density_dependence Character. Density dependence form; see Details.
 #'   One of \code{"global_habitat"}, \code{"local_habitat"},
 #'   \code{"pre_dispersal"}, \code{"post_dispersal"}, \code{"global_ssb"}.
@@ -171,14 +171,14 @@
 #'
 #' fauna <- list(snapper = snapper)
 #' }
-create_critter <- function(common_name = NA,
-                           scientific_name = NA,
+create_critter <- function(common_name = NULL,
+                           scientific_name = NULL,
                            get_common_name = FALSE,
                            query_fishlife = TRUE,
                            critter_type = "fish",
                            habitat = list(),
                            season_blocks = list(),
-                           recruit_habitat = NA,
+                           recruit_habitat = NULL,
                            seasons = 1,
                            lorenzen_c = -1,
                            fec_form = "weight",
@@ -204,7 +204,7 @@ create_critter <- function(common_name = NA,
                            fec_expo = 1,
                            resolution = c(10, 10),
                            patch_area = 1,
-                           spawning_seasons = NA,
+                           spawning_seasons = NULL,
                            density_dependence = "global_habitat",
                            steepness = 0.8,
                            growth_model = "von_bertalanffy",
@@ -219,7 +219,7 @@ create_critter <- function(common_name = NA,
 
   # Reconcile land (NA) cells between habitat and recruit_habitat.
   # Only run when both habitat and recruit_habitat are real matrices;
-  # when recruit_habitat is NA (the default), Fish$new() will replace it
+  # when recruit_habitat is NULL (the default), Fish$new() will replace it
   # with a uniform matrix and zero out land cells itself.
   has_habitat <- !rlang::is_empty(habitat)
   has_recruit_habitat <- is.matrix(recruit_habitat)

@@ -176,8 +176,8 @@ and Beverton-Holt recruitment, returning updated population arrays.</p>
 <p>Used to store parameters describing the behavior of an object of class Fish</p><div class="section">
 <h4 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va"><a href="../reference/Fish.html">Fish</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
-<span>  common_name <span class="op">=</span> <span class="cn">NA</span>,</span>
-<span>  scientific_name <span class="op">=</span> <span class="cn">NA</span>,</span>
+<span>  common_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  scientific_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  linf <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  vbk <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  t0 <span class="op">=</span> <span class="op">-</span><span class="fl">0.5</span>,</span>
@@ -201,10 +201,10 @@ and Beverton-Holt recruitment, returning updated population arrays.</p>
 <span>  fec_expo <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  fec_at_age <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  length_50_mature <span class="op">=</span> <span class="cn">NA</span>,</span>
-<span>  length_95_mature <span class="op">=</span> <span class="cn">NA</span>,</span>
+<span>  length_95_mature <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  delta_mature <span class="op">=</span> <span class="fl">0.1</span>,</span>
-<span>  age_50_mature <span class="op">=</span> <span class="cn">NA</span>,</span>
-<span>  age_95_mature <span class="op">=</span> <span class="cn">NA</span>,</span>
+<span>  age_50_mature <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  age_95_mature <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  age_mature <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  semelparous <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  m <span class="op">=</span> <span class="cn">NA</span>,</span>
@@ -219,7 +219,7 @@ and Beverton-Holt recruitment, returning updated population arrays.</p>
 <span>  recruit_diffusion <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  adult_home_range <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  recruit_home_range <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  query_fishlife <span class="op">=</span> <span class="cn">T</span>,</span>
+<span>  query_fishlife <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  sigma_rec <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  ac_rec <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  cores <span class="op">=</span> <span class="fl">4</span>,</span>
@@ -231,14 +231,14 @@ and Beverton-Holt recruitment, returning updated population arrays.</p>
 <span>  patch_area <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  habitat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  season_blocks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  recruit_habitat <span class="op">=</span> <span class="cn">NA</span>,</span>
+<span>  recruit_habitat <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  depletion <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  burn_years <span class="op">=</span> <span class="fl">50</span>,</span>
 <span>  seasons <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  explt_type <span class="op">=</span> <span class="st">"f"</span>,</span>
 <span>  init_explt <span class="op">=</span> <span class="fl">0.1</span>,</span>
 <span>  get_common_name <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  spawning_seasons <span class="op">=</span> <span class="cn">NA</span>,</span>
+<span>  spawning_seasons <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  max_hab_mult <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  lorenzen_m <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  lorenzen_c <span class="op">=</span> <span class="op">-</span><span class="fl">1</span></span>

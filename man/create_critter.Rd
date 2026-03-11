@@ -5,13 +5,14 @@
 \title{Create a Critter (Species) Object}
 \usage{
 create_critter(
-  common_name = NA,
-  scientific_name = NA,
+  common_name = NULL,
+  scientific_name = NULL,
   get_common_name = FALSE,
+  query_fishlife = TRUE,
   critter_type = "fish",
   habitat = list(),
   season_blocks = list(),
-  recruit_habitat = NA,
+  recruit_habitat = NULL,
   seasons = 1,
   lorenzen_c = -1,
   fec_form = "weight",
@@ -25,11 +26,19 @@ create_critter(
   f = NULL,
   explt_type = "f",
   burn_years = 50,
+  linf = NA,
+  vbk = NA,
+  t0 = -0.5,
   weight_a = NA,
+  weight_b = NA,
+  m = NA,
+  max_age = NA,
+  age_mature = NA,
+  length_50_mature = NA,
   fec_expo = 1,
   resolution = c(10, 10),
   patch_area = 1,
-  spawning_seasons = NA,
+  spawning_seasons = NULL,
   density_dependence = "global_habitat",
   steepness = 0.8,
   growth_model = "von_bertalanffy",
@@ -37,16 +46,23 @@ create_critter(
 )
 }
 \arguments{
-\item{common_name}{Character. Common name of the species (e.g.
-\code{"yellowfin tuna"}). Used to look up life history from FishLife when
-\code{scientific_name} is not supplied.}
+\item{common_name}{Character or \code{NULL}. Common name of the species
+(e.g. \code{"yellowfin tuna"}). Used to look up life history from FishLife
+when \code{scientific_name} is not supplied.}
 
-\item{scientific_name}{Character. Scientific name (e.g.
+\item{scientific_name}{Character or \code{NULL}. Scientific name (e.g.
 \code{"Thunnus albacares"}). Preferred over \code{common_name} for
 FishLife lookup; case-insensitive.}
 
 \item{get_common_name}{Logical. If \code{TRUE}, resolves the common name
 from \code{scientific_name} via an internet lookup. Default \code{FALSE}.}
+
+\item{query_fishlife}{Logical. If \code{TRUE} (default), missing life
+history parameters are looked up from FishLife (requires internet for
+taxonomic resolution via taxize). If \code{FALSE}, no external lookups
+are performed; all required parameters must be supplied by the user.
+User-supplied values always take precedence over FishLife regardless of
+this setting.}
 
 \item{critter_type}{Character. Currently only \code{"fish"} is supported.
 Placeholder for future non-fish implementations.}
@@ -61,9 +77,9 @@ quality on a log scale; they drive movement taxis and, depending on
 to each habitat block (e.g. \code{list(1:2, 3:4)} for a two-block,
 four-season year). Must align with \code{habitat}.}
 
-\item{recruit_habitat}{Matrix or \code{NA}. Habitat matrix used to
+\item{recruit_habitat}{Matrix or \code{NULL}. Habitat matrix used to
 distribute new recruits. Defaults to adult habitat of the first season
-block when \code{NA}.}
+block when \code{NULL}.}
 
 \item{seasons}{Integer. Number of seasons per year. Sets
 \code{time_step = 1 / seasons}. All critters in a \code{fauna} list must
@@ -110,9 +126,40 @@ mortality; default) or \code{"fmsy"} (as a multiple of Fmsy).}
 \item{burn_years}{Integer. Number of years to burn in the unfished
 population to equilibrium before starting the simulation. Default 50.}
 
+\item{linf}{Numeric or \code{NA}. Asymptotic length (L-infinity) in a
+von Bertalanffy growth model. Looked up from FishLife when \code{NA}
+and \code{query_fishlife = TRUE}. Required when
+\code{growth_model = "von_bertalanffy"}.}
+
+\item{vbk}{Numeric or \code{NA}. Growth rate parameter (k) in a
+von Bertalanffy growth model. Looked up from FishLife when \code{NA}.}
+
+\item{t0}{Numeric. Hypothetical age at length zero. Default \code{-0.5}.}
+
 \item{weight_a}{Numeric or \code{NA}. Intercept alpha in the allometric
 weight-at-length relationship \eqn{W = \alpha L^\beta}. Looked up from
 FishLife when \code{NA}.}
+
+\item{weight_b}{Numeric or \code{NA}. Exponent beta in the allometric
+weight-at-length relationship. Looked up from FishLife when \code{NA}.}
+
+\item{m}{Numeric or \code{NA}. Instantaneous natural mortality rate.
+When \code{lorenzen_m = TRUE} (default in Fish), this is the asymptotic
+natural mortality. Looked up from FishLife when \code{NA}.}
+
+\item{max_age}{Numeric or \code{NA}. Maximum age tracked by the model
+(plus group). Looked up from FishLife when \code{NA}; if still missing,
+computed as \code{-log(0.05) / m}.}
+
+\item{age_mature}{Numeric or \code{NA}. Age at 50\\% maturity (shorthand
+for \code{age_50_mature}). Looked up from FishLife when \code{NA}.
+At least one maturity specification (\code{age_mature},
+\code{age_50_mature + age_95_mature}, or \code{length_50_mature}) is
+required.}
+
+\item{length_50_mature}{Numeric or \code{NA}. Length at 50\\% maturity.
+Looked up from FishLife when \code{NA}. Used when maturity is
+length-based.}
 
 \item{fec_expo}{Numeric. Exponent for the fecundity-weight relationship.
 Values > 1 produce hyperallometric fecundity. Default \code{1}.}
@@ -123,8 +170,8 @@ giving grid dimensions. A scalar is replicated to a square grid.}
 \item{patch_area}{Numeric. Area of each patch (km^2). Used to scale
 diffusion and compute density-dependent quantities.}
 
-\item{spawning_seasons}{Integer vector. Which seasons spawning occurs in.
-Defaults to all seasons when \code{NA}.}
+\item{spawning_seasons}{Integer vector or \code{NULL}. Which seasons
+spawning occurs in. Defaults to all seasons when \code{NULL}.}
 
 \item{density_dependence}{Character. Density dependence form; see Details.
 One of \code{"global_habitat"}, \code{"local_habitat"},
@@ -138,10 +185,7 @@ One of \code{"global_habitat"}, \code{"local_habitat"},
 \code{"growth_cessation"}.}
 
 \item{...}{Additional parameters forwarded to the \code{\link{Fish}} R6
-class constructor. Common options include \code{k}, \code{linf},
-\code{t0}, \code{m}, \code{age_mature}, \code{weight_b}, \code{ssb0},
-\code{sigma_rec} (recruitment standard deviation), and \code{ac_rec}
-(recruitment autocorrelation). See \code{?Fish} for the full list.}
+class constructor. See \code{?Fish} for the full list.}
 }
 \value{
 An R6 \code{Fish} object containing the age-structured population

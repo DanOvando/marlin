@@ -190,6 +190,42 @@ test_that("m_at_age bypasses the m requirement", {
   expect_s3_class(critter, "Fish")
 })
 
+test_that("NULL defaults work: no common_name, no spawning_seasons, no recruit_habitat", {
+  resolution <- 4
+  seasons <- 2
+
+  species_distributions <- sim_habitat(
+    critters = "test_sp",
+    resolution = resolution,
+    patch_area = 1,
+    kp = 0.5,
+    output = "list"
+  )
+
+  # Omit common_name, spawning_seasons, recruit_habitat (all NULL by default)
+  critter <- create_critter(
+    habitat = species_distributions$critter_distributions$test_sp,
+    query_fishlife = FALSE,
+    linf = 50,
+    vbk = 0.3,
+    m = 0.2,
+    weight_a = 0.01,
+    weight_b = 3,
+    age_mature = 2,
+    max_age = 10,
+    resolution = resolution,
+    seasons = seasons,
+    init_explt = 0.1,
+    sigma_rec = 0
+  )
+
+  expect_s3_class(critter, "Fish")
+  # common_name should be NULL, not NA
+  expect_null(critter$common_name)
+  # spawning_seasons should have been filled to 1:seasons
+  expect_equal(critter$spawning_seasons, 1:seasons)
+})
+
 test_that("error message lists all missing params at once", {
   resolution <- 4
   seasons <- 2

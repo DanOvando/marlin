@@ -82,13 +82,14 @@ equilibrium and burned in for <code>burn_years</code> years.</p>
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">create_critter</span><span class="op">(</span></span>
-<span>  common_name <span class="op">=</span> <span class="cn">NA</span>,</span>
-<span>  scientific_name <span class="op">=</span> <span class="cn">NA</span>,</span>
+<span>  common_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  scientific_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  get_common_name <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  query_fishlife <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  critter_type <span class="op">=</span> <span class="st">"fish"</span>,</span>
 <span>  habitat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  season_blocks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  recruit_habitat <span class="op">=</span> <span class="cn">NA</span>,</span>
+<span>  recruit_habitat <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  seasons <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  lorenzen_c <span class="op">=</span> <span class="op">-</span><span class="fl">1</span>,</span>
 <span>  fec_form <span class="op">=</span> <span class="st">"weight"</span>,</span>
@@ -102,11 +103,19 @@ equilibrium and burned in for <code>burn_years</code> years.</p>
 <span>  f <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  explt_type <span class="op">=</span> <span class="st">"f"</span>,</span>
 <span>  burn_years <span class="op">=</span> <span class="fl">50</span>,</span>
+<span>  linf <span class="op">=</span> <span class="cn">NA</span>,</span>
+<span>  vbk <span class="op">=</span> <span class="cn">NA</span>,</span>
+<span>  t0 <span class="op">=</span> <span class="op">-</span><span class="fl">0.5</span>,</span>
 <span>  weight_a <span class="op">=</span> <span class="cn">NA</span>,</span>
+<span>  weight_b <span class="op">=</span> <span class="cn">NA</span>,</span>
+<span>  m <span class="op">=</span> <span class="cn">NA</span>,</span>
+<span>  max_age <span class="op">=</span> <span class="cn">NA</span>,</span>
+<span>  age_mature <span class="op">=</span> <span class="cn">NA</span>,</span>
+<span>  length_50_mature <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  fec_expo <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  resolution <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">10</span><span class="op">)</span>,</span>
 <span>  patch_area <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  spawning_seasons <span class="op">=</span> <span class="cn">NA</span>,</span>
+<span>  spawning_seasons <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  density_dependence <span class="op">=</span> <span class="st">"global_habitat"</span>,</span>
 <span>  steepness <span class="op">=</span> <span class="fl">0.8</span>,</span>
 <span>  growth_model <span class="op">=</span> <span class="st">"von_bertalanffy"</span>,</span>
@@ -119,13 +128,13 @@ equilibrium and burned in for <code>burn_years</code> years.</p>
 
 
 <dl><dt id="arg-common-name">common_name<a class="anchor" aria-label="anchor" href="#arg-common-name"></a></dt>
-<dd><p>Character. Common name of the species (e.g.
-<code>"yellowfin tuna"</code>). Used to look up life history from FishLife when
-<code>scientific_name</code> is not supplied.</p></dd>
+<dd><p>Character or <code>NULL</code>. Common name of the species
+(e.g. <code>"yellowfin tuna"</code>). Used to look up life history from FishLife
+when <code>scientific_name</code> is not supplied.</p></dd>
 
 
 <dt id="arg-scientific-name">scientific_name<a class="anchor" aria-label="anchor" href="#arg-scientific-name"></a></dt>
-<dd><p>Character. Scientific name (e.g.
+<dd><p>Character or <code>NULL</code>. Scientific name (e.g.
 <code>"Thunnus albacares"</code>). Preferred over <code>common_name</code> for
 FishLife lookup; case-insensitive.</p></dd>
 
@@ -133,6 +142,15 @@ FishLife lookup; case-insensitive.</p></dd>
 <dt id="arg-get-common-name">get_common_name<a class="anchor" aria-label="anchor" href="#arg-get-common-name"></a></dt>
 <dd><p>Logical. If <code>TRUE</code>, resolves the common name
 from <code>scientific_name</code> via an internet lookup. Default <code>FALSE</code>.</p></dd>
+
+
+<dt id="arg-query-fishlife">query_fishlife<a class="anchor" aria-label="anchor" href="#arg-query-fishlife"></a></dt>
+<dd><p>Logical. If <code>TRUE</code> (default), missing life
+history parameters are looked up from FishLife (requires internet for
+taxonomic resolution via taxize). If <code>FALSE</code>, no external lookups
+are performed; all required parameters must be supplied by the user.
+User-supplied values always take precedence over FishLife regardless of
+this setting.</p></dd>
 
 
 <dt id="arg-critter-type">critter_type<a class="anchor" aria-label="anchor" href="#arg-critter-type"></a></dt>
@@ -155,9 +173,9 @@ four-season year). Must align with <code>habitat</code>.</p></dd>
 
 
 <dt id="arg-recruit-habitat">recruit_habitat<a class="anchor" aria-label="anchor" href="#arg-recruit-habitat"></a></dt>
-<dd><p>Matrix or <code>NA</code>. Habitat matrix used to
+<dd><p>Matrix or <code>NULL</code>. Habitat matrix used to
 distribute new recruits. Defaults to adult habitat of the first season
-block when <code>NA</code>.</p></dd>
+block when <code>NULL</code>.</p></dd>
 
 
 <dt id="arg-seasons">seasons<a class="anchor" aria-label="anchor" href="#arg-seasons"></a></dt>
@@ -231,10 +249,57 @@ mortality; default) or <code>"fmsy"</code> (as a multiple of Fmsy).</p></dd>
 population to equilibrium before starting the simulation. Default 50.</p></dd>
 
 
+<dt id="arg-linf">linf<a class="anchor" aria-label="anchor" href="#arg-linf"></a></dt>
+<dd><p>Numeric or <code>NA</code>. Asymptotic length (L-infinity) in a
+von Bertalanffy growth model. Looked up from FishLife when <code>NA</code>
+and <code>query_fishlife = TRUE</code>. Required when
+<code>growth_model = "von_bertalanffy"</code>.</p></dd>
+
+
+<dt id="arg-vbk">vbk<a class="anchor" aria-label="anchor" href="#arg-vbk"></a></dt>
+<dd><p>Numeric or <code>NA</code>. Growth rate parameter (k) in a
+von Bertalanffy growth model. Looked up from FishLife when <code>NA</code>.</p></dd>
+
+
+<dt id="arg-t-">t0<a class="anchor" aria-label="anchor" href="#arg-t-"></a></dt>
+<dd><p>Numeric. Hypothetical age at length zero. Default <code>-0.5</code>.</p></dd>
+
+
 <dt id="arg-weight-a">weight_a<a class="anchor" aria-label="anchor" href="#arg-weight-a"></a></dt>
 <dd><p>Numeric or <code>NA</code>. Intercept alpha in the allometric
 weight-at-length relationship \(W = \alpha L^\beta\). Looked up from
 FishLife when <code>NA</code>.</p></dd>
+
+
+<dt id="arg-weight-b">weight_b<a class="anchor" aria-label="anchor" href="#arg-weight-b"></a></dt>
+<dd><p>Numeric or <code>NA</code>. Exponent beta in the allometric
+weight-at-length relationship. Looked up from FishLife when <code>NA</code>.</p></dd>
+
+
+<dt id="arg-m">m<a class="anchor" aria-label="anchor" href="#arg-m"></a></dt>
+<dd><p>Numeric or <code>NA</code>. Instantaneous natural mortality rate.
+When <code>lorenzen_m = TRUE</code> (default in Fish), this is the asymptotic
+natural mortality. Looked up from FishLife when <code>NA</code>.</p></dd>
+
+
+<dt id="arg-max-age">max_age<a class="anchor" aria-label="anchor" href="#arg-max-age"></a></dt>
+<dd><p>Numeric or <code>NA</code>. Maximum age tracked by the model
+(plus group). Looked up from FishLife when <code>NA</code>; if still missing,
+computed as <code>-log(0.05) / m</code>.</p></dd>
+
+
+<dt id="arg-age-mature">age_mature<a class="anchor" aria-label="anchor" href="#arg-age-mature"></a></dt>
+<dd><p>Numeric or <code>NA</code>. Age at 50\<!-- % maturity (shorthand -->
+for <code>age_50_mature</code>). Looked up from FishLife when <code>NA</code>.
+At least one maturity specification (<code>age_mature</code>,
+<code>age_50_mature + age_95_mature</code>, or <code>length_50_mature</code>) is
+required.</p></dd>
+
+
+<dt id="arg-length-mature">length_50_mature<a class="anchor" aria-label="anchor" href="#arg-length-mature"></a></dt>
+<dd><p>Numeric or <code>NA</code>. Length at 50\<!-- % maturity. -->
+Looked up from FishLife when <code>NA</code>. Used when maturity is
+length-based.</p></dd>
 
 
 <dt id="arg-fec-expo">fec_expo<a class="anchor" aria-label="anchor" href="#arg-fec-expo"></a></dt>
@@ -253,8 +318,8 @@ diffusion and compute density-dependent quantities.</p></dd>
 
 
 <dt id="arg-spawning-seasons">spawning_seasons<a class="anchor" aria-label="anchor" href="#arg-spawning-seasons"></a></dt>
-<dd><p>Integer vector. Which seasons spawning occurs in.
-Defaults to all seasons when <code>NA</code>.</p></dd>
+<dd><p>Integer vector or <code>NULL</code>. Which seasons
+spawning occurs in. Defaults to all seasons when <code>NULL</code>.</p></dd>
 
 
 <dt id="arg-density-dependence">density_dependence<a class="anchor" aria-label="anchor" href="#arg-density-dependence"></a></dt>
@@ -276,10 +341,7 @@ One of <code>"global_habitat"</code>, <code>"local_habitat"</code>,
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
 <dd><p>Additional parameters forwarded to the <code><a href="Fish.html">Fish</a></code> R6
-class constructor. Common options include <code>k</code>, <code>linf</code>,
-<code>t0</code>, <code>m</code>, <code>age_mature</code>, <code>weight_b</code>, <code>ssb0</code>,
-<code>sigma_rec</code> (recruitment standard deviation), and <code>ac_rec</code>
-(recruitment autocorrelation). See <code><a href="Fish.html">?Fish</a></code> for the full list.</p></dd>
+class constructor. See <code><a href="Fish.html">?Fish</a></code> for the full list.</p></dd>
 
 </dl></div>
     <div class="section level2">
