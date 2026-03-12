@@ -1,3 +1,22 @@
+#' Precompute Baranov Catch Equation Inputs
+#'
+#' Assembles the per-species selectivity, mortality, biomass, and price
+#' matrices needed by the IFD effort-allocation solver.
+#'
+#' @param storage List of per-species population state (one element per
+#'   species), each containing a \code{b_p_a} matrix (patches x ages).
+#' @param fauna List of fauna objects (e.g. from \code{\link{create_critter}}).
+#' @param fleets List of fleet objects (e.g. from \code{\link{create_fleet}}).
+#' @param target_fleet Integer index of the fleet being optimised.
+#' @param E_exo List of effort vectors for all other fleets (one per fleet),
+#'   or \code{NULL} if no exogenous effort.
+#' @param P Integer number of spatial patches.
+#'
+#' @return A list with elements \code{alpha_mats}, \code{other_mort_mats},
+#'   \code{biomass_mats} (each a list of matrices, one per species) and
+#'   \code{price_s} (numeric vector of prices).
+#'
+#' @keywords internal
 precompute_baranov_inputs <- function(storage, fauna, fleets, target_fleet, E_exo, P) {
   n_species <- length(storage)
   n_fleet <- length(fleets)

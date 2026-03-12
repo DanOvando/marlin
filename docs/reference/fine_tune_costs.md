@@ -1,6 +1,9 @@
-# Internal function to fine-tune cost parameters
+# Fine-Tune Cost Parameters for Open-Access Fleets
 
-Internal function to fine-tune cost parameters
+Objective function used by
+[`tune_fleets`](https://danovando.github.io/marlin/reference/tune_fleets.md)
+to calibrate `cost_per_unit_effort` for open-access fleets so that the
+simulated depletion or exploitation rate matches a user-supplied target.
 
 ## Usage
 
@@ -12,28 +15,34 @@ fine_tune_costs(log_cost_mult, target, fauna, fleets, years = 25, tune_type)
 
 - log_cost_mult:
 
-  log cost per unit effort multiplier
+  Numeric vector. Log-scale cost-per-unit-effort multipliers, one per
+  open-access fleet.
 
 - target:
 
-  the target to be achieved
+  Data frame with columns `critter` and `target`, giving the desired
+  depletion level for each species.
 
 - fauna:
 
-  a list of fauna
+  List of fauna objects (from
+  [`create_critter`](https://danovando.github.io/marlin/reference/create_critter.md)).
 
 - fleets:
 
-  a list of fleets
+  List of fleet objects (from
+  [`create_fleet`](https://danovando.github.io/marlin/reference/create_fleet.md)).
 
 - years:
 
-  the number of years to run the optimization
+  Integer. Number of years to simulate during optimisation (default 25).
 
 - tune_type:
 
-  what is being tuned for
+  Character. One of `"depletion"` or `"explt"`, indicating what metric
+  is being matched to `target`.
 
 ## Value
 
-fine-tuned costs
+Numeric scalar: sum of squared differences between simulated and target
+values (used as the objective for optimisation).

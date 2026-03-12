@@ -2,26 +2,34 @@
 % Please edit documentation in R/fine_tune_costs.R
 \name{fine_tune_costs}
 \alias{fine_tune_costs}
-\title{Internal function to fine-tune cost parameters}
+\title{Fine-Tune Cost Parameters for Open-Access Fleets}
 \usage{
 fine_tune_costs(log_cost_mult, target, fauna, fleets, years = 25, tune_type)
 }
 \arguments{
-\item{log_cost_mult}{log cost per unit effort multiplier}
+\item{log_cost_mult}{Numeric vector. Log-scale cost-per-unit-effort
+multipliers, one per open-access fleet.}
 
-\item{target}{the target to be achieved}
+\item{target}{Data frame with columns \code{critter} and \code{target},
+giving the desired depletion level for each species.}
 
-\item{fauna}{a list of fauna}
+\item{fauna}{List of fauna objects (from \code{\link{create_critter}}).}
 
-\item{fleets}{a list of fleets}
+\item{fleets}{List of fleet objects (from \code{\link{create_fleet}}).}
 
-\item{years}{the number of years to run the optimization}
+\item{years}{Integer. Number of years to simulate during optimisation
+(default 25).}
 
-\item{tune_type}{what is being tuned for}
+\item{tune_type}{Character. One of \code{"depletion"} or \code{"explt"},
+indicating what metric is being matched to \code{target}.}
 }
 \value{
-fine-tuned costs
+Numeric scalar: sum of squared differences between simulated and
+target values (used as the objective for optimisation).
 }
 \description{
-Internal function to fine-tune cost parameters
+Objective function used by \code{\link{tune_fleets}} to calibrate
+\code{cost_per_unit_effort} for open-access fleets so that the simulated
+depletion or exploitation rate matches a user-supplied target.
 }
+\keyword{internal}

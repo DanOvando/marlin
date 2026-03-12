@@ -2,7 +2,7 @@
 % Please edit documentation in R/tune_fleets.R
 \name{tune_fleets}
 \alias{tune_fleets}
-\title{Tune fleet parameters to match targets}
+\title{Tune Fleet Catchability and Costs to Match Targets}
 \usage{
 tune_fleets(
   fauna,
@@ -14,23 +14,91 @@ tune_fleets(
 )
 }
 \arguments{
-\item{fleets}{Named list of fleet objects to tune.}
+\item{fauna}{Named list of critter objects from
+\code{\link{create_critter}}.}
 
-\item{...}{Additional arguments controlling what to tune, target values, and how the
-tuning is performed (see function body for supported options).}
+\item{fleets}{Named list of fleet objects from
+\code{\link{create_fleet}}.}
+
+\item{years}{Integer. Number of years to simulate when running to
+equilibrium for calibration. Higher values give more accurate equilibria
+but take longer. Default \code{50}.}
+
+\item{tune_type}{Character. Tuning mode: \code{"f"} or \code{"explt"}
+(equivalent) to match exploitation rates, or \code{"depletion"} to match
+SSB/SSB0 targets. Default \code{"f"}.}
+
+\item{tune_costs}{Logical. If \code{TRUE} (default), calibrates
+\code{cost_per_unit_effort} for each fleet to match its \code{cr_ratio}.
+Set to \code{FALSE} to skip cost calibration (e.g. for
+\code{constant_effort} fleets where costs are irrelevant).}
+
+\item{depl_tol}{Numeric. Relative tolerance for depletion-mode validation.
+A warning is issued if the achieved depletion for any species differs
+from its target by more than this fraction. Default \code{0.025} (2.5 percent).}
 }
 \value{
-A list containing the updated fleet objects and any tuning diagnostics produced by the routine.
+A named list of tuned fleet objects (same structure as the input
+\code{fleets}), with updated catchability, spatial catchability, and
+(if \code{tune_costs = TRUE}) cost parameters. Original fleet models
+are preserved.
 }
 \description{
-Convenience wrapper to adjust one or more fleet parameters so simulated quantities
-(for example catch, effort, or revenue summaries) better match user-specified targets.
+Calibrates fleet catchability coefficients (and optionally costs) so that
+the simulated fishery matches user-specified exploitation rates or depletion
+levels. This should be called after \code{\link{create_critter}} and
+\code{\link{create_fleet}}, and before \code{\link{simmar}}.
 }
 \details{
-This function is intended for quick calibration workflows. It evaluates model output
-under the current fleet settings, updates the requested parameters using the chosen
-tuning rule, and returns the updated fleet objects along with diagnostics.
+\subsection{Tuning modes}{
+
+\describe{
+\item{\code{"f"} / \code{"explt"}}{Sets each fleet's catchability so that
+the total instantaneous fishing mortality matches each species'
+\code{init_explt} (from \code{\link{create_critter}}). Catchability is
+computed analytically from \code{init_explt}, \code{p_explt} (each
+metier's share), and effective effort. Fast (one simulation for cost
+calibration only).}
+\item{\code{"depletion"}}{Uses a numerical solver
+(\code{\link[nleqslv]{nleqslv}}, Broyden method) to find fishing
+mortalities that drive each species to its target \code{depletion}
+(SSB/SSB0, set in \code{\link{create_critter}}). Slower (multiple
+simulations). Warns if achieved depletion differs from the target by
+more than \code{depl_tol}.}
+}
+}
+
+\subsection{What gets calibrated}{
+
+\itemize{
+\item \strong{Catchability}: Each metier's \code{catchability} and
+\code{spatial_catchability} are set so that fishing mortality on each
+species matches the target. The share of total F allocated to each fleet
+is controlled by the metier's \code{p_explt} values (normalised to sum
+to 1 across fleets for each species).
+\item \strong{Costs} (when \code{tune_costs = TRUE}): Runs an equilibrium
+simulation and calibrates \code{cost_per_unit_effort} and
+\code{effort_reference} for each fleet so that the cost-to-revenue ratio
+matches the fleet's \code{cr_ratio}. Relevant for \code{open_access}
+and \code{sole_owner} fleet models.
+}
+}
+
+\subsection{Workflow}{
+
+\enumerate{
+\item Deep-clones fleet metiers to avoid mutating the caller's objects.
+\item Temporarily sets all fleet models to \code{"constant_effort"}.
+\item Normalises \code{p_explt} across fleets for each species.
+\item Sets initial catchability estimates.
+\item Runs equilibrium simulation(s) and calibrates costs.
+\item (Depletion mode only) Solves for catchability via
+\code{nleqslv} and validates achieved depletion.
+\item Restores original fleet models and returns tuned fleets.
+}
+}
 }
 \seealso{
-\code{\link{create_fleet}}, \code{\link{simmar}}
+\code{\link{create_critter}}, \code{\link{create_fleet}},
+\code{\link{simmar}}, \code{\link{Metier}}
 }

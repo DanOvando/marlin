@@ -1,7 +1,7 @@
-# generate_length_to_age_key
+# Generate Length-at-Age Key
 
-produces an age by length bins matrix with probability of being in
-length bin at age
+Produces an age-by-length-bin matrix giving the probability of being in
+each length bin at each age, based on the specified growth model.
 
 ## Usage
 
@@ -22,41 +22,45 @@ generate_length_at_age_key(
 
 - min_age:
 
-  minimum age tracked in the model. Best to leave at 0, as the model
-  does not explicitly track delays for recruitment
+  Numeric. Minimum age tracked in the model. Best left at 0, as the
+  model does not explicitly track recruitment delays.
 
 - max_age:
 
-  maximum age tracked by the model (individuals this age or older are
-  tracked in the plus group)
+  Numeric. Maximum age tracked by the model (individuals this age or
+  older are in the plus group).
+
+- length_bin_width:
+
+  Numeric. Width of each length bin in the key (default 1).
+
+- growth_params:
+
+  Named list of growth parameters. Contents depend on `growth_model`:
+  for `"von_bertalanffy"`: `linf`, `vbk`, `t0`; for `"power"`:
+  `length_a`, `length_b`, `t0`; for `"growth_cessation"`: `l0`, `rmax`,
+  `k`, `t50`.
+
+- growth_model:
+
+  Character. Growth model to use. One of `"von_bertalanffy"`, `"power"`,
+  or `"growth_cessation"`.
 
 - cv:
 
-  the coefficient of variation of the length-at-age relationship
-  (log-space)
+  Numeric. Coefficient of variation of length-at-age (log-space).
 
 - time_step:
 
-  the time step the model is running on (1 / seasons)
+  Numeric. Time step the model is running on (1 / seasons).
 
 - linf_buffer:
 
-  multiplier around linf to create length at age key, taking into
-  account that some fish will be larger than Linf
-
-- k:
-
-  the
-
-- linf:
-
-  asymptotic length of the species in a von Bertalanffy growth function
-
-- t0:
-
-  hypothetical age at which the fish would have length 0 (e.g. -0.5
-  years)
+  Numeric. Multiplier around Linf used to set the upper bound of the
+  length key, accounting for fish larger than Linf (default 10).
 
 ## Value
 
-a length-at-age key
+A tibble with columns `age`, `length_bin`, `mean_length_at_age`,
+`sigma_at_age`, `next_length_bin`, and `p_bin` (probability of being in
+each length bin at each age).

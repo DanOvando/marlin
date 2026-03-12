@@ -36,15 +36,6 @@
 #' @seealso \code{\link{simmar}}, \code{\link{sparsify_movement}}
 #'
 #' @export
-#' Prepare movement matrix
-#'
-#' @param multiplier multiplier for adjacency matrix
-#' @param time_step time step in question
-#' @param resolution spatial resolution
-#'
-#' @return a prepared movement matrix
-#' @export
-#'
 prep_movement <-
   function(multiplier,
            resolution) {

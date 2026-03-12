@@ -86,15 +86,16 @@ each column sums to zero, as required for a continuous-time Markov chain.</p>
 
 
 <dl><dt id="arg-multiplier">multiplier<a class="anchor" aria-label="anchor" href="#arg-multiplier"></a></dt>
-<dd><p>multiplier for adjacency matrix</p></dd>
+<dd><p>Sparse matrix (from <code><a href="https://rdrr.io/pkg/Matrix/man/sparseMatrix.html" class="external-link">Matrix::sparseMatrix</a></code>).
+Off-diagonal elements represent the instantaneous transition rates from
+patch j (column) to patch i (row), derived by element-wise multiplication
+of the base diffusion matrix and the habitat-taxis multiplier matrix.</p></dd>
 
 
 <dt id="arg-resolution">resolution<a class="anchor" aria-label="anchor" href="#arg-resolution"></a></dt>
-<dd><p>spatial resolution</p></dd>
-
-
-<dt id="arg-time-step">time_step<a class="anchor" aria-label="anchor" href="#arg-time-step"></a></dt>
-<dd><p>time step in question</p></dd>
+<dd><p>Integer vector of length 2. Grid dimensions <code>c(nx,
+  ny)</code>. Currently unused inside the function body but retained for
+compatibility with earlier code.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -102,7 +103,6 @@ each column sums to zero, as required for a continuous-time Markov chain.</p>
     <p>A sparse matrix with the same dimensions as <code>multiplier</code>,
 with diagonal elements set to \(-\sum_{i \neq j} m_{ij}\) (negative
 column sums of the off-diagonal).</p>
-<p>a prepared movement matrix</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>

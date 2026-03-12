@@ -30,8 +30,6 @@
 <url><loc>https://danovando.github.io/marlin/reference/aggregate_yields.html</loc></url>
 <url><loc>https://danovando.github.io/marlin/reference/allocate_effort.html</loc></url>
 <url><loc>https://danovando.github.io/marlin/reference/allocate_yields.html</loc></url>
-<url><loc>https://danovando.github.io/marlin/reference/assign_ref_points.html</loc></url>
-<url><loc>https://danovando.github.io/marlin/reference/assign_ssbmsy.html</loc></url>
 <url><loc>https://danovando.github.io/marlin/reference/calc_marginal_value.html</loc></url>
 <url><loc>https://danovando.github.io/marlin/reference/calibrate_fleet_costs.html</loc></url>
 <url><loc>https://danovando.github.io/marlin/reference/clean_steps.html</loc></url>
@@ -39,8 +37,8 @@
 <url><loc>https://danovando.github.io/marlin/reference/compute_effort_by_fleet.html</loc></url>
 <url><loc>https://danovando.github.io/marlin/reference/create_critter.html</loc></url>
 <url><loc>https://danovando.github.io/marlin/reference/create_fleet.html</loc></url>
+<url><loc>https://danovando.github.io/marlin/reference/enforce_critter_names.html</loc></url>
 <url><loc>https://danovando.github.io/marlin/reference/find_ancestors.html</loc></url>
-<url><loc>https://danovando.github.io/marlin/reference/find_msy.html</loc></url>
 <url><loc>https://danovando.github.io/marlin/reference/find_neighbors.html</loc></url>
 <url><loc>https://danovando.github.io/marlin/reference/fine_tune_costs.html</loc></url>
 <url><loc>https://danovando.github.io/marlin/reference/fleet_tuner.html</loc></url>
@@ -50,9 +48,9 @@
 <url><loc>https://danovando.github.io/marlin/reference/go_fish.html</loc></url>
 <url><loc>https://danovando.github.io/marlin/reference/index.html</loc></url>
 <url><loc>https://danovando.github.io/marlin/reference/marlin_pal.html</loc></url>
-<url><loc>https://danovando.github.io/marlin/reference/optimize_mpa.html</loc></url>
 <url><loc>https://danovando.github.io/marlin/reference/pipe.html</loc></url>
 <url><loc>https://danovando.github.io/marlin/reference/plot_marlin.html</loc></url>
+<url><loc>https://danovando.github.io/marlin/reference/precompute_baranov_inputs.html</loc></url>
 <url><loc>https://danovando.github.io/marlin/reference/prep_movement.html</loc></url>
 <url><loc>https://danovando.github.io/marlin/reference/process_marlin.html</loc></url>
 <url><loc>https://danovando.github.io/marlin/reference/process_step.html</loc></url>

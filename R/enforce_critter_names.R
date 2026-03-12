@@ -1,4 +1,14 @@
-# ensure storage step is named/reordered to match fauna names
+#' Enforce Critter Names on Storage Steps
+#'
+#' Ensures that a storage step list is named and ordered consistently with the
+#' fauna names used elsewhere in the simulation.
+#'
+#' @param x List representing one time-step of simulation storage.
+#' @param fauni Character vector of expected fauna names.
+#'
+#' @return The input list \code{x}, named and reordered to match \code{fauni}.
+#'
+#' @keywords internal
 enforce_critter_names <- function(x, fauni) {
   nm <- names(x)
 

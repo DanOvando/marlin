@@ -1,15 +1,24 @@
-#' Internal function to fine-tune cost parameters
+#' Fine-Tune Cost Parameters for Open-Access Fleets
 #'
-#' @param log_cost_mult log cost per unit effort multiplier
-#' @param target the target to be achieved
-#' @param fauna a list of fauna
-#' @param fleets a list of fleets
-#' @param years the number of years to run the optimization
-#' @param tune_type what is being tuned for
+#' Objective function used by \code{\link{tune_fleets}} to calibrate
+#' \code{cost_per_unit_effort} for open-access fleets so that the simulated
+#' depletion or exploitation rate matches a user-supplied target.
 #'
-#' @return fine-tuned costs
-#' @export
+#' @param log_cost_mult Numeric vector. Log-scale cost-per-unit-effort
+#'   multipliers, one per open-access fleet.
+#' @param target Data frame with columns \code{critter} and \code{target},
+#'   giving the desired depletion level for each species.
+#' @param fauna List of fauna objects (from \code{\link{create_critter}}).
+#' @param fleets List of fleet objects (from \code{\link{create_fleet}}).
+#' @param years Integer. Number of years to simulate during optimisation
+#'   (default 25).
+#' @param tune_type Character. One of \code{"depletion"} or \code{"explt"},
+#'   indicating what metric is being matched to \code{target}.
 #'
+#' @return Numeric scalar: sum of squared differences between simulated and
+#'   target values (used as the objective for optimisation).
+#'
+#' @keywords internal
 fine_tune_costs <-
   function(log_cost_mult,
            target,

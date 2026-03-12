@@ -1,19 +1,30 @@
-#' generate_length_to_age_key
+#' Generate Length-at-Age Key
 #'
-#' produces an age by length bins matrix with probability of being in length bin at age
+#' Produces an age-by-length-bin matrix giving the probability of being in each
+#' length bin at each age, based on the specified growth model.
 #'
-#' @param cv the coefficient of variation of the length-at-age relationship (log-space)
-#' @param k the
-#' @param linf asymptotic length of the species in a von Bertalanffy growth function
-#' @param t0 hypothetical age at which the fish would have length 0 (e.g. -0.5 years)
-#' @param time_step the time step the model is running on (1 / seasons)
-#' @param linf_buffer multiplier around linf to create length at age key, taking into account that some fish will be larger than Linf
-#' @param min_age minimum age tracked in the model. Best to leave at 0, as the model does not explicitly track delays for recruitment
-#' @param max_age maximum age tracked by the model (individuals this age or older are tracked in the plus group)
+#' @param min_age Numeric. Minimum age tracked in the model. Best left at 0,
+#'   as the model does not explicitly track recruitment delays.
+#' @param max_age Numeric. Maximum age tracked by the model (individuals this
+#'   age or older are in the plus group).
+#' @param length_bin_width Numeric. Width of each length bin in the key
+#'   (default 1).
+#' @param growth_params Named list of growth parameters. Contents depend on
+#'   \code{growth_model}: for \code{"von_bertalanffy"}: \code{linf}, \code{vbk},
+#'   \code{t0}; for \code{"power"}: \code{length_a}, \code{length_b}, \code{t0};
+#'   for \code{"growth_cessation"}: \code{l0}, \code{rmax}, \code{k},
+#'   \code{t50}.
+#' @param growth_model Character. Growth model to use. One of
+#'   \code{"von_bertalanffy"}, \code{"power"}, or \code{"growth_cessation"}.
+#' @param cv Numeric. Coefficient of variation of length-at-age (log-space).
+#' @param time_step Numeric. Time step the model is running on (1 / seasons).
+#' @param linf_buffer Numeric. Multiplier around Linf used to set the upper
+#'   bound of the length key, accounting for fish larger than Linf (default 10).
 #'
-#' @return a length-at-age key
+#' @return A tibble with columns \code{age}, \code{length_bin},
+#'   \code{mean_length_at_age}, \code{sigma_at_age}, \code{next_length_bin},
+#'   and \code{p_bin} (probability of being in each length bin at each age).
 #' @export
-#'
 generate_length_at_age_key <- function(min_age,
                                        max_age,
                                        length_bin_width = 1,

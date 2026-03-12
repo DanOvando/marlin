@@ -19,23 +19,24 @@ prep_movement(multiplier, resolution)
 
 - multiplier:
 
-  multiplier for adjacency matrix
+  Sparse matrix (from
+  [`Matrix::sparseMatrix`](https://rdrr.io/pkg/Matrix/man/sparseMatrix.html)).
+  Off-diagonal elements represent the instantaneous transition rates
+  from patch j (column) to patch i (row), derived by element-wise
+  multiplication of the base diffusion matrix and the habitat-taxis
+  multiplier matrix.
 
 - resolution:
 
-  spatial resolution
-
-- time_step:
-
-  time step in question
+  Integer vector of length 2. Grid dimensions `c(nx, ny)`. Currently
+  unused inside the function body but retained for compatibility with
+  earlier code.
 
 ## Value
 
 A sparse matrix with the same dimensions as `multiplier`, with diagonal
 elements set to \\-\sum\_{i \neq j} m\_{ij}\\ (negative column sums of
 the off-diagonal).
-
-a prepared movement matrix
 
 ## Details
 

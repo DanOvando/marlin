@@ -7,18 +7,19 @@
 prep_movement(multiplier, resolution)
 }
 \arguments{
-\item{multiplier}{multiplier for adjacency matrix}
+\item{multiplier}{Sparse matrix (from \code{Matrix::sparseMatrix}).
+Off-diagonal elements represent the instantaneous transition rates from
+patch j (column) to patch i (row), derived by element-wise multiplication
+of the base diffusion matrix and the habitat-taxis multiplier matrix.}
 
-\item{resolution}{spatial resolution}
-
-\item{time_step}{time step in question}
+\item{resolution}{Integer vector of length 2. Grid dimensions \code{c(nx,
+  ny)}. Currently unused inside the function body but retained for
+compatibility with earlier code.}
 }
 \value{
 A sparse matrix with the same dimensions as \code{multiplier},
 with diagonal elements set to \eqn{-\sum_{i \neq j} m_{ij}} (negative
 column sums of the off-diagonal).
-
-a prepared movement matrix
 }
 \description{
 Converts a sparse adjacency-weighted matrix (output of the habitat-taxis
