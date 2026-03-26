@@ -264,7 +264,7 @@ example_sim <- simmar(
 )
 
 Sys.time() - start_time
-#> Time difference of 0.03717804 secs
+#> Time difference of 0.0580442 secs
 ```
 
 `process_marlin` tidies the raw simulation output into data frames;
@@ -379,7 +379,7 @@ fauna <-
     )
   )
 Sys.time() - a
-#> Time difference of 6.193728 secs
+#> Time difference of 1.783448 secs
 
 # Each fleet contains one metier per species.
 # price = price per unit weight; sel_form = "logistic" or "dome"
@@ -460,7 +460,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets)
 
 Sys.time() - a
-#> Time difference of 0.1823142 secs
+#> Time difference of 0.22399 secs
 
 
 # Run the simulation
@@ -473,7 +473,7 @@ sim3 <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.08686996 secs
+#> Time difference of 0.09776616 secs
 # a <- Sys.time()
 
 processed_marlin <- process_marlin(sim = sim3, time_step = time_step, keep_age = TRUE)
@@ -643,7 +643,7 @@ fleets <- tune_fleets(fauna, fleets, tune_type = tune_type, tune_costs = TRUE,ye
 # fleets$longline$metiers$`Yellowfin Tuna`$spatial_catchability
 
 Sys.time() - a
-#> Time difference of 1.553663 secs
+#> Time difference of 1.901096 secs
 
 # Run the nearshore baseline (no MPA)
 a <- Sys.time()
@@ -655,7 +655,7 @@ nearshore <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.320895 secs
+#> Time difference of 0.2496009 secs
 
 proc_nearshore <- process_marlin(nearshore, time_step = fauna[[1]]$time_step)
 
@@ -706,7 +706,7 @@ nearshore_mpa <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.3067079 secs
+#> Time difference of 0.366024 secs
 
 proc_nearshore_mpa <- process_marlin(nearshore_mpa, time_step = fauna[[1]]$time_step)
 
@@ -789,7 +789,7 @@ offshore <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.2039011 secs
+#> Time difference of 0.2487822 secs
 
 proc_offshore <- process_marlin(offshore, time_step = fauna[[1]]$time_step)
 
@@ -806,7 +806,7 @@ offshore_mpa_sim <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.450458 secs
+#> Time difference of 0.53953 secs
 
 
 proc_offshore_mpa <- process_marlin(offshore_mpa_sim, time_step = fauna[[1]]$time_step)
@@ -971,7 +971,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
-#> Time difference of 0.1231489 secs
+#> Time difference of 0.1790249 secs
 
 # Run the simulation
 negative_prices <- simmar(

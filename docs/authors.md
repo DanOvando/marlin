@@ -11,13 +11,13 @@ Source:
 [`DESCRIPTION`](https://github.com/danovando/marlin/blob/HEAD/DESCRIPTION)
 
 Ovando D (2026). *marlin: Simulation of Marine Social-Ecological
-Systems*. R package version 1.0.0,
+Systems*. R package version 1.0.1,
 <https://danovando.github.io/marlin/>.
 
     @Manual{,
       title = {marlin: Simulation of Marine Social-Ecological Systems},
       author = {Dan Ovando},
       year = {2026},
-      note = {R package version 1.0.0},
+      note = {R package version 1.0.1},
       url = {https://danovando.github.io/marlin/},
     }
