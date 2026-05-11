@@ -52,7 +52,7 @@ objective surface directly. When supplied, it replaces the column extracted from
 \code{buffet} for fleets whose \code{spatial_allocation} is one of the buffet-driven
 strategies (\code{rpue}, \code{ppue}, \code{marginal_profit}, etc.). Used by
 \code{\link{simmar}} to feed in a temporally-smoothed objective when a fleet has
-\code{objective_memory_halflife > 0}; \code{NULL} preserves current behavior.}
+\code{memory_halflife > 0}; \code{NULL} preserves current behavior.}
 }
 \value{
 A named list containing the updated effort matrix (\code{effort_new}) and additional

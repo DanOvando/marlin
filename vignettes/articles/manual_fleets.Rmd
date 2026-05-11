@@ -70,14 +70,14 @@ fleets <- list(
     resolution = resolution,
     fishing_grounds = fishing_grounds,
     spatial_allocation = "marginal_revenue",
-    eta = 0.075
+    responsiveness = 0.075
   ),
   "commercial" = create_fleet(
     list("snapper" = Metier$new(
       critter = fauna$snapper,
       p_explt = 10
     )),
-    eta = 0.075,
+    responsiveness = 0.075,
     base_effort = 10*resolution^2,
     resolution = resolution,
     spatial_allocation = "marginal_profit"

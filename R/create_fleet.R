@@ -108,9 +108,12 @@
 #'   manual adjustment.
 #' @param cost_per_distance Numeric. Deprecated; use \code{travel_fraction}
 #'   instead.
-#' @param eta Numeric. Internal responsiveness scaling parameter for
-#'   \code{\link{allocate_effort}}. Default \code{0.1}.
-#' @param objective_memory_halflife Non-negative numeric. Half-life **in
+#' @param responsiveness Numeric. Per-step responsiveness of patch effort to
+#'   the objective signal in \code{\link{allocate_effort}} (the \eqn{\eta}
+#'   parameter of the multiplicative update). Larger values move effort more
+#'   aggressively toward high-objective patches each step; if too large, can
+#'   drive period-2 sawtooth oscillation. Default \code{0.025}.
+#' @param memory_halflife Non-negative numeric. Half-life **in
 #'   years** of the EWMA applied to this fleet's spatial objective surface
 #'   inside \code{\link{simmar}}. \code{0} (default) disables smoothing — the
 #'   fleet sees only the previous step's objective, matching legacy behavior.
@@ -198,16 +201,16 @@ create_fleet <-
            patch_area = 1,
            base_effort = NULL,
            fishing_grounds = NULL,
-           eta = 0.05,
-           objective_memory_halflife = 0) {
+           responsiveness = 0.025,
+           memory_halflife = 0) {
 
     fleet_model <- stringr::str_replace_all(fleet_model, " ", "_") # in case someone used spaces accidentally (like dumbass old dan)
 
-    if (!is.numeric(objective_memory_halflife) ||
-        length(objective_memory_halflife) != 1L ||
-        is.na(objective_memory_halflife) ||
-        objective_memory_halflife < 0) {
-      stop("`objective_memory_halflife` must be a single non-negative number (0 disables smoothing).")
+    if (!is.numeric(memory_halflife) ||
+        length(memory_halflife) != 1L ||
+        is.na(memory_halflife) ||
+        memory_halflife < 0) {
+      stop("`memory_halflife` must be a single non-negative number (0 disables smoothing).")
     }
 
     if (length(resolution) == 1) {
@@ -370,9 +373,9 @@ create_fleet <-
       oa_rho_year = oa_rho_year,
       oa_k = oa_k,
 
-      eta = eta,
+      responsiveness = responsiveness,
 
-      objective_memory_halflife = objective_memory_halflife
+      memory_halflife = memory_halflife
     )
 
     return(fleet)

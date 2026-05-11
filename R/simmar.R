@@ -457,7 +457,7 @@ simmar <- function(fauna = list(),
 
   # Per-fleet EWMA history of the spatial allocation objective. NULL until the
   # first main-loop allocation populates it. Used only when a fleet has
-  # objective_memory_halflife > 0; see create_fleet() for the mechanism.
+  # memory_halflife > 0; see create_fleet() for the mechanism.
   # `_n` is the per-fleet count of post-bootstrap update calls, used to ramp
   # the effective alpha during burn-in (Welford-style) so the smoothed surface
   # isn't anchored to the first observed objective.
@@ -698,7 +698,7 @@ simmar <- function(fauna = list(),
         e_p <- last_e_p_f[,l]
 
         # Build a smoothed objective override when this fleet has memory enabled.
-        halflife <- fleets[[l]]$objective_memory_halflife
+        halflife <- fleets[[l]]$memory_halflife
         if (is.null(halflife)) halflife <- 0
         alloc_type_l <- fleets[[l]]$spatial_allocation
         objective_override_l <- NULL

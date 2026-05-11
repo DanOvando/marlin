@@ -10,3 +10,5 @@
 ^vignettes/articles$
 ^doc$
 ^Meta$
+^\.positai$
+^\.claude$

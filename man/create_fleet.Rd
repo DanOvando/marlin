@@ -22,8 +22,8 @@ create_fleet(
   patch_area = 1,
   base_effort = NULL,
   fishing_grounds = NULL,
-  eta = 0.05,
-  objective_memory_halflife = 0
+  responsiveness = 0.025,
+  memory_halflife = 0
 )
 }
 \arguments{
@@ -98,10 +98,13 @@ When \code{spatial_allocation = "manual"}, numeric values in
 \code{fishing_ground} are used as effort weights. Defaults to all patches
 open.}
 
-\item{eta}{Numeric. Internal responsiveness scaling parameter for
-\code{\link{allocate_effort}}. Default \code{0.1}.}
+\item{responsiveness}{Numeric. Per-step responsiveness of patch effort to
+the objective signal in \code{\link{allocate_effort}} (the \eqn{\eta}
+parameter of the multiplicative update). Larger values move effort more
+aggressively toward high-objective patches each step; if too large, can
+drive period-2 sawtooth oscillation. Default \code{0.025}.}
 
-\item{objective_memory_halflife}{Non-negative numeric. Half-life \strong{in
+\item{memory_halflife}{Non-negative numeric. Half-life \strong{in
 years} of the EWMA applied to this fleet's spatial objective surface
 inside \code{\link{simmar}}. \code{0} (default) disables smoothing — the
 fleet sees only the previous step's objective, matching legacy behavior.

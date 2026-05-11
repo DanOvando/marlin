@@ -29,7 +29,7 @@
 #'   \code{buffet} for fleets whose \code{spatial_allocation} is one of the buffet-driven
 #'   strategies (\code{rpue}, \code{ppue}, \code{marginal_profit}, etc.). Used by
 #'   \code{\link{simmar}} to feed in a temporally-smoothed objective when a fleet has
-#'   \code{objective_memory_halflife > 0}; \code{NULL} preserves current behavior.
+#'   \code{memory_halflife > 0}; \code{NULL} preserves current behavior.
 #'
 #' @return
 #' A named list containing the updated effort matrix (\code{effort_new}) and additional
@@ -105,7 +105,7 @@ allocate_effort <- function(
     # Look up which objective this fleet uses
     alloc_type <- fleets[[fl_name]]$spatial_allocation
 
-    eta <- fleets[[fl_name]]$eta
+    responsiveness <- fleets[[fl_name]]$responsiveness
 
     # --- Manual allocation: distribute effort by fishing_grounds weights --------
     if (alloc_type == "manual") {
@@ -230,7 +230,7 @@ allocate_effort <- function(
     log_e <- rep(-Inf, n_patches)
     log_e[open] <- log(pmax(e_open[open], 1e-300))
 
-    log_e_prop <- log_e + eta * v
+    log_e_prop <- log_e + responsiveness * v
 
     mx <- max(log_e_prop[open])
     w <- numeric(n_patches)
