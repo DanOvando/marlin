@@ -19,6 +19,7 @@ Let’s set up a 10x10 system, with two ports, with their locations
 specified by x and y coordinates.
 
 ``` r
+
 library(marlin)
 
 library(ggplot2)
@@ -36,6 +37,7 @@ ports <- data.frame(x = c(2, 10), y = c(1, 8))
 Now we’ll create a population of bigeye tuna.
 
 ``` r
+
 fauna <-
   list(
     "bigeye" = create_critter(
@@ -50,6 +52,7 @@ fauna <-
 We’ll then create a fishing fleet with the desired port locations.
 
 ``` r
+
 fleets <- list(
   "longline" = create_fleet(
     list("bigeye" = Metier$new(
@@ -75,13 +78,14 @@ fleets <- list(
 fleets <- tune_fleets(fauna, fleets, tune_costs = TRUE)
 
 fleets$longline$cost_per_unit_effort
-#> [1] 0.5108651
+#> [1] 0.5386609
 ```
 
 From there, run simulation and see how the fleet concentrates around the
 ports.
 
 ``` r
+
 port_sim <- simmar(
   fauna = fauna,
   fleets = fleets,
@@ -103,6 +107,7 @@ plot_marlin(
 ![](port-distance_files/figure-html/unnamed-chunk-5-1.png)
 
 ``` r
+
 
 patch_effort <- tidyr::expand_grid(x = 1:fauna[[1]]$resolution[1], y = 1:fauna[[1]]$resolution[2]) %>%
   dplyr::mutate(effort = port_sim[[length(port_sim)]]$bigeye$e_p_fl$longline)

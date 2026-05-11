@@ -13,6 +13,7 @@ introduces one layer of complexity. For deeper dives into specific
 features, see the other vignettes listed at the end.
 
 ``` r
+
 library(marlin)
 library(ggplot2)
 library(dplyr)
@@ -60,6 +61,7 @@ A few key arguments to know:
   were spawned
 
 ``` r
+
 resolution <- c(10, 10)
 years <- 20
 seasons <- 4
@@ -84,12 +86,14 @@ The critter object has built-in plots for inspecting life history and
 movement:
 
 ``` r
+
 fauna$bigeye$plot()
 ```
 
 ![](getting-started_files/figure-html/critter-plots-1.png)
 
 ``` r
+
 
 fauna$bigeye$plot_movement()
 ```
@@ -111,6 +115,7 @@ The most important fleet-level settings are:
 - `base_effort`: total effort units at the start
 
 ``` r
+
 fleets <- list(
   "longline" = create_fleet(
     list(
@@ -139,6 +144,7 @@ produces our target depletion level. This is almost always easier than
 trying to guess catchability directly.
 
 ``` r
+
 fleets <- tune_fleets(fauna, fleets, tune_type = "depletion")
 ```
 
@@ -147,6 +153,7 @@ fleets <- tune_fleets(fauna, fleets, tune_type = "depletion")
 Pass fauna, fleets, and a number of years to `simmar`:
 
 ``` r
+
 sim <- simmar(
   fauna = fauna,
   fleets = fleets,
@@ -160,6 +167,7 @@ sim <- simmar(
 provides quick visualizations.
 
 ``` r
+
 proc <- process_marlin(sim, time_step = time_step)
 
 # Spawning stock biomass over time
@@ -170,6 +178,7 @@ plot_marlin(proc, plot_var = "ssb")
 
 ``` r
 
+
 # Catch over time
 plot_marlin(proc, plot_var = "c", max_scale = FALSE)
 ```
@@ -177,6 +186,7 @@ plot_marlin(proc, plot_var = "c", max_scale = FALSE)
 ![](getting-started_files/figure-html/results-simple-2.png)
 
 ``` r
+
 
 # Spatial distribution of SSB in the final time step
 plot_marlin(proc, plot_var = "ssb", plot_type = "space",
@@ -192,6 +202,7 @@ by patch, age, and time step), and `proc$fleets` has fleet-level results
 use these directly for custom analyses:
 
 ``` r
+
 proc$fleets %>%
   group_by(step, fleet) %>%
   summarise(catch = sum(catch), .groups = "drop") %>%
@@ -216,6 +227,7 @@ smoother), and you can supply a correlation matrix to control whether
 species prefer similar or different areas.
 
 ``` r
+
 # Species prefer different areas (negative correlation)
 critter_cors <- matrix(c(1, -0.5,
                          -0.5, 1), nrow = 2)
@@ -238,6 +250,7 @@ skipjack_habitat <- habitats$critter_distributions$skipjack
 Now we create two species using these habitats:
 
 ``` r
+
 fauna <- list(
   "bigeye" = create_critter(
     common_name = "bigeye tuna",
@@ -277,6 +290,7 @@ non-interaction). The `p_explt` values are relative: if longline has
 accounts for 2/3 of bigeye fishing mortality.
 
 ``` r
+
 fleets <- list(
   "longline" = create_fleet(
     list(
@@ -336,6 +350,7 @@ fleets <- tune_fleets(fauna, fleets, tune_type = "depletion")
 ### Running and examining
 
 ``` r
+
 sim_multi <- simmar(fauna = fauna, fleets = fleets, years = years)
 
 proc_multi <- process_marlin(sim_multi, time_step = time_step)
@@ -347,12 +362,14 @@ plot_marlin(proc_multi, plot_var = "ssb")
 
 ``` r
 
+
 plot_marlin(proc_multi, plot_var = "c", max_scale = FALSE)
 ```
 
 ![](getting-started_files/figure-html/run-multi-2.png)
 
 ``` r
+
 
 plot_marlin(proc_multi, plot_var = "ssb", plot_type = "space",
             steps_to_plot = max(proc_multi$fauna$step))
@@ -369,6 +386,7 @@ marine protected areas. You specify MPA locations as a data frame with
 established.
 
 ``` r
+
 # Protect a block of patches in the upper-right corner
 mpa_locations <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   mutate(mpa = x > 7 & y > 7)
@@ -384,6 +402,7 @@ ggplot(mpa_locations, aes(x, y, fill = mpa)) +
 ![](getting-started_files/figure-html/mpa-setup-1.png)
 
 ``` r
+
 sim_mpa <- simmar(
   fauna = fauna,
   fleets = fleets,
@@ -403,6 +422,7 @@ proc_mpa <- process_marlin(sim_mpa, time_step = time_step)
 Pass named arguments to get labeled panels:
 
 ``` r
+
 plot_marlin(
   "No MPA" = proc_multi,
   "With MPA" = proc_mpa,
@@ -413,6 +433,7 @@ plot_marlin(
 ![](getting-started_files/figure-html/mpa-compare-1.png)
 
 ``` r
+
 
 plot_marlin(
   "No MPA" = proc_multi,
@@ -427,6 +448,7 @@ plot_marlin(
 You can also compare spatial patterns:
 
 ``` r
+
 plot_marlin(
   "No MPA" = proc_multi,
   "With MPA" = proc_mpa,

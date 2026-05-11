@@ -17,7 +17,6 @@ Let $`E_{l,f}`$ denote the effort of fleet $`f`$ in patch $`l`$.
 Fleet-specific fishing mortality at age is
 
 ``` math
-
 F_{l,s,a,f}
 =
 q_{l,s,f}\,\text{sel}_{a,s,f}\,E_{l,f},
@@ -31,7 +30,6 @@ all fleets other than $`f`$, and let $`m_{a,s}`$ denote natural
 mortality. Total instantaneous mortality is
 
 ``` math
-
 Z_{l,s,a}
 =
 F_{l,s,a,f}
@@ -48,7 +46,6 @@ m_{a,s}.
 Revenue for fleet $`f`$ is given by Baranov catch multiplied by price:
 
 ``` math
-
 \text{Rev}_f
 =
 \sum_{l}\sum_{s}\sum_{a}
@@ -91,7 +88,6 @@ Users specify the following interpretable parameters in `create_fleet`:
 The travel weight $`\theta_f`$ is derived from `travel_fraction` as:
 
 ``` math
-
 \theta_f = \frac{\text{travel\_fraction}}{1 - \text{travel\_fraction}}
 ```
 
@@ -104,7 +100,6 @@ distributed across open patches.
 Total cost for fleet $`f`$ is:
 
 ``` math
-
 \text{Cost}_f
 =
 c0_f \cdot E^{\text{ref}}_f
@@ -142,7 +137,6 @@ The `tune_fleets` function calibrates $`c0_f`$ to achieve the target
 cost/revenue ratio:
 
 ``` math
-
 c0_f = \frac{\text{cr\_ratio} \cdot \text{Rev}_f}{E^{\text{ref}}_f \cdot P_f \cdot (1 + \theta_f)}
 ```
 
@@ -157,7 +151,6 @@ per-patch effort.
 The objective for fleet $`f`$ is
 
 ``` math
-
 \begin{aligned}
 \max_{\{E_{l,f}\}}
 \;\; \text{obj}_f
@@ -195,12 +188,10 @@ The optimization is subject to:
 
 - Total effort constraint:
   ``` math
-
   \sum_l E_{l,f} = E^{\text{tot}}_f
   ```
 - Non-negativity:
   ``` math
-
   E_{l,f} \ge 0
   ```
 - Fleet-specific spatial closures, enforced by setting $`E_{l,f} = 0`$

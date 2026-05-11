@@ -1,6 +1,7 @@
 # Invertebrates
 
 ``` r
+
 library(marlin)
 
 library(tidyverse)
@@ -45,6 +46,7 @@ For invertebrates, we are going to implement a couple of features.
   die **after** spawning
 
 ``` r
+
 resolution <- 5 # the resolution of the system
 
 patch_area <- 1 # the area of each patch
@@ -92,6 +94,7 @@ species_distributions <- sim_habitat(
 ```
 
 ``` r
+
 species_distributions$critter_distributions |>
   map(as.data.frame) |>
   list_rbind(names_to = "critter") |>
@@ -113,6 +116,7 @@ species_distributions$critter_distributions |>
 Next, we’ll set up the fauna and fleet objects
 
 ``` r
+
 fauna <-
   list(
     "squishy" = create_critter(
@@ -208,18 +212,21 @@ fleets <- tune_fleets(fauna, fleets, tune_type = "explt", years = 20)
 ```
 
 ``` r
+
 fauna$squishy$plot()
 ```
 
 ![](Invertebrates_files/figure-html/unnamed-chunk-5-1.png)
 
 ``` r
+
 fauna$squashy$plot()
 ```
 
 ![](Invertebrates_files/figure-html/unnamed-chunk-6-1.png)
 
 ``` r
+
 sels <- data.frame(
   artisinal = fleets$artisanal$metiers$squishy$sel_at_length,
   commercial = fleets$commercial$metiers$squishy$sel_at_length,
@@ -235,14 +242,16 @@ sels |>
 ![](Invertebrates_files/figure-html/unnamed-chunk-7-1.png)
 
 ``` r
+
 tic()
 squishy_sim <- simmar(fauna, fleets, years = years, cor_rec = critter_correlations)
 toc()
-#> 0.415 sec elapsed
+#> 0.427 sec elapsed
 processed_squishy <- process_marlin(sim = squishy_sim, time_step = time_step)
 ```
 
 ``` r
+
 processed_squishy$fauna |>
   group_by(step, age, mean_length) |>
   summarise(number = sum(n)) |>
@@ -263,6 +272,7 @@ processed_squishy$fauna |>
 ![](Invertebrates_files/figure-html/unnamed-chunk-9-1.png)
 
 ``` r
+
 processed_squishy$fauna |>
   filter(age == min(age)) |>
   ggplot(aes(step, n, color = critter)) +
@@ -275,6 +285,7 @@ species.](Invertebrates_files/figure-html/fig-rec-1.png)
 Number of recruits over time per species.
 
 ``` r
+
 plot_marlin(processed_squishy, fauna = fauna, plot_var = "b", max_scale = FALSE)
 ```
 
@@ -284,6 +295,7 @@ time.](Invertebrates_files/figure-html/fig-b-1.png)
 Biomass per species over time.
 
 ``` r
+
 b <- processed_squishy$fauna |>
   group_by(year, age, critter) |>
   summarise(n = sum(n)) |>
@@ -319,6 +331,7 @@ Example age composition over the course of a year, along with maturity
 ogive. Note one species is semelparous, the other is not.
 
 ``` r
+
 a <- processed_squishy$fauna |>
   group_by(year, step, age, critter) |>
   summarise(n = sum(n)) |>

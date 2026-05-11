@@ -1,6 +1,7 @@
 # Manual Fishing Grounds and Effort Allocation
 
 ``` r
+
 library(marlin)
 
 library(tidyverse)
@@ -45,6 +46,7 @@ desired amount of depletion.
 We’ll first create a generic snapper critter
 
 ``` r
+
 resolution <- 10 # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches
 
 years <- 50
@@ -71,6 +73,7 @@ To illustrate, we’ll create two fleets that are identical except in
 their fishing grounds.
 
 ``` r
+
 fishing_grounds <- expand.grid(x = 1:resolution, y = 1:resolution) |>
   mutate(fishing_ground = TRUE)
 
@@ -86,14 +89,14 @@ fleets <- list(
     resolution = resolution,
     fishing_grounds = fishing_grounds,
     spatial_allocation = "marginal_revenue",
-    eta = 0.075
+    responsiveness = 0.075
   ),
   "commercial" = create_fleet(
     list("snapper" = Metier$new(
       critter = fauna$snapper,
       p_explt = 10
     )),
-    eta = 0.075,
+    responsiveness = 0.075,
     base_effort = 10*resolution^2,
     resolution = resolution,
     spatial_allocation = "marginal_profit"
@@ -108,6 +111,7 @@ that the artisinal fleet only applies fishing effort in its defined
 fishing grounds.
 
 ``` r
+
 fishing_ground_sim <- simmar(
   fauna = fauna,
   fleets = fleets,
@@ -126,6 +130,7 @@ plot_marlin(proc_sim, plot_type = "space")
 ![](manual_fleets_files/figure-html/unnamed-chunk-4-1.png)
 
 ``` r
+
 
 fleet_summary <- proc_sim$fleets |>
   filter(step == max(step)) |>
@@ -172,6 +177,7 @@ manual distribution of the artisanal fleet changing the distribution of
 revenues in space available to the commercial fleet.
 
 ``` r
+
 fishing_grounds <- expand.grid(x = 1:resolution, y = 1:resolution) |>
   mutate(fishing_ground = runif(length(x))) |> 
   mutate(fishing_ground = fishing_ground / sum(fishing_ground))

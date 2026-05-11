@@ -66,6 +66,7 @@ You can install the development version from
 [GitHub](https://github.com/DanOvando/marlin) with:
 
 ``` r
+
 # install.packages("devtools")
 devtools::install_github("DanOvando/marlin")
 ```
@@ -123,6 +124,7 @@ Key global parameters:
 - `patch_area`: area of each patch in km².
 
 ``` r
+
 library(marlin)
 library(tidyverse)
 options(dplyr.summarise.inform = FALSE)
@@ -178,6 +180,7 @@ respectively, are expected to disperse from a source patch over the
 course of a year.
 
 ``` r
+
 fauna <-
   list(
     "bigeye" = create_critter(
@@ -202,6 +205,7 @@ fauna$bigeye$plot()
 
 ``` r
 
+
 fauna$bigeye$plot_movement()
 ```
 
@@ -217,6 +221,7 @@ metiers have `p_explt = 1` and `p_explt = 2` for species X, the first
 accounts for one-third of total mortality and the second for two-thirds.
 
 ``` r
+
 fleets <- list(
   "longline" = create_fleet(
     list("bigeye" = Metier$new(
@@ -244,6 +249,7 @@ equilibrium. The calibration accounts for all fleet dynamics and
 `p_explt` weights.
 
 ``` r
+
 fleets <- tune_fleets(fauna, fleets, tune_type = "explt")
 
 fleets$longline$metiers$bigeye$plot_catchability()
@@ -255,6 +261,7 @@ With fauna and fleets defined, we pass them to `simmar` to run the
 simulation:
 
 ``` r
+
 start_time <- Sys.time()
 
 example_sim <- simmar(
@@ -271,6 +278,7 @@ Sys.time() - start_time
 `plot_marlin` provides quick visualisations:
 
 ``` r
+
 # options(warn = 2)
 
 processed_marlin <- process_marlin(sim = example_sim, time_step = time_step)
@@ -282,6 +290,7 @@ plot_marlin(processed_marlin)
 
 ``` r
 
+
 plot_marlin(processed_marlin, plot_var = "c", max_scale = FALSE)
 ```
 
@@ -289,12 +298,14 @@ plot_marlin(processed_marlin, plot_var = "c", max_scale = FALSE)
 
 ``` r
 
+
 plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", fauna = fauna)
 ```
 
 ![](reference/figures/README-unnamed-chunk-7-3.png)
 
 ``` r
+
 
 plot_marlin(processed_marlin, plot_var = "ssb", plot_type = "space", steps_to_plot = max(processed_marlin$fauna$step))
 ```
@@ -308,6 +319,7 @@ adding seasonal habitat dynamics where each species occupies a different
 spatial distribution depending on the time of year.
 
 ``` r
+
 seasons <- 4
 
 steps <- years * seasons
@@ -392,12 +404,14 @@ fauna$skipjack$plot_movement()
 
 ``` r
 
+
 fauna$bigeye$plot_movement()
 ```
 
 ![](reference/figures/README-example-2.png)
 
 ``` r
+
 
 
 fleets <- list(
@@ -486,12 +500,14 @@ plot_marlin(processed_marlin)
 
 ``` r
 
+
 plot_marlin(processed_marlin, plot_var = "c")
 ```
 
 ![](reference/figures/README-example-4.png)
 
 ``` r
+
 
 plot_marlin(processed_marlin, plot_var = "n", plot_type = "length", fauna = fauna)
 ```
@@ -510,6 +526,7 @@ unobserved range shift can determine whether an MPA helps or harms that
 species.
 
 ``` r
+
 resolution <- c(20, 20) # resolution is in squared patches, so 20 implies a 20X20 system, i.e. 400 patches
 
 seasons <- 1
@@ -591,6 +608,7 @@ fauna$`Shortfin Mako`$plot()
 
 ``` r
 
+
 fleets <- list("longline" = create_fleet(
   list(
     `Yellowfin Tuna` = Metier$new(
@@ -665,6 +683,7 @@ plot_marlin(proc_nearshore, max_scale = FALSE, plot_var = "b")
 ![](reference/figures/README-unnamed-chunk-8-2.png)
 
 ``` r
+
 plot_marlin(proc_nearshore, max_scale = FALSE, plot_var = "ssb")
 ```
 
@@ -674,6 +693,7 @@ We define the MPA as a data frame with columns `x`, `y`, and `mpa`,
 where `mpa = TRUE` marks closed patches:
 
 ``` r
+
 set.seed(42)
 # specify some MPA locations
 mpa_locations <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
@@ -693,6 +713,7 @@ We simulate the MPA by passing it to `simmar` via the `manager`
 argument. `mpa_year` controls when the closure is activated:
 
 ``` r
+
 a <- Sys.time()
 
 nearshore_mpa <- simmar(
@@ -720,6 +741,7 @@ mako population has shifted further offshore. We apply the exact same
 MPA and compare outcomes.
 
 ``` r
+
 mako_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   mutate(
     habitat = dnorm(x, .7 * resolution, 6),
@@ -767,6 +789,7 @@ fauna$`Shortfin Mako`$plot()
 ![](reference/figures/README-unnamed-chunk-11-1.png)
 
 ``` r
+
 fleets$longline$metiers$`Shortfin Mako`$catchability
 #>   longline 
 #> 0.05342734
@@ -818,6 +841,7 @@ plot_marlin(proc_offshore)
 
 ``` r
 
+
 plot_marlin(proc_offshore_mpa)
 ```
 
@@ -826,6 +850,7 @@ plot_marlin(proc_offshore_mpa)
 Effects of nearshore MPAs when sharks live nearshore
 
 ``` r
+
 plot_marlin(
   `No MPA: Sharks Nearshore` = proc_nearshore,
   `MPA: Sharks Nearshore` = proc_nearshore_mpa,
@@ -840,6 +865,7 @@ plot_marlin(
 Effects of nearshore MPAs when sharks live offshore
 
 ``` r
+
 plot_marlin(
   `MPA: Sharks Offshore` = proc_offshore_mpa,
   `No MPA: Sharks Offshoe` = proc_offshore,
@@ -852,6 +878,7 @@ plot_marlin(
 ![](reference/figures/README-unnamed-chunk-13-1.png)
 
 ``` r
+
 plot_marlin(
   `MPA: Sharks Offshore` = proc_offshore_mpa,
   `Sharks Nearshore` = proc_nearshore,
@@ -883,6 +910,7 @@ or a regulatory penalty — causes the fleet to avoid mako habitat,
 effectively creating a de facto protected area.
 
 ``` r
+
 years <- 100
 
 tune_type <- "f"
@@ -986,6 +1014,7 @@ proc_negative_prices <- process_marlin(negative_prices, time_step = fauna[[1]]$t
 ```
 
 ``` r
+
 plot_marlin(
   `De-Facto MPA` = proc_negative_prices,
   plot_var = "ssb",

@@ -8,6 +8,7 @@ shows an example of how to simulate those processes using `marlin`.
 We’ll first simulate a system with some heterogeneous habitat.
 
 ``` r
+
 library(marlin)
 
 library(tidyverse)
@@ -76,6 +77,7 @@ critter_habitats <- habitats$critter_distributions |>
 ```
 
 ``` r
+
 habitats$critter_distributions |>
   ggplot(aes(x, y, fill = habitat)) +
   geom_tile() +
@@ -89,6 +91,7 @@ Habitat](measure_gradients_files/figure-html/unnamed-chunk-2-1.png)
 Simulated Species Habitat
 
 ``` r
+
 # create a fauna object, which is a list of lists
 
 yft_habitat <- critter_habitats$habitat[[which(critter_habitats$critter == "yellowfin")]]
@@ -158,7 +161,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
-#> Time difference of 3.636594 secs
+#> Time difference of 2.882307 secs
 
 # run simulations
 
@@ -171,7 +174,7 @@ spillover_sim <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.04358292 secs
+#> Time difference of 0.06017399 secs
 
 
 
@@ -192,12 +195,14 @@ plot_marlin(
 
 ``` r
 
+
 plot_marlin(proc_spillover, max_scale = FALSE)
 ```
 
 ![](measure_gradients_files/figure-html/unnamed-chunk-3-2.png)
 
 ``` r
+
 
 mpa_locations <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) |>
   arrange(x) |>
@@ -222,7 +227,7 @@ mpa_spillover <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.264204 secs
+#> Time difference of 0.239692 secs
 
 proc_mpa_spillover <- process_marlin(mpa_spillover, time_step = fauna[[1]]$time_step)
 
@@ -237,6 +242,7 @@ to measure the euclidian distance between the centroid of each cell and
 the nearest MPA cell centroid.
 
 ``` r
+
 mpa_distances <- get_distance_to_mpas(mpa_locations = mpa_locations, resolution = resolution, patch_area = patch_area)
 
 mpa_distances |>
@@ -262,6 +268,7 @@ far from any other MPAs might actually have a lower MPA gravity than a
 fished patch right next to a very large number of MPA cells.
 
 ``` r
+
 mpa_distances |>
   ggplot(aes(x, y, fill = -total_mpa_distance)) +
   geom_tile() +
@@ -288,6 +295,7 @@ actually a reverse trend for the shark where biomass is depressed right
 by the border due to fishing the line, and then increases with distance.
 
 ``` r
+
 conservation_outcomes <- proc_mpa_spillover$fauna
 
 fishery_outcomes <- proc_mpa_spillover$fleets
@@ -322,7 +330,6 @@ literature is a “response ratio” *r*, generally measured as some version
 of
 
 ``` math
-
 r = log(\frac{inside}{outside})
 ```
 Which at lower ratio values is roughly equivalent to the percent
@@ -331,7 +338,6 @@ difference in the metric in question inside the MPA relative to outside.
 This can be generalized into a regression of the form
 
 ``` math
-
 log(Y_i) \sim N(\beta_0 + rMPA_i + \pmb{\beta}\pmb{X_i},\sigma)
 ```
 where $`\beta_0`$ is the value of outcome *Y* when MPA = 0, MPA is a
@@ -343,6 +349,7 @@ We can use this equation then to calculate response ratios in various
 metrics, such as biomass density or mean length of fish.
 
 ``` r
+
 rr_data <- conservation_outcomes |>
   filter(step == max(step) | year == floor(years * .5)) |>
   group_by(step, x, y, patch, critter) |>
@@ -360,6 +367,7 @@ rr_data <- conservation_outcomes |>
 ```
 
 ``` r
+
 rr_data |>
   ggplot(aes(distance_to_mpa_edge, biomass, color = factor(step))) +
   geom_vline(xintercept = 0) +
@@ -375,6 +383,7 @@ Biomass of each species as a function of distance from MPA border.
 Negative distance means inside the MPA.
 
 ``` r
+
 rr_data |>
   ggplot(aes(distance_to_mpa_edge, mean_length, color = factor(step))) +
   geom_vline(xintercept = 0) +
@@ -393,6 +402,7 @@ Negative distance means inside the MPA.
 ## Quantifying Gradients
 
 ``` r
+
 model_critter <- "yellowfin"
 
 
@@ -429,8 +439,8 @@ response_ratio_model <- stan_glm(
 #> 
 #> SAMPLING FOR MODEL 'continuous' NOW (CHAIN 1).
 #> Chain 1: 
-#> Chain 1: Gradient evaluation took 0.000211 seconds
-#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 2.11 seconds.
+#> Chain 1: Gradient evaluation took 0.00023 seconds
+#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 2.3 seconds.
 #> Chain 1: Adjust your expectations accordingly!
 #> Chain 1: 
 #> Chain 1: 
@@ -448,8 +458,8 @@ response_ratio_model <- stan_glm(
 #> Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)
 #> Chain 1: 
 #> Chain 1:  Elapsed Time: 0.022 seconds (Warm-up)
-#> Chain 1:                0.026 seconds (Sampling)
-#> Chain 1:                0.048 seconds (Total)
+#> Chain 1:                0.031 seconds (Sampling)
+#> Chain 1:                0.053 seconds (Total)
 #> Chain 1:
 
 response_ratio <- tidybayes::tidy_draws(response_ratio_model) |>
@@ -468,6 +478,7 @@ response_ratio |>
 ### Gradients
 
 ``` r
+
 model_critter <- "mako"
 
 
@@ -551,6 +562,7 @@ lines(out)
 
 ``` r
 
+
 spillpars <- test$par
 
 spillpars[4] <- 0
@@ -582,6 +594,7 @@ Aha, so use the model, then calculate the distance at which the
 predicted
 
 ``` r
+
 b_gradient_model <- stan_glm(
   biomass ~ distance_to_mpa_edge,
   data = survey_indicators |> filter(!mpa),
@@ -592,8 +605,8 @@ b_gradient_model <- stan_glm(
 #> 
 #> SAMPLING FOR MODEL 'continuous' NOW (CHAIN 1).
 #> Chain 1: 
-#> Chain 1: Gradient evaluation took 7.6e-05 seconds
-#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.76 seconds.
+#> Chain 1: Gradient evaluation took 9.9e-05 seconds
+#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.99 seconds.
 #> Chain 1: Adjust your expectations accordingly!
 #> Chain 1: 
 #> Chain 1: 
@@ -610,9 +623,9 @@ b_gradient_model <- stan_glm(
 #> Chain 1: Iteration: 1800 / 2000 [ 90%]  (Sampling)
 #> Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 0.034 seconds (Warm-up)
-#> Chain 1:                0.032 seconds (Sampling)
-#> Chain 1:                0.066 seconds (Total)
+#> Chain 1:  Elapsed Time: 0.039 seconds (Warm-up)
+#> Chain 1:                0.038 seconds (Sampling)
+#> Chain 1:                0.077 seconds (Total)
 #> Chain 1:
 
 
@@ -622,6 +635,7 @@ plot(b_gradient_model)
 ![](measure_gradients_files/figure-html/unnamed-chunk-7-1.png)
 
 ``` r
+
 
 cpue_gradient_model <- stan_glm(
   cpue ~ distance_to_mpa_edge,
@@ -651,9 +665,9 @@ cpue_gradient_model <- stan_glm(
 #> Chain 1: Iteration: 1800 / 2000 [ 90%]  (Sampling)
 #> Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 0.033 seconds (Warm-up)
-#> Chain 1:                0.031 seconds (Sampling)
-#> Chain 1:                0.064 seconds (Total)
+#> Chain 1:  Elapsed Time: 0.039 seconds (Warm-up)
+#> Chain 1:                0.041 seconds (Sampling)
+#> Chain 1:                0.08 seconds (Total)
 #> Chain 1:
 
 effort_gradient_model <- stan_glm(
@@ -666,8 +680,8 @@ effort_gradient_model <- stan_glm(
 #> 
 #> SAMPLING FOR MODEL 'continuous' NOW (CHAIN 1).
 #> Chain 1: 
-#> Chain 1: Gradient evaluation took 1.4e-05 seconds
-#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.14 seconds.
+#> Chain 1: Gradient evaluation took 1.8e-05 seconds
+#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.18 seconds.
 #> Chain 1: Adjust your expectations accordingly!
 #> Chain 1: 
 #> Chain 1: 
@@ -684,9 +698,9 @@ effort_gradient_model <- stan_glm(
 #> Chain 1: Iteration: 1800 / 2000 [ 90%]  (Sampling)
 #> Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 0.036 seconds (Warm-up)
-#> Chain 1:                0.046 seconds (Sampling)
-#> Chain 1:                0.082 seconds (Total)
+#> Chain 1:  Elapsed Time: 0.047 seconds (Warm-up)
+#> Chain 1:                0.048 seconds (Sampling)
+#> Chain 1:                0.095 seconds (Total)
 #> Chain 1:
 
 mcmc_hist(b_gradient_model, pars = "distance_to_mpa_edge")
@@ -697,6 +711,7 @@ mcmc_hist(b_gradient_model, pars = "distance_to_mpa_edge")
 
 ``` r
 
+
 mcmc_hist(effort_gradient_model, pars = "distance_to_mpa_edge")
 #> `stat_bin()` using `bins = 30`. Pick better value `binwidth`.
 ```
@@ -704,6 +719,7 @@ mcmc_hist(effort_gradient_model, pars = "distance_to_mpa_edge")
 ![](measure_gradients_files/figure-html/unnamed-chunk-7-3.png)
 
 ``` r
+
 
 predictions <- posterior_predict(b_gradient_model, newdata = survey_indicators |> mutate(scaled_ssb0_p = 0), type = "response") |>
   as.data.frame() |>

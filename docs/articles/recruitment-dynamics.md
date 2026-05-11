@@ -164,6 +164,7 @@ will:
     and three levels of recruit dispersal
 
 ``` r
+
 library(marlin)
 library(tidyverse)
 library(patchwork)
@@ -185,6 +186,7 @@ This isolates the recruitment channel.
 a clear “good nursery” region and a “poor nursery” region.
 
 ``` r
+
 resolution <- c(10, 10)
 patch_area <- 10  # km^2 per patch
 years <- 50
@@ -207,6 +209,7 @@ recruit_habitat <- recruit_hab$critter_distributions$species
 ```
 
 ``` r
+
 expand_grid(x = 1:resolution[1], y = 1:resolution[2]) |>
   mutate(recruit_habitat = as.vector(recruit_habitat)) |>
   ggplot(aes(x, y, fill = recruit_habitat)) +
@@ -230,6 +233,7 @@ This represents an MPA placed deliberately over the best nursery
 grounds.
 
 ``` r
+
 patches <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) |>
   mutate(
     patch = row_number(),
@@ -271,6 +275,7 @@ distances:
   domain. Recruitment is effectively *global*.
 
 ``` r
+
 dd_forms <- c(
   "global_habitat",
   "local_habitat",
@@ -316,6 +321,7 @@ year 25. We use `sigma_rec = 0` to eliminate stochastic noise and
 isolate the structural effects of density dependence and dispersal.
 
 ``` r
+
 run_scenario <- function(dd, recruit_home_range, scenario_id, ...) {
 
   fauna <- list(
@@ -399,6 +405,7 @@ We combine all scenario outputs and classify each patch as inside or
 outside the MPA.
 
 ``` r
+
 all_fauna <- map_dfr(results, ~ .x$fauna)
 
 all_fleets <- map_dfr(results, ~ .x$fleets)
@@ -446,6 +453,7 @@ We plot mean SSB (summed across ages) per patch over time, split by MPA
 status.
 
 ``` r
+
 ssb_time <- all_fauna |>
   group_by(dd_label, rhr_label, mpa_status, x, y, step) |>
   summarise(ssb = sum(ssb, na.rm = TRUE), .groups = "drop") |>
@@ -488,6 +496,7 @@ This depends on whether the MPA creates a net recruitment subsidy
 (spillover via larvae) or simply redistributes existing production.
 
 ``` r
+
 total_ssb <- all_fauna |>
   group_by(dd_label, rhr_label, x, y, step) |>
   summarise(ssb = sum(ssb, na.rm = TRUE), .groups = "drop") |>
@@ -524,6 +533,7 @@ accumulate and whether the MPA creates biomass gradients (“fishing the
 line” effects).
 
 ``` r
+
 final_step <- max(all_fauna$step)
 
 spatial_final <- all_fauna |>
@@ -560,6 +570,7 @@ indicate biomass accumulation inside the reserve; values near 1 suggest
 benefits have been exported.
 
 ``` r
+
 response_ratio <- spatial_final |>
   group_by(dd_label, rhr_label, mpa) |>
   summarise(mean_ssb = mean(ssb), .groups = "drop") |>
@@ -593,6 +604,7 @@ MPAs displace fishing effort. How much catch is lost, and does it depend
 on how recruitment works?
 
 ``` r
+
 total_catch <- all_fauna |>
   group_by(dd_label, rhr_label, x, y, step) |>
   summarise(catch = sum(c, na.rm = TRUE), .groups = "drop") |>

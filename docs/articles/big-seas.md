@@ -1,6 +1,7 @@
 # Simulating large spatial extents with marlin
 
 ``` r
+
 library(tidyverse)
 library(marlin)
 library(plot.matrix)
@@ -105,6 +106,7 @@ home ranges and patch areas on a 50x50 grid (2,500 patches), then
 examine how the density of the resulting transition matrices changes.
 
 ``` r
+
 library(Matrix)
 library(expm)
 library(knitr)
@@ -137,6 +139,7 @@ mass). We record the number of nonzero entries, the matrix density, and
 the object size in memory.
 
 ``` r
+
 results$nnz_transition <- NA_integer_
 results$density_pct <- NA_real_
 results$median_nnz_per_col <- NA_real_
@@ -172,6 +175,7 @@ origin. As home range increases, probability spreads across the entire
 grid.
 
 ``` r
+
 resolution_vis <- c(20, 20)
 P_vis <- prod(resolution_vis)
 adj_vis <- find_neighbors(resolution = resolution_vis,
@@ -233,6 +237,7 @@ collapse onto a single curve. This ratio — the number of patch-widths
 the home range spans — is the quantity that determines sparsity.
 
 ``` r
+
 results |>
   mutate(patch_area_label = paste0(patch_area_km2, " km²")) |>
   ggplot(aes(x = hr_over_patchside, y = density_pct,
@@ -266,6 +271,7 @@ megabyte. The savings are dramatic when the home range is small relative
 to the patch width, and disappear as the ratio grows.
 
 ``` r
+
 results |>
   select(home_range_km, patch_area_km2, hr_over_patchside,
          obj_size_sparse_MB, obj_size_dense_MB) |>
@@ -308,6 +314,7 @@ MB. Whether the sparse version is tractable depends entirely on the
 species in question.
 
 ``` r
+
 P_100 <- 10000
 
 extrap <- results |>
@@ -349,6 +356,7 @@ knitr::kable(
 
 Estimated transition matrix properties at 100×100 resolution,
 extrapolated from 50×50 results. Dense storage is always 800 MB.
+{.table}
 
 The takeaway for practical use is straightforward: if the species you
 are modeling has a home range that spans fewer than ~5 patch widths, the
@@ -399,6 +407,7 @@ represents the island chain’s waters at finer spatial resolution. Most
 of the catch of the population comes from the “high seas” fleet.
 
 ``` r
+
 resolution <- c(20, 20)
 years <- 25
 
@@ -430,6 +439,7 @@ Now we build a patches dataframe that keeps track of which zone each
 patch belongs to, and construct separate fishing grounds for each fleet.
 
 ``` r
+
 patches <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) |>
   mutate(
     patch_id = row_number(),
@@ -446,6 +456,7 @@ island_grounds <- patches |>
 ```
 
 ``` r
+
 bind_rows(
   high_seas_grounds |> mutate(fleet = "High seas"),
   island_grounds |> mutate(fleet = "Island")
@@ -471,6 +482,7 @@ interior share a single continuous habitat surface, since the tuna
 population spans both zones.
 
 ``` r
+
 recruit_habitat <- sim_habitat(
   "bigeye", kp = 0.01, resolution = resolution,
   patch_area = mean(patch_area_moat), output = "list"
@@ -489,6 +501,7 @@ Create the bigeye tuna population. The key parameters here are
 time, linking the two zones biologically.
 
 ``` r
+
 fauna <- list(
   "bigeye" = create_critter(
     common_name = "bigeye tuna",
@@ -522,6 +535,7 @@ fleet has no ports and no travel costs, it is simply an external source
 of fishing mortality.
 
 ``` r
+
 # Island ports
 ports <- data.frame(x = c(8, 14), y = c(8, 14))
 
@@ -572,6 +586,7 @@ fleets <- tune_fleets(fauna, fleets, tune_type = "depletion")
 With the fleets tuned, we run the simulation forward for 25 years.
 
 ``` r
+
 moat_sim <- simmar(
   fauna = fauna,
   fleets = fleets,
@@ -585,6 +600,7 @@ First, let’s look at the SSB trajectory over time to confirm the
 population reaches a stable equilibrium under fishing.
 
 ``` r
+
 plot_marlin(proc_moat, plot_var = "ssb")
 ```
 
@@ -601,6 +617,7 @@ reflect the combined effects of habitat quality, fleet access, and the
 movement of tuna between zones.
 
 ``` r
+
 plot_marlin(proc_moat, plot_var = "ssb", plot_type = "space",
             steps_to_plot = max(proc_moat$fauna$step))
 ```
@@ -611,6 +628,7 @@ equilibrium](big-seas_files/figure-html/unnamed-chunk-11-1.png)
 Spatial SSB at equilibrium
 
 ``` r
+
 plot_marlin(proc_moat, plot_var = "c", plot_type = "space",
             steps_to_plot = max(proc_moat$fauna$step))
 ```
@@ -626,6 +644,7 @@ profitability across those 76 patches. The island fleet is confined to
 the interior and additionally shaped by distance to its two ports.
 
 ``` r
+
 fleet_summary <- proc_moat$fleets |>
   filter(step == max(step)) |>
   group_by(fleet, x, y) |>
@@ -666,6 +685,7 @@ underlying habitat quality and the marginal returns to fishing.
 We can also compare catch rates (CPUE) across fleets:
 
 ``` r
+
 fleet_summary |>
   filter(effort > 0) |>
   ggplot(aes(x, y, fill = cpue)) +
@@ -687,6 +707,7 @@ final time step relative to unfished SSB — to see how fishing pressure
 from the two fleets has shaped the population across the domain.
 
 ``` r
+
 ssb_final <- proc_moat$fauna |>
   filter(step == max(step)) |>
   group_by(x, y) |>

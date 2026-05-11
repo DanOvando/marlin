@@ -1,6 +1,7 @@
 # Movement: From CTMC Theory to Home Range
 
 ``` r
+
 library(marlin)
 library(tidyverse)
 library(ggforce)
@@ -44,7 +45,6 @@ The individual elements of the instantaneous movement (generator) matrix
 are:
 
 ``` math
-
 M_{p1,p2,t,s,a} = \begin{cases}
       \frac{\Delta_{t}}{\Delta_{d}^2} D \, e^{\frac{\Delta_t(H(p2,t,s,a) - H(p1,t,s,a))}{\Delta_d}} & \text{if p2 and p1 are adjacent}\\
      -\sum_{p' \neq p1} M_{p1,p2,t,s,a} & \text{if p1 = p2}\\
@@ -62,7 +62,6 @@ The actual movement of individuals over a discrete time step is then
 computed via the matrix exponential:
 
 ``` math
-
 \pmb{n}_{t+1,s,a} = \pmb{n}_{t,s,a} \, e^{\pmb{M}_{t,s,a}}
 ```
 
@@ -97,6 +96,7 @@ km² patches (patch edge $`\Delta_d \approx`$ 2.24 km), an annual time
 step, and a diffusion rate $`D`$ of 20 km²/year.
 
 ``` r
+
 resolution <- 20
 patches <- resolution^2
 delta_d <- sqrt(5)         # patch edge in km
@@ -112,6 +112,7 @@ matrix where entry $`(i,j) = 1`$ if patches $`i`$ and $`j`$ share an
 edge, and 0 otherwise.
 
 ``` r
+
 adjacent <- grid |>
   dist() |>
   as.matrix()
@@ -134,6 +135,7 @@ sum to zero. This is the generator matrix of the CTMC — it describes
 *rates* of movement, not probabilities.
 
 ``` r
+
 diffusion_matrix <- adjacent * D * (delta_t / delta_d^2)
 diag(diffusion_matrix) <- -colSums(diffusion_matrix)
 diffusion_matrix <- as.matrix(diffusion_matrix)
@@ -154,6 +156,7 @@ circle shows $`r = \sqrt{D/\pi}`$, a rough radius enclosing the bulk of
 the diffused population.
 
 ``` r
+
 n <- rep(0, patches)
 n[grid$x == resolution / 2 & grid$y == resolution / 2] <- 100
 
@@ -191,6 +194,7 @@ individuals across the domain. To see this, we simulate diffusion from a
 center patch across a range of $`D`$ values.
 
 ``` r
+
 sim_diffusion <- function(D, resolution, delta_d, delta_t = 1) {
   patches <- resolution^2
   patch_area <- delta_d^2
@@ -214,6 +218,7 @@ diffusion_frame <- tibble(D = c(1, 20, 200)) |>
 ```
 
 ``` r
+
 diffusion_frame |>
   unnest(result) |>
   group_by(D) |>
@@ -258,6 +263,7 @@ $`e^{100} \approx 10^{43}`$. A useful trick is to rescale your habitat
 surface so that the maximum difference produces a sensible multiplier.
 
 ``` r
+
 # Generate arbitrary habitat
 set.seed(123)
 habitat <- rep(0, patches)
@@ -268,6 +274,7 @@ habitat_diff_raw <- outer(habitat, habitat, "-")
 ```
 
 ``` r
+
 # Rescale so max taxis multiplier is 3x diffusion
 new_habitat <- scales::rescale(habitat, to = c(0, log(3)))
 habitat_multiplier <- exp(outer(new_habitat, new_habitat, "-"))
@@ -298,6 +305,7 @@ from an empirical CTMC model — those are already on the right scale.
 With both components in hand, the full generator matrix is:
 
 ``` r
+
 movement_matrix <- adjacent * ((D * delta_t / delta_d^2) *
                                   exp((delta_t * outer(new_habitat, new_habitat, "-")) / delta_d))
 
@@ -341,6 +349,7 @@ individuals remain after one year. `tune_diffusion` solves for the $`D`$
 that places exactly 5% of individuals beyond that distance.
 
 ``` r
+
 # See the mapping from home range to diffusion rate
 home_ranges <- c(1, 5, 10, 25, 50, 100)
 
@@ -364,6 +373,7 @@ knitr::kable(hr_to_D, digits = 2,
 |             100 |       526.81 |
 
 Diffusion rates derived by tune_diffusion for a range of home ranges.
+{.table}
 
 The relationship is nonlinear: doubling the home range more than doubles
 $`D`$, because diffusion spreads in two dimensions.
@@ -382,6 +392,7 @@ displays the density after one year for both post-recruits and recruits
 (which can have different home ranges).
 
 ``` r
+
 fauna <- list(
   "bigeye" = create_critter(
     common_name = "bigeye tuna",
@@ -422,6 +433,7 @@ same species with three different adult home ranges and compare their
 dispersal footprints.
 
 ``` r
+
 compare_hr <- function(hr) {
   f <- list(
     "species" = create_critter(

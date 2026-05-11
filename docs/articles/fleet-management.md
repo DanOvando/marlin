@@ -35,6 +35,7 @@ First, let’s set up the system and the species. In this case we use a
 simple example with one bigeye tuna population.
 
 ``` r
+
 library(marlin)
 
 library(tidyverse)
@@ -163,6 +164,7 @@ achieves the desired `cr_ratio` at the tuned depletion level.
 
 ``` r
 
+
 fleets <- list(
   "longline" = create_fleet(
     list("bigeye" = Metier$new(
@@ -208,6 +210,7 @@ We can now run our simulation and examine the resulting fleet dynamics
 
 ``` r
 
+
 sim <- simmar(fauna = fauna,
                   fleets = fleets,
                   years = years)
@@ -219,6 +222,7 @@ plot_marlin(proc_sim)
 ![](fleet-management_files/figure-html/unnamed-chunk-3-1.png)
 
 ``` r
+
 
 proc_sim$fleets %>% 
   group_by(step, fleet) %>%
@@ -249,6 +253,7 @@ equilibrium where the benefits of spillover are balanced against the
 lost access inside the MPA.
 
 ``` r
+
 
 set.seed(42)
 #specify some MPA locations
@@ -294,6 +299,7 @@ unprofitable.
 To use sole owner dynamics:
 
 ``` r
+
 fleets <- list(
   "longline" = create_fleet(
     list("bigeye" = Metier$new(...)),
@@ -321,6 +327,7 @@ real-world quota fisheries where economic or biological conditions can
 make quotas non-binding.
 
 ``` r
+
 sim_quota <- simmar(fauna = fauna,
                   fleets = fleets,
                   years = years,
@@ -335,6 +342,7 @@ plot_marlin(proc_sim_quota, plot_var = "c", max_scale = FALSE)
 
 ``` r
 
+
 proc_sim_quota$fleets %>% 
   group_by(step, fleet) %>% 
   summarise(catch = sum(catch)) %>% 
@@ -346,6 +354,7 @@ proc_sim_quota$fleets %>%
 ![](fleet-management_files/figure-html/unnamed-chunk-6-2.png)
 
 ``` r
+
 
 
 proc_sim_quota$fleets %>% 
@@ -380,6 +389,7 @@ profitable conditions will not drive effort above the ceiling.
 
 ``` r
 
+
 cap = 1.1*fleets$longline$base_effort
 
 sim_effort <- simmar(fauna = fauna,
@@ -396,6 +406,7 @@ plot_marlin(proc_sim_effort, plot_var = "c", max_scale = FALSE)
 
 ``` r
 
+
 proc_sim_effort$fleets %>% 
   group_by(step, fleet) %>% 
   summarise(catch = sum(catch)) %>% 
@@ -407,6 +418,7 @@ proc_sim_effort$fleets %>%
 ![](fleet-management_files/figure-html/unnamed-chunk-7-2.png)
 
 ``` r
+
 
 
 proc_sim_effort$fleets %>% 
@@ -437,6 +449,7 @@ scenarios where effort follows a prescribed pattern rather than
 responding endogenously to economic signals.
 
 ``` r
+
 time_steps <- years * seasons
 
 fleets$longline$fleet_model <- "manual"
@@ -460,6 +473,7 @@ plot_marlin(proc_sim_effort, plot_var = "c", max_scale = FALSE)
 
 ``` r
 
+
 proc_sim_effort$fleets %>%
   group_by(step, fleet) %>%
   summarise(catch = sum(catch)) %>%
@@ -471,6 +485,7 @@ proc_sim_effort$fleets %>%
 ![](fleet-management_files/figure-html/unnamed-chunk-8-2.png)
 
 ``` r
+
 
 
 proc_sim_effort$fleets %>%

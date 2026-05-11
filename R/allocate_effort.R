@@ -24,6 +24,12 @@
 #' @param flatness_tol Numeric; threshold for treating the objective as flat across patches.
 #' @param min_scale_abs Numeric; minimum scale to avoid division by near-zero values.
 #' @param adaptive_floor_pct Numeric; fraction of the median objective used as an adaptive scale floor.
+#' @param objective_override Optional numeric matrix (patches x fleets) supplying the per-fleet
+#'   objective surface directly. When supplied, it replaces the column extracted from
+#'   \code{buffet} for fleets whose \code{spatial_allocation} is one of the buffet-driven
+#'   strategies (\code{rpue}, \code{ppue}, \code{marginal_profit}, etc.). Used by
+#'   \code{\link{simmar}} to feed in a temporally-smoothed objective when a fleet has
+#'   \code{memory_halflife > 0}; \code{NULL} preserves current behavior.
 #'
 #' @return
 #' A named list containing the updated effort matrix (\code{effort_new}) and additional
@@ -44,7 +50,8 @@ allocate_effort <- function(
     floor_frac = 0.0,
     flatness_tol = 1e-3,
     min_scale_abs = 1e-10,
-    adaptive_floor_pct = 0.01
+    adaptive_floor_pct = 0.01,
+    objective_override = NULL
 ) {
   scale <- match.arg(scale)
 
@@ -98,7 +105,7 @@ allocate_effort <- function(
     # Look up which objective this fleet uses
     alloc_type <- fleets[[fl_name]]$spatial_allocation
 
-    eta <- fleets[[fl_name]]$eta
+    responsiveness <- fleets[[fl_name]]$responsiveness
 
     # --- Manual allocation: distribute effort by fishing_grounds weights --------
     if (alloc_type == "manual") {
@@ -154,7 +161,11 @@ allocate_effort <- function(
     }
 
     effort <- effort_by_patch[, fl]
-    objective <- buffet[[mat_name]][, fl_name]
+    objective <- if (!is.null(objective_override)) {
+      objective_override[, fl]
+    } else {
+      buffet[[mat_name]][, fl_name]
+    }
     open <- open_patch[, fl]
 
     open_idx <- which(open)
@@ -219,7 +230,7 @@ allocate_effort <- function(
     log_e <- rep(-Inf, n_patches)
     log_e[open] <- log(pmax(e_open[open], 1e-300))
 
-    log_e_prop <- log_e + eta * v
+    log_e_prop <- log_e + responsiveness * v
 
     mx <- max(log_e_prop[open])
     w <- numeric(n_patches)

@@ -93,7 +93,8 @@ calibrate catchability and costs to the desired initial conditions.</p>
 <span>  patch_area <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  base_effort <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  fishing_grounds <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  eta <span class="op">=</span> <span class="fl">0.05</span></span>
+<span>  responsiveness <span class="op">=</span> <span class="fl">0.025</span>,</span>
+<span>  memory_halflife <span class="op">=</span> <span class="fl">0</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -206,9 +207,39 @@ When <code>spatial_allocation = "manual"</code>, numeric values in
 open.</p></dd>
 
 
-<dt id="arg-eta">eta<a class="anchor" aria-label="anchor" href="#arg-eta"></a></dt>
-<dd><p>Numeric. Internal responsiveness scaling parameter for
-<code><a href="allocate_effort.html">allocate_effort</a></code>. Default <code>0.1</code>.</p></dd>
+<dt id="arg-responsiveness">responsiveness<a class="anchor" aria-label="anchor" href="#arg-responsiveness"></a></dt>
+<dd><p>Numeric. Per-step responsiveness of patch effort to
+the objective signal in <code><a href="allocate_effort.html">allocate_effort</a></code> (the \(\eta\)
+parameter of the multiplicative update). Larger values move effort more
+aggressively toward high-objective patches each step; if too large, can
+drive period-2 sawtooth oscillation. Default <code>0.025</code>.</p></dd>
+
+
+<dt id="arg-memory-halflife">memory_halflife<a class="anchor" aria-label="anchor" href="#arg-memory-halflife"></a></dt>
+<dd><p>Non-negative numeric. Half-life <strong>in
+years</strong> of the EWMA applied to this fleet's spatial objective surface
+inside <code><a href="simmar.html">simmar</a></code>. <code>0</code> (default) disables smoothing — the
+fleet sees only the previous step's objective, matching legacy behavior.
+The parameter is season-agnostic: simmar converts it internally to time
+steps (<code>halflife_steps = halflife * steps_per_year</code>) so a given
+value produces the same calendar-time smoothing regardless of how many
+seasons per year the model uses. Larger values dampen high-frequency
+feedback oscillations by blending in past objective surfaces; the
+per-step weight on the current surface is
+\(\alpha = 1 - 0.5^{1/halflife_{steps}}\). Smoothing updates only
+patches that are currently open; closed patches retain their last-seen
+smoothed value ("freeze and resume"). Early post-bootstrap steps use a
+Welford-style ramp (effective
+\(\alpha_\mathrm{eff} = \max(\alpha, 1/n)\)) so the smoothed surface
+is not anchored to the first observed buffet column.</p>
+<p>Practical guidance: values around <code>0.5</code>–<code>1.5</code> years are the
+typical sweet spot. Larger halflives introduce phase lag of roughly
+\(1.44 \times \mathrm{halflife}\) years between a true change in patch
+marginal value and the fleet's perceived value, which can produce
+low-frequency overshoot/undershoot — a different pathology from the
+high-frequency sawtooth that motivates the parameter. If catch
+trajectories under a given halflife show slow swings that aren't present
+at <code>halflife = 0</code>, reduce it.</p></dd>
 
 </dl></div>
     <div class="section level2">

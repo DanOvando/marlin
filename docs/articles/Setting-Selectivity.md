@@ -1,6 +1,7 @@
 # Setting Selectivity
 
 ``` r
+
 library(marlin)
 
 library(tidyverse)
@@ -64,6 +65,7 @@ set to `sel_start = 22` and the length at 95% selectivity is
 `sel_start + sel_delta`.
 
 ``` r
+
 resolution <- 10
 
 years <- 50
@@ -157,6 +159,7 @@ of the parameters are adjusted accordingly. For the commercial fleet,
 selectivity at Linf is 0.5, meaning lower than the peak, but not zero.
 
 ``` r
+
 fleets <- list(
   "artisanal" = create_fleet(list(
     "snapper" = Metier$new(
@@ -206,6 +209,7 @@ setting `sel_form = "manual"` and passing `sel_at_age` values to the
 commercial fleet.
 
 ``` r
+
 commercial_selectivity <- rlnorm(length(fauna$snapper$ages))
 
 commercial_selectivity <- commercial_selectivity / max(commercial_selectivity)

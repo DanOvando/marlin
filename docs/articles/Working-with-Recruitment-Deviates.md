@@ -22,6 +22,7 @@ degrees of recruitment variation (`sigma_rec`) and autocorrelation in
 recruitment variation (`ac_rec`)
 
 ``` r
+
 library(marlin)
 
 library(tidyverse)
@@ -66,6 +67,7 @@ critters <- c("yellowfin", "mako")
 ```
 
 ``` r
+
 set.seed(24)
 fauna <-
   list(
@@ -134,7 +136,7 @@ recruitment_sim <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.1646359 secs
+#> Time difference of 0.1656661 secs
 
 sim <- process_marlin(recruitment_sim)
 
@@ -144,6 +146,7 @@ plot_marlin(sim, max_scale = FALSE, plot_var = "ssb")
 ![](Working-with-Recruitment-Deviates_files/figure-html/unnamed-chunk-2-1.png)
 
 ``` r
+
 sim$fauna |>
   filter(age == min(age)) |>
   group_by(step, critter) |> 
@@ -176,6 +179,7 @@ correlation between the recruitment deviates of the two species. We will
 then pass this matrix to the `simmar` function.
 
 ``` r
+
 critter_correlations <- matrix(c(1, -.8, -.8, 1), nrow = 2, byrow = TRUE)
 
 
@@ -191,12 +195,13 @@ recruitment_sim <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.04553294 secs
+#> Time difference of 0.05444908 secs
 
 sim <- process_marlin(recruitment_sim)
 ```
 
 ``` r
+
 sim$fauna |>
   filter(age == min(age)) |>
   select(step, patch, critter, n) |>
@@ -229,6 +234,7 @@ across multiple simulations, or generate more complex recruitment
 deviates driven by for example environmental covariates.
 
 ``` r
+
 sigma_recs <- purrr::map_dbl(fauna, "sigma_rec") # gather recruitment standard deviations
 
 ac_recs <- purrr::map_dbl(fauna, "ac_rec") # gather autocorrelation in recruitment standard deviations
@@ -257,12 +263,13 @@ recruitment_sim <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.1604478 secs
+#> Time difference of 0.1597528 secs
 
 sim <- process_marlin(recruitment_sim)
 ```
 
 ``` r
+
 sim$fauna |>
   filter(age == min(age)) |>
   select(step, critter, n) |>

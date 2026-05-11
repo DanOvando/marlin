@@ -21,6 +21,7 @@ By default if the length of the habitat vectors is less than the time
 steps, the model treats the supplied habitat list as being seasonal.
 
 ``` r
+
 library(marlin)
 
 library(tidyverse)
@@ -184,6 +185,7 @@ time, first shifting east and south and then north, while moving around
 a land mass.
 
 ``` r
+
 # test habitat vector -----------------------------------------------------
 
 shifting_habitat <- vector(mode = "list", length = years)

@@ -1,4 +1,4 @@
-pandoc: 3.6.3
+pandoc: 3.8.3
 pkgdown: 2.2.0
 pkgdown_sha: ~
 articles:
@@ -19,7 +19,7 @@ articles:
   articles/Setting-Selectivity: Setting-Selectivity.html
   articles/spatial-allocation: spatial-allocation.html
   articles/Working-with-Recruitment-Deviates: Working-with-Recruitment-Deviates.html
-last_built: 2026-03-26T18:09Z
+last_built: 2026-05-11T19:58Z
 urls:
   reference: https://danovando.github.io/marlin/reference
   article: https://danovando.github.io/marlin/articles

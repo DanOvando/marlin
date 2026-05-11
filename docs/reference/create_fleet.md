@@ -28,7 +28,8 @@ create_fleet(
   patch_area = 1,
   base_effort = NULL,
   fishing_grounds = NULL,
-  eta = 0.05
+  responsiveness = 0.025,
+  memory_halflife = 0
 )
 ```
 
@@ -138,11 +139,43 @@ create_fleet(
   values in `fishing_ground` are used as effort weights. Defaults to all
   patches open.
 
-- eta:
+- responsiveness:
 
-  Numeric. Internal responsiveness scaling parameter for
-  [`allocate_effort`](https://danovando.github.io/marlin/reference/allocate_effort.md).
-  Default `0.1`.
+  Numeric. Per-step responsiveness of patch effort to the objective
+  signal in
+  [`allocate_effort`](https://danovando.github.io/marlin/reference/allocate_effort.md)
+  (the \\\eta\\ parameter of the multiplicative update). Larger values
+  move effort more aggressively toward high-objective patches each step;
+  if too large, can drive period-2 sawtooth oscillation. Default
+  `0.025`.
+
+- memory_halflife:
+
+  Non-negative numeric. Half-life **in years** of the EWMA applied to
+  this fleet's spatial objective surface inside
+  [`simmar`](https://danovando.github.io/marlin/reference/simmar.md).
+  `0` (default) disables smoothing — the fleet sees only the previous
+  step's objective, matching legacy behavior. The parameter is
+  season-agnostic: simmar converts it internally to time steps
+  (`halflife_steps = halflife * steps_per_year`) so a given value
+  produces the same calendar-time smoothing regardless of how many
+  seasons per year the model uses. Larger values dampen high-frequency
+  feedback oscillations by blending in past objective surfaces; the
+  per-step weight on the current surface is \\\alpha = 1 -
+  0.5^{1/halflife\_{steps}}\\. Smoothing updates only patches that are
+  currently open; closed patches retain their last-seen smoothed value
+  ("freeze and resume"). Early post-bootstrap steps use a Welford-style
+  ramp (effective \\\alpha\_\mathrm{eff} = \max(\alpha, 1/n)\\) so the
+  smoothed surface is not anchored to the first observed buffet column.
+
+  Practical guidance: values around `0.5`–`1.5` years are the typical
+  sweet spot. Larger halflives introduce phase lag of roughly \\1.44
+  \times \mathrm{halflife}\\ years between a true change in patch
+  marginal value and the fleet's perceived value, which can produce
+  low-frequency overshoot/undershoot — a different pathology from the
+  high-frequency sawtooth that motivates the parameter. If catch
+  trajectories under a given halflife show slow swings that aren't
+  present at `halflife = 0`, reduce it.
 
 ## Value
 

@@ -131,12 +131,12 @@ This matrix is constructed from a diffusion rate
 and a habitat preference function
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>H</mi><annotation encoding="application/x-tex">H</annotation></semantics></math>,
 scaled by the width of the time step
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>Δ</mi><mi>t</mi></msub><annotation encoding="application/x-tex">\Delta_t</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi mathvariant="normal">Δ</mi><mi>t</mi></msub><annotation encoding="application/x-tex">\Delta_t</annotation></semantics></math>
 and the length of a patch edge
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Δ</mi><mi>d</mi></msub><mo>=</mo><msqrt><mtext mathvariant="normal">patch_area</mtext></msqrt></mrow><annotation encoding="application/x-tex">\Delta_d = \sqrt{\text{patch\_area}}</annotation></semantics></math>.</p>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="normal">Δ</mi><mi>d</mi></msub><mo>=</mo><msqrt><mtext mathvariant="normal">patch_area</mtext></msqrt></mrow><annotation encoding="application/x-tex">\Delta_d = \sqrt{\text{patch\_area}}</annotation></semantics></math>.</p>
 <p>The individual elements of the instantaneous movement (generator)
 matrix are:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>M</mi><mrow><mi>p</mi><mn>1</mn><mo>,</mo><mi>p</mi><mn>2</mn><mo>,</mo><mi>t</mi><mo>,</mo><mi>s</mi><mo>,</mo><mi>a</mi></mrow></msub><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mfrac><msub><mi>Δ</mi><mi>t</mi></msub><msubsup><mi>Δ</mi><mi>d</mi><mn>2</mn></msubsup></mfrac><mi>D</mi><mspace width="0.167em"></mspace><msup><mi>e</mi><mfrac><mrow><msub><mi>Δ</mi><mi>t</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>H</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>p</mi><mn>2</mn><mo>,</mo><mi>t</mi><mo>,</mo><mi>s</mi><mo>,</mo><mi>a</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mi>H</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>p</mi><mn>1</mn><mo>,</mo><mi>t</mi><mo>,</mo><mi>s</mi><mo>,</mo><mi>a</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow></mrow><msub><mi>Δ</mi><mi>d</mi></msub></mfrac></msup></mtd><mtd columnalign="left" style="text-align: left"><mtext mathvariant="normal">if p2 and p1 are adjacent</mtext></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mi>−</mi><munder><mo>∑</mo><mrow><mi>p</mi><mi>′</mi><mo>≠</mo><mi>p</mi><mn>1</mn></mrow></munder><msub><mi>M</mi><mrow><mi>p</mi><mn>1</mn><mo>,</mo><mi>p</mi><mn>2</mn><mo>,</mo><mi>t</mi><mo>,</mo><mi>s</mi><mo>,</mo><mi>a</mi></mrow></msub></mtd><mtd columnalign="left" style="text-align: left"><mtext mathvariant="normal">if p1 = p2</mtext></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mn>0</mn></mtd><mtd columnalign="left" style="text-align: left"><mtext mathvariant="normal">otherwise.</mtext></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>M</mi><mrow><mi>p</mi><mn>1</mn><mo>,</mo><mi>p</mi><mn>2</mn><mo>,</mo><mi>t</mi><mo>,</mo><mi>s</mi><mo>,</mo><mi>a</mi></mrow></msub><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mfrac><msub><mi mathvariant="normal">Δ</mi><mi>t</mi></msub><msubsup><mi mathvariant="normal">Δ</mi><mi>d</mi><mn>2</mn></msubsup></mfrac><mi>D</mi><mspace width="0.167em"></mspace><msup><mi>e</mi><mfrac><mrow><msub><mi mathvariant="normal">Δ</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>H</mi><mo stretchy="false" form="prefix">(</mo><mi>p</mi><mn>2</mn><mo>,</mo><mi>t</mi><mo>,</mo><mi>s</mi><mo>,</mo><mi>a</mi><mo stretchy="false" form="postfix">)</mo><mo>−</mo><mi>H</mi><mo stretchy="false" form="prefix">(</mo><mi>p</mi><mn>1</mn><mo>,</mo><mi>t</mi><mo>,</mo><mi>s</mi><mo>,</mo><mi>a</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><msub><mi mathvariant="normal">Δ</mi><mi>d</mi></msub></mfrac></msup></mtd><mtd columnalign="left" style="text-align: left"><mtext mathvariant="normal">if p2 and p1 are adjacent</mtext></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mi>−</mi><munder><mo>∑</mo><mrow><msup><mi>p</mi><mo>′</mo></msup><mo>≠</mo><mi>p</mi><mn>1</mn></mrow></munder><msub><mi>M</mi><mrow><mi>p</mi><mn>1</mn><mo>,</mo><mi>p</mi><mn>2</mn><mo>,</mo><mi>t</mi><mo>,</mo><mi>s</mi><mo>,</mo><mi>a</mi></mrow></msub></mtd><mtd columnalign="left" style="text-align: left"><mtext mathvariant="normal">if p1 = p2</mtext></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mn>0</mn></mtd><mtd columnalign="left" style="text-align: left"><mtext mathvariant="normal">otherwise.</mtext></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">
 M_{p1,p2,t,s,a} = \begin{cases}
       \frac{\Delta_{t}}{\Delta_{d}^2} D \, e^{\frac{\Delta_t(H(p2,t,s,a) - H(p1,t,s,a))}{\Delta_d}} &amp; \text{if p2 and p1 are adjacent}\\
      -\sum_{p' \neq p1} M_{p1,p2,t,s,a} &amp; \text{if p1 = p2}\\
@@ -162,7 +162,7 @@ probabilities.</p>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>D</mi><annotation encoding="application/x-tex">D</annotation></semantics></math>
 (in units of km²/year) is a biological property of the species that does
 not depend on the resolution or time step of the simulation. The
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Δ</mi><mi>t</mi></msub><mi>/</mi><msubsup><mi>Δ</mi><mi>d</mi><mn>2</mn></msubsup></mrow><annotation encoding="application/x-tex">\Delta_t / \Delta_d^2</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="normal">Δ</mi><mi>t</mi></msub><mi>/</mi><msubsup><mi mathvariant="normal">Δ</mi><mi>d</mi><mn>2</mn></msubsup></mrow><annotation encoding="application/x-tex">\Delta_t / \Delta_d^2</annotation></semantics></math>
 scaling translates
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>D</mi><annotation encoding="application/x-tex">D</annotation></semantics></math>
 into the correct units for whatever grid and time step the user has
@@ -188,7 +188,7 @@ still transit through it. A barrier, in contrast, is impassable.</p>
 <p>To build intuition, let’s step through the calculations manually
 rather than using <code>marlin</code>’s internal machinery. We set up a
 20×20 grid with 5 km² patches (patch edge
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Δ</mi><mi>d</mi></msub><mo>≈</mo></mrow><annotation encoding="application/x-tex">\Delta_d \approx</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="normal">Δ</mi><mi>d</mi></msub><mo>≈</mo></mrow><annotation encoding="application/x-tex">\Delta_d \approx</annotation></semantics></math>
 2.24 km), an annual time step, and a diffusion rate
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>D</mi><annotation encoding="application/x-tex">D</annotation></semantics></math>
 of 20 km²/year.</p>
@@ -204,7 +204,7 @@ of 20 km²/year.</p>
 <p>The first step is constructing the adjacency matrix: a
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mo>×</mo><mi>P</mi></mrow><annotation encoding="application/x-tex">P \times P</annotation></semantics></math>
 matrix where entry
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>i</mi><mo>,</mo><mi>j</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">(i,j) = 1</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi>i</mi><mo>,</mo><mi>j</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">(i,j) = 1</annotation></semantics></math>
 if patches
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>
 and
@@ -226,7 +226,7 @@ neighbors (or fewer at edges).
 </div>
 <p>We fill in the instantaneous diffusion matrix by multiplying
 adjacency by
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>D</mi><mo>⋅</mo><msub><mi>Δ</mi><mi>t</mi></msub><mi>/</mi><msubsup><mi>Δ</mi><mi>d</mi><mn>2</mn></msubsup></mrow><annotation encoding="application/x-tex">D \cdot \Delta_t / \Delta_d^2</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>D</mi><mo>⋅</mo><msub><mi mathvariant="normal">Δ</mi><mi>t</mi></msub><mi>/</mi><msubsup><mi mathvariant="normal">Δ</mi><mi>d</mi><mn>2</mn></msubsup></mrow><annotation encoding="application/x-tex">D \cdot \Delta_t / \Delta_d^2</annotation></semantics></math>,
 then setting the diagonal so rows sum to zero. This is the generator
 matrix of the CTMC — it describes <em>rates</em> of movement, not
 probabilities.</p>
@@ -333,7 +333,7 @@ Colour is scaled to the maximum density within each panel.
 <p>Pure diffusion spreads individuals symmetrically. In reality, animals
 move towards preferred habitat. The CTMC model captures this through the
 <em>taxis</em> component: the habitat difference
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>H</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>p</mi><mn>2</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mi>H</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>p</mi><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">H(p2) - H(p1)</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>H</mi><mo stretchy="false" form="prefix">(</mo><mi>p</mi><mn>2</mn><mo stretchy="false" form="postfix">)</mo><mo>−</mo><mi>H</mi><mo stretchy="false" form="prefix">(</mo><mi>p</mi><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">H(p2) - H(p1)</annotation></semantics></math>
 between adjacent patches enters the generator as an exponential
 multiplier of the diffusion rate.</p>
 <p>This parameterization guarantees that the off-diagonal elements of
@@ -345,7 +345,7 @@ It also makes the scale of the habitat gradient intuitive: the
 exponentiated difference acts as a multiplier of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>D</mi><annotation encoding="application/x-tex">D</annotation></semantics></math>.
 If
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>H</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>p</mi><mn>2</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mi>H</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>p</mi><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo>log</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>3</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">H(p2) - H(p1) = \log(3)</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>H</mi><mo stretchy="false" form="prefix">(</mo><mi>p</mi><mn>2</mn><mo stretchy="false" form="postfix">)</mo><mo>−</mo><mi>H</mi><mo stretchy="false" form="prefix">(</mo><mi>p</mi><mn>1</mn><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mn>3</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">H(p2) - H(p1) = \log(3)</annotation></semantics></math>,
 the rate of movement from
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mn>1</mn></mrow><annotation encoding="application/x-tex">p1</annotation></semantics></math>
 to

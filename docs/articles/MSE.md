@@ -25,6 +25,7 @@ strategy evaluation”, where we
 5.  Repeat process
 
 ``` r
+
 library(marlin)
 
 library(tidyverse)
@@ -130,6 +131,7 @@ hcr_frame %>%
 ![](MSE_files/figure-html/setup-1.png)
 
 ``` r
+
 mse_sim <- simmar(
   fauna = fauna,
   fleets = fleets,
@@ -197,6 +199,7 @@ plot_marlin(processed_mse_sim, plot_var = "c", max_scale = FALSE)
 
 ``` r
 
+
 plot_marlin(processed_mse_sim, plot_var = "b", max_scale = FALSE)
 ```
 
@@ -204,12 +207,14 @@ plot_marlin(processed_mse_sim, plot_var = "b", max_scale = FALSE)
 
 ``` r
 
+
 plot_marlin(processed_mse_sim, plot_var = "ssb", max_scale = FALSE)
 ```
 
 ![](MSE_files/figure-html/unnamed-chunk-2-3.png)
 
 ``` r
+
 
 # plot_marlin(processed_mse_sim, plot_type = "space")
 ```

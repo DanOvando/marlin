@@ -19,7 +19,8 @@ allocate_effort(
   floor_frac = 0,
   flatness_tol = 0.001,
   min_scale_abs = 1e-10,
-  adaptive_floor_pct = 0.01
+  adaptive_floor_pct = 0.01,
+  objective_override = NULL
 )
 ```
 
@@ -79,6 +80,17 @@ allocate_effort(
 
   Numeric; fraction of the median objective used as an adaptive scale
   floor.
+
+- objective_override:
+
+  Optional numeric matrix (patches x fleets) supplying the per-fleet
+  objective surface directly. When supplied, it replaces the column
+  extracted from `buffet` for fleets whose `spatial_allocation` is one
+  of the buffet-driven strategies (`rpue`, `ppue`, `marginal_profit`,
+  etc.). Used by
+  [`simmar`](https://danovando.github.io/marlin/reference/simmar.md) to
+  feed in a temporally-smoothed objective when a fleet has
+  `memory_halflife > 0`; `NULL` preserves current behavior.
 
 ## Value
 
