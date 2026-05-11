@@ -22,7 +22,8 @@ create_fleet(
   patch_area = 1,
   base_effort = NULL,
   fishing_grounds = NULL,
-  eta = 0.05
+  eta = 0.05,
+  objective_memory_halflife = 0
 )
 }
 \arguments{
@@ -99,6 +100,32 @@ open.}
 
 \item{eta}{Numeric. Internal responsiveness scaling parameter for
 \code{\link{allocate_effort}}. Default \code{0.1}.}
+
+\item{objective_memory_halflife}{Non-negative numeric. Half-life \strong{in
+years} of the EWMA applied to this fleet's spatial objective surface
+inside \code{\link{simmar}}. \code{0} (default) disables smoothing — the
+fleet sees only the previous step's objective, matching legacy behavior.
+The parameter is season-agnostic: simmar converts it internally to time
+steps (\code{halflife_steps = halflife * steps_per_year}) so a given
+value produces the same calendar-time smoothing regardless of how many
+seasons per year the model uses. Larger values dampen high-frequency
+feedback oscillations by blending in past objective surfaces; the
+per-step weight on the current surface is
+\eqn{\alpha = 1 - 0.5^{1/halflife_{steps}}}. Smoothing updates only
+patches that are currently open; closed patches retain their last-seen
+smoothed value ("freeze and resume"). Early post-bootstrap steps use a
+Welford-style ramp (effective
+\eqn{\alpha_\mathrm{eff} = \max(\alpha, 1/n)}) so the smoothed surface
+is not anchored to the first observed buffet column.
+
+Practical guidance: values around \code{0.5}–\code{1.5} years are the
+typical sweet spot. Larger halflives introduce phase lag of roughly
+\eqn{1.44 \times \mathrm{halflife}} years between a true change in patch
+marginal value and the fleet's perceived value, which can produce
+low-frequency overshoot/undershoot — a different pathology from the
+high-frequency sawtooth that motivates the parameter. If catch
+trajectories under a given halflife show slow swings that aren't present
+at \code{halflife = 0}, reduce it.}
 }
 \value{
 A named list (fleet object) with all parameters needed by

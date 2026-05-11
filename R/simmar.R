@@ -455,6 +455,29 @@ simmar <- function(fauna = list(),
 
   fishable <- rep(1, patches)
 
+  # Per-fleet EWMA history of the spatial allocation objective. NULL until the
+  # first main-loop allocation populates it. Used only when a fleet has
+  # objective_memory_halflife > 0; see create_fleet() for the mechanism.
+  # `_n` is the per-fleet count of post-bootstrap update calls, used to ramp
+  # the effective alpha during burn-in (Welford-style) so the smoothed surface
+  # isn't anchored to the first observed objective.
+  objective_history   <- vector("list", length(fleets))
+  objective_history_n <- integer(length(fleets))
+  names(objective_history)   <- fleet_names
+  names(objective_history_n) <- fleet_names
+
+  # Map of spatial_allocation -> buffet column name (mirrors allocate_effort()).
+  alloc_to_mat <- c(
+    revenue          = "r_p_fl",
+    catch            = "c_p_fl",
+    profit           = "prof_p_fl",
+    rpue             = "rpue_p_fl",
+    cpue             = "cpue_p_fl",
+    ppue             = "ppue_p_fl",
+    marginal_revenue = "mr_p_fl",
+    marginal_profit  = "mp_p_fl"
+  )
+
   # loop over steps
   for (s in 2:steps) {
 
@@ -674,13 +697,52 @@ simmar <- function(fauna = list(),
 
         e_p <- last_e_p_f[,l]
 
+        # Build a smoothed objective override when this fleet has memory enabled.
+        halflife <- fleets[[l]]$objective_memory_halflife
+        if (is.null(halflife)) halflife <- 0
+        alloc_type_l <- fleets[[l]]$spatial_allocation
+        objective_override_l <- NULL
+        if (halflife > 0 && alloc_type_l %in% names(alloc_to_mat)) {
+          mat_name_l <- alloc_to_mat[[alloc_type_l]]
+          obj_t      <- buffet[[mat_name_l]][, fleet_names[l]]
+          open_l     <- as.logical(fleet_fishable[[l]])
+          if (is.null(objective_history[[l]])) {
+            # Bootstrap: initialize with the first observed surface.
+            smoothed <- obj_t
+            objective_history_n[[l]] <- 1L
+          } else {
+            # Welford-style ramp: alpha_eff = max(alpha_target, 1/n) so early
+            # post-bootstrap steps behave like a running mean (no anchoring to
+            # the bootstrap surface) and only later relax to the asymptotic
+            # halflife. Once 1/n drops below alpha_target, the ramp is done.
+            objective_history_n[[l]] <- objective_history_n[[l]] + 1L
+            n_obs          <- objective_history_n[[l]]
+            # halflife is specified in years; convert to time steps so the
+            # parameter is invariant to `seasons`.
+            halflife_steps <- halflife * steps_per_year
+            alpha_target   <- 1 - 0.5^(1 / halflife_steps)
+            alpha_eff      <- max(alpha_target, 1 / n_obs)
+            prev         <- objective_history[[l]]
+            smoothed     <- prev
+            # Update only on currently open patches; closed patches keep the
+            # last-seen smoothed value ("freeze and resume").
+            smoothed[open_l] <- alpha_eff * obj_t[open_l] + (1 - alpha_eff) * prev[open_l]
+          }
+          objective_history[[l]] <- smoothed
+          objective_override_l <- matrix(
+            smoothed, ncol = 1L,
+            dimnames = list(NULL, fleet_names[l])
+          )
+        }
+
         current_effort <- allocate_effort(
           effort_by_patch = e_p,
           total_effort_by_fleet = total_effort,
           fleets = fleets[l],
           buffet = buffet,
           open_patch = fleet_fishable[[l]],
-          flatness_tol = 1e-3
+          flatness_tol = 1e-3,
+          objective_override = objective_override_l
         )
 
         # warning("this is the bananas messy part. storage is indexed s-1 but fleet effort is indexed s. So, the effort sotred in s here is actually in storage in s-1, the effort that produced the outcomes in that time step of storage")
