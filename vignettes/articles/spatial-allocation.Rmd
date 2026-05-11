@@ -88,7 +88,9 @@ $$e_p^{\text{final}} = (1 - \epsilon) \, e_p^{\text{new}} + \epsilon \, \frac{E_
 
 ### Optional: temporal memory of the objective surface
 
-By default, the objective surface a fleet acts on is rebuilt fresh each step from the previous step's outcomes — a one-step-lag signal. Under strong fleet-biomass coupling this can drive period-2 sawtooth oscillation in patch effort: last-step buffet picks where to fish, this-step fishing changes biomass, next-step buffet inverts. The vanilla scenarios in this vignette don't trigger this, but structural perturbations like MPA closures (which suddenly shift the open-patch set) can.
+`objective_memory_halflife` is a **conditional remedy, not a default upgrade**. If you see period-2 sawtooth in patch-level effort or catch (typically under `marginal_profit` / `marginal_revenue` allocation, or with MPA closures + cost-aware allocation), it can dampen the oscillation. If your run looks smooth at the default `halflife = 0`, leave it there.
+
+The mechanism: by default, the objective surface a fleet acts on is rebuilt fresh each step from the previous step's outcomes — a one-step-lag signal. Under strong fleet-biomass coupling this can drive period-2 sawtooth oscillation in patch effort: last-step buffet picks where to fish, this-step fishing changes biomass, next-step buffet inverts. The vanilla scenarios in this vignette don't trigger this, but structural perturbations like MPA closures (which suddenly shift the open-patch set) can.
 
 Setting `objective_memory_halflife > 0` on a fleet replaces the raw per-patch objective $O_p$ with an exponentially-weighted moving average:
 
@@ -606,9 +608,9 @@ The sole owner leaves more biomass in the water because it fishes less intensive
 
 ## Scenario 5: spatial-allocation memory
 
-The previous scenarios all show smooth, well-behaved dynamics. None of them visibly oscillate. But structural perturbations — most commonly an MPA closure that abruptly shifts the open-patch set — can excite the one-step-lag feedback discussed in the algorithm section, producing visible period-2 sawtooth in patch-level effort.
+The previous scenarios all show smooth, well-behaved dynamics — even after the MPA closure in Scenario 4. The one-step-lag feedback that motivates `objective_memory_halflife` only bites strongly under specific configurations. The most reliable way to surface it is with a `marginal_profit` allocator: the marginal value of effort at a patch responds directly to how much was fished there last step, so a single-step lag can produce period-2 sawtooth in patch effort and (faintly) in catch.
 
-Here we set up a 2-fleet system (cost-aware allocation, ppue / profit) and close an offshore corner mid-run, then sweep `objective_memory_halflife` across a small range. The expectation: at `halflife = 0` (legacy behavior) the post-MPA dynamics show high-frequency wiggle in individual patches; modest memory dampens it cleanly; very long memory introduces a different problem — low-frequency overshoot driven by the phase lag the smoothing imposes.
+Here we set up a 2-fleet system with both fleets using `marginal_profit` allocation and close an offshore corner mid-run, then sweep `objective_memory_halflife` across a small range. The expectation: at `halflife = 0` (legacy behavior) the dynamics show visible high-frequency wiggle in individual patches; modest memory dampens it cleanly; very long memory introduces a different problem — low-frequency overshoot driven by the phase lag the smoothing imposes.
 
 ```{r scenario-5-setup}
 years_5    <- 20
@@ -637,7 +639,7 @@ build_memory_fleets <- function(halflife) {
         )
       ),
       ports = ports, base_effort = patches, resolution = resolution,
-      spatial_allocation = "ppue",
+      spatial_allocation = "marginal_profit",
       fleet_model = "constant_effort",
       cr_ratio = 1, travel_fraction = 0.7,
       objective_memory_halflife = halflife
@@ -656,7 +658,7 @@ build_memory_fleets <- function(halflife) {
         )
       ),
       ports = ports, base_effort = patches, resolution = resolution,
-      spatial_allocation = "profit",
+      spatial_allocation = "marginal_profit",
       fleet_model = "constant_effort",
       cr_ratio = 1, travel_fraction = 0.5,
       objective_memory_halflife = halflife
@@ -764,9 +766,17 @@ ggplot(catch_ts, aes(year, catch, color = halflife)) +
        x = "Year", y = "Total catch", color = "halflife (yr)")
 ```
 
-Reading the patch traces: `halflife = 0` shows the high-frequency wiggle that motivates the parameter — clearest under cost-aware allocation, most visible after the MPA closure structurally shifts where each fleet can fish. `halflife = 1` (one year of memory) sits near the median of the sawtooth and removes the high-frequency component. `halflife = 2` smooths further but typically begins to introduce slower swings driven by phase lag: the fleet's perceived objective is lagging the real one by ~3 years, so it reallocates toward patches that *used to be* high-value.
+Reading the patch traces: `halflife = 0` shows the high-frequency wiggle that motivates the parameter, sharpened further by the MPA closure. `halflife = 1` (one year of memory) sits near the median of the sawtooth and removes the high-frequency component. `halflife = 2` smooths further but begins to introduce slower swings driven by phase lag: the fleet's perceived objective is now lagging the real one by ~3 years, so it reallocates toward patches that *used to be* high-value.
 
-Sensible values for `objective_memory_halflife` depend on the time scale of stock and fleet dynamics. For most marine fisheries with annual or sub-annual seasons, **0.5–1.5 years** is a useful starting range. If catch trajectories at a chosen halflife show slow swings that aren't present at `halflife = 0`, reduce it; you've crossed into the phase-lag regime.
+### When does memory matter?
+
+The susceptibility to one-step-lag oscillation depends strongly on a fleet's configuration. Memory is not a universal upgrade; in many configurations it adds nothing or hurts.
+
+- **Allocation strategy.** `marginal_profit` and `marginal_revenue` have the most direct fleet-biomass feedback — the objective at a patch responds immediately to last step's fishing there — and are the most prone to sawtooth. `ppue` / `profit` / `rpue` / `revenue` integrate over the production curve, which damps the feedback. `manual` and `uniform` ignore the buffet entirely, so memory does nothing for them (and is correctly skipped by `simmar()`).
+- **Fleet model.** `constant_effort` fleets have only the spatial-allocation feedback loop, so the spatial smoothing in memory is the only mechanism stabilising them. `open_access` and `sole_owner` fleets also adjust *total* effort each step from a fleet-wide profitability signal, which has its own slow damping built in via the annual entry/exit caps — but that signal itself is **not** smoothed by `objective_memory_halflife`. If you observe sawtooth in total fleet effort (rather than in patch-level allocation), memory will not fix it; the right knob lives in the open-access / sole-owner parameters.
+- **System structure.** Strong fleet-biomass coupling (high catchability relative to stock productivity, fast movement that smooths biomass and equalises marginals, MPA closures that force redistribution) all amplify the one-step-lag feedback. Without any of these, the canonical scenarios above behave smoothly even at `halflife = 0`.
+
+Sensible values for `objective_memory_halflife` depend on the time scale of stock and fleet dynamics. For most marine fisheries with annual or sub-annual seasons, **0.5–1.5 years** is a useful starting range. If catch or effort trajectories at a chosen halflife show slow swings that aren't present at `halflife = 0`, reduce it; you've crossed into the phase-lag regime. If the system is well-behaved at `halflife = 0`, leave it there.
 
 ## Runtime Comparison
 
