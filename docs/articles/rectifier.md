@@ -18,6 +18,7 @@ Each cell will have an area of 10km², meaning that the simulation area
 is 2,520 KM² and covers roughly 132 KM “north” to “south”
 
 ``` r
+
 library(marlin)
 
 library(tidyverse)
@@ -42,6 +43,7 @@ closter to shore (with shore being on the eastern edge of the simulation
 space)
 
 ``` r
+
 coastal_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   dplyr::mutate(
     habitat = -.2 + .2 * x * y,
@@ -59,6 +61,7 @@ plot(coastal_habitat)
 And from there we pass things to the usual sets of functions
 
 ``` r
+
 fauna <-
   list(
     "rockfish" = create_critter(
@@ -138,7 +141,7 @@ coastline_sim <- simmar(
 )
 
 Sys.time() - start_time
-#> Time difference of 4.939977 secs
+#> Time difference of 5.186748 secs
 
 
 processed_coastline <- process_marlin(coastline_sim, keep_age = FALSE)
@@ -158,6 +161,7 @@ A = coastline_sim$`1_1`$rockfish$c_p_a_fl
 ```
 
 ``` r
+
 plot_marlin(`Coastline Simulation` = processed_coastline, plot_type = "space")
 #> Warning in plot_marlin(`Coastline Simulation` = processed_coastline, plot_type
 #> = "space"): Can only plot one time step for spatial plots, defaulting to last

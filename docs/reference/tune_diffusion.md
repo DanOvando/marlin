@@ -30,6 +30,7 @@ The tuned diffusion rate
 ## Examples
 
 ``` r
+
 home_range = 42
 diffusion_rate <- tune_diffusion(home_range)
 diffusion_rate

@@ -81,7 +81,8 @@ contained in the <code>buffet</code> output from <code><a href="go_fish.html">go
 <span>  floor_frac <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  flatness_tol <span class="op">=</span> <span class="fl">0.001</span>,</span>
 <span>  min_scale_abs <span class="op">=</span> <span class="fl">1e-10</span>,</span>
-<span>  adaptive_floor_pct <span class="op">=</span> <span class="fl">0.01</span></span>
+<span>  adaptive_floor_pct <span class="op">=</span> <span class="fl">0.01</span>,</span>
+<span>  objective_override <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -137,6 +138,15 @@ contained in the <code>buffet</code> output from <code><a href="go_fish.html">go
 
 <dt id="arg-adaptive-floor-pct">adaptive_floor_pct<a class="anchor" aria-label="anchor" href="#arg-adaptive-floor-pct"></a></dt>
 <dd><p>Numeric; fraction of the median objective used as an adaptive scale floor.</p></dd>
+
+
+<dt id="arg-objective-override">objective_override<a class="anchor" aria-label="anchor" href="#arg-objective-override"></a></dt>
+<dd><p>Optional numeric matrix (patches x fleets) supplying the per-fleet
+objective surface directly. When supplied, it replaces the column extracted from
+<code>buffet</code> for fleets whose <code>spatial_allocation</code> is one of the buffet-driven
+strategies (<code>rpue</code>, <code>ppue</code>, <code>marginal_profit</code>, etc.). Used by
+<code><a href="simmar.html">simmar</a></code> to feed in a temporally-smoothed objective when a fleet has
+<code>memory_halflife &gt; 0</code>; <code>NULL</code> preserves current behavior.</p></dd>
 
 </dl></div>
     <div class="section level2">

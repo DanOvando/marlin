@@ -139,6 +139,13 @@ objectives is explained in detail in the “How spatial allocation works”
 section below. This vignette then demonstrates each option using a
 shared two-species, two-fleet system with fishing ports, so that the
 spatial cost structure matters for the cost-aware strategies.</p>
+<p>Independently of the strategy, fleets can optionally smooth their
+objective surface over time via the <code>memory_halflife</code>
+argument to <code><a href="../reference/create_fleet.html">create_fleet()</a></code>. This dampens single-step
+feedback oscillations under strong fleet-biomass coupling (e.g. after
+MPA closures). It is documented in “Optional: temporal memory of the
+objective surface” below, with an empirical demonstration in Scenario
+5.</p>
 <div class="section level2">
 <h2 id="how-spatial-allocation-works-the-algorithm">How spatial allocation works: the algorithm<a class="anchor" aria-label="anchor" href="#how-spatial-allocation-works-the-algorithm"></a>
 </h2>
@@ -148,6 +155,14 @@ velocity-field update to redistribute a fleet’s total effort across
 patches in response to an economic signal (the “objective”). The
 algorithm is designed to be robust, gradient-based, and numerically
 stable even when patches differ wildly in profitability.</p>
+<p>Because effort is updated step-by-step rather than solved for an
+equilibrium directly, the spatial distribution takes several time steps
+— often a few years of simulated time — to settle after a transient or
+perturbation (such as the start of a run or an MPA closure). Early-run
+spatial maps, or those captured immediately after a structural change,
+show effort still converging rather than at its steady state, and should
+be interpreted with that in mind. Allowing an adequate burn-in period
+before reading off spatial patterns is generally advisable.</p>
 <div class="section level3">
 <h3 id="step-by-step-procedure">Step-by-step procedure<a class="anchor" aria-label="anchor" href="#step-by-step-procedure"></a>
 </h3>
@@ -156,7 +171,7 @@ stable even when patches differ wildly in profitability.</p>
 Before attempting to optimize, the algorithm checks whether the
 objective is effectively uniform across patches. If the range-based
 coefficient of variation is below a threshold (default 0.1%):</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mtext mathvariant="normal">CV</mtext><mtext mathvariant="normal">range</mtext></msub><mo>=</mo><mfrac><mrow><mo>max</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>O</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mo>min</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>O</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mo stretchy="true" form="prefix">|</mo><mtext mathvariant="normal">median</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mi>O</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">|</mo></mrow></mfrac><mo>&lt;</mo><mtext mathvariant="normal">flatness_tol</mtext></mrow><annotation encoding="application/x-tex">\text{CV}_{\text{range}} = \frac{\max(O) - \min(O)}{|\text{median}(O)|} &lt; \text{flatness\_tol}</annotation></semantics></math></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mtext mathvariant="normal">CV</mtext><mtext mathvariant="normal">range</mtext></msub><mo>=</mo><mfrac><mrow><mrow><mi mathvariant="normal">max</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>O</mi><mo stretchy="false" form="postfix">)</mo><mo>−</mo><mrow><mi mathvariant="normal">min</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>O</mi><mo stretchy="false" form="postfix">)</mo></mrow><mrow><mo stretchy="false" form="prefix">|</mo><mtext mathvariant="normal">median</mtext><mo stretchy="false" form="prefix">(</mo><mi>O</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">|</mo></mrow></mfrac><mo>&lt;</mo><mtext mathvariant="normal">flatness_tol</mtext></mrow><annotation encoding="application/x-tex">\text{CV}_{\text{range}} = \frac{\max(O) - \min(O)}{|\text{median}(O)|} &lt; \text{flatness\_tol}</annotation></semantics></math></p>
 <p>then effort is distributed uniformly across all open patches and the
 optimization is skipped. This prevents spurious concentration along
 edges when there is no meaningful gradient to follow.</p>
@@ -167,18 +182,18 @@ in each patch
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>
 is centered and scaled to produce a
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>-score:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>z</mi><mi>p</mi></msub><mo>=</mo><mfrac><mrow><msub><mi>O</mi><mi>p</mi></msub><mo>−</mo><mtext mathvariant="normal">median</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mi>O</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mtext mathvariant="normal">scale</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mi>O</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow></mfrac></mrow><annotation encoding="application/x-tex">z_p = \frac{O_p - \text{median}(O)}{\text{scale}(O)}</annotation></semantics></math></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>z</mi><mi>p</mi></msub><mo>=</mo><mfrac><mrow><msub><mi>O</mi><mi>p</mi></msub><mo>−</mo><mtext mathvariant="normal">median</mtext><mo stretchy="false" form="prefix">(</mo><mi>O</mi><mo stretchy="false" form="postfix">)</mo></mrow><mrow><mtext mathvariant="normal">scale</mtext><mo stretchy="false" form="prefix">(</mo><mi>O</mi><mo stretchy="false" form="postfix">)</mo></mrow></mfrac></mrow><annotation encoding="application/x-tex">z_p = \frac{O_p - \text{median}(O)}{\text{scale}(O)}</annotation></semantics></math></p>
 <p>where
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">scale</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mi>O</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\text{scale}(O)</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">scale</mtext><mo stretchy="false" form="prefix">(</mo><mi>O</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\text{scale}(O)</annotation></semantics></math>
 can be the median absolute deviation (default, most robust),
 interquartile range, or standard deviation. The
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>
 scores are then clipped to
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">[</mo><mi>−</mi><mi>c</mi><mo>,</mo><mi>c</mi><mo stretchy="true" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">[-c, c]</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">[</mo><mi>−</mi><mi>c</mi><mo>,</mo><mi>c</mi><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">[-c, c]</annotation></semantics></math>
 (default
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><mo>=</mo><mn>5</mn></mrow><annotation encoding="application/x-tex">c = 5</annotation></semantics></math>)
 to prevent extreme updates from outliers:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>z</mi><mi>p</mi></msub><mo>←</mo><mo>max</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>−</mi><mi>c</mi><mo>,</mo><mo>min</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>c</mi><mo>,</mo><msub><mi>z</mi><mi>p</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">z_p \leftarrow \max(-c, \min(c, z_p))</annotation></semantics></math></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>z</mi><mi>p</mi></msub><mo>←</mo><mrow><mi mathvariant="normal">max</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>−</mi><mi>c</mi><mo>,</mo><mrow><mi mathvariant="normal">min</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>c</mi><mo>,</mo><msub><mi>z</mi><mi>p</mi></msub><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">z_p \leftarrow \max(-c, \min(c, z_p))</annotation></semantics></math></p>
 <p>Closed patches have
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>z</mi><mi>p</mi></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">z_p = 0</annotation></semantics></math>.</p>
 <p><strong>3. Velocity field</strong><br>
@@ -196,19 +211,77 @@ above-average objectives have
 Current effort
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>e</mi><mi>p</mi></msub><annotation encoding="application/x-tex">e_p</annotation></semantics></math>
 is updated via:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>e</mi><mi>p</mi><mtext mathvariant="normal">new</mtext></msubsup><mo>∝</mo><msub><mi>e</mi><mi>p</mi></msub><mo>exp</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>η</mi><mspace width="0.167em"></mspace><msub><mi>v</mi><mi>p</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">e_p^{\text{new}} \propto e_p \exp(\eta \, v_p)</annotation></semantics></math></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>e</mi><mi>p</mi><mtext mathvariant="normal">new</mtext></msubsup><mo>∝</mo><msub><mi>e</mi><mi>p</mi></msub><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>η</mi><mspace width="0.167em"></mspace><msub><mi>v</mi><mi>p</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">e_p^{\text{new}} \propto e_p \exp(\eta \, v_p)</annotation></semantics></math></p>
 <p>where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>η</mi><annotation encoding="application/x-tex">\eta</annotation></semantics></math>
-(default 1.0) controls the step size. The proportionality constant is
-chosen to conserve total effort:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>e</mi><mi>p</mi><mtext mathvariant="normal">new</mtext></msubsup><mo>=</mo><msub><mi>e</mi><mi>p</mi></msub><mo>exp</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>η</mi><mspace width="0.167em"></mspace><msub><mi>v</mi><mi>p</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>×</mo><mfrac><msub><mi>E</mi><mtext mathvariant="normal">total</mtext></msub><mrow><munder><mo>∑</mo><mi>p</mi></munder><msub><mi>e</mi><mi>p</mi></msub><mo>exp</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>η</mi><mspace width="0.167em"></mspace><msub><mi>v</mi><mi>p</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow></mfrac></mrow><annotation encoding="application/x-tex">e_p^{\text{new}} = e_p \exp(\eta \, v_p) \times \frac{E_{\text{total}}}{\sum_p e_p \exp(\eta \, v_p)}</annotation></semantics></math></p>
+(the fleet’s <code>responsiveness</code> argument, default
+<code>0.025</code>) controls the step size. The proportionality constant
+is chosen to conserve total effort:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>e</mi><mi>p</mi><mtext mathvariant="normal">new</mtext></msubsup><mo>=</mo><msub><mi>e</mi><mi>p</mi></msub><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>η</mi><mspace width="0.167em"></mspace><msub><mi>v</mi><mi>p</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>×</mo><mfrac><msub><mi>E</mi><mtext mathvariant="normal">total</mtext></msub><mrow><munder><mo>∑</mo><mi>p</mi></munder><msub><mi>e</mi><mi>p</mi></msub><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>η</mi><mspace width="0.167em"></mspace><msub><mi>v</mi><mi>p</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow></mfrac></mrow><annotation encoding="application/x-tex">e_p^{\text{new}} = e_p \exp(\eta \, v_p) \times \frac{E_{\text{total}}}{\sum_p e_p \exp(\eta \, v_p)}</annotation></semantics></math></p>
 <p>This is implemented in log-space for numerical stability. Closed
 patches receive
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>e</mi><mi>p</mi><mtext mathvariant="normal">new</mtext></msubsup><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">e_p^{\text{new}} = 0</annotation></semantics></math>.</p>
 <p><strong>5. Optional exploration mixing</strong><br>
 If <code>eps_mix</code> &gt; 0, the result is blended with a uniform
 distribution to allow re-entry into temporarily abandoned patches:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>e</mi><mi>p</mi><mtext mathvariant="normal">final</mtext></msubsup><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ϵ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mspace width="0.167em"></mspace><msubsup><mi>e</mi><mi>p</mi><mtext mathvariant="normal">new</mtext></msubsup><mo>+</mo><mi>ϵ</mi><mspace width="0.167em"></mspace><mfrac><msub><mi>E</mi><mtext mathvariant="normal">total</mtext></msub><msub><mi>N</mi><mtext mathvariant="normal">open</mtext></msub></mfrac></mrow><annotation encoding="application/x-tex">e_p^{\text{final}} = (1 - \epsilon) \, e_p^{\text{new}} + \epsilon \, \frac{E_{\text{total}}}{N_{\text{open}}}</annotation></semantics></math></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>e</mi><mi>p</mi><mtext mathvariant="normal">final</mtext></msubsup><mo>=</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>ϵ</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><msubsup><mi>e</mi><mi>p</mi><mtext mathvariant="normal">new</mtext></msubsup><mo>+</mo><mi>ϵ</mi><mspace width="0.167em"></mspace><mfrac><msub><mi>E</mi><mtext mathvariant="normal">total</mtext></msub><msub><mi>N</mi><mtext mathvariant="normal">open</mtext></msub></mfrac></mrow><annotation encoding="application/x-tex">e_p^{\text{final}} = (1 - \epsilon) \, e_p^{\text{new}} + \epsilon \, \frac{E_{\text{total}}}{N_{\text{open}}}</annotation></semantics></math></p>
+</div>
+<div class="section level3">
+<h3 id="optional-temporal-memory-of-the-objective-surface">Optional: temporal memory of the objective surface<a class="anchor" aria-label="anchor" href="#optional-temporal-memory-of-the-objective-surface"></a>
+</h3>
+<p><code>memory_halflife</code> is a <strong>conditional remedy, not a
+default upgrade</strong>. If you see period-2 sawtooth in patch-level
+effort or catch (typically under <code>marginal_profit</code> /
+<code>marginal_revenue</code> allocation, or with MPA closures +
+cost-aware allocation), it can dampen the oscillation. If your run looks
+smooth at the default <code>memory_halflife = 0</code>, leave it
+there.</p>
+<p>The mechanism: by default, the objective surface a fleet acts on is
+rebuilt fresh each step from the previous step’s outcomes — a
+one-step-lag signal. Under strong fleet-biomass coupling this can drive
+period-2 sawtooth oscillation in patch effort: last-step buffet picks
+where to fish, this-step fishing changes biomass, next-step buffet
+inverts. The vanilla scenarios in this vignette don’t trigger this, but
+structural perturbations like MPA closures (which suddenly shift the
+open-patch set) can.</p>
+<p>Setting <code>memory_halflife &gt; 0</code> on a fleet replaces the
+raw per-patch objective
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>O</mi><mi>p</mi></msub><annotation encoding="application/x-tex">O_p</annotation></semantics></math>
+with an exponentially-weighted moving average:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mover><mi>O</mi><mo accent="true">̃</mo></mover><mi>p</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>=</mo><mi>α</mi><mspace width="0.167em"></mspace><msubsup><mi>O</mi><mi>p</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>+</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>α</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><msubsup><mover><mi>O</mi><mo accent="true">̃</mo></mover><mi>p</mi><mrow><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo>−</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow></msubsup><mo>,</mo><mspace width="2.0em"></mspace><mi>α</mi><mo>=</mo><mn>1</mn><mo>−</mo><msup><mn>0.5</mn><mrow><mn>1</mn><mi>/</mi><msub><mi>h</mi><mtext mathvariant="normal">steps</mtext></msub></mrow></msup></mrow><annotation encoding="application/x-tex">\tilde{O}_p^{(t)} = \alpha \, O_p^{(t)} + (1 - \alpha) \, \tilde{O}_p^{(t-1)}, \qquad \alpha = 1 - 0.5^{1 / h_{\text{steps}}}</annotation></semantics></math></p>
+<p>The half-life is specified in <strong>years</strong> and converted
+internally to steps:
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>h</mi><mtext mathvariant="normal">steps</mtext></msub><mo>=</mo><msub><mi>h</mi><mtext mathvariant="normal">years</mtext></msub><mo>×</mo><mtext mathvariant="normal">steps_per_year</mtext></mrow><annotation encoding="application/x-tex">h_{\text{steps}} = h_{\text{years}} \times \text{steps\_per\_year}</annotation></semantics></math>,
+so a given value produces the same calendar-time smoothing regardless of
+how many seasons per year the model uses.</p>
+<p>Three implementation details matter:</p>
+<ul>
+<li>
+<strong>Closed-patch policy</strong> is “freeze and resume”: the
+EWMA only updates on patches that are currently open. Closed patches
+retain their last-seen smoothed value, so an MPA that closes then
+re-opens a patch sees the fleet’s pre-closure memory of it.</li>
+<li>
+<strong>Bootstrap ramp</strong>: early post-bootstrap steps use
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>α</mi><mtext mathvariant="normal">eff</mtext></msub><mo>=</mo><mrow><mi mathvariant="normal">max</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>α</mi><mo>,</mo><mn>1</mn><mi>/</mi><mi>n</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\alpha_{\text{eff}} = \max(\alpha, 1/n)</annotation></semantics></math>
+where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>
+counts post-bootstrap updates for that fleet. This avoids anchoring the
+smoothed surface to the first observed buffet column.</li>
+<li>
+<strong>Phase-lag tradeoff</strong>: an EWMA introduces a phase lag
+of roughly
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1.44</mn><mo>×</mo><msub><mi>h</mi><mtext mathvariant="normal">years</mtext></msub></mrow><annotation encoding="application/x-tex">1.44 \times h_{\text{years}}</annotation></semantics></math>
+years between a real change in patch marginal value and the fleet’s
+perceived value. Long half-lives can replace high-frequency sawtooth
+with low-frequency overshoot — a different pathology. Practical sweet
+spot is <strong>0.5–1.5 years</strong> for most fishery time scales; see
+Scenario 5 for an empirical demonstration.</li>
+</ul>
+<p>Memory smooths only the <em>spatial allocation</em> objective. Total
+fleet effort under <code>open_access</code> or <code>sole_owner</code>
+still responds to the raw fleet-level profitability signal, which has
+its own slow timescale built in via the entry/exit caps.</p>
 </div>
 <div class="section level3">
 <h3 id="why-this-algorithm">Why this algorithm?<a class="anchor" aria-label="anchor" href="#why-this-algorithm"></a>
@@ -239,7 +312,7 @@ game theory and gradient flow on the simplex. In the limit of small
 the continuous-time equivalent is:</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mrow><mi>d</mi><msub><mi>e</mi><mi>p</mi></msub></mrow><mrow><mi>d</mi><mi>t</mi></mrow></mfrac><mo>=</mo><msub><mi>e</mi><mi>p</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>v</mi><mi>p</mi></msub><mo>−</mo><mo stretchy="false" form="prefix">⟨</mo><mi>v</mi><mo stretchy="false" form="postfix">⟩</mo><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\frac{de_p}{dt} = e_p \left( v_p - \langle v \rangle \right)</annotation></semantics></math></p>
 <p>where
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">⟨</mo><mi>v</mi><mo stretchy="false" form="postfix">⟩</mo><mo>=</mo><msub><mo>∑</mo><mi>p</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>e</mi><mi>p</mi></msub><mi>/</mi><msub><mi>E</mi><mtext mathvariant="normal">total</mtext></msub><mo stretchy="true" form="postfix">)</mo></mrow><msub><mi>v</mi><mi>p</mi></msub></mrow><annotation encoding="application/x-tex">\langle v \rangle = \sum_p (e_p / E_{\text{total}}) v_p</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">⟨</mo><mi>v</mi><mo stretchy="false" form="postfix">⟩</mo><mo>=</mo><msub><mo>∑</mo><mi>p</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>e</mi><mi>p</mi></msub><mi>/</mi><msub><mi>E</mi><mtext mathvariant="normal">total</mtext></msub><mo stretchy="false" form="postfix">)</mo><msub><mi>v</mi><mi>p</mi></msub></mrow><annotation encoding="application/x-tex">\langle v \rangle = \sum_p (e_p / E_{\text{total}}) v_p</annotation></semantics></math>
 is the effort-weighted average velocity. This is a stable dynamical
 system that converges to a Nash equilibrium where effort is concentrated
 in patches with the highest objective values.</p>
@@ -928,6 +1001,303 @@ effort to maximize total profit, resulting in higher biomass and
 positive economic returns.</p>
 </div>
 <div class="section level2">
+<h2 id="scenario-5-spatial-allocation-memory">Scenario 5: spatial-allocation memory<a class="anchor" aria-label="anchor" href="#scenario-5-spatial-allocation-memory"></a>
+</h2>
+<p>The previous scenarios all show smooth, well-behaved dynamics — even
+after the MPA closure in Scenario 4. The one-step-lag feedback that
+motivates <code>memory_halflife</code> only bites strongly under
+specific configurations. The most reliable way to surface it is with a
+<code>marginal_profit</code> allocator: the marginal value of effort at
+a patch responds directly to how much was fished there last step, so a
+single-step lag can produce period-2 sawtooth in patch effort and
+(faintly) in catch.</p>
+<p>Here we set up a 2-fleet system with both fleets using
+<code>marginal_profit</code> allocation and close an offshore corner
+mid-run, then sweep <code>memory_halflife</code> across a small range.
+The expectation: at <code>memory_halflife = 0</code> (legacy behavior)
+the dynamics show visible high-frequency wiggle in individual patches;
+modest memory dampens it cleanly; very long memory introduces a
+different problem — low-frequency overshoot driven by the phase lag the
+smoothing imposes.</p>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">years_5</span>    <span class="op">&lt;-</span> <span class="fl">20</span></span>
+<span><span class="va">mpa_year_5</span> <span class="op">&lt;-</span> <span class="fl">8</span></span>
+<span></span>
+<span><span class="co"># Close an offshore corner starting at year 8</span></span>
+<span><span class="va">mpa_locs_5</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tidyr.tidyverse.org/reference/expand_grid.html" class="external-link">expand_grid</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">resolution</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, y <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">resolution</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>mpa <span class="op">=</span> <span class="va">x</span> <span class="op">&gt;=</span> <span class="fl">12</span> <span class="op">&amp;</span> <span class="va">y</span> <span class="op">&gt;=</span> <span class="fl">12</span><span class="op">)</span></span>
+<span><span class="va">manager_5</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>mpas <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>locations <span class="op">=</span> <span class="va">mpa_locs_5</span>, mpa_year <span class="op">=</span> <span class="va">mpa_year_5</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Fleet builder parameterised on a single shared halflife (both fleets get it).</span></span>
+<span><span class="co"># Uses the same metier / fleet structure as Scenarios 1-3.</span></span>
+<span><span class="va">build_memory_fleets</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">halflife</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">fleets</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>    <span class="st">"longline"</span> <span class="op">=</span> <span class="fu"><a href="../reference/create_fleet.html">create_fleet</a></span><span class="op">(</span></span>
+<span>      <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>        <span class="st">"bigeye"</span> <span class="op">=</span> <span class="va"><a href="../reference/Metier.html">Metier</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>          critter <span class="op">=</span> <span class="va">fauna</span><span class="op">$</span><span class="va">bigeye</span>, price <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>          sel_form <span class="op">=</span> <span class="st">"logistic"</span>, sel_start <span class="op">=</span> <span class="fl">1</span>, sel_delta <span class="op">=</span> <span class="fl">0.01</span>,</span>
+<span>          catchability <span class="op">=</span> <span class="fl">0</span>, p_explt <span class="op">=</span> <span class="fl">2</span></span>
+<span>        <span class="op">)</span>,</span>
+<span>        <span class="st">"skipjack"</span> <span class="op">=</span> <span class="va"><a href="../reference/Metier.html">Metier</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>          critter <span class="op">=</span> <span class="va">fauna</span><span class="op">$</span><span class="va">skipjack</span>, price <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>          sel_form <span class="op">=</span> <span class="st">"logistic"</span>, sel_start <span class="op">=</span> <span class="fl">0.8</span>, sel_delta <span class="op">=</span> <span class="fl">0.1</span>,</span>
+<span>          catchability <span class="op">=</span> <span class="fl">0</span>, p_explt <span class="op">=</span> <span class="fl">1</span></span>
+<span>        <span class="op">)</span></span>
+<span>      <span class="op">)</span>,</span>
+<span>      ports <span class="op">=</span> <span class="va">ports</span>, base_effort <span class="op">=</span> <span class="va">patches</span>, resolution <span class="op">=</span> <span class="va">resolution</span>,</span>
+<span>      spatial_allocation <span class="op">=</span> <span class="st">"marginal_profit"</span>,</span>
+<span>      fleet_model <span class="op">=</span> <span class="st">"constant_effort"</span>,</span>
+<span>      cr_ratio <span class="op">=</span> <span class="fl">1</span>, travel_fraction <span class="op">=</span> <span class="fl">0.7</span>,</span>
+<span>      memory_halflife <span class="op">=</span> <span class="va">halflife</span>,</span>
+<span>      responsiveness <span class="op">=</span> <span class="fl">0.025</span></span>
+<span>    <span class="op">)</span>,</span>
+<span>    <span class="st">"handline"</span> <span class="op">=</span> <span class="fu"><a href="../reference/create_fleet.html">create_fleet</a></span><span class="op">(</span></span>
+<span>      <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>        <span class="st">"bigeye"</span> <span class="op">=</span> <span class="va"><a href="../reference/Metier.html">Metier</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>          critter <span class="op">=</span> <span class="va">fauna</span><span class="op">$</span><span class="va">bigeye</span>, price <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>          sel_form <span class="op">=</span> <span class="st">"logistic"</span>, sel_start <span class="op">=</span> <span class="fl">1.2</span>, sel_delta <span class="op">=</span> <span class="fl">0.1</span>,</span>
+<span>          catchability <span class="op">=</span> <span class="fl">0</span>, p_explt <span class="op">=</span> <span class="fl">1</span></span>
+<span>        <span class="op">)</span>,</span>
+<span>        <span class="st">"skipjack"</span> <span class="op">=</span> <span class="va"><a href="../reference/Metier.html">Metier</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span></span>
+<span>          critter <span class="op">=</span> <span class="va">fauna</span><span class="op">$</span><span class="va">skipjack</span>, price <span class="op">=</span> <span class="fl">8</span>,</span>
+<span>          sel_form <span class="op">=</span> <span class="st">"logistic"</span>, sel_start <span class="op">=</span> <span class="fl">0.5</span>, sel_delta <span class="op">=</span> <span class="fl">0.2</span>,</span>
+<span>          catchability <span class="op">=</span> <span class="fl">0</span>, p_explt <span class="op">=</span> <span class="fl">2</span></span>
+<span>        <span class="op">)</span></span>
+<span>      <span class="op">)</span>,</span>
+<span>      ports <span class="op">=</span> <span class="va">ports</span>, base_effort <span class="op">=</span> <span class="va">patches</span>, resolution <span class="op">=</span> <span class="va">resolution</span>,</span>
+<span>      spatial_allocation <span class="op">=</span> <span class="st">"marginal_profit"</span>,</span>
+<span>      fleet_model <span class="op">=</span> <span class="st">"constant_effort"</span>,</span>
+<span>      cr_ratio <span class="op">=</span> <span class="fl">1</span>, travel_fraction <span class="op">=</span> <span class="fl">0.5</span>,</span>
+<span>      memory_halflife <span class="op">=</span> <span class="va">halflife</span>,</span>
+<span>            responsiveness <span class="op">=</span> <span class="fl">0.025</span></span>
+<span>    <span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span>  <span class="fu"><a href="../reference/tune_fleets.html">tune_fleets</a></span><span class="op">(</span><span class="va">fauna</span>, <span class="va">fleets</span>, tune_type <span class="op">=</span> <span class="st">"depletion"</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">halflives_5</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">runs_5</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">halflives_5</span>, <span class="kw">function</span><span class="op">(</span><span class="va">hl</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">sim</span>  <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simmar.html">simmar</a></span><span class="op">(</span>fauna <span class="op">=</span> <span class="va">fauna</span>, fleets <span class="op">=</span> <span class="fu">build_memory_fleets</span><span class="op">(</span><span class="va">hl</span><span class="op">)</span>,</span>
+<span>                 years <span class="op">=</span> <span class="va">years_5</span>, manager <span class="op">=</span> <span class="va">manager_5</span><span class="op">)</span></span>
+<span>  <span class="va">proc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">sim</span>, time_step <span class="op">=</span> <span class="va">time_step</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>halflife <span class="op">=</span> <span class="va">hl</span>, proc <span class="op">=</span> <span class="va">proc</span><span class="op">)</span></span>
+<span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
+<p>Two patch-level metrics, computed on the post-MPA window:</p>
+<ul>
+<li>
+<strong>lag-1 autocorrelation of patch effort</strong> (low /
+negative ⇒ sawtooth)</li>
+<li>
+<strong>step-difference CV</strong>:
+<code>sd(diff(effort)) / mean(effort)</code>, capturing high-frequency
+wiggle on top of any trend</li>
+</ul>
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">post_mpa_metrics</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">r</span>, <span class="va">burn_after_mpa_years</span> <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">start_step</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">mpa_year_5</span> <span class="op">+</span> <span class="va">burn_after_mpa_years</span><span class="op">)</span> <span class="op">*</span> <span class="va">seasons</span></span>
+<span>  <span class="va">r</span><span class="op">$</span><span class="va">proc</span><span class="op">$</span><span class="va">fleets</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">step</span> <span class="op">&gt;</span> <span class="va">start_step</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="va">fleet</span>, <span class="va">patch</span>, <span class="va">step</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">fleet</span>, <span class="va">patch</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span></span>
+<span>      mean_effort  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">effort</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
+<span>      effort_acf1  <span class="op">=</span> <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html" class="external-link">n</a></span><span class="op">(</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">3</span> <span class="op">&amp;&amp;</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/sd.html" class="external-link">sd</a></span><span class="op">(</span><span class="va">effort</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span></span>
+<span>        <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/acf.html" class="external-link">acf</a></span><span class="op">(</span><span class="va">effort</span>, plot <span class="op">=</span> <span class="cn">FALSE</span>, lag.max <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">$</span><span class="va">acf</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span> <span class="kw">else</span> <span class="cn">NA_real_</span>,</span>
+<span>      step_diff_cv <span class="op">=</span> <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html" class="external-link">n</a></span><span class="op">(</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">3</span> <span class="op">&amp;&amp;</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">effort</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">1e-9</span><span class="op">)</span></span>
+<span>        <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/sd.html" class="external-link">sd</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/diff.html" class="external-link">diff</a></span><span class="op">(</span><span class="va">effort</span><span class="op">)</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">effort</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="kw">else</span> <span class="cn">NA_real_</span>,</span>
+<span>      .groups <span class="op">=</span> <span class="st">"drop"</span></span>
+<span>    <span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>halflife <span class="op">=</span> <span class="va">r</span><span class="op">$</span><span class="va">halflife</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="va">all_metrics</span> <span class="op">&lt;-</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map_dfr.html" class="external-link">map_dfr</a></span><span class="op">(</span><span class="va">runs_5</span>, <span class="va">post_mpa_metrics</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">mean_effort</span> <span class="op">&gt;</span> <span class="fl">1e-3</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">all_metrics</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">halflife</span>, <span class="va">fleet</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span></span>
+<span>    n_patches            <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html" class="external-link">n</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>    median_effort_acf1   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">signif</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/median.html" class="external-link">median</a></span><span class="op">(</span><span class="va">effort_acf1</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, <span class="fl">3</span><span class="op">)</span>,</span>
+<span>    median_step_diff_cv  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">signif</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/median.html" class="external-link">median</a></span><span class="op">(</span><span class="va">step_diff_cv</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, <span class="fl">3</span><span class="op">)</span>,</span>
+<span>    p90_step_diff_cv     <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">signif</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/quantile.html" class="external-link">quantile</a></span><span class="op">(</span><span class="va">step_diff_cv</span>, <span class="fl">0.9</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, <span class="fl">3</span><span class="op">)</span>,</span>
+<span>    .groups <span class="op">=</span> <span class="st">"drop"</span></span>
+<span>  <span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span>digits <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>               caption <span class="op">=</span> <span class="st">"Post-MPA per-patch effort autocorrelation and high-frequency wiggle, by halflife and fleet."</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<caption>Post-MPA per-patch effort autocorrelation and high-frequency
+wiggle, by halflife and fleet.</caption>
+<colgroup>
+<col width="10%">
+<col width="10%">
+<col width="11%">
+<col width="22%">
+<col width="23%">
+<col width="20%">
+</colgroup>
+<thead><tr class="header">
+<th align="right">halflife</th>
+<th align="left">fleet</th>
+<th align="right">n_patches</th>
+<th align="right">median_effort_acf1</th>
+<th align="right">median_step_diff_cv</th>
+<th align="right">p90_step_diff_cv</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="right">0</td>
+<td align="left">handline</td>
+<td align="right">319</td>
+<td align="right">NA</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="right">0</td>
+<td align="left">longline</td>
+<td align="right">319</td>
+<td align="right">NA</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="right">1</td>
+<td align="left">handline</td>
+<td align="right">319</td>
+<td align="right">NA</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="right">1</td>
+<td align="left">longline</td>
+<td align="right">319</td>
+<td align="right">NA</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="left">handline</td>
+<td align="right">319</td>
+<td align="right">NA</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="left">longline</td>
+<td align="right">319</td>
+<td align="right">NA</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Pick the 3 most-oscillating patches per fleet under the lowest halflife;</span></span>
+<span><span class="co"># trace each across all three runs.</span></span>
+<span><span class="va">baseline_hl</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">halflives_5</span><span class="op">)</span></span>
+<span><span class="va">top_patches</span>  <span class="op">&lt;-</span> <span class="va">all_metrics</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">halflife</span> <span class="op">==</span> <span class="va">baseline_hl</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">fleet</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html" class="external-link">slice_max</a></span><span class="op">(</span><span class="va">step_diff_cv</span>, n <span class="op">=</span> <span class="fl">3</span>, with_ties <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">ungroup</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">fleet</span>, <span class="va">patch</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">trace_df</span> <span class="op">&lt;-</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map_dfr.html" class="external-link">map_dfr</a></span><span class="op">(</span><span class="va">runs_5</span>, <span class="kw">function</span><span class="op">(</span><span class="va">r</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">r</span><span class="op">$</span><span class="va">proc</span><span class="op">$</span><span class="va">fleets</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter-joins.html" class="external-link">semi_join</a></span><span class="op">(</span><span class="va">top_patches</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"fleet"</span>, <span class="st">"patch"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/transmute.html" class="external-link">transmute</a></span><span class="op">(</span><span class="va">fleet</span>, <span class="va">patch</span>, <span class="va">step</span>, year <span class="op">=</span> <span class="va">step</span> <span class="op">*</span> <span class="va">time_step</span>, <span class="va">effort</span>,</span>
+<span>              halflife <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">r</span><span class="op">$</span><span class="va">halflife</span>, levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">halflives_5</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">trace_df</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">year</span>, <span class="va">effort</span>, color <span class="op">=</span> <span class="va">halflife</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_vline</a></span><span class="op">(</span>xintercept <span class="op">=</span> <span class="va">mpa_year_5</span>, linetype <span class="op">=</span> <span class="st">"dashed"</span>, alpha <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_grid.html" class="external-link">facet_grid</a></span><span class="op">(</span><span class="va">fleet</span> <span class="op">~</span> <span class="va">patch</span>, scales <span class="op">=</span> <span class="st">"free_y"</span>, labeller <span class="op">=</span> <span class="va">label_both</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_continuous</a></span><span class="op">(</span>limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="cn">NA</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_viridis.html" class="external-link">scale_color_viridis_d</a></span><span class="op">(</span>option <span class="op">=</span> <span class="st">"C"</span>, end <span class="op">=</span> <span class="fl">0.85</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
+<span>    title    <span class="op">=</span> <span class="st">"Patch effort traces, most-oscillating patches per fleet"</span>,</span>
+<span>    subtitle <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"Dashed line: MPA closure at year %d. halflife is years (season-agnostic)."</span>,</span>
+<span>                       <span class="va">mpa_year_5</span><span class="op">)</span>,</span>
+<span>    x <span class="op">=</span> <span class="st">"Year"</span>, y <span class="op">=</span> <span class="st">"Patch effort"</span>, color <span class="op">=</span> <span class="st">"halflife (yr)"</span></span>
+<span>  <span class="op">)</span></span></code></pre></div>
+<p><img src="spatial-allocation_files/figure-html/scenario-5-traces-1.png" class="r-plt" alt="" width="768"></p>
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">catch_ts</span> <span class="op">&lt;-</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map_dfr.html" class="external-link">map_dfr</a></span><span class="op">(</span><span class="va">runs_5</span>, <span class="kw">function</span><span class="op">(</span><span class="va">r</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">r</span><span class="op">$</span><span class="va">proc</span><span class="op">$</span><span class="va">fauna</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">step</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span>catch <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">c</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, .groups <span class="op">=</span> <span class="st">"drop"</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>year <span class="op">=</span> <span class="va">step</span> <span class="op">*</span> <span class="va">time_step</span>,</span>
+<span>           halflife <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">r</span><span class="op">$</span><span class="va">halflife</span>, levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">halflives_5</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">catch_ts</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">year</span>, <span class="va">catch</span>, color <span class="op">=</span> <span class="va">halflife</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_vline</a></span><span class="op">(</span>xintercept <span class="op">=</span> <span class="va">mpa_year_5</span>, linetype <span class="op">=</span> <span class="st">"dashed"</span>, alpha <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_viridis.html" class="external-link">scale_color_viridis_d</a></span><span class="op">(</span>option <span class="op">=</span> <span class="st">"C"</span>, end <span class="op">=</span> <span class="fl">0.85</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Total catch over time"</span>,</span>
+<span>       x <span class="op">=</span> <span class="st">"Year"</span>, y <span class="op">=</span> <span class="st">"Total catch"</span>, color <span class="op">=</span> <span class="st">"halflife (yr)"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="spatial-allocation_files/figure-html/scenario-5-catch-1.png" class="r-plt" alt="" width="768"></p>
+<p>Reading the patch traces: <code>halflife = 0</code> shows the
+high-frequency wiggle that motivates the parameter, sharpened further by
+the MPA closure. <code>halflife = 1</code> (one year of memory) sits
+near the median of the sawtooth and removes the high-frequency
+component. <code>halflife = 2</code> smooths further but begins to
+introduce slower swings driven by phase lag: the fleet’s perceived
+objective is now lagging the real one by ~3 years, so it reallocates
+toward patches that <em>used to be</em> high-value.</p>
+<div class="section level3">
+<h3 id="when-does-memory-matter">When does memory matter?<a class="anchor" aria-label="anchor" href="#when-does-memory-matter"></a>
+</h3>
+<p>The susceptibility to one-step-lag oscillation depends strongly on a
+fleet’s configuration. Memory is not a universal upgrade; in many
+configurations it adds nothing or hurts.</p>
+<ul>
+<li>
+<strong>Allocation strategy.</strong> <code>marginal_profit</code>
+and <code>marginal_revenue</code> have the most direct fleet-biomass
+feedback — the objective at a patch responds immediately to last step’s
+fishing there — and are the most prone to sawtooth. <code>ppue</code> /
+<code>profit</code> / <code>rpue</code> / <code>revenue</code> integrate
+over the production curve, which damps the feedback. <code>manual</code>
+and <code>uniform</code> ignore the buffet entirely, so memory does
+nothing for them (and is correctly skipped by
+<code><a href="../reference/simmar.html">simmar()</a></code>).</li>
+<li>
+<strong>Fleet model.</strong> <code>constant_effort</code> fleets
+have only the spatial-allocation feedback loop, so the spatial smoothing
+in memory is the only mechanism stabilising them.
+<code>open_access</code> and <code>sole_owner</code> fleets also adjust
+<em>total</em> effort each step from a fleet-wide profitability signal,
+which has its own slow damping built in via the annual entry/exit caps —
+but that signal itself is <strong>not</strong> smoothed by
+<code>memory_halflife</code>. If you observe sawtooth in total fleet
+effort (rather than in patch-level allocation), memory will not fix it;
+the right knob lives in the open-access / sole-owner parameters.</li>
+<li>
+<strong>System structure.</strong> Strong fleet-biomass coupling
+(high catchability relative to stock productivity, fast movement that
+smooths biomass and equalises marginals, MPA closures that force
+redistribution) all amplify the one-step-lag feedback. Without any of
+these, the canonical scenarios above behave smoothly even at
+<code>halflife = 0</code>.</li>
+</ul>
+<p>Sensible values for <code>memory_halflife</code> depend on the time
+scale of stock and fleet dynamics. For most marine fisheries with annual
+or sub-annual seasons, <strong>0.5–1.5 years</strong> is a useful
+starting range. If catch or effort trajectories at a chosen halflife
+show slow swings that aren’t present at
+<code>memory_halflife = 0</code>, reduce it; you’ve crossed into the
+phase-lag regime. If the system is well-behaved at
+<code>memory_halflife = 0</code>, leave it there.</p>
+</div>
+</div>
+<div class="section level2">
 <h2 id="runtime-comparison">Runtime Comparison<a class="anchor" aria-label="anchor" href="#runtime-comparison"></a>
 </h2>
 <p>The <code>marginal_profit</code> spatial allocation strategy and the
@@ -937,7 +1307,7 @@ at every time step, which adds extra <code>go_fish</code> evaluations
 (one per fleet at minimum). This makes them meaningfully slower than
 strategies that only need the quantities already computed by the
 standard <code>go_fish</code> call.</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">runtime</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span></span>
 <span>  scenario <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"rpue / revenue"</span>, <span class="st">"ppue / profit"</span>, <span class="st">"marginal_profit / rpue"</span>,</span>
 <span>               <span class="st">"open_access (ppue)"</span>, <span class="st">"sole_owner (ppue)"</span><span class="op">)</span>,</span>
@@ -967,38 +1337,38 @@ for different run lengths.</caption>
 <tbody>
 <tr class="odd">
 <td align="left">rpue / revenue</td>
-<td align="right">0.10</td>
+<td align="right">0.12</td>
 <td align="right">20</td>
 <td align="right">0.01</td>
-<td align="right">Inf</td>
+<td align="right">1</td>
 </tr>
 <tr class="even">
 <td align="left">ppue / profit</td>
-<td align="right">0.09</td>
+<td align="right">0.12</td>
 <td align="right">20</td>
-<td align="right">0.00</td>
-<td align="right">NaN</td>
+<td align="right">0.01</td>
+<td align="right">1</td>
 </tr>
 <tr class="odd">
 <td align="left">marginal_profit / rpue</td>
-<td align="right">0.33</td>
+<td align="right">0.34</td>
 <td align="right">20</td>
 <td align="right">0.02</td>
-<td align="right">Inf</td>
+<td align="right">2</td>
 </tr>
 <tr class="even">
 <td align="left">open_access (ppue)</td>
-<td align="right">0.24</td>
+<td align="right">0.29</td>
 <td align="right">50</td>
-<td align="right">0.00</td>
-<td align="right">NaN</td>
+<td align="right">0.01</td>
+<td align="right">1</td>
 </tr>
 <tr class="odd">
 <td align="left">sole_owner (ppue)</td>
-<td align="right">0.75</td>
+<td align="right">0.83</td>
 <td align="right">50</td>
-<td align="right">0.01</td>
-<td align="right">Inf</td>
+<td align="right">0.02</td>
+<td align="right">2</td>
 </tr>
 </tbody>
 </table>
@@ -1009,7 +1379,7 @@ for different run lengths.</caption>
 <p>To see all five spatial allocation strategies side by side, we
 extract final-step effort across Scenarios 1–3 and compare in a single
 figure.</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">extract_effort</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">sim</span>, <span class="va">fleet_name</span>, <span class="va">label</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">final_step</span> <span class="op">&lt;-</span> <span class="va">sim</span><span class="op">[[</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">sim</span><span class="op">)</span><span class="op">]</span><span class="op">]</span></span>
 <span>  <span class="va">effort_vec</span> <span class="op">&lt;-</span> <span class="va">final_step</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">e_p_fl</span><span class="op">[</span>, <span class="va">fleet_name</span><span class="op">]</span></span>
@@ -1048,7 +1418,7 @@ figure.</p>
 the resulting biomass landscape. The rows correspond to the fleet
 allocation pairings (longline / handline), and the columns to each
 species.</p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">extract_ssb</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">proc</span>, <span class="va">longline_alloc</span>, <span class="va">handline_alloc</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">last_step</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">proc</span><span class="op">$</span><span class="va">fauna</span><span class="op">$</span><span class="va">step</span><span class="op">)</span></span>
 <span></span>
