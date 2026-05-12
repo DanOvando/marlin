@@ -18,6 +18,8 @@ navbar:
         - text: "Fleet behavior"
         - text: "Spatial Allocation Strategies"
           href: articles/spatial-allocation.html
+        - text: "Spatial Allocation Memory"
+          href: articles/spatial-allocation-memory.html
         - text: "Distance from Port"
           href: articles/port-distance.html
         - text: "Manage Catch and Effort"
@@ -70,6 +72,7 @@ articles:
     How fishing fleets decide where and how hard to fish.
   contents:
   - articles/spatial-allocation
+  - articles/spatial-allocation-memory
   - articles/port-distance
   - articles/fleet-management
   - articles/manual_fleets

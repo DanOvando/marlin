@@ -114,7 +114,7 @@
 #'   aggressively toward high-objective patches each step; if too large, can
 #'   drive period-2 sawtooth oscillation. Default \code{0.025}.
 #' @param memory_halflife Non-negative numeric. Half-life **in
-#'   years** of the EWMA applied to this fleet's spatial objective surface
+#'   years** of the exponential smoothing applied to this fleet's spatial objective surface
 #'   inside \code{\link{simmar}}. \code{0} (default) disables smoothing — the
 #'   fleet sees only the previous step's objective, matching legacy behavior.
 #'   The parameter is season-agnostic: simmar converts it internally to time
@@ -125,7 +125,7 @@
 #'   per-step weight on the current surface is
 #'   \eqn{\alpha = 1 - 0.5^{1/halflife_{steps}}}. Smoothing updates only
 #'   patches that are currently open; closed patches retain their last-seen
-#'   smoothed value ("freeze and resume"). Early post-bootstrap steps use a
+#'   smoothed value ("freeze and resume"). Early warm-up steps use a
 #'   Welford-style ramp (effective
 #'   \eqn{\alpha_\mathrm{eff} = \max(\alpha, 1/n)}) so the smoothed surface
 #'   is not anchored to the first observed buffet column.

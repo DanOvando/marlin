@@ -455,11 +455,11 @@ simmar <- function(fauna = list(),
 
   fishable <- rep(1, patches)
 
-  # Per-fleet EWMA history of the spatial allocation objective. NULL until the
+  # Per-fleet exponentially-smoothed history of the spatial allocation objective. NULL until the
   # first main-loop allocation populates it. Used only when a fleet has
   # memory_halflife > 0; see create_fleet() for the mechanism.
-  # `_n` is the per-fleet count of post-bootstrap update calls, used to ramp
-  # the effective alpha during burn-in (Welford-style) so the smoothed surface
+  # `_n` is the per-fleet count of post-seed update calls, used to ramp
+  # the effective alpha during warm-up (Welford-style) so the smoothed surface
   # isn't anchored to the first observed objective.
   objective_history   <- vector("list", length(fleets))
   objective_history_n <- integer(length(fleets))
@@ -707,14 +707,14 @@ simmar <- function(fauna = list(),
           obj_t      <- buffet[[mat_name_l]][, fleet_names[l]]
           open_l     <- as.logical(fleet_fishable[[l]])
           if (is.null(objective_history[[l]])) {
-            # Bootstrap: initialize with the first observed surface.
+            # Seed: initialize with the first observed surface.
             smoothed <- obj_t
             objective_history_n[[l]] <- 1L
           } else {
-            # Welford-style ramp: alpha_eff = max(alpha_target, 1/n) so early
-            # post-bootstrap steps behave like a running mean (no anchoring to
-            # the bootstrap surface) and only later relax to the asymptotic
-            # halflife. Once 1/n drops below alpha_target, the ramp is done.
+            # Welford-style warm-up ramp: alpha_eff = max(alpha_target, 1/n) so
+            # early steps behave like a running mean (no anchoring to the seed
+            # surface) and only later relax to the asymptotic halflife. Once
+            # 1/n drops below alpha_target, the ramp is done.
             objective_history_n[[l]] <- objective_history_n[[l]] + 1L
             n_obs          <- objective_history_n[[l]]
             # halflife is specified in years; convert to time steps so the
