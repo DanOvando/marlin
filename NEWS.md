@@ -1,3 +1,9 @@
+# marlin 1.1.1
+
+## Bug Fixes
+
+- `Fish$plot_movement()` no longer errors on its first call in a fresh session (e.g. on a critter restored via `readRDS()`). `Matrix` is now a declared dependency, so its S4 methods are registered when marlin loads, and the plot-time multiply densifies the (small) movement matrices to avoid relying on those methods at all.
+
 # marlin 1.1.0
 
 # marlin 1.0.1

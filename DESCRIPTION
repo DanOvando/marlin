@@ -1,6 +1,6 @@
 Package: marlin
 Title: Simulation of Marine Social-Ecological Systems
-Version: 1.1.0
+Version: 1.1.1
 Authors@R: 
     person(given = "Dan",
            family = "Ovando",
@@ -16,7 +16,6 @@ Suggests:
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
 LinkingTo: 
     Rcpp,
     RcppEigen,
@@ -36,6 +35,7 @@ Imports:
     taxize (>= 0.9.100.1),
     mvtnorm,
     data.table,
+    Matrix,
     RcppEigen
 VignetteBuilder: knitr
 URL: https://danovando.github.io/marlin/,
@@ -46,3 +46,4 @@ Remotes:
     ropensci/bold,
     ropensci/taxize
 Config/Needs/website: rmarkdown
+Config/roxygen2/version: 8.0.0

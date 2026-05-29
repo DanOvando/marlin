@@ -31,6 +31,7 @@
 #' @seealso \code{\link{prep_movement}}, \code{\link{simmar}}
 #'
 #' @keywords internal
+#' @importFrom Matrix sparseMatrix colSums Diagonal
 sparsify_transition <- function(trans_mat, retain = 0.999) {
 
   P <- nrow(trans_mat)

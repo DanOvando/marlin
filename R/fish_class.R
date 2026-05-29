@@ -1096,9 +1096,12 @@ Fish <- R6::R6Class(
         dist() |>
         as.matrix() * patch_width
 
-      diff_and_tax <- critter$movement_matrix[[1]]
+      # densify the small (P x P) movement matrices so the plot-time %*% uses
+      # base dense dispatch and does not depend on Matrix's S4 method being
+      # registered (see BUG_plot_movement_matrix_namespace.md)
+      diff_and_tax <- as.matrix(critter$movement_matrix[[1]])
 
-      rec_diff_and_tax <- critter$recruit_movement_matrix
+      rec_diff_and_tax <- as.matrix(critter$recruit_movement_matrix)
 
       for (i in seq_len(critter$seasons)) {
         grid$n <- as.numeric(grid$n %*% (diff_and_tax)) # calculate the realized diffusion over one time step of the model

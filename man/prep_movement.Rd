@@ -13,7 +13,7 @@ patch j (column) to patch i (row), derived by element-wise multiplication
 of the base diffusion matrix and the habitat-taxis multiplier matrix.}
 
 \item{resolution}{Integer vector of length 2. Grid dimensions \code{c(nx,
-  ny)}. Currently unused inside the function body but retained for
+ny)}. Currently unused inside the function body but retained for
 compatibility with earlier code.}
 }
 \value{

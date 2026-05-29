@@ -24,20 +24,21 @@ derived quantities such as selectivity-at-age and vulnerability matrices used by
 }
 \section{Methods}{
 \subsection{Public methods}{
-\itemize{
-\item \href{#method-metier-new}{\code{Metier$new()}}
-\item \href{#method-metier-plot_selectivity}{\code{Metier$plot_selectivity()}}
-\item \href{#method-metier-plot_catchability}{\code{Metier$plot_catchability()}}
-\item \href{#method-metier-clone}{\code{Metier$clone()}}
-}
+  \itemize{
+    \item \href{#method-metier-initialize}{\code{metier$new()}}
+    \item \href{#method-metier-plot_selectivity}{\code{metier$plot_selectivity()}}
+    \item \href{#method-metier-plot_catchability}{\code{metier$plot_catchability()}}
+    \item \href{#method-metier-clone}{\code{metier$clone()}}
+  }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-metier-new"></a>}}
-\if{latex}{\out{\hypertarget{method-metier-new}{}}}
-\subsection{Method \code{new()}}{
-Parameters for specific metier of a given fleet
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Metier$new(
+\if{html}{\out{<a id="method-metier-initialize"></a>}}
+\if{latex}{\out{\hypertarget{method-metier-initialize}{}}}
+\subsection{\code{metier$new()}}{
+  Parameters for specific metier of a given fleet
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{metier$new(
   critter = NA,
   price = 10,
   sel_form = "logistic",
@@ -50,82 +51,78 @@ Parameters for specific metier of a given fleet
   spatial_catchability = NULL,
   p_explt = 1,
   sel_at_age = NULL
-)}\if{html}{\out{</div>}}
-}
-
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{critter}}{the name of the critter in the fauna object this metier applies to}
-
-\item{\code{price}}{the price per unit weight of the critter in question}
-
-\item{\code{sel_form}}{the selectivity form, one of "logistic", "dome","uniform", or "manual"}
-
-\item{\code{sel_unit}}{the unit of selectivity, one of "p_of_mat" which means selectivity is in proportion of age at maturity, or "length" where selectivity is in units of length}
-
-\item{\code{sel_start}}{the value of sel_unit at which selectivity "starts"}
-
-\item{\code{sel_delta}}{the delta parameter in the selectivity function}
-
-\item{\code{sel05_anchor}}{lower anchor at which (contact) selectivity is 0.05, either length or p_of_mat}
-
-\item{\code{sel_at_linf}}{contact selectivity at linf}
-
-\item{\code{catchability}}{the catchability per uni effort pararmeter, generally overwritten by tune_fleet}
-
-\item{\code{spatial_catchability}}{a matrix of spatial q}
-
-\item{\code{p_explt}}{the proportion of total exploitation for a given critter coming from this metier. This value is relative to all other p_explt values for the critter in question. Set to 0 to have metier not catch critter at all
+)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{critter}}{the name of the critter in the fauna object this metier applies to}
+      \item{\code{price}}{the price per unit weight of the critter in question}
+      \item{\code{sel_form}}{the selectivity form, one of "logistic", "dome","uniform", or "manual"}
+      \item{\code{sel_unit}}{the unit of selectivity, one of "p_of_mat" which means selectivity is in proportion of age at maturity, or "length" where selectivity is in units of length}
+      \item{\code{sel_start}}{the value of sel_unit at which selectivity "starts"}
+      \item{\code{sel_delta}}{the delta parameter in the selectivity function}
+      \item{\code{sel05_anchor}}{lower anchor at which (contact) selectivity is 0.05, either length or p_of_mat}
+      \item{\code{sel_at_linf}}{contact selectivity at linf}
+      \item{\code{catchability}}{the catchability per uni effort pararmeter, generally overwritten by tune_fleet}
+      \item{\code{spatial_catchability}}{a matrix of spatial q}
+      \item{\code{p_explt}}{the proportion of total exploitation for a given critter coming from this metier. This value is relative to all other p_explt values for the critter in question. Set to 0 to have metier not catch critter at all
 plot selectivity
 #'}
+      \item{\code{sel_at_age}}{a manual vector of gear (contact) selectivity at age, where values are between 0 and 1}
+    }
+    \if{html}{\out{</div>}}
+  }
+}
 
-\item{\code{sel_at_age}}{a manual vector of gear (contact) selectivity at age, where values are between 0 and 1}
-}
-\if{html}{\out{</div>}}
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-metier-plot_selectivity"></a>}}
 \if{latex}{\out{\hypertarget{method-metier-plot_selectivity}{}}}
-\subsection{Method \code{plot_selectivity()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Metier$plot_selectivity()}\if{html}{\out{</div>}}
-}
-
-\subsection{Returns}{
-a plot of selectivity at age for the metier
+\subsection{\code{metier$plot_selectivity()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{metier$plot_selectivity()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    a plot of selectivity at age for the metier
 plot selectivity
 #'
+  }
 }
-}
+
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-metier-plot_catchability"></a>}}
 \if{latex}{\out{\hypertarget{method-metier-plot_catchability}{}}}
-\subsection{Method \code{plot_catchability()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Metier$plot_catchability()}\if{html}{\out{</div>}}
+\subsection{\code{metier$plot_catchability()}}{
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{metier$plot_catchability()}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Returns}{
+    a plot of selectivity at age for the metier
+  }
 }
 
-\subsection{Returns}{
-a plot of selectivity at age for the metier
-}
-}
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-metier-clone"></a>}}
 \if{latex}{\out{\hypertarget{method-metier-clone}{}}}
-\subsection{Method \code{clone()}}{
-The objects of this class are cloneable with this method.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Metier$clone(deep = FALSE)}\if{html}{\out{</div>}}
+\subsection{\code{metier$clone()}}{
+  The objects of this class are cloneable with this method.
+  \subsection{Usage}{
+    \if{html}{\out{<div class="r">}}
+    \preformatted{metier$clone(deep = FALSE)}
+    \if{html}{\out{</div>}}
+  }
+  \subsection{Arguments}{
+    \if{html}{\out{<div class="arguments">}}
+    \describe{
+      \item{\code{deep}}{Whether to make a deep clone.}
+    }
+    \if{html}{\out{</div>}}
+  }
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{deep}}{Whether to make a deep clone.}
-}
-\if{html}{\out{</div>}}
-}
-}
 }

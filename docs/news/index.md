@@ -1,5 +1,7 @@
 # Changelog
 
+## marlin 1.1.0
+
 ## marlin 1.0.1
 
 ## marlin 1.0.0

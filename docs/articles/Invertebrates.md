@@ -246,7 +246,7 @@ sels |>
 tic()
 squishy_sim <- simmar(fauna, fleets, years = years, cor_rec = critter_correlations)
 toc()
-#> 0.427 sec elapsed
+#> 0.42 sec elapsed
 processed_squishy <- process_marlin(sim = squishy_sim, time_step = time_step)
 ```
 

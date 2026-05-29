@@ -151,8 +151,8 @@ create_fleet(
 
 - memory_halflife:
 
-  Non-negative numeric. Half-life **in years** of the EWMA applied to
-  this fleet's spatial objective surface inside
+  Non-negative numeric. Half-life **in years** of the exponential
+  smoothing applied to this fleet's spatial objective surface inside
   [`simmar`](https://danovando.github.io/marlin/reference/simmar.md).
   `0` (default) disables smoothing — the fleet sees only the previous
   step's objective, matching legacy behavior. The parameter is
@@ -164,8 +164,8 @@ create_fleet(
   per-step weight on the current surface is \\\alpha = 1 -
   0.5^{1/halflife\_{steps}}\\. Smoothing updates only patches that are
   currently open; closed patches retain their last-seen smoothed value
-  ("freeze and resume"). Early post-bootstrap steps use a Welford-style
-  ramp (effective \\\alpha\_\mathrm{eff} = \max(\alpha, 1/n)\\) so the
+  ("freeze and resume"). Early warm-up steps use a Welford-style ramp
+  (effective \\\alpha\_\mathrm{eff} = \max(\alpha, 1/n)\\) so the
   smoothed surface is not anchored to the first observed buffet column.
 
   Practical guidance: values around `0.5`–`1.5` years are the typical

@@ -1107,6 +1107,8 @@ How fishing fleets decide where and how hard to fish.
 
 - [Spatial Allocation
   Strategies](https://danovando.github.io/marlin/articles/spatial-allocation.md):
+- [Spatial Allocation
+  Memory](https://danovando.github.io/marlin/articles/spatial-allocation-memory.md):
 - [Setting and Using Distance from
   Port](https://danovando.github.io/marlin/articles/port-distance.md):
 - [Manage Catch and Effort of
@@ -1183,6 +1185,8 @@ Using marlin for management strategy evaluation and spatial analysis.
   Square](https://danovando.github.io/marlin/articles/rectifier.md):
 - [Setting
   Selectivity](https://danovando.github.io/marlin/articles/Setting-Selectivity.md):
+- [Spatial Allocation
+  Memory](https://danovando.github.io/marlin/articles/spatial-allocation-memory.md):
 - [Spatial Allocation
   Strategies](https://danovando.github.io/marlin/articles/spatial-allocation.md):
 - [Working with Recruitment

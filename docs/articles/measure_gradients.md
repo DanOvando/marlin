@@ -161,7 +161,7 @@ a <- Sys.time()
 fleets <- tune_fleets(fauna, fleets, tune_type = tune_type) # tunes the catchability by fleet to achieve target depletion
 
 Sys.time() - a
-#> Time difference of 2.882307 secs
+#> Time difference of 2.169798 secs
 
 # run simulations
 
@@ -174,7 +174,7 @@ spillover_sim <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.06017399 secs
+#> Time difference of 0.04578805 secs
 
 
 
@@ -227,7 +227,7 @@ mpa_spillover <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.239692 secs
+#> Time difference of 0.2214692 secs
 
 proc_mpa_spillover <- process_marlin(mpa_spillover, time_step = fauna[[1]]$time_step)
 
@@ -439,8 +439,8 @@ response_ratio_model <- stan_glm(
 #> 
 #> SAMPLING FOR MODEL 'continuous' NOW (CHAIN 1).
 #> Chain 1: 
-#> Chain 1: Gradient evaluation took 0.00023 seconds
-#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 2.3 seconds.
+#> Chain 1: Gradient evaluation took 0.000222 seconds
+#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 2.22 seconds.
 #> Chain 1: Adjust your expectations accordingly!
 #> Chain 1: 
 #> Chain 1: 
@@ -457,9 +457,9 @@ response_ratio_model <- stan_glm(
 #> Chain 1: Iteration: 1800 / 2000 [ 90%]  (Sampling)
 #> Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 0.022 seconds (Warm-up)
-#> Chain 1:                0.031 seconds (Sampling)
-#> Chain 1:                0.053 seconds (Total)
+#> Chain 1:  Elapsed Time: 0.021 seconds (Warm-up)
+#> Chain 1:                0.024 seconds (Sampling)
+#> Chain 1:                0.045 seconds (Total)
 #> Chain 1:
 
 response_ratio <- tidybayes::tidy_draws(response_ratio_model) |>
@@ -605,8 +605,8 @@ b_gradient_model <- stan_glm(
 #> 
 #> SAMPLING FOR MODEL 'continuous' NOW (CHAIN 1).
 #> Chain 1: 
-#> Chain 1: Gradient evaluation took 9.9e-05 seconds
-#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.99 seconds.
+#> Chain 1: Gradient evaluation took 8.1e-05 seconds
+#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.81 seconds.
 #> Chain 1: Adjust your expectations accordingly!
 #> Chain 1: 
 #> Chain 1: 
@@ -623,9 +623,9 @@ b_gradient_model <- stan_glm(
 #> Chain 1: Iteration: 1800 / 2000 [ 90%]  (Sampling)
 #> Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 0.039 seconds (Warm-up)
-#> Chain 1:                0.038 seconds (Sampling)
-#> Chain 1:                0.077 seconds (Total)
+#> Chain 1:  Elapsed Time: 0.031 seconds (Warm-up)
+#> Chain 1:                0.03 seconds (Sampling)
+#> Chain 1:                0.061 seconds (Total)
 #> Chain 1:
 
 
@@ -647,8 +647,8 @@ cpue_gradient_model <- stan_glm(
 #> 
 #> SAMPLING FOR MODEL 'continuous' NOW (CHAIN 1).
 #> Chain 1: 
-#> Chain 1: Gradient evaluation took 1.8e-05 seconds
-#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.18 seconds.
+#> Chain 1: Gradient evaluation took 1.5e-05 seconds
+#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.15 seconds.
 #> Chain 1: Adjust your expectations accordingly!
 #> Chain 1: 
 #> Chain 1: 
@@ -665,9 +665,9 @@ cpue_gradient_model <- stan_glm(
 #> Chain 1: Iteration: 1800 / 2000 [ 90%]  (Sampling)
 #> Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 0.039 seconds (Warm-up)
-#> Chain 1:                0.041 seconds (Sampling)
-#> Chain 1:                0.08 seconds (Total)
+#> Chain 1:  Elapsed Time: 0.031 seconds (Warm-up)
+#> Chain 1:                0.034 seconds (Sampling)
+#> Chain 1:                0.065 seconds (Total)
 #> Chain 1:
 
 effort_gradient_model <- stan_glm(
@@ -680,8 +680,8 @@ effort_gradient_model <- stan_glm(
 #> 
 #> SAMPLING FOR MODEL 'continuous' NOW (CHAIN 1).
 #> Chain 1: 
-#> Chain 1: Gradient evaluation took 1.8e-05 seconds
-#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.18 seconds.
+#> Chain 1: Gradient evaluation took 1.2e-05 seconds
+#> Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.12 seconds.
 #> Chain 1: Adjust your expectations accordingly!
 #> Chain 1: 
 #> Chain 1: 
@@ -698,9 +698,9 @@ effort_gradient_model <- stan_glm(
 #> Chain 1: Iteration: 1800 / 2000 [ 90%]  (Sampling)
 #> Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)
 #> Chain 1: 
-#> Chain 1:  Elapsed Time: 0.047 seconds (Warm-up)
-#> Chain 1:                0.048 seconds (Sampling)
-#> Chain 1:                0.095 seconds (Total)
+#> Chain 1:  Elapsed Time: 0.037 seconds (Warm-up)
+#> Chain 1:                0.038 seconds (Sampling)
+#> Chain 1:                0.075 seconds (Total)
 #> Chain 1:
 
 mcmc_hist(b_gradient_model, pars = "distance_to_mpa_edge")

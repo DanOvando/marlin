@@ -13,7 +13,7 @@ calibrate catchability and costs to the desired initial conditions."></head><bod
 
     <a class="navbar-brand me-2" href="../index.html">marlin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -26,6 +26,7 @@ calibrate catchability and costs to the desired initial conditions."></head><bod
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><h6 class="dropdown-header" data-toc-skip>Fleet behavior</h6></li>
     <li><a class="dropdown-item" href="../articles/spatial-allocation.html">Spatial Allocation Strategies</a></li>
+    <li><a class="dropdown-item" href="../articles/spatial-allocation-memory.html">Spatial Allocation Memory</a></li>
     <li><a class="dropdown-item" href="../articles/port-distance.html">Distance from Port</a></li>
     <li><a class="dropdown-item" href="../articles/fleet-management.html">Manage Catch and Effort</a></li>
     <li><a class="dropdown-item" href="../articles/manual_fleets.html">Manual Fishing Grounds</a></li>
@@ -217,7 +218,7 @@ drive period-2 sawtooth oscillation. Default <code>0.025</code>.</p></dd>
 
 <dt id="arg-memory-halflife">memory_halflife<a class="anchor" aria-label="anchor" href="#arg-memory-halflife"></a></dt>
 <dd><p>Non-negative numeric. Half-life <strong>in
-years</strong> of the EWMA applied to this fleet's spatial objective surface
+years</strong> of the exponential smoothing applied to this fleet's spatial objective surface
 inside <code><a href="simmar.html">simmar</a></code>. <code>0</code> (default) disables smoothing — the
 fleet sees only the previous step's objective, matching legacy behavior.
 The parameter is season-agnostic: simmar converts it internally to time
@@ -228,7 +229,7 @@ feedback oscillations by blending in past objective surfaces; the
 per-step weight on the current surface is
 \(\alpha = 1 - 0.5^{1/halflife_{steps}}\). Smoothing updates only
 patches that are currently open; closed patches retain their last-seen
-smoothed value ("freeze and resume"). Early post-bootstrap steps use a
+smoothed value ("freeze and resume"). Early warm-up steps use a
 Welford-style ramp (effective
 \(\alpha_\mathrm{eff} = \max(\alpha, 1/n)\)) so the smoothed surface
 is not anchored to the first observed buffet column.</p>
