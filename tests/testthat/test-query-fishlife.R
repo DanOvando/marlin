@@ -166,7 +166,8 @@ test_that("m_at_age bypasses the m requirement", {
     output = "list"
   )
 
-  ages <- seq(0, max_age, by = time_step)
+  # min_age now defaults to one time step, so build ages to match
+  ages <- seq(time_step, max_age, by = time_step)
   m_at_age_vec <- rep(0.2, length(ages))
 
   # m = NA but m_at_age supplied should work

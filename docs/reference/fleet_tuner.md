@@ -42,5 +42,6 @@ depletion), one per species
 ## Details
 
 Used as the objective function for
-[`nleqslv`](https://rdrr.io/pkg/nleqslv/man/nleqslv.html) inside
+[`nleqslv`](https://bertcarnell.github.io/nleqslv/reference/nleqslv.html)
+inside
 [`tune_fleets`](https://danovando.github.io/marlin/reference/tune_fleets.md).

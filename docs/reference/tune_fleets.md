@@ -82,9 +82,9 @@ preserved.
 - `"depletion"`:
 
   Uses a numerical solver
-  ([`nleqslv`](https://rdrr.io/pkg/nleqslv/man/nleqslv.html), Broyden
-  method) to find fishing mortalities that drive each species to its
-  target `depletion` (SSB/SSB0, set in
+  ([`nleqslv`](https://bertcarnell.github.io/nleqslv/reference/nleqslv.html),
+  Broyden method) to find fishing mortalities that drive each species to
+  its target `depletion` (SSB/SSB0, set in
   [`create_critter`](https://danovando.github.io/marlin/reference/create_critter.md)).
   Slower (multiple simulations). Warns if achieved depletion differs
   from the target by more than `depl_tol`.

@@ -61,7 +61,7 @@ m <- 0.4 # asymptotic natural mortality
 
 t0 <- -.5 # size at age 0
 
-ages <- seq(0, max_age, by = time_step)
+ages <- seq(time_step, max_age, by = time_step)
 
 length_at_age <- length_a * (ages - t0)^length_b
 

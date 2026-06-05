@@ -27,23 +27,23 @@ selectivity-at-age and vulnerability matrices used by
 
 ### Public methods
 
-- [`Metier$new()`](#method-metier-new)
+- [`metier$new()`](#method-metier-initialize)
 
-- [`Metier$plot_selectivity()`](#method-metier-plot_selectivity)
+- [`metier$plot_selectivity()`](#method-metier-plot_selectivity)
 
-- [`Metier$plot_catchability()`](#method-metier-plot_catchability)
+- [`metier$plot_catchability()`](#method-metier-plot_catchability)
 
-- [`Metier$clone()`](#method-metier-clone)
+- [`metier$clone()`](#method-metier-clone)
 
 ------------------------------------------------------------------------
 
-### Method [`new()`](https://rdrr.io/r/methods/new.html)
+### `metier$new()`
 
 Parameters for specific metier of a given fleet
 
 #### Usage
 
-    Metier$new(
+    metier$new(
       critter = NA,
       price = 10,
       sel_form = "logistic",
@@ -118,11 +118,11 @@ Parameters for specific metier of a given fleet
 
 ------------------------------------------------------------------------
 
-### Method `plot_selectivity()`
+### `metier$plot_selectivity()`
 
 #### Usage
 
-    Metier$plot_selectivity()
+    metier$plot_selectivity()
 
 #### Returns
 
@@ -130,11 +130,11 @@ a plot of selectivity at age for the metier plot selectivity \#'
 
 ------------------------------------------------------------------------
 
-### Method `plot_catchability()`
+### `metier$plot_catchability()`
 
 #### Usage
 
-    Metier$plot_catchability()
+    metier$plot_catchability()
 
 #### Returns
 
@@ -142,13 +142,13 @@ a plot of selectivity at age for the metier
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `metier$clone()`
 
 The objects of this class are cloneable with this method.
 
 #### Usage
 
-    Metier$clone(deep = FALSE)
+    metier$clone(deep = FALSE)
 
 #### Arguments
 

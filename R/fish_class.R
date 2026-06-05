@@ -61,7 +61,7 @@ Fish <- R6::R6Class(
     #' @param t0  hypothetical age at which the fish would have length 0 (e.g. -0.5 years)
     #' @param cv_len coefficient of variation around the length at age relationship (in log space)
     #' @param length_units  units of the length at age function (arbitrary)
-    #' @param min_age  minimum age tracked in the model. Best to leave at 0, as the model does not explicitly track delays for recruitment
+    #' @param min_age  minimum (youngest) age tracked in the model. Defaults to `NA`, in which case it is set to one time step (`1 / seasons`). Because recruits are deposited at the youngest age after the population has been aged, the youngest cohort is already one time step removed from the spawning pool, so the model does not represent age 0 ("at birth"); starting at one time step is more consistent with this and keeps the (extrapolated) age-0 natural mortality out of the model. Set to `0` to recover the previous behavior.
     #' @param max_age  maximum age tracked by the model (individuals this age or older are tracked in the plus group)
     #' @param weight_a  alpha parameter in the allometric weight function alpha x length ^ beta
     #' @param weight_b  beta parameter in the allometric weight function alpha x length ^ beta
@@ -72,7 +72,7 @@ Fish <- R6::R6Class(
     #' @param age_50_mature  age at 50% maturity in a logistic maturity ogive if maturity is age based
     #' @param age_95_mature  age at 95% maturity in a logistic maturity ogive if maturity is age based
     #' @param age_mature an alternative option to just set one age mature, which ends up as the age_50_mature
-    #' @param m instantaneous natural mortality rate. When `lorenzen_m = TRUE`, this is the average natural mortality across all ages
+    #' @param m instantaneous natural mortality rate. When `lorenzen_m = TRUE`, this is the average natural mortality across ages from `lorenzen_ref_age` (which defaults to the age at maturity) to the maximum age, i.e. the literature value is interpreted as an average adult rate
     #' @param steepness  steepness parameter (h) in a Beverton-Holt spawner-recruit function
     #' @param r0  asymptotic number of recruits under unfished conditions
     #' @param ssb0  asymptotic spawning stock biomass of recruits under unfished conditions. Tunnes r0 to achieve
@@ -117,6 +117,7 @@ Fish <- R6::R6Class(
     #' @param growth_model one of "von_bertalanffy" or "power"
     #' @param length_bin_width the width of the length bins in the length-at-age key, defaults to 1cm
     #' @param lorenzen_c the rate of the Lorenzen curve. Defaults to -1, larger values will make the difference between natural mortality at young vs old ages less pronounced
+    #' @param lorenzen_ref_age lower age bound of the range over which the mean Lorenzen natural mortality is set equal to `m`. The range always runs from this age to the maximum age. Defaults to `NA`, in which case the age at maturity is used. Analogous to the age-range Lorenzen option in Stock Synthesis (see Powers 2014, ICES J. Mar. Sci. 71:1629)
     #' @param semelparous TRUE or FALSE. When FALSE (default), individuals can reproduce multiple times. When TRUE, individuals can only spawn once, so mortality at increase increases as a function of maturity at age
     #' @param adult_home_range the desired home range of adults. Overrides adult_diffusion if set
     #' @param recruit_home_range the desired home range of recruits Overrides recruit_diffusion if set
@@ -141,7 +142,7 @@ Fish <- R6::R6Class(
                           length_units = "cm",
                           length_bin_width = 1,
                           growth_model = "von_bertalanffy",
-                          min_age = 0,
+                          min_age = NA,
                           max_age = NA,
                           weight_a = NA,
                           weight_b = NA,
@@ -191,7 +192,8 @@ Fish <- R6::R6Class(
                           spawning_seasons = NULL,
                           max_hab_mult = 2,
                           lorenzen_m = TRUE,
-                          lorenzen_c = -1) {
+                          lorenzen_c = -1,
+                          lorenzen_ref_age = NA) {
       seasons <- as.integer(seasons)
 
       # if only one resolution dimension provided, assume square
@@ -318,6 +320,18 @@ Fish <- R6::R6Class(
 
 
       time_step <- 1 / seasons
+
+      # default the youngest tracked age to one time step rather than 0. Because
+      # recruitment is computed after aging and deposited at the youngest age
+      # (see the spawn/recruit block), the youngest cohort is already one time
+      # step removed from the spawning pool that produced it, so age 0 ("at
+      # birth") is not actually represented. Starting at one time step is more
+      # consistent with that, keeps the extrapolated (below the Lorenzen fitting
+      # range) age-0 M out of the model, and makes per-recruit quantities
+      # comparable with age-1-indexed assessment frameworks.
+      if (is.na(min_age)) {
+        min_age <- time_step
+      }
 
       burn_steps <-
         burn_years * seasons # convert years to time steps
@@ -528,6 +542,21 @@ Fish <- R6::R6Class(
       }
       ages <- seq(min_age, max_age, by = time_step)
 
+      # guard against a manually supplied m_at_age that doesn't line up with the
+      # resolved age vector. The most common cause is building m_at_age against a
+      # different min_age (e.g. seq(0, max_age, ...) when min_age now defaults to
+      # one time step), which otherwise fails much later with an opaque error.
+      if (!is.null(m_at_age) && length(m_at_age) != length(ages)) {
+        stop(
+          "`m_at_age` has length ", length(m_at_age), " but the model tracks ",
+          length(ages), " ages (", min(ages), " to ", max(ages),
+          " by ", time_step, "). `m_at_age` needs one value per age: either ",
+          "build it against seq(min_age, max_age, by = 1 / seasons), or set ",
+          "`min_age` so the age vector matches your supplied vector.",
+          call. = FALSE
+        )
+      }
+
       self$ages <- ages
 
       self$growth_model <- growth_model
@@ -565,18 +594,6 @@ Fish <- R6::R6Class(
         weight_a * length_at_age^weight_b
 
       lmat_to_linf_ratio <- length_50_mature / linf
-
-      if (is.null(m_at_age)) {
-        # if m_at_age was not externally provided
-        if (lorenzen_m) {
-          m_at_age <- m * (length_at_age / max(length_at_age))^lorenzen_c
-
-          # m_at_age <- (m_at_age / mean(m_at_age)) * m
-        } else {
-          m_at_age <-
-            rep(m, length(weight_at_age)) # place holder to allow for different m at age
-        }
-      }
       #
 
       length_at_age_key <-
@@ -664,6 +681,39 @@ Fish <- R6::R6Class(
       self$semelparous <- semelparous
 
       self$age_mature <- age_mature
+
+      # natural mortality at age (placed after maturity is resolved so the
+      # Lorenzen anchoring can default to the age at maturity)
+      if (is.null(m_at_age)) {
+        # m_at_age was not supplied externally
+        if (lorenzen_m) {
+          # Lorenzen size-dependent M, rescaled so that the mean M over the
+          # adult range [lorenzen_lo_age, max age] equals m. A single literature
+          # M is thus interpreted as an average adult rate rather than the
+          # asymptotic (large-fish) value. Analogous to the age-range Lorenzen
+          # option in Stock Synthesis; see Powers (2014) ICES J. Mar. Sci. 71:1629.
+          lorenzen_lo_age <-
+            if (is.na(lorenzen_ref_age)) age_mature else lorenzen_ref_age
+
+          if (is.na(lorenzen_lo_age)) {
+            warning("lorenzen_ref_age and the age at maturity are both NA; anchoring the mean Lorenzen M at the maximum age instead.")
+            lorenzen_lo_age <- max(ages)
+          }
+
+          lorenzen_shape <- (length_at_age / max(length_at_age))^lorenzen_c
+
+          in_lorenzen_range <- ages >= lorenzen_lo_age
+
+          if (!any(in_lorenzen_range)) {
+            in_lorenzen_range <- ages == max(ages)
+          }
+
+          m_at_age <- lorenzen_shape * (m / mean(lorenzen_shape[in_lorenzen_range]))
+        } else {
+          m_at_age <-
+            rep(m, length(weight_at_age)) # constant M at age
+        }
+      }
 
       # if (is.na(length_50_mature)) {
       #
@@ -1020,7 +1070,6 @@ Fish <- R6::R6Class(
     # close initialize
     #' plot object of class fish
     #'
-    #' @param type
     #'
     #' @return a plot of the life history values
     plot = function(type = 2) {
@@ -1042,6 +1091,7 @@ Fish <- R6::R6Class(
         ggplot2::geom_line(show.legend = FALSE) +
         ggplot2::facet_wrap(~trait, scales = "free_y") +
         marlin::theme_marlin() +
+        ggplot2::scale_y_continuous(limits =c(0, NA)) +
         ggplot2::scale_fill_manual(values = marlin::marlin_pal("diverging_fish")(length(unique(
           tidy_ogives$trait
         )))) +
@@ -1049,7 +1099,6 @@ Fish <- R6::R6Class(
     },
     #' plot diffusion
     #'
-    #' @param type
     #'
     #' @return a plot of the diffusion after one year
     plot_movement = function() {
@@ -1060,23 +1109,23 @@ Fish <- R6::R6Class(
         dplyr::mutate(
           patch = 1:dplyr::n(),
           n = 0,
-          rec_n = 0, 
+          rec_n = 0,
           r0s = critter$r0s # add r0s as a proxy for land areas
         )
-      
-        # Calculate total absolute distance from mean 
+
+        # Calculate total absolute distance from mean
       grid <- grid |>
         dplyr::mutate(dist = abs(grid$x - round(mean(grid$x))) + abs(grid$y - round(mean(grid$y))))
 
       # Grab the cell that's closest to the middle
       middle <- which(grid$dist == min(grid$dist))
-      
-      # If this cell contains land, grab a cell that is at least 3 
+
+      # If this cell contains land, grab a cell that is at least 3
       # locations away and does not contain land
-      if(grid$r0s[middle] == 0) { 
+      if(grid$r0s[middle] == 0) {
         middle <- which(grid$dist == 3 & grid$r0s > 0)[1]
-      } 
-      
+      }
+
       grid <- grid |> dplyr::select(-r0s)
 
       x_center <- grid$x[middle]

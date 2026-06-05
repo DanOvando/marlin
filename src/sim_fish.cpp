@@ -88,7 +88,6 @@ List sim_fish(
 
     int stopper = 0;
     int b = 0;
-    double season = 1;
     int seasons = round(1 / time_step);
 
     // keep burn loop going until it ends in a spawning season
