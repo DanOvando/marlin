@@ -87,7 +87,7 @@ and Beverton-Holt recruitment, returning updated population arrays.
   length_units = "cm",
   length_bin_width = 1,
   growth_model = "von_bertalanffy",
-  min_age = 0,
+  min_age = NA,
   max_age = NA,
   weight_a = NA,
   weight_b = NA,
@@ -137,7 +137,8 @@ and Beverton-Holt recruitment, returning updated population arrays.
   spawning_seasons = NULL,
   max_hab_mult = 2,
   lorenzen_m = TRUE,
-  lorenzen_c = -1
+  lorenzen_c = -1,
+  lorenzen_ref_age = NA
 )}
     \if{html}{\out{</div>}}
   }
@@ -159,7 +160,7 @@ and Beverton-Holt recruitment, returning updated population arrays.
       \item{\code{length_units}}{units of the length at age function (arbitrary)}
       \item{\code{length_bin_width}}{the width of the length bins in the length-at-age key, defaults to 1cm}
       \item{\code{growth_model}}{one of "von_bertalanffy" or "power"}
-      \item{\code{min_age}}{minimum age tracked in the model. Best to leave at 0, as the model does not explicitly track delays for recruitment}
+      \item{\code{min_age}}{minimum (youngest) age tracked in the model. Defaults to \code{NA}, in which case it is set to one time step (\code{1 / seasons}). Because recruits are deposited at the youngest age after the population has been aged, the youngest cohort is already one time step removed from the spawning pool, so the model does not represent age 0 ("at birth"); starting at one time step is more consistent with this and keeps the (extrapolated) age-0 natural mortality out of the model. Set to \code{0} to recover the previous behavior.}
       \item{\code{max_age}}{maximum age tracked by the model (individuals this age or older are tracked in the plus group)}
       \item{\code{weight_a}}{alpha parameter in the allometric weight function alpha x length ^ beta}
       \item{\code{weight_b}}{beta parameter in the allometric weight function alpha x length ^ beta}
@@ -175,7 +176,7 @@ and Beverton-Holt recruitment, returning updated population arrays.
       \item{\code{age_95_mature}}{age at 95\% maturity in a logistic maturity ogive if maturity is age based}
       \item{\code{age_mature}}{an alternative option to just set one age mature, which ends up as the age_50_mature}
       \item{\code{semelparous}}{TRUE or FALSE. When FALSE (default), individuals can reproduce multiple times. When TRUE, individuals can only spawn once, so mortality at increase increases as a function of maturity at age}
-      \item{\code{m}}{instantaneous natural mortality rate. When \code{lorenzen_m = TRUE}, this is the average natural mortality across all ages}
+      \item{\code{m}}{instantaneous natural mortality rate. When \code{lorenzen_m = TRUE}, this is the average natural mortality across ages from \code{lorenzen_ref_age} (which defaults to the age at maturity) to the maximum age, i.e. the literature value is interpreted as an average adult rate}
       \item{\code{m_at_age}}{a vector of natural mortality age at age in case manually specified}
       \item{\code{steepness}}{steepness parameter (h) in a Beverton-Holt spawner-recruit function}
       \item{\code{r0}}{asymptotic number of recruits under unfished conditions}
@@ -217,6 +218,7 @@ plot object of class fish}
       \item{\code{max_hab_mult}}{maximum value of that habitat matrix multiplier (to prevent some habitats from being >>> good, defaults to 2)}
       \item{\code{lorenzen_m}}{TRUE or FALSE to use the Lorenzen function to calculate natural mortality at age}
       \item{\code{lorenzen_c}}{the rate of the Lorenzen curve. Defaults to -1, larger values will make the difference between natural mortality at young vs old ages less pronounced}
+      \item{\code{lorenzen_ref_age}}{lower age bound of the range over which the mean Lorenzen natural mortality is set equal to \code{m}. The range always runs from this age to the maximum age. Defaults to \code{NA}, in which case the age at maturity is used. Analogous to the age-range Lorenzen option in Stock Synthesis (see Powers 2014, ICES J. Mar. Sci. 71:1629)}
     }
     \if{html}{\out{</div>}}
   }

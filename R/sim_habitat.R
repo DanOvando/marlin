@@ -186,7 +186,11 @@ sim_habitat <-
     species_distributions <-
       tidyr::expand_grid(critter = critters, patch = 1:patches) |>
       cbind(grid) |>
-      dplyr::arrange(patch, rev(critter)) |>
+      # `habitats` is the mvrnorm draw from kronecker(spatial, critter_corr), i.e.
+      # ordered patch-major with species varying fastest in `critters` input order.
+      # Sort rows to that exact order before the positional `habitat = habitats`
+      # assignment, so each species receives its own habitat surface.
+      dplyr::arrange(patch, factor(critter, levels = critters)) |>
       dplyr::mutate(habitat = habitats)
 
     if (rescale_habitat) {

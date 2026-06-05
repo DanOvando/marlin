@@ -78,7 +78,7 @@ fleets <- list(
 fleets <- tune_fleets(fauna, fleets, tune_costs = TRUE)
 
 fleets$longline$cost_per_unit_effort
-#> [1] 0.5386609
+#> [1] 35.31057
 ```
 
 From there, run simulation and see how the fleet concentrates around the

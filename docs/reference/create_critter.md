@@ -21,7 +21,9 @@ create_critter(
   season_blocks = list(),
   recruit_habitat = NULL,
   seasons = 1,
+  min_age = NA,
   lorenzen_c = -1,
+  lorenzen_ref_age = NA,
   fec_form = "weight",
   adult_home_range = 1,
   recruit_home_range = 2,
@@ -108,11 +110,31 @@ create_critter(
   Integer. Number of seasons per year. Sets `time_step = 1 / seasons`.
   All critters in a `fauna` list must share the same value.
 
+- min_age:
+
+  Numeric or `NA`. Youngest age tracked by the model. Defaults to `NA`,
+  in which case it is set to one time step (`1 / seasons`). Because
+  recruits are deposited at the youngest age after the population is
+  aged, the youngest cohort is already one time step removed from the
+  spawning pool, so age 0 ("at birth") is not represented; starting at
+  one time step is more consistent with this and keeps the extrapolated
+  age-0 natural mortality out of the model. Set to `0` to recover the
+  previous behavior.
+
 - lorenzen_c:
 
   Numeric. Exponent in the Lorenzen (1996) size-dependent natural
   mortality function. Negative values (default `-1`) give higher
   mortality for smaller fish.
+
+- lorenzen_ref_age:
+
+  Numeric or `NA`. Lower age bound of the range over which the mean
+  Lorenzen natural mortality is set equal to `m` (the range always runs
+  from this age to the maximum age). Defaults to `NA`, in which case the
+  age at maturity is used, so a single reported `m` is treated as an
+  average adult rate. Analogous to the age-range Lorenzen option in
+  Stock Synthesis (Powers 2014, ICES J. Mar. Sci. 71:1629).
 
 - fec_form:
 
@@ -203,8 +225,11 @@ create_critter(
 - m:
 
   Numeric or `NA`. Instantaneous natural mortality rate. When
-  `lorenzen_m = TRUE` (default in Fish), this is the asymptotic natural
-  mortality. Looked up from FishLife when `NA`.
+  `lorenzen_m = TRUE` (default in Fish), this is the average natural
+  mortality over the adult age range (from `lorenzen_ref_age`,
+  defaulting to the age at maturity, to the maximum age), i.e. the
+  reported value is interpreted as an average adult rate. Looked up from
+  FishLife when `NA`.
 
 - max_age:
 

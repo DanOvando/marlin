@@ -12,3 +12,5 @@
 ^Meta$
 ^\.positai$
 ^\.claude$
+^CLAUDE\.md$
+^build_site\.R$

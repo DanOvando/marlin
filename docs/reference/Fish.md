@@ -98,7 +98,7 @@ and Beverton-Holt recruitment, returning updated population arrays.
 
 ### Public methods
 
-- [`Fish$new()`](#method-Fish-new)
+- [`Fish$new()`](#method-Fish-initialize)
 
 - [`Fish$plot()`](#method-Fish-plot)
 
@@ -110,7 +110,7 @@ and Beverton-Holt recruitment, returning updated population arrays.
 
 ------------------------------------------------------------------------
 
-### Method [`new()`](https://rdrr.io/r/methods/new.html)
+### `Fish$new()`
 
 Used to store parameters describing the behavior of an object of class
 Fish
@@ -133,7 +133,7 @@ Fish
       length_units = "cm",
       length_bin_width = 1,
       growth_model = "von_bertalanffy",
-      min_age = 0,
+      min_age = NA,
       max_age = NA,
       weight_a = NA,
       weight_b = NA,
@@ -183,7 +183,8 @@ Fish
       spawning_seasons = NULL,
       max_hab_mult = 2,
       lorenzen_m = TRUE,
-      lorenzen_c = -1
+      lorenzen_c = -1,
+      lorenzen_ref_age = NA
     )
 
 #### Arguments
@@ -255,8 +256,14 @@ Fish
 
 - `min_age`:
 
-  minimum age tracked in the model. Best to leave at 0, as the model
-  does not explicitly track delays for recruitment
+  minimum (youngest) age tracked in the model. Defaults to `NA`, in
+  which case it is set to one time step (`1 / seasons`). Because
+  recruits are deposited at the youngest age after the population has
+  been aged, the youngest cohort is already one time step removed from
+  the spawning pool, so the model does not represent age 0 ("at birth");
+  starting at one time step is more consistent with this and keeps the
+  (extrapolated) age-0 natural mortality out of the model. Set to `0` to
+  recover the previous behavior.
 
 - `max_age`:
 
@@ -332,7 +339,9 @@ Fish
 - `m`:
 
   instantaneous natural mortality rate. When `lorenzen_m = TRUE`, this
-  is the average natural mortality across all ages
+  is the average natural mortality across ages from `lorenzen_ref_age`
+  (which defaults to the age at maturity) to the maximum age, i.e. the
+  literature value is interpreted as an average adult rate
 
 - `m_at_age`:
 
@@ -508,17 +517,21 @@ Fish
   make the difference between natural mortality at young vs old ages
   less pronounced
 
+- `lorenzen_ref_age`:
+
+  lower age bound of the range over which the mean Lorenzen natural
+  mortality is set equal to `m`. The range always runs from this age to
+  the maximum age. Defaults to `NA`, in which case the age at maturity
+  is used. Analogous to the age-range Lorenzen option in Stock Synthesis
+  (see Powers 2014, ICES J. Mar. Sci. 71:1629)
+
 ------------------------------------------------------------------------
 
-### Method [`plot()`](https://rdrr.io/r/graphics/plot.default.html)
+### `Fish$plot()`
 
 #### Usage
 
     Fish$plot(type = 2)
-
-#### Arguments
-
-- `type`:
 
 #### Returns
 
@@ -526,15 +539,11 @@ a plot of the life history values plot diffusion
 
 ------------------------------------------------------------------------
 
-### Method `plot_movement()`
+### `Fish$plot_movement()`
 
 #### Usage
 
     Fish$plot_movement()
-
-#### Arguments
-
-- `type`:
 
 #### Returns
 
@@ -544,7 +553,7 @@ Swim advances the population one time step
 
 ------------------------------------------------------------------------
 
-### Method `swim()`
+### `Fish$swim()`
 
 #### Usage
 
@@ -600,7 +609,7 @@ the population in the next time step
 
 ------------------------------------------------------------------------
 
-### Method `clone()`
+### `Fish$clone()`
 
 The objects of this class are cloneable with this method.
 

@@ -14,7 +14,9 @@ create_critter(
   season_blocks = list(),
   recruit_habitat = NULL,
   seasons = 1,
+  min_age = NA,
   lorenzen_c = -1,
+  lorenzen_ref_age = NA,
   fec_form = "weight",
   adult_home_range = 1,
   recruit_home_range = 2,
@@ -85,9 +87,25 @@ block when \code{NULL}.}
 \code{time_step = 1 / seasons}. All critters in a \code{fauna} list must
 share the same value.}
 
+\item{min_age}{Numeric or \code{NA}. Youngest age tracked by the model.
+Defaults to \code{NA}, in which case it is set to one time step
+(\code{1 / seasons}). Because recruits are deposited at the youngest age
+after the population is aged, the youngest cohort is already one time step
+removed from the spawning pool, so age 0 ("at birth") is not represented;
+starting at one time step is more consistent with this and keeps the
+extrapolated age-0 natural mortality out of the model. Set to \code{0} to
+recover the previous behavior.}
+
 \item{lorenzen_c}{Numeric. Exponent in the Lorenzen (1996) size-dependent
 natural mortality function. Negative values (default \code{-1}) give
 higher mortality for smaller fish.}
+
+\item{lorenzen_ref_age}{Numeric or \code{NA}. Lower age bound of the range over
+which the mean Lorenzen natural mortality is set equal to \code{m} (the range
+always runs from this age to the maximum age). Defaults to \code{NA}, in which
+case the age at maturity is used, so a single reported \code{m} is treated as
+an average adult rate. Analogous to the age-range Lorenzen option in Stock
+Synthesis (Powers 2014, ICES J. Mar. Sci. 71:1629).}
 
 \item{fec_form}{Character. Fecundity form: \code{"weight"} (fecundity
 proportional to body weight; default) or \code{"pups"} (fixed litter
@@ -144,8 +162,10 @@ FishLife when \code{NA}.}
 weight-at-length relationship. Looked up from FishLife when \code{NA}.}
 
 \item{m}{Numeric or \code{NA}. Instantaneous natural mortality rate.
-When \code{lorenzen_m = TRUE} (default in Fish), this is the asymptotic
-natural mortality. Looked up from FishLife when \code{NA}.}
+When \code{lorenzen_m = TRUE} (default in Fish), this is the average natural
+mortality over the adult age range (from \code{lorenzen_ref_age}, defaulting
+to the age at maturity, to the maximum age), i.e. the reported value is
+interpreted as an average adult rate. Looked up from FishLife when \code{NA}.}
 
 \item{max_age}{Numeric or \code{NA}. Maximum age tracked by the model
 (plus group). Looked up from FishLife when \code{NA}; if still missing,

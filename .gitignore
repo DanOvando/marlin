@@ -9,6 +9,7 @@ misc
 .Rapp.history
 .claude/
 CLAUDE.md
+build_site.R
 # Session Data files
 .RData
 # User-specific files
@@ -40,4 +41,3 @@ inst/doc
 /doc/
 /Meta/
 .positai
-marlin_for_claude.md

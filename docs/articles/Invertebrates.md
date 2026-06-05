@@ -6,11 +6,11 @@ library(marlin)
 
 library(tidyverse)
 #> ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
-#> ✔ dplyr     1.2.0     ✔ readr     2.2.0
+#> ✔ dplyr     1.2.1     ✔ readr     2.2.0
 #> ✔ forcats   1.0.1     ✔ stringr   1.6.0
-#> ✔ ggplot2   4.0.2     ✔ tibble    3.3.1
+#> ✔ ggplot2   4.0.3     ✔ tibble    3.3.1
 #> ✔ lubridate 1.9.5     ✔ tidyr     1.3.2
-#> ✔ purrr     1.2.1     
+#> ✔ purrr     1.2.2     
 #> ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
 #> ✖ dplyr::filter() masks stats::filter()
 #> ✖ dplyr::lag()    masks stats::lag()
@@ -73,7 +73,7 @@ m <- 0.4 # asymptotic natural mortality
 
 t0 <- -.5 # size at age 0
 
-ages <- seq(0, max_age, by = time_step)
+ages <- seq(time_step, max_age, by = time_step)
 
 length_at_age <- length_a * (ages - t0)^length_b
 
@@ -246,7 +246,7 @@ sels |>
 tic()
 squishy_sim <- simmar(fauna, fleets, years = years, cor_rec = critter_correlations)
 toc()
-#> 0.42 sec elapsed
+#> 0.695 sec elapsed
 processed_squishy <- process_marlin(sim = squishy_sim, time_step = time_step)
 ```
 

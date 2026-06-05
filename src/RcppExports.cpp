@@ -11,31 +11,6 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// sample_problem
-Eigen::MatrixXd sample_problem(Eigen::MatrixXd x, Eigen::MatrixXd y);
-RcppExport SEXP _marlin_sample_problem(SEXP xSEXP, SEXP ySEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Eigen::MatrixXd >::type x(xSEXP);
-    Rcpp::traits::input_parameter< Eigen::MatrixXd >::type y(ySEXP);
-    rcpp_result_gen = Rcpp::wrap(sample_problem(x, y));
-    return rcpp_result_gen;
-END_RCPP
-}
-// move_test
-Eigen::MatrixXd move_test(List seasonal_movement, List movement_seasons, double season);
-RcppExport SEXP _marlin_move_test(SEXP seasonal_movementSEXP, SEXP movement_seasonsSEXP, SEXP seasonSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< List >::type seasonal_movement(seasonal_movementSEXP);
-    Rcpp::traits::input_parameter< List >::type movement_seasons(movement_seasonsSEXP);
-    Rcpp::traits::input_parameter< double >::type season(seasonSEXP);
-    rcpp_result_gen = Rcpp::wrap(move_test(seasonal_movement, movement_seasons, season));
-    return rcpp_result_gen;
-END_RCPP
-}
 // cpp_allocate_ifd_kkt_fullsolve_fast
 List cpp_allocate_ifd_kkt_fullsolve_fast(const double Etot_target, const List& alpha_mats, const List& other_mort_mats, const List& biomass_mats, const NumericVector& price_s, const NumericVector& cost_patch, const double c0, const double gamma, const IntegerVector& fishable_int, const double time_step, const bool include_costs, const int n_outer, const int n_inner, const double active_tol, const double flat_tol_sd, const double flat_tol_abs);
 RcppExport SEXP _marlin_cpp_allocate_ifd_kkt_fullsolve_fast(SEXP Etot_targetSEXP, SEXP alpha_matsSEXP, SEXP other_mort_matsSEXP, SEXP biomass_matsSEXP, SEXP price_sSEXP, SEXP cost_patchSEXP, SEXP c0SEXP, SEXP gammaSEXP, SEXP fishable_intSEXP, SEXP time_stepSEXP, SEXP include_costsSEXP, SEXP n_outerSEXP, SEXP n_innerSEXP, SEXP active_tolSEXP, SEXP flat_tol_sdSEXP, SEXP flat_tol_absSEXP) {
@@ -59,18 +34,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const double >::type flat_tol_sd(flat_tol_sdSEXP);
     Rcpp::traits::input_parameter< const double >::type flat_tol_abs(flat_tol_absSEXP);
     rcpp_result_gen = Rcpp::wrap(cpp_allocate_ifd_kkt_fullsolve_fast(Etot_target, alpha_mats, other_mort_mats, biomass_mats, price_s, cost_patch, c0, gamma, fishable_int, time_step, include_costs, n_outer, n_inner, active_tol, flat_tol_sd, flat_tol_abs));
-    return rcpp_result_gen;
-END_RCPP
-}
-// move
-NumericVector move(NumericVector x, Eigen::MatrixXd m);
-RcppExport SEXP _marlin_move(SEXP xSEXP, SEXP mSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
-    Rcpp::traits::input_parameter< Eigen::MatrixXd >::type m(mSEXP);
-    rcpp_result_gen = Rcpp::wrap(move(x, m));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -122,10 +85,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_marlin_sample_problem", (DL_FUNC) &_marlin_sample_problem, 2},
-    {"_marlin_move_test", (DL_FUNC) &_marlin_move_test, 3},
     {"_marlin_cpp_allocate_ifd_kkt_fullsolve_fast", (DL_FUNC) &_marlin_cpp_allocate_ifd_kkt_fullsolve_fast, 16},
-    {"_marlin_move", (DL_FUNC) &_marlin_move, 2},
     {"_marlin_cpp_seq", (DL_FUNC) &_marlin_cpp_seq, 2},
     {"_marlin_sim_fish", (DL_FUNC) &_marlin_sim_fish, 24},
     {NULL, NULL, 0}
