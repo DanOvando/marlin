@@ -28,6 +28,7 @@ Imports:
     magrittr,
     tidyr,
     R6,
+    patchwork,
     expm,
     stringr,
     glue,

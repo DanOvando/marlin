@@ -133,8 +133,7 @@ simulation space)</p>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">y</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">coastal_habitat</span><span class="op">)</span></span></code></pre></div>
-<p><img src="rectifier_files/figure-html/unnamed-chunk-2-1.png" class="r-plt" alt="" width="700"></p>
+<span><span class="co"># plot(coastal_habitat)</span></span></code></pre></div>
 <p>And from there we pass things to the usual sets of functions</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fauna</span> <span class="op">&lt;-</span></span>
@@ -216,7 +215,7 @@ simulation space)</p>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="va">start_time</span></span>
-<span><span class="co">#&gt; Time difference of 4.886685 secs</span></span>
+<span><span class="co">#&gt; Time difference of 4.73582 secs</span></span>
 <span></span>
 <span></span>
 <span><span class="va">processed_coastline</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/process_marlin.html">process_marlin</a></span><span class="op">(</span><span class="va">coastline_sim</span>, keep_age <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>

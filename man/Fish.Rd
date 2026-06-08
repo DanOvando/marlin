@@ -236,6 +236,12 @@ plot object of class fish}
   \subsection{Returns}{
     a plot of the life history values
 plot diffusion
+
+Shows the realized dispersal after one year, starting from a single
+individual in the center patch. Post-recruit and recruit dispersal are
+drawn as two separate panels, each with its own color scale floored at 0,
+so the post-recruit panel renders consistently across critters regardless
+of how recruit dispersal differs.
   }
 }
 
@@ -249,7 +255,8 @@ plot diffusion
     \if{html}{\out{</div>}}
   }
   \subsection{Returns}{
-    a plot of the diffusion after one year
+    a \code{patchwork} of two plots (post-recruits and recruits) of the
+diffusion after one year
 Swim
 
 Swim advances the population one time step

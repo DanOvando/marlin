@@ -469,6 +469,11 @@ plot object of class fish</p></dd>
 <h4 id="returns">Returns<a class="anchor" aria-label="anchor" href="#returns"></a></h4>
 <p>a plot of the life history values
 plot diffusion</p>
+<p>Shows the realized dispersal after one year, starting from a single
+individual in the center patch. Post-recruit and recruit dispersal are
+drawn as two separate panels, each with its own color scale floored at 0,
+so the post-recruit panel renders consistently across critters regardless
+of how recruit dispersal differs.</p>
 </div>
 
 </div>
@@ -480,7 +485,8 @@ plot diffusion</p>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">Fish</span><span class="op">$</span><span class="fu">plot_movement</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div><p></p><div class="section">
 <h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
-<p>a plot of the diffusion after one year
+<p>a <code>patchwork</code> of two plots (post-recruits and recruits) of the
+diffusion after one year
 Swim</p>
 <p>Swim advances the population one time step</p>
 </div>

@@ -1099,8 +1099,14 @@ Fish <- R6::R6Class(
     },
     #' plot diffusion
     #'
+    #' Shows the realized dispersal after one year, starting from a single
+    #' individual in the center patch. Post-recruit and recruit dispersal are
+    #' drawn as two separate panels, each with its own color scale floored at 0,
+    #' so the post-recruit panel renders consistently across critters regardless
+    #' of how recruit dispersal differs.
     #'
-    #' @return a plot of the diffusion after one year
+    #' @return a `patchwork` of two plots (post-recruits and recruits) of the
+    #'   diffusion after one year
     plot_movement = function() {
       critter <- as.list(self)
 
@@ -1164,23 +1170,56 @@ Fish <- R6::R6Class(
         grid$rec_n <- critter$ssb0_p / sum(critter$ssb0_p)
       }
 
-
       grid <- grid |>
-        tidyr::pivot_longer(c(n, rec_n), names_to = "stage", values_to = "n") |>
-        dplyr::mutate(stage = dplyr::if_else(stage == "n", "Post-Recruits", paste0("Recruits:", "density dependence is ", critter$rec_form)))
+        dplyr::mutate(x = (x - x_center) * patch_width, y = (y - y_center) * patch_width)
 
-      out <- grid |>
-        dplyr::mutate(x = (x - x_center) * patch_width, y = (y - y_center) * patch_width) |>
-        ggplot2::ggplot(aes(x, y, fill = n)) +
-        ggplot2::geom_tile() +
-        ggplot2::scale_fill_viridis_c(name = "Density after one year") +
-        ggplot2::scale_x_continuous(name = "Approx KM from center") +
-        ggplot2::scale_y_continuous(name = "Approx KM from center") +
-        ggplot2::theme(legend.position = "top") +
-        ggplot2::facet_wrap(~stage, nrow = 2) +
-        marlin::theme_marlin()
+      # Each stage gets its own fill scale rather than a shared one. A single
+      # shared scale lets the (typically more concentrated) recruit panel set
+      # the color-ramp maximum, which visually squashes the adult panel -- so
+      # two critters with *identical* adult movement but different recruit
+      # dispersal would render differently. Per-panel scales floored at 0 keep
+      # the adult panel comparable across critters regardless of recruitment.
+      movement_panel <- function(fill_col, panel_title, viridis_option, panel_subtitle = NULL) {
+        grid |>
+          ggplot2::ggplot(aes(x, y, fill = .data[[fill_col]])) +
+          ggplot2::geom_tile() +
+          # distinct viridis palettes per stage so the two panels read as
+          # separate quantities and aren't mistaken for a shared scale
+          # title wrapped onto two lines so the centred legend title stays over
+          # the narrow colourbar instead of overflowing left into the subtitle
+          ggplot2::scale_fill_viridis_c(name = "Density after\none year", option = viridis_option, limits = c(0, NA)) +
+          ggplot2::scale_x_continuous(name = "Approx KM from center") +
+          ggplot2::scale_y_continuous(name = "Approx KM from center") +
+          # x and y are in the same units (km), so keep patches square rather
+          # than letting a non-square grid stretch the tiles to fill the panel
+          ggplot2::coord_equal() +
+          ggplot2::labs(title = panel_title, subtitle = panel_subtitle) +
+          marlin::theme_marlin() +
+          # dial the axis text/titles back from theme_marlin's defaults so they
+          # don't dwarf the small panels
+          ggplot2::theme(
+            axis.title = ggplot2::element_text(size = 10),
+            axis.text = ggplot2::element_text(size = 8),
+            # keep the subtitle and (wrapped) legend title from crowding each
+            # other when the plot pane is narrow
+            plot.subtitle = ggplot2::element_text(size = 9, margin = ggplot2::margin(b = 4)),
+            legend.title = ggplot2::element_text(size = 9),
+            legend.margin = ggplot2::margin(l = 8)
+          )
+      }
 
-      out
+      adult_panel <- movement_panel("n", "Post-recruits", viridis_option = "viridis")
+
+      recruit_panel <- movement_panel(
+        "rec_n",
+        "Recruits",
+        viridis_option = "magma",
+        panel_subtitle = paste0("density dependence: ", critter$rec_form)
+      )
+
+      # side by side rather than stacked: two tall, square-celled panels fit a
+      # typical (landscape) plot pane far better than a single column would
+      patchwork::wrap_plots(adult_panel, recruit_panel, nrow = 1)
     },
     #' Swim
     #'

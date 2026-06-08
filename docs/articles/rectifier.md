@@ -53,10 +53,8 @@ coastal_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   select(-y) %>%
   as.matrix()
 
-plot(coastal_habitat)
+# plot(coastal_habitat)
 ```
-
-![](rectifier_files/figure-html/unnamed-chunk-2-1.png)
 
 And from there we pass things to the usual sets of functions
 
@@ -141,7 +139,7 @@ coastline_sim <- simmar(
 )
 
 Sys.time() - start_time
-#> Time difference of 4.886685 secs
+#> Time difference of 4.73582 secs
 
 
 processed_coastline <- process_marlin(coastline_sim, keep_age = FALSE)

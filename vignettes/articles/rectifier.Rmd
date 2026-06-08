@@ -58,7 +58,7 @@ coastal_habitat <- expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
   select(-y) %>%
   as.matrix()
 
-plot(coastal_habitat)
+# plot(coastal_habitat)
 ```
 
 And from there we pass things to the usual sets of functions
