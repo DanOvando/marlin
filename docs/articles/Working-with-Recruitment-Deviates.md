@@ -136,7 +136,7 @@ recruitment_sim <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.06813383 secs
+#> Time difference of 0.05598688 secs
 
 sim <- process_marlin(recruitment_sim)
 
@@ -195,7 +195,7 @@ recruitment_sim <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.05054402 secs
+#> Time difference of 0.0394249 secs
 
 sim <- process_marlin(recruitment_sim)
 ```
@@ -263,7 +263,7 @@ recruitment_sim <- simmar(
 )
 
 Sys.time() - a
-#> Time difference of 0.161433 secs
+#> Time difference of 0.1546278 secs
 
 sim <- process_marlin(recruitment_sim)
 ```

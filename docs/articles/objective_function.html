@@ -185,8 +185,8 @@ is the time step.</p>
 <ul>
 <li>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><msub><mn>0</mn><mi>f</mi></msub></mrow><annotation encoding="application/x-tex">c0_f</annotation></semantics></math>:
-cost-per-unit-effort scalar (calibrated by
-<code>tune_fleets</code>)</li>
+cost-per-unit-effort scalar (calibrated by <code>tune_fleets</code> when
+<code>tune_costs = TRUE</code>)</li>
 <li>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>E</mi><mi>f</mi><mtext mathvariant="normal">ref</mtext></msubsup><annotation encoding="application/x-tex">E^{\text{ref}}_f</annotation></semantics></math>:
 reference effort level (mean per-patch effort at equilibrium)</li>
@@ -308,9 +308,19 @@ directly interpretable</li>
 <div class="section level4">
 <h4 id="tuning">Tuning<a class="anchor" aria-label="anchor" href="#tuning"></a>
 </h4>
-<p>The <code>tune_fleets</code> function calibrates
+<p>The primary job of <code>tune_fleets</code> is to calibrate each
+metier’s <strong>catchability</strong>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>q</mi><mrow><mi>l</mi><mo>,</mo><mi>s</mi><mo>,</mo><mi>f</mi></mrow></msub><annotation encoding="application/x-tex">q_{l,s,f}</annotation></semantics></math>
+so that fishing mortality drives each species to its target exploitation
+rate (<code>init_explt</code>) or depletion (<code>SSB/SSB0</code>); see
+<code><a href="../reference/tune_fleets.html">?tune_fleets</a></code> for details. The cost parameters below are
+only calibrated as a secondary step, when
+<code>tune_costs = TRUE</code>.</p>
+<p>When cost calibration is requested, <code>tune_fleets</code> runs the
+fishery to equilibrium and solves for
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><msub><mn>0</mn><mi>f</mi></msub></mrow><annotation encoding="application/x-tex">c0_f</annotation></semantics></math>
-to achieve the target cost/revenue ratio:</p>
+so that the realized cost/revenue ratio matches the fleet’s
+<code>cr_ratio</code>:</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><msub><mn>0</mn><mi>f</mi></msub><mo>=</mo><mfrac><mrow><mtext mathvariant="normal">cr_ratio</mtext><mo>⋅</mo><msub><mtext mathvariant="normal">Rev</mtext><mi>f</mi></msub></mrow><mrow><msubsup><mi>E</mi><mi>f</mi><mtext mathvariant="normal">ref</mtext></msubsup><mo>⋅</mo><msub><mi>P</mi><mi>f</mi></msub><mo>⋅</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>+</mo><msub><mi>θ</mi><mi>f</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow></mfrac></mrow><annotation encoding="application/x-tex">
 c0_f = \frac{\text{cr\_ratio} \cdot \text{Rev}_f}{E^{\text{ref}}_f \cdot P_f \cdot (1 + \theta_f)}
 </annotation></semantics></math></p>

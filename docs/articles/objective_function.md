@@ -64,7 +64,8 @@ where $`b_{l,s,a}`$ is biomass and $`\Delta_t`$ is the time step.
 
 #### Parameters
 
-- $`c0_f`$: cost-per-unit-effort scalar (calibrated by `tune_fleets`)
+- $`c0_f`$: cost-per-unit-effort scalar (calibrated by `tune_fleets`
+  when `tune_costs = TRUE`)
 - $`E^{\text{ref}}_f`$: reference effort level (mean per-patch effort at
   equilibrium)
 - $`\gamma_f \ge 1`$: effort cost exponent (congestion parameter;
@@ -133,8 +134,17 @@ c0_f \cdot E^{\text{ref}}_f
 
 #### Tuning
 
-The `tune_fleets` function calibrates $`c0_f`$ to achieve the target
-cost/revenue ratio:
+The primary job of `tune_fleets` is to calibrate each metier’s
+**catchability** $`q_{l,s,f}`$ so that fishing mortality drives each
+species to its target exploitation rate (`init_explt`) or depletion
+(`SSB/SSB0`); see
+[`?tune_fleets`](https://danovando.github.io/marlin/reference/tune_fleets.md)
+for details. The cost parameters below are only calibrated as a
+secondary step, when `tune_costs = TRUE`.
+
+When cost calibration is requested, `tune_fleets` runs the fishery to
+equilibrium and solves for $`c0_f`$ so that the realized cost/revenue
+ratio matches the fleet’s `cr_ratio`:
 
 ``` math
 c0_f = \frac{\text{cr\_ratio} \cdot \text{Rev}_f}{E^{\text{ref}}_f \cdot P_f \cdot (1 + \theta_f)}
