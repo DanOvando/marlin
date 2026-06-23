@@ -381,27 +381,6 @@ conditions.</td>
 </tr>
 </tbody>
 </table>
-<p><strong>Choosing a strategy for your use case:</strong></p>
-<ul>
-<li>
-<strong>Unregulated open-access fishery?</strong> →
-<code>revenue</code> or <code>rpue</code> (strong
-tragedy-of-commons)</li>
-<li>
-<strong>Limited-entry or regulated fishery with individual
-decisions?</strong> → <code>ppue</code> (moderate, cost-aware)</li>
-<li>
-<strong>Cooperative, ITQ system, or single-owner fleet?</strong> →
-<code>marginal_profit</code> (sole-owner optimum)</li>
-<li>
-<strong>Transitional or mixed governance?</strong> →
-<code>profit</code> or <code>marginal_revenue</code>
-</li>
-<li>
-<strong>Exploring spatial management or MPA impacts across
-behavioral regimes?</strong> → Run multiple scenarios to bracket
-uncertainty</li>
-</ul>
 <p>The marginal variants require <code>calc_marginal_value</code> to
 compute finite-difference derivatives each step, which adds
 computational cost but produces more economically realistic spatial
@@ -933,16 +912,16 @@ for different run lengths.</caption>
 </tr>
 <tr class="even">
 <td align="left">ppue / profit</td>
-<td align="right">0.11</td>
+<td align="right">0.10</td>
 <td align="right">20</td>
-<td align="right">0.01</td>
-<td align="right">Inf</td>
+<td align="right">0.00</td>
+<td align="right">NaN</td>
 </tr>
 <tr class="odd">
 <td align="left">marginal_profit / rpue</td>
-<td align="right">0.32</td>
+<td align="right">0.30</td>
 <td align="right">20</td>
-<td align="right">0.02</td>
+<td align="right">0.01</td>
 <td align="right">Inf</td>
 </tr>
 <tr class="even">

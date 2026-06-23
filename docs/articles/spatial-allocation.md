@@ -202,18 +202,6 @@ to:
 | `manual` | User weights | Proportional to `fishing_grounds$fishing_ground` | Effort follows externally specified spatial preferences (e.g., fishing traditions, regulations, or predefined fishing grounds), rather than responding directly to economic outcomes. |
 | `uniform` | None | Equal effort across open patches | Effort is spread evenly across space. Useful as a baseline representing no spatial preference or complete uncertainty about conditions. |
 
-**Choosing a strategy for your use case:**
-
-- **Unregulated open-access fishery?** → `revenue` or `rpue` (strong
-  tragedy-of-commons)
-- **Limited-entry or regulated fishery with individual decisions?** →
-  `ppue` (moderate, cost-aware)
-- **Cooperative, ITQ system, or single-owner fleet?** →
-  `marginal_profit` (sole-owner optimum)
-- **Transitional or mixed governance?** → `profit` or `marginal_revenue`
-- **Exploring spatial management or MPA impacts across behavioral
-  regimes?** → Run multiple scenarios to bracket uncertainty
-
 The marginal variants require `calc_marginal_value` to compute
 finite-difference derivatives each step, which adds computational cost
 but produces more economically realistic spatial behavior (especially
@@ -813,8 +801,8 @@ knitr::kable(runtime,
 | Scenario               | Seconds | Years | Sec/Year | Relative to fastest |
 |:-----------------------|--------:|------:|---------:|--------------------:|
 | rpue / revenue         |    0.10 |    20 |     0.01 |                 Inf |
-| ppue / profit          |    0.11 |    20 |     0.01 |                 Inf |
-| marginal_profit / rpue |    0.32 |    20 |     0.02 |                 Inf |
+| ppue / profit          |    0.10 |    20 |     0.00 |                 NaN |
+| marginal_profit / rpue |    0.30 |    20 |     0.01 |                 Inf |
 | open_access (ppue)     |    0.24 |    50 |     0.00 |                 NaN |
 | sole_owner (ppue)      |    0.72 |    50 |     0.01 |                 Inf |
 

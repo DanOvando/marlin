@@ -120,14 +120,6 @@ The objective $O_p$ is drawn from the "buffet" returned by `go_fish`, which comp
 | `uniform` | None | Equal effort across open patches | Effort is spread evenly across space. Useful as a baseline representing no spatial preference or complete uncertainty about conditions. |
 
 
-**Choosing a strategy for your use case:**
-
-- **Unregulated open-access fishery?** → `revenue` or `rpue` (strong tragedy-of-commons)
-- **Limited-entry or regulated fishery with individual decisions?** → `ppue` (moderate, cost-aware)
-- **Cooperative, ITQ system, or single-owner fleet?** → `marginal_profit` (sole-owner optimum)
-- **Transitional or mixed governance?** → `profit` or `marginal_revenue`
-- **Exploring spatial management or MPA impacts across behavioral regimes?** → Run multiple scenarios to bracket uncertainty
-
 The marginal variants require `calc_marginal_value` to compute finite-difference derivatives each step, which adds computational cost but produces more economically realistic spatial behavior (especially for sole-owner fleets).
 
 ## Shared Setup
