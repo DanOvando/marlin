@@ -106,6 +106,30 @@ implies that organisms don’t want to live in that patch, where land
 prohibits them from passing over or through those cells.</p>
 <p>By default if the length of the habitat vectors is less than the time
 steps, the model treats the supplied habitat list as being seasonal.</p>
+<div class="section level3">
+<h3 id="a-note-on-habitat-orientation">A note on habitat orientation<a class="anchor" aria-label="anchor" href="#a-note-on-habitat-orientation"></a>
+</h3>
+<p>marlin reads a habitat matrix exactly as it looks when you print it:
+<strong>row 1 is the top of the map</strong> (<code>y = ny</code>), the
+last row is <code>y = 1</code>, and column <code>j</code> is
+<code>x = j</code>. Good habitat in the top-left of the matrix puts fish
+in the top-left of the output. That is how a GIS raster stores a map
+(row 1 = north) and how <code><a href="https://rdrr.io/r/graphics/image.html" class="external-link">image()</a></code> and
+<code>plot.matrix</code> draw one, so a raster read straight off disk
+needs no flipping, and <code><a href="../reference/create_critter.html">create_critter()</a></code> and
+<code><a href="../reference/simmar.html">simmar()</a></code> both use this same convention.</p>
+<p>The catch shows up when you <em>generate</em> habitat from a formula,
+as we do below. <code><a href="https://tidyr.tidyverse.org/reference/expand_grid.html" class="external-link">expand_grid()</a></code> runs <code>y</code> bottom-up
+like a Cartesian axis, while a matrix runs top-down, so you have to
+<code>arrange(desc(y))</code> before reshaping to a matrix. Skip it and
+the surface goes in upside down: <code>y</code> in your formula ends up
+meaning the opposite of <code>y</code> on the map, and a range shift you
+wrote to move north will move south instead.</p>
+<p>Note that a surface which is symmetric in <code>y</code> (a
+<code>dnorm</code> centred on the grid) or which ignores <code>y</code>
+entirely is identical either way — so an orientation mistake stays
+invisible until you use an asymmetric surface. Worth checking with one
+deliberately.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://danovando.github.io/marlin/">marlin</a></span><span class="op">)</span></span>
 <span></span>
@@ -149,7 +173,12 @@ steps, the model treats the supplied habitat list as being seasonal.</p>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">land</span><span class="op">)</span></span>
 <span></span>
 <span></span>
+<span><span class="co"># marlin reads habitat matrices as they look when printed: row 1 is the TOP of</span></span>
+<span><span class="co"># the map (y = ny). expand_grid() runs y bottom-up, so arrange(desc(y)) before</span></span>
+<span><span class="co"># reshaping, or the surface goes in upside down and `y` in the formulas above</span></span>
+<span><span class="co"># means the opposite of `y` on the map.</span></span>
 <span><span class="va">bigeye_habitat</span> <span class="op">&lt;-</span> <span class="va">h1</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/desc.html" class="external-link">desc</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_wider.html" class="external-link">pivot_wider</a></span><span class="op">(</span>names_from <span class="op">=</span> <span class="va">x</span>, values_from <span class="op">=</span> <span class="va">habitat</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">y</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="op">)</span></span>
@@ -160,6 +189,7 @@ steps, the model treats the supplied habitat list as being seasonal.</p>
 <span><span class="co"># h1$habitat2 &lt;- as.numeric(huh$value)</span></span>
 <span></span>
 <span><span class="va">bigeye_habitat2</span> <span class="op">&lt;-</span> <span class="va">h2</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/desc.html" class="external-link">desc</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_wider.html" class="external-link">pivot_wider</a></span><span class="op">(</span>names_from <span class="op">=</span> <span class="va">x</span>, values_from <span class="op">=</span> <span class="va">habitat</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">y</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="op">)</span></span>
@@ -255,17 +285,21 @@ steps, the model treats the supplied habitat list as being seasonal.</p>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/include_graphics.html" class="external-link">include_graphics</a></span><span class="op">(</span><span class="st">"images/spawning-agg.gif"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="images/spawning-agg.gif"><!-- --></p>
 </div>
+</div>
 <div class="section level2">
 <h2 id="range-shifts">Range Shifts<a class="anchor" aria-label="anchor" href="#range-shifts"></a>
 </h2>
 <p>In addition to seasonal dynamics, we may be interested in active
 range shifts of species. The mechanics of this work similarly to
-seasonal dynamics, but require a vectors a vector of habitats equal to
-either the number of years or the number of steps (where steps is years
-times seasons per year).</p>
-<p>In this case, we sill simulate habitat for bigeye tuna that changes
-over time, first shifting east and south and then north, while moving
-around a land mass.</p>
+seasonal dynamics, but require a vector of habitats equal to either the
+number of years or the number of steps (where steps is years times
+seasons per year).</p>
+<p>In this case, we will simulate habitat for bigeye tuna whose optimum
+marches steadily north over time, forcing the population to track it
+around a land mass. The optimum sits at <code>y = 1 + i</code> in year
+<code>i</code>, so it starts near the southern edge and reaches the
+northern edge partway through the run, after which it stays pinned
+there.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># test habitat vector -----------------------------------------------------</span></span>
 <span></span>
@@ -275,10 +309,12 @@ around a land mass.</p>
 <span></span>
 <span><span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="va">years</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">shifting_habitat</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tidyr.tidyverse.org/reference/expand_grid.html" class="external-link">expand_grid</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">resolution</span>, y <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">resolution</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>    <span class="co"># habitat optimum sits at y = 1 + i, so it marches north as the years pass</span></span>
 <span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>habitat <span class="op">=</span> <span class="op">-</span><span class="op">(</span><span class="op">(</span><span class="va">y</span> <span class="op">-</span> <span class="op">(</span><span class="fl">1</span> <span class="op">+</span> <span class="va">i</span><span class="op">)</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span> <span class="op">/</span> <span class="fl">10</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">left_join</a></span><span class="op">(</span><span class="va">land</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x"</span>, <span class="st">"y"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>habitat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">land</span><span class="op">)</span>, <span class="va">habitat</span>, <span class="cn">NA</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">land</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/desc.html" class="external-link">desc</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> <span class="co"># row 1 = top of the map; see the note above</span></span>
 <span>    <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_wider.html" class="external-link">pivot_wider</a></span><span class="op">(</span>names_from <span class="op">=</span> <span class="va">x</span>, values_from <span class="op">=</span> <span class="va">habitat</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">y</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="op">)</span></span>

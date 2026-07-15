@@ -92,8 +92,14 @@ Cross-species correlations are drawn uniformly from
 matrix to fix species correlations exactly.
 
 When \code{output = "list"}, habitat matrices are returned in \code{[ny, nx]}
-format with column names \code{1:nx} and row names \code{1:ny}, matching
-the convention expected by \code{\link{create_critter}}.
+format with column names \code{1:nx}, matching the orientation expected by
+\code{\link{create_critter}}: \strong{row 1 is the top of the map}
+(\eqn{y = ny}) and the last row is \eqn{y = 1}. Note this is the reverse of
+the \code{y} ordering in the \code{output = "df"} form, which runs bottom-up
+like a Cartesian axis; the two describe the same surface. Plot the matrix
+with \code{image()}/\code{plot.matrix} (which draw row 1 at the top) or the
+data frame with \code{ggplot2::geom_tile(aes(x, y))}, and both will agree
+with the spatial output of \code{\link{simmar}}.
 }
 \examples{
 # Simulate habitat for 3 species on a 10x10 grid

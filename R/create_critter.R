@@ -50,6 +50,32 @@
 #'   quality on a log scale; they drive movement taxis and, depending on
 #'   \code{density_dependence}, recruit distribution. Generate with
 #'   \code{\link{sim_habitat}}.
+#'
+#'   \strong{Orientation.} Habitat matrices are read exactly as they look when
+#'   printed: \strong{row 1 is the top of the map} (\eqn{y = ny}), the last row
+#'   is \eqn{y = 1}, and column \eqn{j} is \eqn{x = j}. Good habitat in the
+#'   top-left of the matrix puts fish in the top-left of \code{\link{simmar}}'s
+#'   output. This matches how a GIS raster stores a map (row 1 = north) and how
+#'   \code{image()} / \code{plot.matrix} draw one, so a raster read straight off
+#'   disk needs no flipping. \code{\link{simmar}}'s \code{habitat} argument uses
+#'   the identical convention.
+#'
+#'   The gotcha is generating habitat from a Cartesian formula, because
+#'   \code{expand_grid()} runs \code{y} bottom-up while a matrix runs top-down.
+#'   Sort descending by \code{y} before reshaping, or the surface goes in
+#'   upside down and \eqn{y} in your formula means the opposite of \eqn{y} on
+#'   the map:
+#'   \preformatted{
+#'   habitat_matrix <- tidyr::expand_grid(x = 1:nx, y = 1:ny) |>
+#'     dplyr::mutate(habitat = -((y - 8)^2)) |>  # optimum at y = 8, up north
+#'     dplyr::arrange(dplyr::desc(y)) |>         # <- required: row 1 = max y
+#'     tidyr::pivot_wider(names_from = x, values_from = habitat) |>
+#'     dplyr::select(-y) |>
+#'     as.matrix()
+#'   }
+#'   Surfaces that are symmetric in \eqn{y} (a centred \code{dnorm}) or ignore
+#'   \eqn{y} entirely are unaffected either way, which is exactly why an
+#'   orientation error can hide for a long time. Test with an asymmetric one.
 #' @param season_blocks List of integer vectors specifying which seasons belong
 #'   to each habitat block (e.g. \code{list(1:2, 3:4)} for a two-block,
 #'   four-season year). Must align with \code{habitat}.

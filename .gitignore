@@ -10,6 +10,7 @@ misc
 .claude/
 CLAUDE.md
 build_site.R
+Rplots.pdf
 # Session Data files
 .RData
 # User-specific files

@@ -87,7 +87,11 @@ allocate_effort <- function(
     cpue             = "cpue_p_fl",
     ppue             = "ppue_p_fl",
     marginal_revenue = "mr_p_fl",
-    marginal_profit  = "mp_p_fl"
+    marginal_profit  = "mp_p_fl",
+    # the only objective here that is not a function of realised fishing, and so
+    # the only one that can be evaluated against the biomass a step is about to
+    # fish rather than the one it just fished. See calc_fishable_revenue().
+    fishable_revenue = "fr_p_fl"
   )
 
 
@@ -106,6 +110,14 @@ allocate_effort <- function(
     alloc_type <- fleets[[fl_name]]$spatial_allocation
 
     responsiveness <- fleets[[fl_name]]$responsiveness
+
+    # eps_mix is a property of the fleet (set in create_fleet()), same as
+    # responsiveness. The function argument stays as a fallback so hand-built
+    # fleet lists and direct callers keep working.
+    eps_mix_fl <- fleets[[fl_name]]$eps_mix
+    if (is.null(eps_mix_fl)) {
+      eps_mix_fl <- eps_mix
+    }
 
     # --- Manual allocation: distribute effort by fishing_grounds weights --------
     if (alloc_type == "manual") {
@@ -171,8 +183,34 @@ allocate_effort <- function(
     open_idx <- which(open)
     total_effort <- sum(effort)
 
+    # The objective is NA in any patch where this fleet deployed no effort last
+    # step: the per-unit metrics are catch/revenue/profit divided by effort, and
+    # aggregate_yields() sets them NA at exactly zero effort. NA therefore means
+    # "no information about this patch" -- which is NOT the same as "this patch
+    # is bad" -- and it has to be handled as an absence rather than a number:
+    #
+    #   * it must not enter the summary statistics (centre/scale/range) that
+    #     EVERY other patch's velocity is derived from, and
+    #   * it must not receive a velocity of its own.
+    #
+    # Both matter. mean() and max() have no na.rm by default, so before this a
+    # single unfished patch silently turned the entire fleet's effort vector
+    # into NA -- not just its own. See tests/testthat/test-allocate-effort-na.R.
+    observed <- open & !is.na(objective)
+    observed_idx <- which(observed)
+
+    if (length(observed_idx) == 0) {
+      # The fleet observed nothing anywhere, so there is no signal to act on.
+      # Hold position rather than invent one or divide by a degenerate scale.
+      effort_new[, fl] <- effort
+      flat_out[fl] <- NA
+      cv_out[fl] <- NA
+      range_out[fl] <- NA
+      next
+    }
+
     # Step 1: FLATNESS DETECTION ------------------------------------------------
-    obj_open <- objective[open_idx]
+    obj_open <- objective[observed_idx]
     obj_center <- stats::median(obj_open, na.rm = TRUE)
     obj_rng <- diff(range(obj_open, na.rm = TRUE))
 
@@ -209,13 +247,16 @@ allocate_effort <- function(
     # Step 3: STANDARDIZE -------------------------------------------------------
     z <- (objective - obj_center) / obj_scale
     z <- pmax(pmin(z, clip_z), -clip_z)
-    z[!open] <- 0
+    # Closed patches and unobserved (NA-objective) patches alike carry no signal.
+    z[!observed] <- 0
     z_out[, fl] <- z
 
     # Step 4: VELOCITY FIELD ----------------------------------------------------
-    z_open_mean <- mean(z[open_idx])
+    z_open_mean <- mean(z[observed_idx])
     v <- z - z_open_mean
-    v[!open] <- 0
+    # No information => no push. Anything unobserved keeps whatever effort it
+    # has rather than being moved on the strength of a number that doesn't exist.
+    v[!observed] <- 0
     velocity_out[, fl] <- v
 
     # Step 5: MULTIPLICATIVE UPDATE ---------------------------------------------
@@ -240,10 +281,14 @@ allocate_effort <- function(
     e_new <- w * (total_effort / sum(w))
 
     # Step 6: EXPLORATION MIX ---------------------------------------------------
-    if (eps_mix > 0) {
+    # Blending in a uniform baseline floors every open patch at
+    # eps_mix * total_effort / n_open. That floor is what makes zero unreachable:
+    # the update is multiplicative, so a patch that decays to 0 can never come
+    # back (0 * exp(anything) = 0) no matter how good it later becomes.
+    if (eps_mix_fl > 0) {
       baseline <- numeric(n_patches)
       baseline[open] <- total_effort / length(open_idx)
-      e_new <- (1 - eps_mix) * e_new + eps_mix * baseline
+      e_new <- (1 - eps_mix_fl) * e_new + eps_mix_fl * baseline
     }
 
     effort_new[, fl] <- e_new

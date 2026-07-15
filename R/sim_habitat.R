@@ -20,8 +20,14 @@
 #' matrix to fix species correlations exactly.
 #'
 #' When \code{output = "list"}, habitat matrices are returned in \code{[ny, nx]}
-#' format with column names \code{1:nx} and row names \code{1:ny}, matching
-#' the convention expected by \code{\link{create_critter}}.
+#' format with column names \code{1:nx}, matching the orientation expected by
+#' \code{\link{create_critter}}: \strong{row 1 is the top of the map}
+#' (\eqn{y = ny}) and the last row is \eqn{y = 1}. Note this is the reverse of
+#' the \code{y} ordering in the \code{output = "df"} form, which runs bottom-up
+#' like a Cartesian axis; the two describe the same surface. Plot the matrix
+#' with \code{image()}/\code{plot.matrix} (which draw row 1 at the top) or the
+#' data frame with \code{ggplot2::geom_tile(aes(x, y))}, and both will agree
+#' with the spatial output of \code{\link{simmar}}.
 #'
 #' @param critters Character vector of species names (length \eqn{n}).
 #'   Names are carried through to the output list.
@@ -211,8 +217,15 @@ sim_habitat <-
         dplyr::mutate(
           habitat = purrr::map(
             data,
-            \(x) x |>
+            # arrange(desc(y)) is load-bearing, not cosmetic. Habitat matrices
+            # are read row 1 = TOP of the map (y = ny) -- see the orientation
+            # contract on create_critter()'s `habitat` argument. The rows come
+            # out of expand_grid() in ascending y, so without the re-sort the
+            # "list" output is y-flipped relative to the "df" output of this
+            # same call, and fish end up mirrored against their own habitat.
+            \(critter_data) critter_data |>
               dplyr::select(-patch) |>
+              dplyr::arrange(dplyr::desc(y)) |>
               tidyr::pivot_wider(names_from = x, values_from = habitat) |>
               dplyr::select(-y) %>%
               as.matrix()

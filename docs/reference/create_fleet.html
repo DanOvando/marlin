@@ -95,6 +95,7 @@ calibrate catchability and costs to the desired initial conditions.</p>
 <span>  base_effort <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  fishing_grounds <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  responsiveness <span class="op">=</span> <span class="fl">0.025</span>,</span>
+<span>  eps_mix <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  memory_halflife <span class="op">=</span> <span class="fl">0</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -216,6 +217,29 @@ aggressively toward high-objective patches each step; if too large, can
 drive period-2 sawtooth oscillation. Default <code>0.025</code>.</p></dd>
 
 
+<dt id="arg-eps-mix">eps_mix<a class="anchor" aria-label="anchor" href="#arg-eps-mix"></a></dt>
+<dd><p>Numeric in [0, 1). Fraction of this fleet's effort blended back
+toward a uniform distribution over open patches each step – exploratory
+fishing. <code>0</code> (default) disables it, matching legacy behavior.</p>
+<p>The spatial update is multiplicative
+(\(e^{new} \propto e \, \exp(\eta v)\)), which has an absorbing state at
+zero: a patch whose effort decays to <code>0</code> can never recover, because
+\(0 \times \exp(\cdot) = 0\), no matter how attractive it later becomes.
+Mixing in a uniform baseline floors every open patch at
+<code>eps_mix * total_effort / n_open</code>, which makes zero unreachable and
+keeps every patch recoverable.</p>
+<p>Two situations call for it. First, high <code>responsiveness</code> on a sharply
+varying objective drives effort to collapse onto a handful of patches and
+strand the rest at zero. Second, the per-unit-effort objectives
+(<code>rpue</code>, <code>cpue</code>, <code>ppue</code>) are <code>NA</code> where effort is
+exactly zero, since they divide by it – a patch that dies goes dark and the
+fleet has no information with which to ever return. A small positive
+<code>eps_mix</code> (0.01–0.05) forecloses both. Not needed for
+<code>spatial_allocation = "fishable_revenue"</code> on information grounds, since
+that objective is defined at zero effort, but still relevant to the
+absorbing state.</p></dd>
+
+
 <dt id="arg-memory-halflife">memory_halflife<a class="anchor" aria-label="anchor" href="#arg-memory-halflife"></a></dt>
 <dd><p>Non-negative numeric. Half-life <strong>in
 years</strong> of the exponential smoothing applied to this fleet's spatial objective surface
@@ -309,6 +333,20 @@ larger patches.</p></dd>
 difference marginal returns from <code><a href="calc_marginal_value.html">calc_marginal_value</a></code>.
 Required for <code>"sole_owner"</code> fleets. Requires
 <code>fleet_model = "sole_owner"</code> or explicit pre-computation.</p></dd>
+
+<dt><code>"fishable_revenue"</code></dt>
+<dd><p>Revenue standing available in each patch –
+biomass at age times vulnerability at age times price, from
+<code><a href="calc_fishable_revenue.html">calc_fishable_revenue</a></code>. Unlike every option above it is not a
+function of realised fishing, so it is evaluated against the biomass the
+step is about to fish rather than the one it just fished. Use it when you
+want effort to track biomass in phase, in particular when habitat moves on
+a timescale near the time step (e.g. seasonal migration), where the
+realised objectives always lag by a step no matter how
+<code>responsiveness</code> is set. In exchange there is no crowding within a
+step, no cost side, and no within-step interaction between fleets, and the
+fleet relaxes toward effort tracking standing stock rather than toward an
+ideal free distribution. See <code><a href="calc_fishable_revenue.html">calc_fishable_revenue</a></code>.</p></dd>
 
 <dt><code>"manual"</code></dt>
 <dd><p>Effort distributed proportionally to continuous

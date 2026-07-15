@@ -40,6 +40,18 @@
 #'     difference marginal returns from \code{\link{calc_marginal_value}}.
 #'     Required for \code{"sole_owner"} fleets. Requires
 #'     \code{fleet_model = "sole_owner"} or explicit pre-computation.}
+#'   \item{\code{"fishable_revenue"}}{Revenue standing available in each patch --
+#'     biomass at age times vulnerability at age times price, from
+#'     \code{\link{calc_fishable_revenue}}. Unlike every option above it is not a
+#'     function of realised fishing, so it is evaluated against the biomass the
+#'     step is about to fish rather than the one it just fished. Use it when you
+#'     want effort to track biomass in phase, in particular when habitat moves on
+#'     a timescale near the time step (e.g. seasonal migration), where the
+#'     realised objectives always lag by a step no matter how
+#'     \code{responsiveness} is set. In exchange there is no crowding within a
+#'     step, no cost side, and no within-step interaction between fleets, and the
+#'     fleet relaxes toward effort tracking standing stock rather than toward an
+#'     ideal free distribution. See \code{\link{calc_fishable_revenue}}.}
 #'   \item{\code{"manual"}}{Effort distributed proportionally to continuous
 #'     weights in \code{fishing_grounds$fishing_ground} (0--1 valued).}
 #'   \item{\code{"uniform"}}{Effort spread equally across all open patches.}
@@ -113,6 +125,28 @@
 #'   parameter of the multiplicative update). Larger values move effort more
 #'   aggressively toward high-objective patches each step; if too large, can
 #'   drive period-2 sawtooth oscillation. Default \code{0.025}.
+#' @param eps_mix Numeric in [0, 1). Fraction of this fleet's effort blended back
+#'   toward a uniform distribution over open patches each step -- exploratory
+#'   fishing. \code{0} (default) disables it, matching legacy behavior.
+#'
+#'   The spatial update is multiplicative
+#'   (\eqn{e^{new} \propto e \, \exp(\eta v)}), which has an absorbing state at
+#'   zero: a patch whose effort decays to \code{0} can never recover, because
+#'   \eqn{0 \times \exp(\cdot) = 0}, no matter how attractive it later becomes.
+#'   Mixing in a uniform baseline floors every open patch at
+#'   \code{eps_mix * total_effort / n_open}, which makes zero unreachable and
+#'   keeps every patch recoverable.
+#'
+#'   Two situations call for it. First, high \code{responsiveness} on a sharply
+#'   varying objective drives effort to collapse onto a handful of patches and
+#'   strand the rest at zero. Second, the per-unit-effort objectives
+#'   (\code{rpue}, \code{cpue}, \code{ppue}) are \code{NA} where effort is
+#'   exactly zero, since they divide by it -- a patch that dies goes dark and the
+#'   fleet has no information with which to ever return. A small positive
+#'   \code{eps_mix} (0.01--0.05) forecloses both. Not needed for
+#'   \code{spatial_allocation = "fishable_revenue"} on information grounds, since
+#'   that objective is defined at zero effort, but still relevant to the
+#'   absorbing state.
 #' @param memory_halflife Non-negative numeric. Half-life **in
 #'   years** of the exponential smoothing applied to this fleet's spatial objective surface
 #'   inside \code{\link{simmar}}. \code{0} (default) disables smoothing — the
@@ -202,6 +236,7 @@ create_fleet <-
            base_effort = NULL,
            fishing_grounds = NULL,
            responsiveness = 0.025,
+           eps_mix = 0,
            memory_halflife = 0) {
 
     fleet_model <- stringr::str_replace_all(fleet_model, " ", "_") # in case someone used spaces accidentally (like dumbass old dan)
@@ -211,6 +246,14 @@ create_fleet <-
         is.na(memory_halflife) ||
         memory_halflife < 0) {
       stop("`memory_halflife` must be a single non-negative number (0 disables smoothing).")
+    }
+
+    if (!is.numeric(eps_mix) ||
+        length(eps_mix) != 1L ||
+        is.na(eps_mix) ||
+        eps_mix < 0 ||
+        eps_mix >= 1) {
+      stop("`eps_mix` must be a single number in [0, 1) (0 disables exploration).")
     }
 
     if (length(resolution) == 1) {
@@ -374,6 +417,7 @@ create_fleet <-
       oa_k = oa_k,
 
       responsiveness = responsiveness,
+      eps_mix = eps_mix,
 
       memory_halflife = memory_halflife
     )

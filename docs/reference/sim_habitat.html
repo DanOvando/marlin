@@ -193,8 +193,14 @@ gradients, while <code>1.0</code> produces patchy, rapidly decorrelating maps.</
 <code>critter_correlations = NA</code>. Supply a full \(n \times n\) correlation
 matrix to fix species correlations exactly.</p>
 <p>When <code>output = "list"</code>, habitat matrices are returned in <code>[ny, nx]</code>
-format with column names <code>1:nx</code> and row names <code>1:ny</code>, matching
-the convention expected by <code><a href="create_critter.html">create_critter</a></code>.</p>
+format with column names <code>1:nx</code>, matching the orientation expected by
+<code><a href="create_critter.html">create_critter</a></code>: <strong>row 1 is the top of the map</strong>
+(\(y = ny\)) and the last row is \(y = 1\). Note this is the reverse of
+the <code>y</code> ordering in the <code>output = "df"</code> form, which runs bottom-up
+like a Cartesian axis; the two describe the same surface. Plot the matrix
+with <code><a href="https://rdrr.io/r/graphics/image.html" class="external-link">image()</a></code>/<code>plot.matrix</code> (which draw row 1 at the top) or the
+data frame with <code>ggplot2::geom_tile(aes(x, y))</code>, and both will agree
+with the spatial output of <code><a href="simmar.html">simmar</a></code>.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>

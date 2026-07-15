@@ -289,6 +289,17 @@ simmar <- function(fauna = list(),
       output_format = "matrix"
     )
 
+    if (any(purrr::map_chr(fleets, "spatial_allocation") == "fishable_revenue")) {
+      initial_exploration$fr_p_fl <- calc_fishable_revenue(
+        b_p_a = purrr::imap(
+          initial_n_p_a,
+          ~ .x * rep(fauna[[.y]]$weight_at_age, each = nrow(.x))
+        ),
+        fauna = fauna,
+        fleets = fleets
+      )
+    }
+
     open_patches <- matrix(nrow = patches, ncol = length(fleets))
 
     for (i in seq_along(fleets)){
@@ -401,10 +412,19 @@ simmar <- function(fauna = list(),
       } # close expansion of habitat if needed
     } # close fauni loop
 
-    # Precompute vectors once (speeds up the step loop)
+    # Precompute vectors once (speeds up the step loop).
+    # The row reversal is load-bearing: Fish$initialize() reads habitat with
+    # `mutate(y = dplyr::n():1) |> arrange(x, y)`, i.e. matrix row 1 is the TOP
+    # of the map (y = ny), which is what gives habitat matrices their
+    # what-you-see-is-what-you-get behavior. A bare as.vector() is column-major
+    # from row 1 and so maps row 1 to y = 1, flipping every supplied surface
+    # about the y axis relative to the identical matrix passed to
+    # create_critter(). The flip is invisible for y-symmetric habitat (which is
+    # most of the vignette surfaces), so keep the no-op test in
+    # tests/testthat/test-habitat-orientation.R honest.
     for (sp in intersect(names(habitat), fauni)) {
       habitat_vecs[[sp]] <- lapply(habitat[[sp]], function(hmat) {
-        as.vector(hmat) # equivalent ordering to your pivot_longer(... ) |> arrange(x)
+        as.vector(hmat[nrow(hmat):1, , drop = FALSE])
       })
     }
   } # close check on supplied habitat
@@ -475,8 +495,18 @@ simmar <- function(fauna = list(),
     cpue             = "cpue_p_fl",
     ppue             = "ppue_p_fl",
     marginal_revenue = "mr_p_fl",
-    marginal_profit  = "mp_p_fl"
+    marginal_profit  = "mp_p_fl",
+    fishable_revenue = "fr_p_fl"
   )
+
+  needs_fishable_revenue <- any(
+    purrr::map_chr(fleets, "spatial_allocation") == "fishable_revenue"
+  )
+
+  # aggregate_yields() builds `buffet` at the END of each step, so it does not
+  # exist yet on the first pass. Seed it so the fishable-revenue block at the top
+  # of the loop has something to attach to.
+  buffet <- list()
 
   # loop over steps
   for (s in 2:steps) {
@@ -485,6 +515,26 @@ simmar <- function(fauna = list(),
 
     year <- step_year[s]
     current_season <- step_season[s]
+
+    # Fishable revenue is the one objective that does not depend on effort, so
+    # unlike everything else in `buffet` (which aggregate_yields() builds at the
+    # END of this loop, from the fishing that just happened, and therefore
+    # describes step s-1) it can be evaluated against the biomass THIS step is
+    # about to fish. That biomass is storage[[s - 1]]$b_p_a -- see the swim()
+    # call below, which hands sim_fish `last_n_p_a <- storage[[s - 1]]$n_p_a`,
+    # and sim_fish applies Baranov to last_n_p_a before it moves anything. So
+    # the fleet gets a signal that is in phase with the fish it will actually
+    # catch, which is what the realised objectives structurally cannot do.
+    if (needs_fishable_revenue) {
+      buffet$fr_p_fl <- calc_fishable_revenue(
+        b_p_a = setNames(
+          lapply(fauni, function(critter) storage[[s - 1]][[critter]]$b_p_a),
+          fauni
+        ),
+        fauna = fauna,
+        fleets = fleets
+      )
+    }
 
     # NOTE: starting_season is in signature but not used in your original script body here;
     # leaving behavior unchanged.

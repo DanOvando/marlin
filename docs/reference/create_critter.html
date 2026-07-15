@@ -166,7 +166,29 @@ Placeholder for future non-fish implementations.</p></dd>
 Each matrix must be <code>[ny, nx]</code>. Values represent relative habitat
 quality on a log scale; they drive movement taxis and, depending on
 <code>density_dependence</code>, recruit distribution. Generate with
-<code><a href="sim_habitat.html">sim_habitat</a></code>.</p></dd>
+<code><a href="sim_habitat.html">sim_habitat</a></code>.</p>
+<p><strong>Orientation.</strong> Habitat matrices are read exactly as they look when
+printed: <strong>row 1 is the top of the map</strong> (\(y = ny\)), the last row
+is \(y = 1\), and column \(j\) is \(x = j\). Good habitat in the
+top-left of the matrix puts fish in the top-left of <code><a href="simmar.html">simmar</a></code>'s
+output. This matches how a GIS raster stores a map (row 1 = north) and how
+<code><a href="https://rdrr.io/r/graphics/image.html" class="external-link">image()</a></code> / <code>plot.matrix</code> draw one, so a raster read straight off
+disk needs no flipping. <code><a href="simmar.html">simmar</a></code>'s <code>habitat</code> argument uses
+the identical convention.</p>
+<p>The gotcha is generating habitat from a Cartesian formula, because
+<code><a href="https://tidyr.tidyverse.org/reference/expand_grid.html" class="external-link">expand_grid()</a></code> runs <code>y</code> bottom-up while a matrix runs top-down.
+Sort descending by <code>y</code> before reshaping, or the surface goes in
+upside down and \(y\) in your formula means the opposite of \(y\) on
+the map:</p><div class="sourceCode"><pre><code><span></span>
+<span>  <span class="va">habitat_matrix</span> <span class="op">&lt;-</span> <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/expand_grid.html" class="external-link">expand_grid</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">nx</span>, y <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">ny</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>habitat <span class="op">=</span> <span class="op">-</span><span class="op">(</span><span class="op">(</span><span class="va">y</span> <span class="op">-</span> <span class="fl">8</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span>  <span class="co"># optimum at y = 8, up north</span></span>
+<span>    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/desc.html" class="external-link">desc</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span>         <span class="co"># &lt;- required: row 1 = max y</span></span>
+<span>    <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_wider.html" class="external-link">pivot_wider</a></span><span class="op">(</span>names_from <span class="op">=</span> <span class="va">x</span>, values_from <span class="op">=</span> <span class="va">habitat</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">y</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>  </span></code></pre></div><p>Surfaces that are symmetric in \(y\) (a centred <code>dnorm</code>) or ignore
+\(y\) entirely are unaffected either way, which is exactly why an
+orientation error can hide for a long time. Test with an asymmetric one.</p></dd>
 
 
 <dt id="arg-season-blocks">season_blocks<a class="anchor" aria-label="anchor" href="#arg-season-blocks"></a></dt>
