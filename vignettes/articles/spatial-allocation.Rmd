@@ -187,8 +187,8 @@ skipjack_habitat <- habitats$critter_distributions$skipjack
 # Quick look at the generated habitats
 habitat_df <- expand_grid(critter = c("bigeye", "skipjack"),
                           x = 1:resolution[1],
-                          y = 1:resolution[2]) %>%
-  arrange(critter, x, y) %>%
+                          y = 1:resolution[2]) |>
+  arrange(critter, x, y) |>
   mutate(
     habitat = c(as.vector(bigeye_habitat),
                 as.vector(skipjack_habitat))
@@ -360,13 +360,13 @@ proc_so <- process_marlin(sim_so, time_step = time_step)
 
 ```{r fleet-model-effort, fig.width = 9, fig.height = 5}
 effort_ts <- bind_rows(
-  proc_oa$fleets %>%
-    group_by(step, fleet) %>%
-    summarise(effort = sum(effort), .groups = "drop") %>%
+  proc_oa$fleets |>
+    group_by(step, fleet) |>
+    summarise(effort = sum(effort), .groups = "drop") |>
     mutate(model = "open_access"),
-  proc_so$fleets %>%
-    group_by(step, fleet) %>%
-    summarise(effort = sum(effort), .groups = "drop") %>%
+  proc_so$fleets |>
+    group_by(step, fleet) |>
+    summarise(effort = sum(effort), .groups = "drop") |>
     mutate(model = "sole_owner")
 )
 
@@ -395,8 +395,8 @@ fleet_profit <- function(sim, model_label) {
   })
 
   # simmar() names each step "year_season"
-  bind_rows(step_profits) %>%
-    separate_wider_delim(step_name, delim = "_", names = c("year", "season")) %>%
+  bind_rows(step_profits) |>
+    separate_wider_delim(step_name, delim = "_", names = c("year", "season")) |>
     mutate(
       step = as.numeric(year) + (as.numeric(season) - 1) * time_step,
       model = model_label
@@ -422,15 +422,15 @@ Open-access profit falls to about zero, while the sole owner keeps a positive pr
 
 ```{r fleet-model-ssb, fig.width = 9, fig.height = 8}
 bind_rows(
-  proc_oa$fauna %>%
-    filter(step == max(step)) %>%
+  proc_oa$fauna |>
+    filter(step == max(step)) |>
     mutate(model = "open_access"),
-  proc_so$fauna %>%
-    filter(step == max(step)) %>%
+  proc_so$fauna |>
+    filter(step == max(step)) |>
     mutate(model = "sole_owner")
-) %>%
-  group_by(model, critter, x, y) %>%
-  summarise(ssb = sum(ssb, na.rm = TRUE), .groups = "drop") %>%
+) |>
+  group_by(model, critter, x, y) |>
+  summarise(ssb = sum(ssb, na.rm = TRUE), .groups = "drop") |>
   ggplot() +
   geom_tile(aes(x, y, fill = ssb)) +
   geom_point(data = ports, aes(x, y),
@@ -457,18 +457,18 @@ flip_years <- 25
 # marlin reads a habitat matrix with row 1 = the top of the map, while
 # expand_grid() runs y from the bottom up, hence arrange(desc(y)) before reshaping
 to_habitat_matrix <- function(habitat_df) {
-  habitat_df %>%
-    arrange(desc(y)) %>%
-    pivot_wider(names_from = x, values_from = habitat) %>%
-    select(-y) %>%
+  habitat_df |>
+    arrange(desc(y)) |>
+    pivot_wider(names_from = x, values_from = habitat) |>
+    select(-y) |>
     as.matrix()
 }
 
-habitat_a <- expand_grid(x = 1:flip_resolution[1], y = 1:flip_resolution[2]) %>%
+habitat_a <- expand_grid(x = 1:flip_resolution[1], y = 1:flip_resolution[2]) |>
   mutate(
     habitat = dnorm(x^2 + y^2, 300, 100),
     habitat = habitat / max(habitat) * 5
-  ) %>%
+  ) |>
   to_habitat_matrix()
 
 # the exact mirror image of habitat A
@@ -478,9 +478,9 @@ flat_recruit_habitat <- habitat_a
 flat_recruit_habitat[!is.na(flat_recruit_habitat)] <- 1
 
 habitat_to_df <- function(habitat_matrix, label) {
-  as.data.frame(habitat_matrix) %>%
-    mutate(y = n():1) %>%
-    pivot_longer(-y, names_to = "x", values_to = "habitat") %>%
+  as.data.frame(habitat_matrix) |>
+    mutate(y = n():1) |>
+    pivot_longer(-y, names_to = "x", values_to = "habitat") |>
     mutate(
       x = match(x, unique(x)),
       habitat_name = label
@@ -551,20 +551,20 @@ run_flip <- function(spatial_allocation, responsiveness, eps_mix) {
     keep_age = FALSE
   )
 
-  patch_biomass <- flip_proc$fauna %>%
-    group_by(step, x, y) %>%
+  patch_biomass <- flip_proc$fauna |>
+    group_by(step, x, y) |>
     summarise(biomass = sum(b), .groups = "drop")
 
-  patch_effort <- flip_proc$fleets %>%
-    group_by(step, x, y) %>%
+  patch_effort <- flip_proc$fleets |>
+    group_by(step, x, y) |>
     summarise(effort = sum(effort), .groups = "drop")
 
   # biomass at step t is the biomass that step t's effort fishes
-  left_join(patch_effort, patch_biomass, by = c("step", "x", "y")) %>%
-    arrange(x, y, step) %>%
-    group_by(x, y) %>%
-    mutate(biomass_last_step = dplyr::lag(biomass)) %>%
-    ungroup() %>%
+  left_join(patch_effort, patch_biomass, by = c("step", "x", "y")) |>
+    arrange(x, y, step) |>
+    group_by(x, y) |>
+    mutate(biomass_last_step = dplyr::lag(biomass)) |>
+    ungroup() |>
     mutate(
       spatial_allocation = spatial_allocation,
       responsiveness = responsiveness,
@@ -587,7 +587,7 @@ flip_runs <- bind_rows(
       eps_mix = flip_settings$eps_mix[i]
     )
   })
-) %>%
+) |>
   mutate(
     setting = paste(spatial_allocation, responsiveness, eps_mix, sep = "_"),
     scenario = paste0(
@@ -596,25 +596,25 @@ flip_runs <- bind_rows(
     )
   )
 
-scenario_order <- flip_runs %>%
-  distinct(spatial_allocation, responsiveness, eps_mix, scenario) %>%
-  arrange(desc(spatial_allocation), responsiveness, eps_mix) %>%
+scenario_order <- flip_runs |>
+  distinct(spatial_allocation, responsiveness, eps_mix, scenario) |>
+  arrange(desc(spatial_allocation), responsiveness, eps_mix) |>
   pull(scenario)
 ```
 
 Each line below shows how closely one step's map of biomass or effort matches habitat A, over the last three years. Biomass swings between strongly positive and strongly negative as the habitat flips, and a fleet tracking the fish should swing with it.
 
 ```{r flip-tracking, fig.height = 12}
-habitat_a_df <- habitat_to_df(habitat_a, "A") %>%
+habitat_a_df <- habitat_to_df(habitat_a, "A") |>
   select(x, y, habitat)
 
-flip_runs %>%
-  filter(step >= flip_years - 3) %>%
-  pivot_longer(cols = c(effort, biomass), names_to = "map", values_to = "value") %>%
-  left_join(habitat_a_df, by = c("x", "y")) %>%
-  group_by(scenario, map, step) %>%
-  summarise(cor_with_habitat_a = cor(value, habitat), .groups = "drop") %>%
-  mutate(scenario = factor(scenario, levels = scenario_order)) %>%
+flip_runs |>
+  filter(step >= flip_years - 3) |>
+  pivot_longer(cols = c(effort, biomass), names_to = "map", values_to = "value") |>
+  left_join(habitat_a_df, by = c("x", "y")) |>
+  group_by(scenario, map, step) |>
+  summarise(cor_with_habitat_a = cor(value, habitat), .groups = "drop") |>
+  mutate(scenario = factor(scenario, levels = scenario_order)) |>
   ggplot(aes(step, cor_with_habitat_a, color = map)) +
   geom_hline(yintercept = 0, color = "grey70") +
   geom_line(linewidth = 0.8) +
@@ -630,15 +630,15 @@ flip_runs %>%
 # for the prose below: across patches, how well does each step's effort line up
 # with the biomass it fished, and with the biomass the step before fished?
 # (averaged over the last two years)
-flip_alignment <- flip_runs %>%
-  filter(step >= flip_years - 2, !is.na(biomass_last_step)) %>%
-  group_by(setting, step) %>%
+flip_alignment <- flip_runs |>
+  filter(step >= flip_years - 2, !is.na(biomass_last_step)) |>
+  group_by(setting, step) |>
   summarise(
     this_step = cor(effort, biomass),
     last_step = cor(effort, biomass_last_step),
     .groups = "drop"
-  ) %>%
-  group_by(setting) %>%
+  ) |>
+  group_by(setting) |>
   summarise(
     this_step = mean(this_step),
     last_step = mean(last_step),
@@ -648,9 +648,9 @@ flip_alignment <- flip_runs %>%
 this_step_cor <- setNames(round(flip_alignment$this_step, 2), flip_alignment$setting)
 last_step_cor <- setNames(round(flip_alignment$last_step, 2), flip_alignment$setting)
 
-collapsed_patches <- flip_runs %>%
-  filter(step == max(step)) %>%
-  group_by(setting) %>%
+collapsed_patches <- flip_runs |>
+  filter(step == max(step)) |>
+  group_by(setting) |>
   summarise(collapsed = sum(effort / sum(effort) < 1e-3), .groups = "drop")
 collapsed_patches <- setNames(collapsed_patches$collapsed, collapsed_patches$setting)
 ```
@@ -700,7 +700,7 @@ extract_effort <- function(sim, fleet_name, label) {
   final_step <- sim[[length(sim)]]
   effort_vec <- final_step[[1]]$e_p_fl[, fleet_name]
 
-  expand_grid(x = 1:resolution[1], y = 1:resolution[2]) %>%
+  expand_grid(x = 1:resolution[1], y = 1:resolution[2]) |>
     mutate(
       effort = effort_vec,
       strategy = label
@@ -714,7 +714,7 @@ all_efforts <- bind_rows(
   extract_effort(sim_b, "handline", "B: handline, profit"),
   extract_effort(sim_c, "longline", "C: longline, marginal_profit"),
   extract_effort(sim_c, "handline", "C: handline, rpue")
-) %>%
+) |>
   mutate(strategy = factor(strategy, levels = unique(strategy)))
 
 ggplot(all_efforts) +
@@ -737,10 +737,10 @@ And the resulting SSB:
 extract_ssb <- function(proc, longline_alloc, handline_alloc) {
   last_step <- max(proc$fauna$step)
 
-  proc$fauna %>%
-    filter(step == last_step) %>%
-    group_by(critter, x, y) %>%
-    summarise(ssb = sum(ssb, na.rm = TRUE), .groups = "drop") %>%
+  proc$fauna |>
+    filter(step == last_step) |>
+    group_by(critter, x, y) |>
+    summarise(ssb = sum(ssb, na.rm = TRUE), .groups = "drop") |>
     mutate(strategy = paste0(longline_alloc, " / ", handline_alloc))
 }
 
@@ -768,11 +768,9 @@ ggplot(all_ssb) +
 - **B.** The longline fleet (`ppue`) clusters around both ports and leaves the far edges lightly fished, where skipjack build up. The handline fleet (`profit`) responds to distance much more weakly, partly because travel is a smaller share of its costs.
 - **C.** The longline fleet (`marginal_profit`) has the smoothest, most port-centred surface, and bigeye are depleted most around the ports. The handline fleet (`rpue`) fishes the outer ring instead, likely because longline has fished bigeye down near the ports. A fleet's map depends on the other fleets as well as on its own settings.
 
-### What each fleet has equalised by the final step
 
-A fleet on a per-unit-effort or marginal objective should come to rest where that objective is level across its fished patches (see "Resting states and Nash equilibrium"). Each point below is a patch at the final step. The vertical axis is the patch's deviation from the fleet's average, as a percentage of the fleet's gross return per unit effort (marginal revenue, for marginal profit). A flat band at zero means the objective has been equalised.
 
-```{r equalised, fig.width = 9, fig.height = 7}
+```{r equalised}
 patch_returns <- function(sim, step_index, fleet_name) {
   step_out <- sim[[step_index]]
   sum_over_critters <- function(element) {
@@ -823,41 +821,32 @@ marginal_fleet <- bind_cols(
 )
 
 equalised <- bind_rows(
-  rpue_fleet %>%
+  rpue_fleet |>
     mutate(
       panel = "A: longline on rpue\nrevenue per unit effort",
       deviation = relative_deviation(rpue, rpue, effort_share)
     ),
-  ppue_fleet %>%
+  ppue_fleet |>
     mutate(
       panel = "B: longline on ppue\nprofit per unit effort",
       deviation = relative_deviation(ppue, rpue, effort_share)
     ),
-  marginal_fleet %>%
+  marginal_fleet |>
     mutate(
       panel = "C: longline on marginal_profit\nmarginal profit",
       deviation = relative_deviation(marginal_profit, marginal_revenue, effort_share)
     ),
-  marginal_fleet %>%
+  marginal_fleet |>
     mutate(
       panel = "C: longline on marginal_profit\nprofit per unit effort",
       deviation = relative_deviation(ppue, rpue, effort_share)
     )
-) %>%
+) |>
   mutate(panel = factor(panel, levels = unique(panel)))
 
-ggplot(equalised, aes(100 * effort_share, 100 * deviation)) +
-  geom_hline(yintercept = 0, color = "grey60") +
-  geom_point(alpha = 0.4) +
-  facet_wrap(~panel, ncol = 2) +
-  labs(
-    title = "What each fleet has equalised by the final step",
-    x = "Patch share of the fleet's effort (%)",
-    y = "Deviation from the fleet's average\n(% of its gross return per unit effort)"
-  )
 ```
 
-The `rpue` and `ppue` fleets are close to the IFD. Patches holding a meaningful share of effort earn the same average return, and the low points at near-zero effort are patches abandoned because they pay less. The `marginal_profit` fleet has levelled marginal profit but not average profit: its most heavily fished patches, near the ports, earn more per unit effort than the rest. Independent vessels would crowd into those patches; a single owner does not, because each extra unit there lowers the catch of the effort already there.
+
 
 ### How close repeated play gets to equilibrium
 
@@ -902,8 +891,8 @@ gap_paths <- bind_rows(lapply(seq_along(sim_a), function(step_index) {
   )
 }))
 
-final_gaps <- gap_paths %>%
-  filter(year == max(year)) %>%
+final_gaps <- gap_paths |>
+  filter(year == max(year)) |>
   pull(gap)
 
 # the same measure over the 50-year open-access run of Scenario 1 (both fleets on ppue),
@@ -943,7 +932,7 @@ runtime <- tibble(
   seconds = c(time_a["elapsed"], time_b["elapsed"], time_c["elapsed"],
               time_oa["elapsed"], time_so["elapsed"]),
   years_run = c(rep(years, 3), years_long, years_long)
-) %>%
+) |>
   mutate(
     ms_per_year = 1000 * seconds / years_run,
     relative = round(ms_per_year / min(ms_per_year), 1),
