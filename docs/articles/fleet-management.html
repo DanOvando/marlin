@@ -105,8 +105,11 @@ effort dynamics. Options are:</p>
 profitability, equilibrating where total profits = 0</li>
 <li>
 <code>"sole_owner"</code>: effort adjusts based on marginal
-profitability, equilibrating at maximum economic yield (MEY) where
-marginal profit = 0</li>
+profitability, equilibrating where the marginal profit from one more
+unit of effort within a step is zero. That signal does not count how
+today’s effort lowers the future stock, so a sole owner typically
+settles below open-access effort but above maximum economic yield (MEY)
+effort (see the <code>spatial-allocation</code> vignette).</li>
 <li>
 <code>"manual"</code>: effort taken from a user-supplied vector</li>
 </ul>
@@ -380,10 +383,16 @@ lost access inside the MPA.</p>
 </h2>
 <p>The <code>"sole_owner"</code> fleet model is identical to open access
 in its effort adjustment mechanics, but uses the <em>marginal</em>
-profit signal rather than the <em>average</em> profit signal. This
-causes the fleet to equilibrate at maximum economic yield (MEY), where
-marginal profit equals zero, rather than at the open-access equilibrium
-where total profit equals zero.</p>
+profit signal rather than the <em>average</em> profit signal: the profit
+from one more unit of effort within the step. Effort stops expanding
+when that reaches zero, rather than at the open-access equilibrium where
+total profit equals zero. Because the signal does not count how today’s
+effort lowers the future stock, this is a myopic sole owner. It settles
+between open access and MEY, closer to MEY the less one step’s fishing
+changes the future stock. If you need the MEY effort itself, find it
+directly, for example from a grid of constant-effort runs (see “Adaptive
+fleets, not forward-looking optimisers” in the
+<code>spatial-allocation</code> vignette).</p>
 <p>Marginal profit is computed via finite-difference perturbations (see
 <code><a href="../reference/calc_marginal_value.html">?calc_marginal_value</a></code>). This requires additional computation
 each step, so <code>"sole_owner"</code> fleets run slightly slower than
@@ -398,7 +407,7 @@ unprofitable.</p>
 <span>  <span class="st">"longline"</span> <span class="op">=</span> <span class="fu"><a href="../reference/create_fleet.html">create_fleet</a></span><span class="op">(</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"bigeye"</span> <span class="op">=</span> <span class="va"><a href="../reference/Metier.html">Metier</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="va">...</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>    fleet_model <span class="op">=</span> <span class="st">"sole_owner"</span>,</span>
-<span>    cr_ratio <span class="op">=</span> <span class="fl">0.8</span>,  <span class="co"># MEY typically has positive profits, so cr_ratio &lt; 1</span></span>
+<span>    cr_ratio <span class="op">=</span> <span class="fl">0.8</span>,  <span class="co"># a sole owner typically keeps positive profits, so cr_ratio &lt; 1</span></span>
 <span>    <span class="va">...</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>

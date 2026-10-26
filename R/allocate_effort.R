@@ -88,9 +88,10 @@ allocate_effort <- function(
     ppue             = "ppue_p_fl",
     marginal_revenue = "mr_p_fl",
     marginal_profit  = "mp_p_fl",
-    # the only objective here that is not a function of realised fishing, and so
-    # the only one that can be evaluated against the biomass a step is about to
-    # fish rather than the one it just fished. See calc_fishable_revenue().
+    # not a function of realised fishing, so (like the marginal objectives,
+    # which simmar() evaluates on the coming step's biomass) it describes the
+    # biomass a step is about to fish rather than the one it just fished, and
+    # without their finite-difference cost. See calc_fishable_revenue().
     fishable_revenue = "fr_p_fl"
   )
 

@@ -14,20 +14,24 @@
 #' (spatial catchability times selectivity at age).
 #'
 #' ## Why this exists
-#' Every other spatial-allocation objective is a function of realised fishing:
-#' \code{\link{go_fish}} computes what a fleet \emph{got} given the effort it
+#' The realised spatial-allocation objectives (\code{rpue}, \code{revenue},
+#' \code{ppue}, \code{profit}, \code{cpue}, \code{catch}) are functions of
+#' realised fishing: they record what a fleet \emph{got} given the effort it
 #' actually deployed, so the signal reaching \code{\link{allocate_effort}} at
 #' step \eqn{t} necessarily describes step \eqn{t-1}. When habitat changes on a
-#' timescale close to the time step -- seasonal migration, say -- the fleet is
-#' then always responding to where fish were rather than where they are, and no
-#' value of \code{responsiveness} fixes it, because the lag is structural rather
-#' than a matter of step size.
+#' timescale close to the time step -- seasonal migration, say -- a fleet on one
+#' of them is always responding to where fish were rather than where they are,
+#' and no value of \code{responsiveness} fixes it, because the lag is
+#' structural rather than a matter of step size.
 #'
-#' Fishable revenue takes no effort argument. That is the entire point: because
-#' it does not depend on how effort is distributed, it can be evaluated against
-#' the biomass a step is \emph{about} to fish rather than the one it just
-#' fished, with no circularity and no fixed point to solve. It is also cheaper
-#' than the realised objectives, since it needs no Baranov solve.
+#' The marginal objectives (\code{marginal_revenue}, \code{marginal_profit})
+#' avoid that lag, because \code{\link{simmar}} evaluates them on the biomass
+#' the coming step will fish, but they cost extra \code{\link{go_fish}}
+#' evaluations every step and model a fleet that maximises its total return.
+#' Fishable revenue is the cheap, economics-free alternative. It takes no
+#' effort argument, so it can be evaluated against the biomass a step is
+#' \emph{about} to fish with no circularity, no fixed point to solve and no
+#' Baranov solve.
 #'
 #' It is additionally defined where effort is zero, unlike the per-unit-effort
 #' objectives (\code{rpue}, \code{cpue}, \code{ppue}), which are \code{NA}
@@ -46,11 +50,14 @@
 #'   \item \strong{No fleet interaction within a step.} Two fleets on the same
 #'     stock do not see each other's effort; they feel each other only through
 #'     next step's depleted biomass.
-#'   \item \strong{Not an ideal free distribution.} \code{rpue} and the marginal
-#'     rules relax toward equalised returns. This one relaxes toward effort
-#'     tracking standing stock, which is a different equilibrium -- "fish where
-#'     the fish are" rather than "fish where the next unit of effort pays the
-#'     same everywhere". Neither is wrong; they are different fleets.
+#'   \item \strong{No equalised returns.} The per-unit-effort rules (\code{rpue},
+#'     \code{ppue}, \code{cpue}) relax toward equal average returns across
+#'     fished patches (the ideal free distribution), and the marginal rules
+#'     toward equal marginal returns within each step (a myopic sole owner's
+#'     allocation). This one
+#'     relaxes toward effort tracking standing stock, which is a different
+#'     equilibrium -- "fish where the fish are". None of these is wrong; they
+#'     are different fleets.
 #' }
 #'
 #' @param b_p_a Named list of biomass-at-age matrices (patches x ages), one per

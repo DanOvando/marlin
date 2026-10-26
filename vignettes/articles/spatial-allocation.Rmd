@@ -19,112 +19,129 @@ knitr::opts_chunk$set(
 set.seed(42)
 ```
 
-When a fleet decides *where* to fish, it optimizes some objective across the available patches. In `marlin`, the `spatial_allocation` argument to `create_fleet` controls what that objective is. Different objectives produce very different spatial footprints of fishing effort, which in turn shape the spatial depletion patterns for every species in the system. The full set of strategies is catalogued in the "Objectives available" table below.
+Every time step, each fleet in `marlin` decides how much effort to deploy (`fleet_model`) and where to deploy it (`spatial_allocation`). This vignette is about where. `spatial_allocation` sets the signal a fleet uses to rank patches, and different signals give very different maps of effort, and so of where each species is fished down.
 
-The mechanics of how effort is redistributed in response to these objectives is explained in detail in the "How spatial allocation works" section below. This vignette then demonstrates each option using a shared two-species, two-fleet system with fishing ports, so that the spatial cost structure matters for the cost-aware strategies.
+The options are not a ranking from crude to realistic. They are a menu of models people actually use: effort that follows catch or catch per unit effort, their revenue and profit versions, a marginal refinement, and a few others. Each has stories that can justify it, such as a sole owner piling effort where the profits are, or competing vessels spreading out until catch rates even out, but none maps one-to-one onto a real fishery.
 
-Independently of the strategy, fleets can optionally smooth their objective surface over time via the `memory_halflife` argument to `create_fleet()`. This is a conditional remedy for period-2 sawtooth in patch effort under strong fleet-biomass coupling (e.g. `marginal_profit` allocation, or cost-aware allocation after an MPA closure). The mechanism is summarised in "Optional: temporal memory of the objective surface" below; the `spatial-allocation-memory` companion article works through an empirical demonstration.
+The first half of the vignette explains how the allocator works, how the objectives differ, and where effort ends up. Two controlled comparisons follow: open access vs sole owner (Scenario 1), and fish that move every season (Scenario 2). The last section is a use case that gives each fleet in a shared fishery its own strategy.
 
-## How spatial allocation works: the algorithm
+## How spatial allocation works
 
-Spatial effort allocation in `marlin` is handled by the `allocate_effort` function, which uses a multiplicative velocity-field update to redistribute a fleet's total effort across patches in response to an economic signal (the "objective"). The algorithm is designed to be robust, gradient-based, and numerically stable even when patches differ wildly in profitability.
+### Effort moves a little each step
 
-Because effort is updated step-by-step rather than solved for an equilibrium directly, the spatial distribution takes several time steps — often a few years of simulated time — to settle after a transient or perturbation (such as the start of a run or an MPA closure). Early-run spatial maps, or those captured immediately after a structural change, show effort still converging rather than at its steady state, and should be interpreted with that in mind. Allowing an adequate burn-in period before reading off spatial patterns is generally advisable.
+A fleet does not solve for its best map of effort. Each step it moves some effort out of patches that scored below average on its objective and into patches that scored above average (`responsiveness` sets how much), then fishes, and the fish are caught, grow, recruit and move. The map of effort in any run is the product of many rounds of this loop, not of one decision. So a strategy's behaviour depends on how its objective responds to effort over many steps, and effort takes several steps, often a few years, to settle after a disturbance such as the start of a run or an MPA closure.
 
-### Step-by-step procedure
+### The update rule, step by step
 
-For each fleet at each time step:
+For each fleet, with total effort $E_{\text{total}}$ already set by the fleet model:
 
-**1. Flatness detection**  
-Before attempting to optimize, the algorithm checks whether the objective is effectively uniform across patches. If the range-based coefficient of variation is below a threshold (default 0.1%):
+1. **Flat check.** If the range of the objective across open patches is less than 0.1% of its median (`flatness_tol`), effort is spread evenly and the remaining steps are skipped.
+2. **Standardise.** Each patch's objective becomes a $z$-score, $z_p = (O_p - \text{median}(O)) / \text{scale}(O)$, using the median absolute deviation (floored at 1% of the median), clipped to $[-c, c]$ with $c = 5$. Closed patches get $z_p = 0$. So do patches where a per-unit-effort objective is undefined because the fleet did not fish there; they are left out of the median and scale.
+3. **Centre.** $v_p = z_p - \bar{z}_{\text{open}}$. Patches with $v_p > 0$ gain a share of effort, and those with $v_p < 0$ lose one.
+4. **Multiplicative update.** $e_p^{\text{new}} = e_p \exp(\eta \, v_p) \times E_{\text{total}} / \sum_p e_p \exp(\eta \, v_p)$, where $\eta$ is `responsiveness` (default 0.025). Closed patches get zero.
+5. **Exploration mixing (optional).** With `eps_mix` $= \epsilon$, $e_p^{\text{final}} = (1 - \epsilon) \, e_p^{\text{new}} + \epsilon \, E_{\text{total}} / N_{\text{open}}$.
 
-$$\text{CV}_{\text{range}} = \frac{\max(O) - \min(O)}{|\text{median}(O)|} < \text{flatness\_tol}$$
+### Properties of the update
 
-then effort is distributed uniformly across all open patches and the optimization is skipped. This prevents spurious concentration along edges when there is no meaningful gradient to follow.
+- **Total effort is conserved exactly**, so only the fleet model changes how much effort there is.
+- **Moves are gradual and do not depend on units.** A patch's push depends on how it compares with the other patches, not on the currency. In one step, the effort in one patch can change relative to another by at most a factor of $\exp(2c\eta)$, about 1.28 at the defaults.
+- **There is no target map.** The allocator never computes where effort should end up; it only moves effort toward higher-scoring patches, step after step.
+- **A patch at zero effort stays at zero**, because the update multiplies. A small `eps_mix` (0.01–0.05) keeps every open patch above zero, so the fleet can return when a patch improves. This matters most for the objectives with little or no crowding within a step (the totals and `fishable_revenue`), which concentrate effort hardest. A per-unit-effort objective also loses sight of a patch at zero effort; `fishable_revenue` does not, but its recovery is just as slow.
 
-**2. Standardization**  
-The objective $O_p$ in each patch $p$ is centered and scaled to produce a $z$-score:
+## How the objectives differ
 
-$$z_p = \frac{O_p - \text{median}(O)}{\text{scale}(O)}$$
+The objectives differ in when they are measured, how they respond to effort piling into a patch, and how they treat other fleets.
 
-where $\text{scale}(O)$ can be the median absolute deviation (default, most robust), interquartile range, or standard deviation. The $z$ scores are then clipped to $[-c, c]$ (default $c = 5$) to prevent extreme updates from outliers:
+### Realised vs prospective objectives
 
-$$z_p \leftarrow \max(-c, \min(c, z_p))$$
+The **realised** objectives (`rpue`, `revenue`, `ppue`, `profit`, `cpue`, `catch`) are records of fishing that has already happened: the catch, revenue and cost each fleet earned in each patch last step. A fleet placing effort at step $t$ is responding to step $t-1$.
 
-Closed patches have $z_p = 0$.
+The **prospective** objectives are calculated from the biomass the coming step will fish. The marginal objectives (`marginal_profit`, `marginal_revenue`) ask what one more unit of effort in each patch would add, at the fleet's current map of effort; `calc_marginal_value()` answers this with finite differences on `go_fish()`. `fishable_revenue` is the value of the fish the fleet could catch in each patch: biomass at age × vulnerability at age × price, summed over species (`calc_fishable_revenue()`).
 
-**3. Velocity field**  
-The standardized objective becomes a velocity after removing the mean across open patches:
+The one-step lag rarely matters when the distribution of fish changes more slowly than the time step. When it shifts on about the time step, as with seasonal migration, a fleet on a realised objective always arrives where the fish were, and raising `responsiveness` only makes it chase harder (Scenario 2). Where habitat is stable, a higher `responsiveness` helps effort settle faster.
 
-$$v_p = z_p - \bar{z}_{\text{open}}$$
+### What stops effort piling into one patch
 
-This ensures that the velocity field integrates to zero over the open domain, which is necessary for conserving total effort. Patches with above-average objectives have $v_p > 0$ (attracting effort), and patches with below-average objectives have $v_p < 0$ (repelling effort).
+**Crowding, within a step.** Each extra unit of effort in a patch catches less than the one before, because the catch equation removes fish as fishing goes on and other fleets take a share. Per-unit-effort and marginal objectives therefore fall as effort rises, and push back straight away, though only gently if one step removes little of a patch's fish. Total `catch` and `revenue` still rise with effort, so within a step they reward concentration. `profit` is in between, because its costs rise faster than effort, and `fishable_revenue` ignores effort altogether.
 
-**4. Multiplicative update**  
-Current effort $e_p$ is updated via:
+**Depletion, across steps.** Fishing a patch leaves less biomass there for later steps, which lowers every objective in the patch, the totals and `fishable_revenue` included. How hard this bites depends on how fast fish refill the patch, by moving in or by growth and recruitment.
 
-$$e_p^{\text{new}} \propto e_p \exp(\eta \, v_p)$$
+So every strategy is penalised for concentrating, but on different timescales, and the totals and `fishable_revenue` rely on depletion alone (configuration A of the use case shows how slow that can be).
 
-where $\eta$ (the fleet's `responsiveness` argument, default `0.025`) controls the step size. The proportionality constant is chosen to conserve total effort:
+### How the objectives account for other fleets
 
-$$e_p^{\text{new}} = e_p \exp(\eta \, v_p) \times \frac{E_{\text{total}}}{\sum_p e_p \exp(\eta \, v_p)}$$
+Fleets fishing the same patch add up their fishing mortality and split the catch in proportion to it. So other fleets lower your catch within the step, and deplete the patch for later steps.
 
-This is implemented in log-space for numerical stability. Closed patches receive $e_p^{\text{new}} = 0$.
+- **Realised objectives** already contain the other fleets' effort, because they record what each fleet earned when all of them fished together. They make no prediction, but acting on last step's outcome is an implicit bet that the next step, including where the other fleets fish, will look the same.
+- **Marginal objectives** make that bet explicitly. `calc_marginal_value()` raises one fleet's effort while holding the other fleets' maps fixed, and measures the change in that fleet's *own* return. Each fleet ignores the catch its extra effort takes from the others, so several marginal fleets together put more effort into shared patches than a single owner of all of them would.
+- **`fishable_revenue`** ignores other fleets within the step; they matter only through the fish they remove.
 
-**5. Optional exploration mixing**  
-If `eps_mix` > 0, the result is blended with a uniform distribution to allow re-entry into temporarily abandoned patches:
+No strategy anticipates how the other fleets will respond. All of them react to the current state at once, and again in the next step.
 
-$$e_p^{\text{final}} = (1 - \epsilon) \, e_p^{\text{new}} + \epsilon \, \frac{E_{\text{total}}}{N_{\text{open}}}$$
+### Optional: smoothing the objective over time (`memory_halflife`)
 
-### Optional: temporal memory of the objective surface
-
-`memory_halflife` is a **conditional remedy, not a default upgrade**: it dampens period-2 sawtooth in patch effort that can arise under strong fleet-biomass coupling. By default the objective surface is rebuilt fresh each step from the previous step's outcomes — a one-step-lag signal that, under tight coupling (typically `marginal_profit` / `marginal_revenue` allocation, or cost-aware allocation after an MPA closure), can drive period-2 oscillation: last-step buffet picks where to fish, this-step fishing changes biomass, next-step buffet inverts.
-
-Setting `memory_halflife > 0` replaces the raw per-patch objective $O_p$ with an exponentially-smoothed version: a weighted average in which the weight on the observation from $k$ steps ago decays geometrically, so the most recent observation has the largest influence and older ones fade away:
+Rebuilding the objective from scratch each step can produce a period-2 sawtooth when a fleet is tightly coupled to the biomass it fishes, most often with the marginal objectives, or with cost-aware ones after an MPA closure: the signal points at a patch, fishing drains it, and the next signal points away. `memory_halflife` (in years) damps this by replacing $O_p$ with an exponentially weighted average of its past values, updated only in open patches:
 
 $$\tilde{O}_p^{(t)} = \alpha \, O_p^{(t)} + (1 - \alpha) \, \tilde{O}_p^{(t-1)}, \qquad \alpha = 1 - 0.5^{1 / h_{\text{steps}}}$$
 
-The half-life is specified in **years** and converted internally to steps ($h_{\text{steps}} = h_{\text{years}} \times \text{steps\_per\_year}$), so the same value produces the same calendar-time smoothing regardless of seasons per year. The smoothed surface only updates on currently-open patches (closed patches retain their last-seen value), and exponential smoothing introduces a phase lag of roughly $1.44 \times h_{\text{years}}$ years — long half-lives can therefore replace high-frequency sawtooth with low-frequency overshoot. Practical sweet spot is **0.5–1.5 years** for most fishery time scales; the `spatial-allocation-memory` companion article works through an empirical demonstration. If your run looks smooth at the default `memory_halflife = 0`, leave it there.
+Smoothing adds a lag of roughly $1.44 \times h_{\text{years}}$ years, so a long half-life swaps a fast sawtooth for slow overshoot, and on a prospective objective it puts back some of the lag that objective avoids. If you need it, 0.5–1.5 years suits most fisheries; if a run is already smooth, leave it at 0. The `spatial-allocation-memory` article has a worked example.
 
-### Why this algorithm?
+## Where effort ends up
 
-The multiplicative update has several desirable properties:
+### Resting states and Nash equilibrium
 
-- **Gradient-based**: Effort flows "uphill" toward high-value patches along the objective gradient.
-- **Effort-conserving**: Total effort $\sum_p e_p$ is exactly preserved.
-- **Non-negative**: Effort cannot become negative (provided it starts non-negative).
-- **Smooth transitions**: The exponential update avoids discontinuous jumps, making the dynamics more realistic.
-- **Scale-invariant**: The standardization step ensures that the update magnitude is comparable across fleets and time steps regardless of absolute objective values.
+**Resting states.** The update stops moving a fleet's effort only when its objective is equal in every patch holding effort, and no open patch left unfished scores higher. What that means depends on the objective:
 
-The algorithm is related to replicator dynamics from evolutionary game theory and gradient flow on the simplex. In the limit of small $\eta$, the continuous-time equivalent is:
+- **Per-unit-effort objectives:** average returns are equal across the patches being fished. This is the **ideal free distribution (IFD)**, and it fits most cleanly with a story of competing vessels, each going where its own catch rate is best.
+- **Marginal objectives:** the return on the last unit of effort is equal across fished patches. For a fleet fishing alone, that maximises its profit (or revenue) within the step, a story of one owner coordinating every vessel, or of one vessel dividing its fishing time. Average returns are generally not equal.
+- **Total objectives and `fishable_revenue`:** every fished patch yields the same long-run total, or holds the same fishable revenue, reached only through depletion. The totals fit most cleanly with a story of a single owner piling effort where the returns are. Because the push-back is slow, their maps can stay patchy for a long time.
 
-$$\frac{de_p}{dt} = e_p \left( v_p - \langle v \rangle \right)$$
+**Nash equilibrium.** In a Nash equilibrium, no player can do better by changing what it does, given what the others do. "Better" is judged by an objective, and in `marlin` that is whatever `spatial_allocation` says: a `profit` fleet, for example, is in equilibrium when no patch offers it more total profit than the ones it is fishing. A resting state is exactly that condition, with no gradient left to chase, so a fleet that comes to rest is at a Nash equilibrium for its objective. With several fleets, the joint resting state is one in which no fleet has a gradient left. (The update is a discrete-time version of the replicator dynamics of evolutionary game theory, for which this is a standard result.) No fleet solves for the equilibrium; repeated steps are how the game is played out.
 
-where $\langle v \rangle = \sum_p (e_p / E_{\text{total}}) v_p$ is the effort-weighted average velocity. This is a stable dynamical system that converges to a Nash equilibrium where effort is concentrated in patches with the highest objective values.
+**When repeated play gets there.** It reaches the equilibrium, or comes close to it, when:
 
-### Objectives available
+1. the environment is stable on the timescale effort takes to settle, so habitat neither shifts as fast as the time step (Scenario 2) nor keeps drifting;
+2. concentrating effort eventually lowers the objective, through crowding or depletion (the push-back is weakest for totals on stocks that refill a patch fast);
+3. `responsiveness` is small enough not to overshoot, although small steps are slow: at the default of 0.025, the cost-aware fleets in the use case took 15–20 years to get close;
+4. an abandoned open patch that improves can draw effort back, which a small `eps_mix` ensures. Closed patches such as MPAs are simply not part of the game; the equilibrium is conditional on them.
 
-The objective $O_p$ is drawn from the "buffet" returned by `go_fish`, which computes prospective catch, revenue, and profit for each patch without actually removing fish. The `spatial_allocation` setting maps to:
+Even then, the result is Nash in spirit rather than in precise definition. Effort gets close and then wobbles around the equilibrium (see "How close repeated play gets to equilibrium" in the use case), and `eps_mix` leaves a small floor of effort everywhere. It is also a one-step, myopic equilibrium, as the next section explains.
 
-| `spatial_allocation` | Objective \(O_p\) | Description | Economic interpretation |
+### Adaptive fleets, not forward-looking optimisers
+
+What `marlin` does not implement is the economist's optimisation benchmark: fleets that maximise the discounted value of their profit over the whole future, knowing exactly how today's fishing changes the stock and how the other fleets will respond. For a single owner, the long-run target of that problem is MEY, the effort that maximises long-run profit (at a zero discount rate; with discounting, the owner fishes harder). With several fleets, it is a dynamic game.
+
+`marlin`'s fleets are adaptive instead, for two reasons. Solving the forward-looking problem for a spatial, age-structured, multispecies model is out of computational reach for routine simulation. And real fleets mostly learn from recent returns rather than plan with perfect knowledge, so an adaptive fleet is a different, often more plausible, model of behaviour, not a flawed version of the optimiser.
+
+The cost is that `marlin` does not give you the fully informed optimum as a benchmark. Repetition makes fleets *feel* depletion, but nothing makes them *weigh* it: no fleet asks whether fishing less now would pay off later. As a result:
+
+- the equilibria reached are one-step equilibria, at whatever biomass the run settles to (the usual sense of the IFD in fisheries models);
+- maximising marginal profit does not automatically reach MEY: `marginal_profit` and `fleet_model = "sole_owner"` act as a *myopic* sole owner, settling below open-access effort but above MEY effort, and closer to MEY the less one step's fishing changes the future stock;
+- several fleets on marginal objectives reach, at best, a one-step Nash equilibrium.
+
+If a question needs the fully informed benchmark, such as the effort that achieves MEY, compute it separately, for example from a grid of constant-effort runs.
+
+## The objectives at a glance
+
+Realised objectives use the previous step's fishing, prospective ones use the biomass about to be fished, and `manual` and `uniform` use no objective.
+
+| `spatial_allocation` | Objective \(O_p\) | Computed from | Behaviour |
 |---|---|---|---|
-| `rpue` | Revenue per unit effort | Value-weighted catch rate | Effort shifts toward patches that produce higher revenue per unit effort. This reflects fleets choosing locations where each unit of effort generates more revenue on average, without explicitly accounting for how crowding reduces returns. |
-| `revenue` | Total revenue | Value-weighted catch | Effort shifts toward patches that produce the highest total revenue. This reflects fleets targeting areas with the highest overall value of catch, regardless of operating costs or how returns change as more vessels enter the area. |
-| `ppue` | Profit per unit effort | Revenue net of costs per effort | Effort shifts toward patches that produce higher profit per unit effort. This reflects fleets choosing locations where each unit of effort generates more net profit on average, accounting for travel and operating costs. |
-| `profit` | Total profit | Revenue minus costs | Effort shifts toward patches that produce the highest total profit. This reflects fleets targeting areas with the highest overall net returns, without explicitly accounting for how additional effort changes profitability. |
-| `cpue` | Catch per unit effort | Biomass-weighted catch rate | Effort shifts toward patches that produce higher catch per unit effort. This reflects fleets choosing locations where each unit of effort generates more catch on average, regardless of price. |
-| `catch` | Total catch | Biomass-weighted catch | Effort shifts toward patches that produce the highest total catch. This reflects fleets targeting areas with the highest total biomass or catch, regardless of economic value. |
-| `marginal_profit` | Marginal profit | Change in total profit from the next unit of effort (finite difference) | Effort shifts toward patches where adding a small amount of additional effort would increase total profit the most. Over time, effort tends to distribute so that the last unit of effort earns similar profit across all actively fished patches. This is the closest approximation to the **Ideal Free Distribution (IFD)**, where effort distributes so that no vessel can increase profit by moving effort to another patch. |
-| `marginal_revenue` | Marginal revenue | Change in total revenue from the next unit (finite difference) | Effort shifts toward patches where adding a small amount of effort would increase total revenue the most. Over time, effort tends to distribute so that the last unit of effort generates similar revenue across actively fished patches. This reflects the production-driven component of the **Ideal Free Distribution (IFD)**, but does not fully account for costs. |
-| `manual` | User weights | Proportional to `fishing_grounds$fishing_ground` | Effort follows externally specified spatial preferences (e.g., fishing traditions, regulations, or predefined fishing grounds), rather than responding directly to economic outcomes. |
-| `uniform` | None | Equal effort across open patches | Effort is spread evenly across space. Useful as a baseline representing no spatial preference or complete uncertainty about conditions. |
+| `rpue` | Revenue per unit effort | Last step's revenue ÷ effort | Falls as effort is added, so concentration limits itself; tends toward the IFD on gross returns. No costs. |
+| `revenue` | Total revenue | Last step's revenue | Rises with effort within a step, so effort reinforces itself until depletion pushes back. No costs. |
+| `ppue` | Profit per unit effort | Last step's (revenue − cost) ÷ effort | As `rpue`, net of operating and travel costs; tends toward the IFD on profit. |
+| `profit` | Total profit | Last step's revenue − cost | As `revenue`, net of costs; costs rising faster than effort add some brake within a step. |
+| `cpue` | Catch per unit effort | Last step's catch ÷ effort | As `rpue`, by weight. |
+| `catch` | Total catch | Last step's catch | As `revenue`, by weight. |
+| `marginal_profit` | Marginal profit | Profit from one more unit of effort (finite difference), on the biomass about to be fished | A refinement of `profit`: tends toward equal marginal profit, maximising the fleet's profit within each step (a myopic sole owner), taking other fleets' effort as given. Slower to compute (see [Runtime](#runtime)). |
+| `marginal_revenue` | Marginal revenue | As above, for revenue | As `marginal_profit`, without costs. |
+| `fishable_revenue` | Fishable revenue | Biomass at age × vulnerability × price, on the biomass about to be fished | Tracks standing stock. Cheap and defined everywhere, but with no crowding, costs or other fleets within a step. Pair it with a small `eps_mix` (see "Properties of the update"). |
+| `manual` | User weights | `fishing_grounds$fishing_ground` | Held in proportion to the weights. |
+| `uniform` | None | — | Equal effort in every open patch. |
 
+## The shared two-species, two-fleet system
 
-The marginal variants require `calc_marginal_value` to compute finite-difference derivatives each step, which adds computational cost but produces more economically realistic spatial behavior (especially for sole-owner fleets).
-
-## Shared Setup
-
-We'll use a 10×10 grid with two critters (bigeye tuna and skipjack tuna) that have different spatial habitats generated by `sim_habitat`, and two fishing fleets (a longline fleet under open access dynamics and a handline fleet under constant effort). Two ports are placed asymmetrically to create spatial cost gradients.
+Scenario 1 and the use case share a 20 × 20 grid with two species, bigeye and skipjack tuna, that prefer different parts of the grid, and two fleets, longline and handline, that sail from ports at (1, 1) and (8, 9). The far corner is a long way from either port, which matters for any strategy that counts costs.
 
 ```{r setup}
 library(marlin)
@@ -141,13 +158,13 @@ years <- 20
 seasons <- 2
 time_step <- 1 / seasons
 
-# Two ports: one nearshore corner, one offshore
+# Two ports, both toward the lower left of the grid
 ports <- data.frame(x = c(1, 8), y = c(1, 9))
 ```
 
 ### Habitat
 
-We use `sim_habitat` to generate spatially correlated habitat for each species. The `kp` parameter controls the spatial smoothness (lower = smoother), and we supply a negative cross-species correlation so that the two species prefer different parts of the seascape. This creates a spatial tradeoff: fleets cannot maximize catch of both species in the same patch.
+`sim_habitat()` generates spatially correlated habitat. A negative correlation between the species makes them prefer different areas, so no patch is best for both.
 
 ```{r habitat}
 # Negative correlation: species prefer different areas
@@ -191,7 +208,7 @@ ggplot(habitat_df) +
 
 ### Fauna
 
-Both species use the habitats generated above. Bigeye are a slower-moving, more heavily fished species, while skipjack are more mobile and less depleted.
+Bigeye start more depleted than skipjack (spawning biomass at 50% of unfished, against 60%) and have the larger adult home range (5 against 3).
 
 ```{r fauna}
 fauna <-
@@ -229,9 +246,16 @@ fauna <-
   )
 ```
 
-### Fleet Builder
+### Fleets
 
-To keep the code DRY, we define a helper function that creates the two-fleet system for any pair of `spatial_allocation` settings. The longline fleet operates under open access (total effort responds to profitability) and the handline fleet under constant effort. Both fleets have the same port locations and a `travel_fraction` of 0.3, meaning travel costs comprise 30% of total costs at equilibrium.
+`build_fleets()` builds both fleets for any pair of `spatial_allocation` settings. By default the longline fleet is open access and the handline fleet has constant effort. The fleets also differ in several other ways:
+
+- **Travel costs:** travel makes up 70% of longline costs and 50% of handline costs (`travel_fraction`).
+- **Species:** the longline fleet takes the larger share of bigeye fishing mortality, and the handline fleet the larger share of skipjack (`p_explt`).
+- **Prices:** the handline fleet gets 8 for skipjack against 5 for longline; both get 10 for bigeye.
+- **Selectivity:** it differs for both species.
+
+So their maps would differ even under the same strategy.
 
 ```{r fleet-builder}
 build_fleets <- function(longline_allocation, handline_allocation,
@@ -305,136 +329,11 @@ build_fleets <- function(longline_allocation, handline_allocation,
 }
 ```
 
-### Plotting Helpers
+## Scenario 1: open access vs sole owner
 
-We define helpers to extract the final-step effort and biomass and plot them as spatial maps with port locations.
+Both fleets allocate on `ppue` in both runs; only the fleet model differs. Open access adds effort until average profit is zero. `fleet_model = "sole_owner"` uses the same entry and exit machinery, but responds to the effort-weighted mean of patch-level marginal profit from `calc_marginal_value()`, so it stops adding effort when the next unit no longer pays within the step. That makes it a myopic sole owner (see "Adaptive fleets, not forward-looking optimisers"): it settles below open-access effort with a positive profit, but in general above MEY effort. The two fleet sets are built separately, because fleet objects share state, and run for 50 years so that both can settle.
 
-```{r plot-helpers}
-plot_effort <- function(sim, fleet_name, title = "") {
-  final_step <- sim[[length(sim)]]
-  effort_vec <- final_step[[1]]$e_p_fl[, fleet_name]
-
-  patch_effort <- expand_grid(
-    x = 1:resolution[1],
-    y = 1:resolution[2]
-  ) %>%
-    mutate(effort = effort_vec)
-
-  ggplot(patch_effort) +
-    geom_tile(aes(x, y, fill = effort)) +
-    geom_point(data = ports, aes(x, y),
-               color = "red", size = 3, shape = 17) +
-    scale_fill_viridis_c(option = "C") +
-    labs(title = title, fill = "Effort") +
-    coord_equal() +
-    theme(plot.title = element_text(size = 11))
-}
-
-plot_biomass <- function(proc, title = "") {
-  last_step <- max(proc$fauna$step)
-
-  ssb_df <- proc$fauna %>%
-    filter(step == last_step) %>%
-    group_by(critter, x, y) %>%
-    summarise(ssb = sum(ssb, na.rm = TRUE), .groups = "drop")
-
-  ggplot(ssb_df) +
-    geom_tile(aes(x, y, fill = ssb)) +
-    geom_point(data = ports, aes(x, y),
-               color = "red", size = 2, shape = 17) +
-    scale_fill_viridis_c(option = "B") +
-    facet_wrap(~critter) +
-    coord_equal() +
-    labs(title = title, fill = "SSB") +
-    theme(plot.title = element_text(size = 11))
-}
-```
-
-## Scenario 1: `rpue` vs `revenue`
-
-In this scenario the longline fleet allocates effort based on `rpue` (revenue per unit effort) while the handline fleet chases total `revenue`.
-
-The `rpue` fleet moves toward patches where catch rates are highest per unit effort. This tends to spread effort more evenly, because as a high-RPUE patch attracts more effort, catch rates decline there relative to less-fished patches.
-
-The `revenue` fleet, by contrast, gravitates toward patches with the highest *total* revenue regardless of how much effort is already there. This can lead to stronger concentration of effort in productive patches, since high effort × moderate catch rate can still produce high total revenue.
-
-Neither strategy accounts for travel costs, so port location does not directly influence where these fleets fish.
-
-```{r scenario-1}
-fleets_1 <- build_fleets("rpue", "revenue")
-
-time_1 <- system.time({
-  sim_1 <- simmar(fauna = fauna, fleets = fleets_1, years = years)
-})
-
-proc_1 <- process_marlin(sim_1, time_step = time_step)
-
-plot_effort(sim_1, "longline", "Longline Effort (rpue)")
-plot_effort(sim_1, "handline", "Handline Effort (revenue)")
-plot_biomass(proc_1, "SSB — rpue vs revenue")
-```
-
-Notice how the longline fleet (rpue) distributes effort more diffusely across productive patches, while the handline fleet (revenue) concentrates more heavily in the highest-biomass areas. The biomass maps show the resulting depletion patterns: species are drawn down most where their habitat overlaps with each fleet's effort hotspots.
-
-
-## Scenario 2: `ppue` vs `profit`
-
-Now we contrast the two cost-aware strategies. The longline fleet uses `ppue` (profit per unit effort) and the handline fleet uses total `profit`. Both account for the cost of traveling from port, but they differ in whether the objective is per-unit-effort or total.
-
-Because `ppue` divides profit by effort, it penalizes patches where effort is high relative to returns. The `profit` strategy rewards patches where total profit (revenue minus costs) is maximized, which can favor concentrating effort in nearby productive patches even if per-unit returns are declining.
-
-With `travel_fraction = 0.3` and two asymmetrically placed ports, we should see both fleets pulled toward the ports relative to the cost-naive strategies above.
-
-```{r scenario-2}
-fleets_2 <- build_fleets("ppue", "profit")
-
-time_2 <- system.time({
-  sim_2 <- simmar(fauna = fauna, fleets = fleets_2, years = years)
-})
-
-proc_2 <- process_marlin(sim_2, time_step = time_step)
-
-plot_effort(sim_2, "longline", "Longline Effort (ppue)")
-plot_effort(sim_2, "handline", "Handline Effort (profit)")
-plot_biomass(proc_2, "SSB — ppue vs profit")
-```
-
-Compare these maps to Scenario 1. The cost-aware fleets are pulled toward the port locations (red triangles), and patches far from any port receive less effort than they would under `rpue` or `revenue`. The biomass maps show that remote patches retain more biomass under cost-aware allocation, since fleets fish them less intensively.
-
-
-## Scenario 3: `marginal_profit` vs `rpue`
-
-Finally, we demonstrate `marginal_profit`, the most economically realistic allocation strategy. The longline fleet now allocates based on the *marginal return* to an additional unit of effort in each patch, while the handline fleet uses the simpler `rpue` as a baseline for comparison.
-
-Under `marginal_profit`, the fleet responds to diminishing returns: even if a patch has high total profit or high RPUE, if the *next* unit of effort there would yield little additional return, the fleet reallocates toward patches where marginal returns are still high. This tends to produce the most even spatial distribution of effort among all the profit-aware strategies, because it directly penalizes over-concentration.
-
-```{r scenario-3}
-fleets_3 <- build_fleets("marginal_profit", "rpue")
-
-time_3 <- system.time({
-  sim_3 <- simmar(fauna = fauna, fleets = fleets_3, years = years)
-})
-
-proc_3 <- process_marlin(sim_3, time_step = time_step)
-
-plot_effort(sim_3, "longline", "Longline Effort (marginal_profit)")
-plot_effort(sim_3, "handline", "Handline Effort (rpue)")
-plot_biomass(proc_3, "SSB — marginal_profit vs rpue")
-```
-
-The `marginal_profit` fleet (longline) typically produces a smoother effort surface than any of the other cost-aware strategies. Compared to the `rpue` handline fleet sharing the same waters, the marginal profit fleet is more sensitive to congestion: it avoids piling into patches that are already heavily fished, even if those patches still have high average returns. The biomass maps reflect this — depletion tends to be more spatially uniform under `marginal_profit`.
-
-## Scenario 4: `sole_owner` vs `open_access`
-
-The previous scenarios varied the *spatial* allocation strategy while keeping the fleet model (how total effort changes over time) fixed. Now we flip that: both fleets use the same spatial allocation (`ppue`) but differ in their *fleet model*.
-
-The classic result from fisheries economics is that open access fleets fish until average profit is zero (all rents dissipated), while a sole owner — who internalizes the stock externality — stops expanding effort when the *marginal* profit of the next unit of effort hits zero. This corresponds to maximum economic yield (MEY), which occurs at lower effort and higher biomass than the open access equilibrium.
-
-In `marlin`, `fleet_model = "sole_owner"` implements this by using the same dynamic entry/exit machinery as open access, but replacing the profitability signal: instead of responding to total profits, the sole owner responds to the effort-weighted mean of patch-level marginal profits computed by `calc_marginal_value`.
-
-We extend `build_fleets` with explicit `fleet_model` overrides and build each variant from scratch (rather than copying and mutating one into the other, since the underlying fleet objects share state).
-
-```{r scenario-4}
+```{r fleet-model-build}
 fleets_oa <- build_fleets("ppue", "ppue",
                           longline_fleet_model = "open_access",
                           handline_fleet_model = "open_access")
@@ -444,32 +343,28 @@ fleets_so <- build_fleets("ppue", "ppue",
                           handline_fleet_model = "sole_owner")
 ```
 
-Now we run both simulations side by side.
+```{r fleet-model-run}
+years_long <- 50
 
-```{r scenario-4-run}
-years_4 <- 50  # longer run to let both fleet models reach equilibrium
-
-time_4a <- system.time({
-  sim_4a <- simmar(fauna = fauna, fleets = fleets_oa, years = years_4)
+time_oa <- system.time({
+  sim_oa <- simmar(fauna = fauna, fleets = fleets_oa, years = years_long)
 })
 
-time_4b <- system.time({
-  sim_4b <- simmar(fauna = fauna, fleets = fleets_so, years = years_4)
+time_so <- system.time({
+  sim_so <- simmar(fauna = fauna, fleets = fleets_so, years = years_long)
 })
 
-proc_4a <- process_marlin(sim_4a, time_step = time_step)
-proc_4b <- process_marlin(sim_4b, time_step = time_step)
+proc_oa <- process_marlin(sim_oa, time_step = time_step)
+proc_so <- process_marlin(sim_so, time_step = time_step)
 ```
 
-The key comparison is the trajectory of total effort and profits over time. The open access fleet should converge to zero profits, while the sole owner should stabilize at lower effort with positive profits.
-
-```{r scenario-4-effort-time, fig.width = 9, fig.height = 5}
+```{r fleet-model-effort, fig.width = 9, fig.height = 5}
 effort_ts <- bind_rows(
-  proc_4a$fleets %>%
+  proc_oa$fleets %>%
     group_by(step, fleet) %>%
     summarise(effort = sum(effort), .groups = "drop") %>%
     mutate(model = "open_access"),
-  proc_4b$fleets %>%
+  proc_so$fleets %>%
     group_by(step, fleet) %>%
     summarise(effort = sum(effort), .groups = "drop") %>%
     mutate(model = "sole_owner")
@@ -484,68 +379,321 @@ ggplot(effort_ts, aes(step * time_step, effort, color = model)) +
        color = "Fleet Model")
 ```
 
-The sole owner settles at lower effort than open access for both fleets, because it stops expanding when marginal returns hit zero rather than waiting for average returns to be exhausted.
+The sole owner settles at lower effort than open access in both fleets. `process_marlin()` does not report profit, so it is read from the raw output: each species' `prof_p_fl` is that species' revenue minus its share of the fleet's costs, so a fleet's profit is the sum over species and patches.
 
-We can also compare profits over time. Open access should converge toward zero, while the sole owner retains positive profits at equilibrium (the hallmark of MEY).
+```{r fleet-model-profits, fig.width = 9, fig.height = 5}
+fleet_profit <- function(sim, model_label) {
+  step_profits <- lapply(names(sim), function(step_name) {
+    profit_p_fl <- Reduce(`+`, lapply(names(fauna), function(critter) {
+      sim[[step_name]][[critter]]$prof_p_fl
+    }))
+    tibble(
+      step_name = step_name,
+      fleet = colnames(profit_p_fl),
+      profit = colSums(profit_p_fl)
+    )
+  })
 
-```{r scenario-4-profits, fig.width = 9, fig.height = 5}
+  # simmar() names each step "year_season"
+  bind_rows(step_profits) %>%
+    separate_wider_delim(step_name, delim = "_", names = c("year", "season")) %>%
+    mutate(
+      step = as.numeric(year) + (as.numeric(season) - 1) * time_step,
+      model = model_label
+    )
+}
+
 profit_ts <- bind_rows(
-  proc_4a$fleets %>%
-    group_by(step, fleet) %>%
-    summarise(revenue = sum(revenue), catch = sum(catch), .groups = "drop") %>%
-    mutate(model = "open_access"),
-  proc_4b$fleets %>%
-    group_by(step, fleet) %>%
-    summarise(revenue = sum(revenue), catch = sum(catch), .groups = "drop") %>%
-    mutate(model = "sole_owner")
+  fleet_profit(sim_oa, "open_access"),
+  fleet_profit(sim_so, "sole_owner")
 )
 
-ggplot(profit_ts, aes(step * time_step, revenue, color = model)) +
+ggplot(profit_ts, aes(step, profit, color = model)) +
+  geom_hline(yintercept = 0, color = "grey70") +
   geom_line() +
   facet_wrap(~fleet) +
   scale_x_continuous(name = "Year") +
-  labs(title = "Revenue: Open Access vs Sole Owner",
+  labs(title = "Profit: Open Access vs Sole Owner",
        color = "Fleet Model",
-       y = "Revenue")
+       y = "Profit")
 ```
 
-Finally, compare the spatial effort and biomass footprints at the end of each simulation.
+Open-access profit falls to about zero, while the sole owner keeps a positive profit and, because it fishes less, leaves more biomass in the water:
 
-```{r scenario-4-space}
-plot_effort(sim_4a, "longline", "Longline Effort (open_access)")
-plot_effort(sim_4b, "longline", "Longline Effort (sole_owner)")
-plot_biomass(proc_4a, "SSB — open_access")
-plot_biomass(proc_4b, "SSB — sole_owner")
-```
-
-The sole owner leaves more biomass in the water because it fishes less intensively. This is the fundamental tradeoff: open access maximizes effort and dissipates rents, while the sole owner restrains effort to maximize total profit, resulting in higher biomass and positive economic returns.
-
-## Runtime Comparison
-
-The `marginal_profit` spatial allocation strategy and the `sole_owner` fleet model both require computing numerical derivatives of the profit function via `calc_marginal_value` at every time step, which adds extra `go_fish` evaluations (one per fleet at minimum). This makes them meaningfully slower than strategies that only need the quantities already computed by the standard `go_fish` call.
-
-```{r runtime}
-runtime <- tibble(
-  scenario = c("rpue / revenue", "ppue / profit", "marginal_profit / rpue",
-               "open_access (ppue)", "sole_owner (ppue)"),
-  seconds = c(time_1["elapsed"], time_2["elapsed"], time_3["elapsed"],
-              time_4a["elapsed"], time_4b["elapsed"]),
-  years_run = c(rep(years, 3), years_4, years_4)
+```{r fleet-model-ssb, fig.width = 9, fig.height = 8}
+bind_rows(
+  proc_oa$fauna %>%
+    filter(step == max(step)) %>%
+    mutate(model = "open_access"),
+  proc_so$fauna %>%
+    filter(step == max(step)) %>%
+    mutate(model = "sole_owner")
 ) %>%
+  group_by(model, critter, x, y) %>%
+  summarise(ssb = sum(ssb, na.rm = TRUE), .groups = "drop") %>%
+  ggplot() +
+  geom_tile(aes(x, y, fill = ssb)) +
+  geom_point(data = ports, aes(x, y),
+             color = "red", size = 1.5, shape = 17) +
+  scale_fill_viridis_c(option = "B") +
+  facet_grid(model ~ critter) +
+  coord_equal() +
+  labs(
+    title = "Final SSB: open access vs sole owner",
+    subtitle = "Red triangles = port locations",
+    fill = "SSB"
+  )
+```
+
+## Scenario 2: fish that move every season
+
+Scenario 1 and the use case have static habitat. Here the habitat flips quickly, which is where the one-step lag of the realised objectives matters. On a 5 × 10 grid with four seasons a year, the fish prefer one end of the grid in seasons 1–2 (habitat A) and the mirror-image end in seasons 3–4, so each habitat lasts two steps. Recruitment habitat is flat, so the only spatial pattern in the fish is the seasonal one.
+
+```{r flip-system}
+flip_resolution <- c(5, 10)
+flip_seasons <- 4
+flip_years <- 25
+
+# marlin reads a habitat matrix with row 1 = the top of the map, while
+# expand_grid() runs y from the bottom up, hence arrange(desc(y)) before reshaping
+to_habitat_matrix <- function(habitat_df) {
+  habitat_df %>%
+    arrange(desc(y)) %>%
+    pivot_wider(names_from = x, values_from = habitat) %>%
+    select(-y) %>%
+    as.matrix()
+}
+
+habitat_a <- expand_grid(x = 1:flip_resolution[1], y = 1:flip_resolution[2]) %>%
   mutate(
-    sec_per_year = round(seconds / years_run, 2),
-    relative = round(sec_per_year / min(sec_per_year), 1)
+    habitat = dnorm(x^2 + y^2, 300, 100),
+    habitat = habitat / max(habitat) * 5
+  ) %>%
+  to_habitat_matrix()
+
+# the exact mirror image of habitat A
+habitat_b <- (max(habitat_a) + min(habitat_a)) - habitat_a
+
+flat_recruit_habitat <- habitat_a
+flat_recruit_habitat[!is.na(flat_recruit_habitat)] <- 1
+
+habitat_to_df <- function(habitat_matrix, label) {
+  as.data.frame(habitat_matrix) %>%
+    mutate(y = n():1) %>%
+    pivot_longer(-y, names_to = "x", values_to = "habitat") %>%
+    mutate(
+      x = match(x, unique(x)),
+      habitat_name = label
+    )
+}
+```
+
+```{r flip-critter}
+yellowfin <- create_critter(
+  query_fishlife = FALSE,
+  scientific_name = "Thunnus albacares",
+  m = 0.3,
+  linf = 100,
+  vbk = 0.2,
+  t0 = -0.5,
+  max_age = 15,
+  age_mature = 3,
+  weight_a = 4e-5,
+  weight_b = 2.86,
+  steepness = 0.9,
+  habitat = list(habitat_a, habitat_b),
+  season_blocks = list(c(1, 2), c(3, 4)),
+  recruit_habitat = flat_recruit_habitat,
+  adult_home_range = 10,
+  recruit_home_range = 10,
+  depletion = 0.4,
+  density_dependence = "pre_dispersal",
+  seasons = flip_seasons,
+  init_explt = 0.2,
+  explt_type = "f"
+)
+```
+
+One longline fleet fishes this stock under six settings: `rpue` at the default `responsiveness` (0.025) and at 0.4 (16 times the default, so effort can move a long way within a two-step habitat), with and without `eps_mix = 0.05`; `fishable_revenue` at 0.4, with and without `eps_mix`; and `marginal_profit` at 0.4 with `eps_mix`.
+
+```{r flip-runs}
+run_flip <- function(spatial_allocation, responsiveness, eps_mix) {
+  flip_fleets <- list(
+    "longline" = create_fleet(
+      metiers = list(
+        "yellowfin" = Metier$new(
+          critter = yellowfin,
+          price = 10,
+          sel_form = "logistic",
+          sel_start = 0.1,
+          sel_delta = 0.01,
+          catchability = 0,
+          p_explt = 1
+        )
+      ),
+      base_effort = prod(flip_resolution),
+      resolution = flip_resolution,
+      spatial_allocation = spatial_allocation,
+      responsiveness = responsiveness,
+      eps_mix = eps_mix
+    )
   )
 
-knitr::kable(runtime,
-             col.names = c("Scenario", "Seconds", "Years", "Sec/Year", "Relative to fastest"),
-             digits = 2,
-             caption = "Wall-clock time for simmar() by scenario. Sec/Year normalizes for different run lengths.")
+  flip_fleets <- tune_fleets(fauna = list("yellowfin" = yellowfin), fleets = flip_fleets)
+
+  flip_proc <- process_marlin(
+    sim = simmar(
+      fauna = list("yellowfin" = yellowfin),
+      fleets = flip_fleets,
+      years = flip_years
+    ),
+    time_step = 1 / flip_seasons,
+    keep_age = FALSE
+  )
+
+  patch_biomass <- flip_proc$fauna %>%
+    group_by(step, x, y) %>%
+    summarise(biomass = sum(b), .groups = "drop")
+
+  patch_effort <- flip_proc$fleets %>%
+    group_by(step, x, y) %>%
+    summarise(effort = sum(effort), .groups = "drop")
+
+  # biomass at step t is the biomass that step t's effort fishes
+  left_join(patch_effort, patch_biomass, by = c("step", "x", "y")) %>%
+    arrange(x, y, step) %>%
+    group_by(x, y) %>%
+    mutate(biomass_last_step = dplyr::lag(biomass)) %>%
+    ungroup() %>%
+    mutate(
+      spatial_allocation = spatial_allocation,
+      responsiveness = responsiveness,
+      eps_mix = eps_mix
+    )
+}
+
+flip_settings <- tibble(
+  spatial_allocation = c("rpue", "rpue", "rpue",
+                         "fishable_revenue", "fishable_revenue", "marginal_profit"),
+  responsiveness = c(0.025, 0.4, 0.4, 0.4, 0.4, 0.4),
+  eps_mix = c(0, 0, 0.05, 0, 0.05, 0.05)
+)
+
+flip_runs <- bind_rows(
+  lapply(seq_len(nrow(flip_settings)), function(i) {
+    run_flip(
+      spatial_allocation = flip_settings$spatial_allocation[i],
+      responsiveness = flip_settings$responsiveness[i],
+      eps_mix = flip_settings$eps_mix[i]
+    )
+  })
+) %>%
+  mutate(
+    setting = paste(spatial_allocation, responsiveness, eps_mix, sep = "_"),
+    scenario = paste0(
+      spatial_allocation, "\nresponsiveness = ", responsiveness,
+      ", eps_mix = ", eps_mix
+    )
+  )
+
+scenario_order <- flip_runs %>%
+  distinct(spatial_allocation, responsiveness, eps_mix, scenario) %>%
+  arrange(desc(spatial_allocation), responsiveness, eps_mix) %>%
+  pull(scenario)
 ```
 
-## Summary Comparison
+Each line below shows how closely one step's map of biomass or effort matches habitat A, over the last three years. Biomass swings between strongly positive and strongly negative as the habitat flips, and a fleet tracking the fish should swing with it.
 
-To see all five spatial allocation strategies side by side, we extract final-step effort across Scenarios 1–3 and compare in a single figure.
+```{r flip-tracking, fig.height = 12}
+habitat_a_df <- habitat_to_df(habitat_a, "A") %>%
+  select(x, y, habitat)
+
+flip_runs %>%
+  filter(step >= flip_years - 3) %>%
+  pivot_longer(cols = c(effort, biomass), names_to = "map", values_to = "value") %>%
+  left_join(habitat_a_df, by = c("x", "y")) %>%
+  group_by(scenario, map, step) %>%
+  summarise(cor_with_habitat_a = cor(value, habitat), .groups = "drop") %>%
+  mutate(scenario = factor(scenario, levels = scenario_order)) %>%
+  ggplot(aes(step, cor_with_habitat_a, color = map)) +
+  geom_hline(yintercept = 0, color = "grey70") +
+  geom_line(linewidth = 0.8) +
+  geom_point(size = 1.2) +
+  facet_wrap(~scenario, ncol = 1) +
+  scale_color_manual(values = c(biomass = "#1b7837", effort = "#e08214")) +
+  labs(
+    x = "Year",
+    y = "Correlation with habitat A",
+    color = NULL
+  )
+
+# for the prose below: across patches, how well does each step's effort line up
+# with the biomass it fished, and with the biomass the step before fished?
+# (averaged over the last two years)
+flip_alignment <- flip_runs %>%
+  filter(step >= flip_years - 2, !is.na(biomass_last_step)) %>%
+  group_by(setting, step) %>%
+  summarise(
+    this_step = cor(effort, biomass),
+    last_step = cor(effort, biomass_last_step),
+    .groups = "drop"
+  ) %>%
+  group_by(setting) %>%
+  summarise(
+    this_step = mean(this_step),
+    last_step = mean(last_step),
+    .groups = "drop"
+  )
+
+this_step_cor <- setNames(round(flip_alignment$this_step, 2), flip_alignment$setting)
+last_step_cor <- setNames(round(flip_alignment$last_step, 2), flip_alignment$setting)
+
+collapsed_patches <- flip_runs %>%
+  filter(step == max(step)) %>%
+  group_by(setting) %>%
+  summarise(collapsed = sum(effort / sum(effort) < 1e-3), .groups = "drop")
+collapsed_patches <- setNames(collapsed_patches$collapsed, collapsed_patches$setting)
+```
+
+Under `rpue`, effort is a step behind the fish. At the default `responsiveness` it barely moves; at 0.4 it swings, but toward where the fish were. Averaged over the last two years, the correlation across patches between effort and the biomass it is fishing is `r this_step_cor[["rpue_0.4_0"]]`, against `r last_step_cor[["rpue_0.4_0"]]` with the biomass the step before fished. Adding `eps_mix` does not change that (`r this_step_cor[["rpue_0.4_0.05"]]` and `r last_step_cor[["rpue_0.4_0.05"]]`), because the problem is when the signal was measured.
+
+Both prospective objectives with `eps_mix` move with the fish: `fishable_revenue` at `r this_step_cor[["fishable_revenue_0.4_0.05"]]` against `r last_step_cor[["fishable_revenue_0.4_0.05"]]`, and `marginal_profit` at `r this_step_cor[["marginal_profit_0.4_0.05"]]` against `r last_step_cor[["marginal_profit_0.4_0.05"]]`. In the step right after a flip, effort is still only partway to the new pattern, because each step the map moves only part of the way toward a current signal. Without `eps_mix`, `fishable_revenue` tracks the fish only weakly (`r this_step_cor[["fishable_revenue_0.4_0"]]` against `r last_step_cor[["fishable_revenue_0.4_0"]]`). With no crowding, its effort piles into a few patches, and by the final step `r collapsed_patches[["fishable_revenue_0.4_0"]]` of the `r prod(flip_resolution)` patches hold less than 0.1% of it, too little to recover before the next flip.
+
+So when fish move on about the time step, use a prospective objective with a small `eps_mix`: `marginal_profit` if the fleet's economics matter (at extra computational cost), or `fishable_revenue` if "effort follows the fish" is enough. If the fleet should behave as competing vessels (the IFD), only the realised objectives give that, lag included, and the lag matters little when habitat moves slowly.
+
+## Use case: a different strategy for each fleet
+
+Real applications usually have several fleets, each with its own settings. Here `build_fleets()` gives the two fleets different strategies in three configurations:
+
+- **A:** longline on `rpue`, handline on `revenue`;
+- **B:** longline on `ppue`, handline on `profit`;
+- **C:** longline on `marginal_profit`, handline on `rpue`.
+
+These are not controlled comparisons of strategies. The fleets differ in more than their objective (see "Fleets"), so each map reflects the fleet as well as its strategy.
+
+```{r use-case-runs}
+fleets_a <- build_fleets("rpue", "revenue")
+fleets_b <- build_fleets("ppue", "profit")
+fleets_c <- build_fleets("marginal_profit", "rpue")
+
+time_a <- system.time({
+  sim_a <- simmar(fauna = fauna, fleets = fleets_a, years = years)
+})
+time_b <- system.time({
+  sim_b <- simmar(fauna = fauna, fleets = fleets_b, years = years)
+})
+time_c <- system.time({
+  sim_c <- simmar(fauna = fauna, fleets = fleets_c, years = years)
+})
+
+proc_a <- process_marlin(sim_a, time_step = time_step)
+proc_b <- process_marlin(sim_b, time_step = time_step)
+proc_c <- process_marlin(sim_c, time_step = time_step)
+```
+
+### Effort and SSB in the three configurations
+
+Final-step effort for each fleet, on a shared colour scale:
 
 ```{r comparison-effort, fig.width = 10, fig.height = 10}
 extract_effort <- function(sim, fleet_name, label) {
@@ -560,30 +708,30 @@ extract_effort <- function(sim, fleet_name, label) {
 }
 
 all_efforts <- bind_rows(
-  extract_effort(sim_1, "longline", "rpue"),
-  extract_effort(sim_1, "handline", "revenue"),
-  extract_effort(sim_2, "longline", "ppue"),
-  extract_effort(sim_2, "handline", "profit"),
-  extract_effort(sim_3, "longline", "marginal_profit")
+  extract_effort(sim_a, "longline", "A: longline, rpue"),
+  extract_effort(sim_a, "handline", "A: handline, revenue"),
+  extract_effort(sim_b, "longline", "B: longline, ppue"),
+  extract_effort(sim_b, "handline", "B: handline, profit"),
+  extract_effort(sim_c, "longline", "C: longline, marginal_profit"),
+  extract_effort(sim_c, "handline", "C: handline, rpue")
 ) %>%
-  mutate(strategy = factor(strategy,
-    levels = c("rpue", "revenue", "ppue", "profit", "marginal_profit")))
+  mutate(strategy = factor(strategy, levels = unique(strategy)))
 
 ggplot(all_efforts) +
   geom_tile(aes(x, y, fill = effort)) +
   geom_point(data = ports, aes(x, y),
              color = "red", size = 2, shape = 17) +
   scale_fill_viridis_c(option = "C") +
-  facet_wrap(~strategy, ncol = 3) +
+  facet_wrap(~strategy, ncol = 2) +
   coord_equal() +
   labs(
-    title = "Effort Distribution by Spatial Allocation Strategy",
+    title = "Effort by fleet and strategy, configurations A–C",
     subtitle = "Red triangles = port locations",
     fill = "Effort"
   )
 ```
 
-We can do the same for SSB to see how each allocation strategy shapes the resulting biomass landscape. The rows correspond to the fleet allocation pairings (longline / handline), and the columns to each species.
+And the resulting SSB:
 
 ```{r comparison-ssb, fig.width = 10, fig.height = 12}
 extract_ssb <- function(proc, longline_alloc, handline_alloc) {
@@ -597,9 +745,9 @@ extract_ssb <- function(proc, longline_alloc, handline_alloc) {
 }
 
 all_ssb <- bind_rows(
-  extract_ssb(proc_1, "rpue", "revenue"),
-  extract_ssb(proc_2, "ppue", "profit"),
-  extract_ssb(proc_3, "marginal_profit", "rpue")
+  extract_ssb(proc_a, "A: rpue", "revenue"),
+  extract_ssb(proc_b, "B: ppue", "profit"),
+  extract_ssb(proc_c, "C: marginal_profit", "rpue")
 )
 
 ggplot(all_ssb) +
@@ -610,18 +758,204 @@ ggplot(all_ssb) +
   facet_grid(strategy ~ critter) +
   coord_equal() +
   labs(
-    title = "SSB by Allocation Strategy (longline / handline)",
+    title = "SSB by configuration (longline strategy / handline strategy)",
     subtitle = "Red triangles = port locations",
     fill = "SSB"
   )
 ```
 
+- **A.** The longline fleet (`rpue`) spreads its effort widely, while the handline fleet (`revenue`) piles its effort into scattered single patches. It fishes those patches down (the pockets of low skipjack SSB), but after 20 years that has not evened out its map. Neither objective counts costs, so neither map follows the ports.
+- **B.** The longline fleet (`ppue`) clusters around both ports and leaves the far edges lightly fished, where skipjack build up. The handline fleet (`profit`) responds to distance much more weakly, partly because travel is a smaller share of its costs.
+- **C.** The longline fleet (`marginal_profit`) has the smoothest, most port-centred surface, and bigeye are depleted most around the ports. The handline fleet (`rpue`) fishes the outer ring instead, likely because longline has fished bigeye down near the ports. A fleet's map depends on the other fleets as well as on its own settings.
 
-Some patterns to look for across these panels:
+### What each fleet has equalised by the final step
 
-- **`rpue` vs `revenue`**: The per-unit strategy (`rpue`) tends to spread effort more evenly, while the total strategy (`revenue`) concentrates effort in high-biomass patches. Since neither accounts for travel costs, effort extends freely into remote patches.
-- **`ppue` vs `profit`**: Adding travel costs shifts effort toward ports. The per-unit version (`ppue`) is especially reluctant to send effort far from port, creating biomass refugia in remote areas.
-- **`marginal_profit`**: Produces the smoothest effort surface among cost-aware strategies, because it directly penalizes diminishing returns from effort concentration. This leads to the most spatially uniform depletion.
-- **`sole_owner` vs `open_access`**: With the same spatial allocation (`ppue`), the sole owner reaches equilibrium at lower total effort and higher biomass than open access, retaining positive profits where open access dissipates them. This is the classic MEY vs. open-access result, now playing out in a spatially explicit setting.
+A fleet on a per-unit-effort or marginal objective should come to rest where that objective is level across its fished patches (see "Resting states and Nash equilibrium"). Each point below is a patch at the final step. The vertical axis is the patch's deviation from the fleet's average, as a percentage of the fleet's gross return per unit effort (marginal revenue, for marginal profit). A flat band at zero means the objective has been equalised.
 
-The choice of `spatial_allocation` can substantially change the spatial footprint of fishing, which in turn affects local depletion patterns, the effectiveness of spatial management tools like MPAs, and the economic outcomes of the fishery. See the `port-distance` and `fleet-management` vignettes for more on how these fleet options interact with other `marlin` features.
+```{r equalised, fig.width = 9, fig.height = 7}
+patch_returns <- function(sim, step_index, fleet_name) {
+  step_out <- sim[[step_index]]
+  sum_over_critters <- function(element) {
+    Reduce(`+`, lapply(names(fauna), function(critter) {
+      step_out[[critter]][[element]][, fleet_name]
+    }))
+  }
+  effort <- step_out[[1]]$e_p_fl[, fleet_name]
+
+  tibble(
+    effort_share = effort / sum(effort),
+    rpue = sum_over_critters("r_p_fl") / effort,
+    ppue = sum_over_critters("prof_p_fl") / effort
+  )
+}
+
+# marginal values at the biomass and effort of one step, other fleets held fixed
+patch_marginals <- function(sim, step_index, fleet_name, fleets) {
+  step_out <- sim[[step_index]]
+  marginals <- calc_marginal_value(
+    e_p_fl = as.matrix(step_out[[1]]$e_p_fl),
+    fauna = fauna,
+    n_p_a = setNames(lapply(names(fauna), function(critter) {
+      step_out[[critter]]$n_p_a
+    }), names(fauna)),
+    fleets = fleets
+  )
+
+  tibble(
+    marginal_revenue = marginals$mr_p_fl[, fleet_name],
+    marginal_profit = marginals$mp_p_fl[, fleet_name]
+  )
+}
+
+# deviation of each patch from the fleet's effort-weighted average, as a
+# fraction of the fleet's effort-weighted gross return on the same footing
+relative_deviation <- function(value, gross, effort_share) {
+  (value - sum(effort_share * value)) / sum(effort_share * gross)
+}
+
+final_index <- length(sim_a)
+
+rpue_fleet <- patch_returns(sim_a, final_index, "longline")
+ppue_fleet <- patch_returns(sim_b, final_index, "longline")
+marginal_fleet <- bind_cols(
+  patch_returns(sim_c, final_index, "longline"),
+  patch_marginals(sim_c, final_index, "longline", fleets_c)
+)
+
+equalised <- bind_rows(
+  rpue_fleet %>%
+    mutate(
+      panel = "A: longline on rpue\nrevenue per unit effort",
+      deviation = relative_deviation(rpue, rpue, effort_share)
+    ),
+  ppue_fleet %>%
+    mutate(
+      panel = "B: longline on ppue\nprofit per unit effort",
+      deviation = relative_deviation(ppue, rpue, effort_share)
+    ),
+  marginal_fleet %>%
+    mutate(
+      panel = "C: longline on marginal_profit\nmarginal profit",
+      deviation = relative_deviation(marginal_profit, marginal_revenue, effort_share)
+    ),
+  marginal_fleet %>%
+    mutate(
+      panel = "C: longline on marginal_profit\nprofit per unit effort",
+      deviation = relative_deviation(ppue, rpue, effort_share)
+    )
+) %>%
+  mutate(panel = factor(panel, levels = unique(panel)))
+
+ggplot(equalised, aes(100 * effort_share, 100 * deviation)) +
+  geom_hline(yintercept = 0, color = "grey60") +
+  geom_point(alpha = 0.4) +
+  facet_wrap(~panel, ncol = 2) +
+  labs(
+    title = "What each fleet has equalised by the final step",
+    x = "Patch share of the fleet's effort (%)",
+    y = "Deviation from the fleet's average\n(% of its gross return per unit effort)"
+  )
+```
+
+The `rpue` and `ppue` fleets are close to the IFD. Patches holding a meaningful share of effort earn the same average return, and the low points at near-zero effort are patches abandoned because they pay less. The `marginal_profit` fleet has levelled marginal profit but not average profit: its most heavily fished patches, near the ports, earn more per unit effort than the rest. Independent vessels would crowd into those patches; a single owner does not, because each extra unit there lowers the catch of the effort already there.
+
+### How close repeated play gets to equilibrium
+
+The next figure tracks, through time, the most an average unit of a fleet's effort could gain by moving to the fleet's best patch, as a percentage of its gross return per unit effort; zero would be an exact equilibrium. Configuration C's handline fleet (`rpue`) is included, so both players of a two-fleet game are shown.
+
+```{r nash-gap, fig.width = 9, fig.height = 5}
+# the most an average unit of effort could gain by moving to the best patch,
+# as a fraction of the fleet's gross return per unit effort
+nash_gap <- function(value, gross, effort_share) {
+  (max(value, na.rm = TRUE) - sum(effort_share * value)) / sum(effort_share * gross)
+}
+
+# simmar() names each step "year_season"
+step_years <- sapply(strsplit(names(sim_a), "_"), function(year_season) {
+  as.numeric(year_season[1]) + (as.numeric(year_season[2]) - 1) * time_step
+})
+
+gap_paths <- bind_rows(lapply(seq_along(sim_a), function(step_index) {
+  s1_longline <- patch_returns(sim_a, step_index, "longline")
+  s2_longline <- patch_returns(sim_b, step_index, "longline")
+  s3_longline <- bind_cols(
+    patch_returns(sim_c, step_index, "longline"),
+    patch_marginals(sim_c, step_index, "longline", fleets_c)
+  )
+  s3_handline <- patch_returns(sim_c, step_index, "handline")
+
+  tibble(
+    year = step_years[step_index],
+    fleet = c(
+      "A: longline (rpue)",
+      "B: longline (ppue)",
+      "C: longline (marginal_profit)",
+      "C: handline (rpue)"
+    ),
+    gap = c(
+      nash_gap(s1_longline$rpue, s1_longline$rpue, s1_longline$effort_share),
+      nash_gap(s2_longline$ppue, s2_longline$rpue, s2_longline$effort_share),
+      nash_gap(s3_longline$marginal_profit, s3_longline$marginal_revenue,
+               s3_longline$effort_share),
+      nash_gap(s3_handline$rpue, s3_handline$rpue, s3_handline$effort_share)
+    )
+  )
+}))
+
+final_gaps <- gap_paths %>%
+  filter(year == max(year)) %>%
+  pull(gap)
+
+# the same measure over the 50-year open-access run of Scenario 1 (both fleets on ppue),
+# to see whether the gap keeps shrinking or levels off
+long_run_years <- sapply(strsplit(names(sim_oa), "_"), function(year_season) {
+  as.numeric(year_season[1]) + (as.numeric(year_season[2]) - 1) * time_step
+})
+long_run_gaps <- unlist(lapply(which(long_run_years >= 20), function(step_index) {
+  sapply(c("longline", "handline"), function(fleet_name) {
+    fleet_returns <- patch_returns(sim_oa, step_index, fleet_name)
+    nash_gap(fleet_returns$ppue, fleet_returns$rpue, fleet_returns$effort_share)
+  })
+}))
+
+ggplot(gap_paths, aes(year, 100 * gap, color = fleet)) +
+  geom_line(linewidth = 0.8) +
+  scale_y_log10() +
+  guides(color = guide_legend(ncol = 2)) +
+  labs(
+    title = "Distance from equilibrium",
+    x = "Year",
+    y = "Gain available from moving\n(% of gross return per unit effort, log scale)",
+    color = NULL
+  )
+```
+
+All four gaps shrink, from as much as `r round(100 * max(gap_paths$gap[gap_paths$year == min(gap_paths$year)]))`% in the first year to between `r round(100 * min(final_gaps), 1)`% and `r round(100 * max(final_gaps), 1)`% by year 20, but not to zero. In the 50-year open-access run of Scenario 1 (both fleets on `ppue`), the gap stays between `r round(100 * min(long_run_gaps), 1)`% and `r round(100 * max(long_run_gaps), 1)`% from year 20 to year 50: play gets close to the equilibrium and then wobbles around it. The best remaining patches are fished ones slightly above average, not abandoned ones, so these are approximate Nash equilibria rather than traps, and in configuration C both fleets get there together. Convergence is slow, though: the cost-aware fleets take 15–20 years at the default `responsiveness`. All of this is with static habitat.
+
+## Runtime {#runtime}
+
+The marginal objectives and `sole_owner` need `calc_marginal_value()` every step, which adds at least one extra `go_fish()` evaluation per fleet, so they run slower:
+
+```{r runtime}
+runtime <- tibble(
+  scenario = c("A: rpue / revenue", "B: ppue / profit", "C: marginal_profit / rpue",
+               "Scenario 1: open_access (ppue)", "Scenario 1: sole_owner (ppue)"),
+  seconds = c(time_a["elapsed"], time_b["elapsed"], time_c["elapsed"],
+              time_oa["elapsed"], time_so["elapsed"]),
+  years_run = c(rep(years, 3), years_long, years_long)
+) %>%
+  mutate(
+    ms_per_year = 1000 * seconds / years_run,
+    relative = round(ms_per_year / min(ms_per_year), 1),
+    ms_per_year = round(ms_per_year, 1)
+  )
+
+knitr::kable(runtime,
+             col.names = c("Scenario", "Seconds", "Years", "ms per simulated year", "Relative to fastest"),
+             digits = 2,
+             caption = "Wall-clock time for simmar() by scenario. Time per simulated year adjusts for the different run lengths.")
+```
+
+## Choosing a strategy
+
+None of the options is the realistic one; pick the one whose story best fits the fleet being modelled, or compare several. As a rough guide: total objectives for a fleet that goes where the catch is; per-unit-effort objectives for competing vessels (the IFD); marginal objectives for a fleet run as one business; and `fishable_revenue`, with a small `eps_mix`, when effort should simply follow the fish. The fleet model is a separate choice that sets how much effort there is to allocate. See the `port-distance` and `fleet-management` vignettes for how these options interact with other `marlin` features, and `spatial-allocation-memory` for `memory_halflife`.

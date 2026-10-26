@@ -17,9 +17,14 @@
 #'     = 0. Entry/exit speed is controlled by \code{oa_max_growth_per_year},
 #'     \code{oa_max_decline_per_year}, and \code{oa_signal_half}.}
 #'   \item{\code{"sole_owner"}}{Identical dynamics to \code{"open_access"} but
-#'     uses the marginal (not average) profit signal. Equilibrates at MEY where
-#'     marginal profit = 0. Requires \code{calc_marginal_value()} to be
-#'     computed each step; \code{\link{simmar}} handles this automatically.}
+#'     uses the marginal (not average) profit signal. Equilibrates where the
+#'     within-step marginal profit = 0. That signal counts crowding within a
+#'     step but not the effect of effort on the future stock, so this is a
+#'     myopic sole owner: it settles below open-access effort with positive
+#'     profit, but in general above MEY effort, closer to MEY the less one
+#'     step's fishing changes the future stock. Requires
+#'     \code{calc_marginal_value()} to be computed each step;
+#'     \code{\link{simmar}} handles this automatically.}
 #'   \item{\code{"manual"}}{Total effort each step is taken directly from a
 #'     user-supplied vector; see the \code{manager} argument of
 #'     \code{\link{simmar}}.}
@@ -38,17 +43,26 @@
 #'   \item{\code{"cpue"} / \code{"catch"}}{Catch-based variants.}
 #'   \item{\code{"marginal_revenue"} / \code{"marginal_profit"}}{Uses finite-
 #'     difference marginal returns from \code{\link{calc_marginal_value}}.
-#'     Required for \code{"sole_owner"} fleets. Requires
-#'     \code{fleet_model = "sole_owner"} or explicit pre-computation.}
+#'     Effort tends toward the return on the last unit being equal across
+#'     fished patches, which maximises the fleet's revenue (or profit) within
+#'     each step for its total effort, taking other fleets' effort as given:
+#'     the spatial counterpart of a myopic sole owner. The per-unit-effort
+#'     options above instead tend toward equal average returns, the ideal free
+#'     distribution, when repeated play settles. Evaluated on the biomass the coming step will fish, so
+#'     unlike the realised options above there is no one-step lag.
+#'     \code{\link{simmar}} computes them each step whenever a fleet uses them
+#'     or has \code{fleet_model = "sole_owner"}.}
 #'   \item{\code{"fishable_revenue"}}{Revenue standing available in each patch --
 #'     biomass at age times vulnerability at age times price, from
-#'     \code{\link{calc_fishable_revenue}}. Unlike every option above it is not a
-#'     function of realised fishing, so it is evaluated against the biomass the
-#'     step is about to fish rather than the one it just fished. Use it when you
-#'     want effort to track biomass in phase, in particular when habitat moves on
-#'     a timescale near the time step (e.g. seasonal migration), where the
-#'     realised objectives always lag by a step no matter how
-#'     \code{responsiveness} is set. In exchange there is no crowding within a
+#'     \code{\link{calc_fishable_revenue}}. Like the marginal options, and
+#'     unlike the realised ones (\code{"rpue"} through \code{"catch"}), it is
+#'     evaluated against the biomass the step is about to fish rather than the
+#'     one it just fished. Use it when you want effort to track biomass in
+#'     phase, in particular when habitat moves on a timescale near the time step
+#'     (e.g. seasonal migration), where the realised objectives always lag by a
+#'     step no matter how \code{responsiveness} is set, and you do not need the
+#'     economics the marginal options carry. It is far cheaper to compute than
+#'     the marginal options. In exchange there is no crowding within a
 #'     step, no cost side, and no within-step interaction between fleets, and the
 #'     fleet relaxes toward effort tracking standing stock rather than toward an
 #'     ideal free distribution. See \code{\link{calc_fishable_revenue}}.}

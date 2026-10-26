@@ -517,8 +517,8 @@ simmar <- function(fauna = list(),
     current_season <- step_season[s]
 
     # Fishable revenue is the one objective that does not depend on effort, so
-    # unlike everything else in `buffet` (which aggregate_yields() builds at the
-    # END of this loop, from the fishing that just happened, and therefore
+    # unlike the realised objectives in `buffet` (which aggregate_yields() builds
+    # at the END of this loop, from the fishing that just happened, and therefore
     # describes step s-1) it can be evaluated against the biomass THIS step is
     # about to fish. That biomass is storage[[s - 1]]$b_p_a -- see the swim()
     # call below, which hands sim_fish `last_n_p_a <- storage[[s - 1]]$n_p_a`,
@@ -683,9 +683,10 @@ simmar <- function(fauna = list(),
       # the fleet-level marginal profit (effort-weighted mean of patch-level
       # marginal profits from calc_marginal_value) rather than average profit.
       #
-      # Equilibrium: total effort where marginal profit = 0, i.e., MEY
-      # (maximum economic yield), compared to open access which equilibrates
-      # where average profit = 0.
+      # Equilibrium: total effort where the within-step marginal profit = 0,
+      # compared to open access which equilibrates where average profit = 0.
+      # The signal ignores effort's effect on the future stock, so this is a
+      # myopic sole owner: between open access and MEY, not MEY itself.
       # -------------------------------------------------------------------------
 
       if (fleets[[l]]$fleet_model == "sole_owner" & s > 2) {
