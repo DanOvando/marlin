@@ -909,12 +909,12 @@ long_run_gaps <- unlist(lapply(which(long_run_years >= 20), function(step_index)
 
 ggplot(gap_paths, aes(year, 100 * gap, color = fleet)) +
   geom_line(linewidth = 0.8) +
-  scale_y_log10() +
+  scale_y_continuous() +
   guides(color = guide_legend(ncol = 2)) +
   labs(
     title = "Distance from equilibrium",
     x = "Year",
-    y = "Gain available from moving\n(% of gross return per unit effort, log scale)",
+    y = "Gain available from moving\n(% of gross return per unit effort)",
     color = NULL
   )
 ```
