@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">marlin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -788,7 +788,7 @@ profit is the sum over species and patches.</p>
 <span>    <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span></span>
 <span>      step_name <span class="op">=</span> <span class="va">step_name</span>,</span>
 <span>      fleet <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">profit_p_fl</span><span class="op">)</span>,</span>
-<span>      profit <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">colSums</a></span><span class="op">(</span><span class="va">profit_p_fl</span><span class="op">)</span></span>
+<span>      profit <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums-methods.html" class="external-link">colSums</a></span><span class="op">(</span><span class="va">profit_p_fl</span><span class="op">)</span></span>
 <span>    <span class="op">)</span></span>
 <span>  <span class="op">}</span><span class="op">)</span></span>
 <span></span>
@@ -1065,11 +1065,11 @@ default <code>responsiveness</code> it barely moves; at 0.4 it swings,
 but toward where the fish were. Averaged over the last two years, the
 correlation across patches between effort and the biomass it is fishing
 is -0.27, against 0.39 with the biomass the step before fished. Adding
-<code>eps_mix</code> does not change that (-0.29 and 0.45), because the
+<code>eps_mix</code> does not change that (-0.29 and 0.48), because the
 problem is when the signal was measured.</p>
 <p>Both prospective objectives with <code>eps_mix</code> move with the
 fish: <code>fishable_revenue</code> at 0.56 against 0.39, and
-<code>marginal_profit</code> at 0.61 against 0.38. In the step right
+<code>marginal_profit</code> at 0.62 against 0.37. In the step right
 after a flip, effort is still only partway to the new pattern, because
 each step the map moves only part of the way toward a current signal.
 Without <code>eps_mix</code>, <code>fishable_revenue</code> tracks the
@@ -1362,10 +1362,10 @@ included, so both players of a two-fleet game are shown.</p>
 <span>    color <span class="op">=</span> <span class="cn">NULL</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
 <p><img src="spatial-allocation_files/figure-html/nash-gap-1.png" class="r-plt" alt="" width="864"></p>
-<p>All four gaps shrink, from as much as 38% in the first year to
-between 0.8% and 1.7% by year 20, but not to zero. In the 50-year
+<p>All four gaps shrink, from as much as 44% in the first year to
+between 0.7% and 2.5% by year 20, but not to zero. In the 50-year
 open-access run of Scenario 1 (both fleets on <code>ppue</code>), the
-gap stays between 0.3% and 2.2% from year 20 to year 50: play gets close
+gap stays between 0.6% and 1.5% from year 20 to year 50: play gets close
 to the equilibrium and then wobbles around it. The best remaining
 patches are fished ones slightly above average, not abandoned ones, so
 these are approximate Nash equilibria rather than traps, and in
@@ -1419,38 +1419,38 @@ year adjusts for the different run lengths.</caption>
 <tbody>
 <tr class="odd">
 <td align="left">A: rpue / revenue</td>
-<td align="right">0.11</td>
+<td align="right">0.21</td>
 <td align="right">20</td>
-<td align="right">5.4</td>
+<td align="right">10.5</td>
 <td align="right">1.1</td>
 </tr>
 <tr class="even">
 <td align="left">B: ppue / profit</td>
-<td align="right">0.10</td>
+<td align="right">0.22</td>
 <td align="right">20</td>
-<td align="right">4.8</td>
-<td align="right">1.0</td>
+<td align="right">11.2</td>
+<td align="right">1.2</td>
 </tr>
 <tr class="odd">
 <td align="left">C: marginal_profit / rpue</td>
-<td align="right">0.30</td>
+<td align="right">0.54</td>
 <td align="right">20</td>
-<td align="right">14.8</td>
-<td align="right">3.0</td>
+<td align="right">27.1</td>
+<td align="right">2.8</td>
 </tr>
 <tr class="even">
 <td align="left">Scenario 1: open_access (ppue)</td>
-<td align="right">0.25</td>
+<td align="right">0.48</td>
 <td align="right">50</td>
-<td align="right">5.0</td>
+<td align="right">9.6</td>
 <td align="right">1.0</td>
 </tr>
 <tr class="odd">
 <td align="left">Scenario 1: sole_owner (ppue)</td>
-<td align="right">0.81</td>
+<td align="right">1.57</td>
 <td align="right">50</td>
-<td align="right">16.3</td>
-<td align="right">3.4</td>
+<td align="right">31.3</td>
+<td align="right">3.3</td>
 </tr>
 </tbody>
 </table>

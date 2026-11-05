@@ -20,14 +20,16 @@
 #'   \item \code{n}: numbers at age
 #'   \item \code{b}: biomass at age
 #'   \item \code{ssb}: spawning stock biomass at age
-#'   \item \code{c}: catch in numbers at age
+#'   \item \code{c}: catch in weight at age
+#'   \item \code{cn}: catch in numbers at age
 #' }
 #'
 #' **\code{$fleets}** — one row per critter × patch × age × fleet × step:
 #' \itemize{
 #'   \item \code{critter}, \code{patch}, \code{x}, \code{y}, \code{age},
 #'     \code{fleet}, \code{step}, \code{mean_length}: as above
-#'   \item \code{catch}: catch in numbers
+#'   \item \code{catch}: catch in weight
+#'   \item \code{catch_numbers}: catch in numbers
 #'   \item \code{revenue}: revenue
 #'   \item \code{effort}: effort units
 #'   \item \code{cpue}: catch per unit effort (\code{NA} where effort = 0)
@@ -141,6 +143,10 @@ process_marlin <- function(sim,
       ssb_p_a = obj$ssb_p_a,
       c_p_a   = obj$c_p_a
     )
+    # catch in numbers (marlin >= 1.1.4); absent from simulations made earlier
+    if (!is.null(obj$cn_p_a)) {
+      mats$cn_p_a <- obj$cn_p_a
+    }
 
     out_long <- data.table::rbindlist(
       lapply(names(mats), function(metric_nm) {
@@ -179,7 +185,7 @@ process_marlin <- function(sim,
 
     out_wide <- out_wide[coords, on = "patch"]
 
-    metric_cols <- intersect(c("n", "b", "ssb", "c"), names(out_wide))
+    metric_cols <- intersect(c("n", "b", "ssb", "c", "cn"), names(out_wide))
     data.table::setcolorder(out_wide, c("critter", "patch", "x", "y", "age", metric_cols))
     out_wide
   }
@@ -228,11 +234,27 @@ process_marlin <- function(sim,
     data.table::setnames(rev_dt, c("patch", "age", "fleet", "revenue"))
     rev_dt[, `:=`(patch = as.numeric(patch), age = as.numeric(age), fleet = as.character(fleet))]
 
+    # catch in numbers (marlin >= 1.1.4); absent from simulations made earlier
+    has_catch_numbers <- !is.null(obj$cn_p_a_fl)
+    if (has_catch_numbers) {
+      catch_n_dt <- dt(as.data.table(as.table(obj$cn_p_a_fl)))
+      data.table::setnames(catch_n_dt, c("patch", "age", "fleet", "catch_numbers"))
+      catch_n_dt[, `:=`(patch = as.numeric(patch), age = as.numeric(age), fleet = as.character(fleet))]
+    }
+
     if (!keep_age) {
       catch_dt <- catch_dt[, .(catch = sum(catch, na.rm = TRUE)), by = .(patch, fleet)]
       catch_dt[, age := "all"]
       rev_dt <- rev_dt[, .(revenue = sum(revenue, na.rm = TRUE)), by = .(patch, fleet)]
       rev_dt[, age := "all"]
+      if (has_catch_numbers) {
+        catch_n_dt <- catch_n_dt[, .(catch_numbers = sum(catch_numbers, na.rm = TRUE)), by = .(patch, fleet)]
+        catch_n_dt[, age := "all"]
+      }
+    }
+
+    if (has_catch_numbers) {
+      catch_dt <- catch_n_dt[catch_dt, on = .(patch, age, fleet)]
     }
 
     # effort: e_p_fl is a data.frame with columns = fleets, rows = patches
@@ -261,7 +283,7 @@ process_marlin <- function(sim,
 
     # column order similar to original
     preferred <- c("critter", "patch", "x", "y", "age", "fleet",
-                   "catch", "revenue", "effort", "cpue")
+                   "catch", "catch_numbers", "revenue", "effort", "cpue")
     keep <- intersect(preferred, names(out))
     data.table::setcolorder(out, c(keep, setdiff(names(out), keep)))
 

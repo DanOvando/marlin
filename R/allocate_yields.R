@@ -36,6 +36,8 @@
 #' @return A named list:
 #' \describe{
 #'   \item{\code{c_p_a_fl}}{3-D array \code{[patches, ages, fleets]} of
+#'     catch in weight (biomass).}
+#'   \item{\code{cn_p_a_fl}}{3-D array \code{[patches, ages, fleets]} of
 #'     catch in numbers.}
 #'   \item{\code{r_p_a_fl}}{3-D array \code{[patches, ages, fleets]} of
 #'     revenue.}
@@ -53,6 +55,13 @@
 allocate_yields <- function(f_p_a_fl,p_p_a_fl, e_p_fl, critter, pop, patches, ages, fleets, fauna) {
   c_p_a_fl <- f_p_a_fl * array(
     pop$c_p_a,
+    dim = c(patches, ages, length(fleets)),
+    dimnames = list(1:patches, fauna[[critter]]$ages, names(fleets))
+  )
+
+  # the same catch in numbers, split across fleets the same way
+  cn_p_a_fl <- f_p_a_fl * array(
+    pop$cn_p_a,
     dim = c(patches, ages, length(fleets)),
     dimnames = list(1:patches, fauna[[critter]]$ages, names(fleets))
   )
@@ -114,6 +123,7 @@ allocate_yields <- function(f_p_a_fl,p_p_a_fl, e_p_fl, critter, pop, patches, ag
 
   out <- list(
     c_p_a_fl = c_p_a_fl,
+    cn_p_a_fl = cn_p_a_fl,
     r_p_a_fl = r_p_a_fl,
     r_p_fl = r_p_fl,
     c_p_fl = c_p_fl,

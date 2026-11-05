@@ -83,7 +83,7 @@ Each critter's state includes:
 \item{\code{n_p_a}}{Numbers by patch and age (matrix).}
 \item{\code{b_p_a}}{Biomass by patch and age (matrix).}
 \item{\code{ssb_p_a}}{Spawning stock biomass by patch and age (matrix).}
-\item{\code{c_p_a}}{Catch in numbers by patch and age (matrix).}
+\item{\code{c_p_a}}{Catch in weight (biomass) by patch and age (matrix).}
 \item{\code{c_p_fl}}{Catch by patch and fleet (matrix).}
 \item{\code{r_p_fl}}{Revenue by patch and fleet (matrix).}
 \item{\code{prof_p_fl}}{Profit by patch and fleet (matrix).}

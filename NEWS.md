@@ -4,6 +4,14 @@
 
 - Catch is now weighed at the age the fish were caught at. Since the 1.0.0 rewrite of `sim_fish()`, the Baranov catch of age *a* fish (numbers, *F* and *Z* all at age *a*) was converted to biomass with `weight_at_age[a + 1]`, the next age's weight, while the pre-1.0 code used the same age. This inflated catch biomass, revenue and profit by `weight_at_age[a + 1] / weight_at_age[a]`, most at the youngest ages, and through revenue and profit it also affected spatial effort allocation, open-access and sole-owner effort dynamics, and `tune_fleets()`'s cost calibration. Survival, numbers, biomass and spawning biomass were not affected directly. The plus group was always weighed correctly. A new test reproduces one step's catch by hand.
 
+## New Features
+
+- Catch is now also returned in numbers. `sim_fish()` returns `cn_p_a` alongside `c_p_a` (weight); `allocate_yields()` splits it across fleets as `cn_p_a_fl`; `simmar()` stores both, shifted to the step the catch came from just like `c_p_a`; and `process_marlin()` adds a `cn` column to `$fauna` and a `catch_numbers` column to `$fleets`. Useful for simulating sampled fish. Existing outputs are unchanged.
+
+## Documentation
+
+- `c_p_a`, `c_p_a_fl` and the processed `c` / `catch` columns are catch in weight (biomass). The docs for `simmar()`, `process_marlin()`, `allocate_yields()` and `plot_marlin()` had described them as catch in numbers, which invites weighting catch a second time.
+
 # marlin 1.1.3
 
 ## Bug Fixes

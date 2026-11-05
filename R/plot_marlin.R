@@ -34,7 +34,7 @@
 #'   \describe{
 #'     \item{\code{"ssb"}}{Spawning stock biomass (default)}
 #'     \item{\code{"b"}}{Total biomass}
-#'     \item{\code{"c"}}{Catch in numbers}
+#'     \item{\code{"c"}}{Catch in weight}
 #'     \item{\code{"n"}}{Abundance in numbers}
 #'   }
 #' @param plot_type Character. Type of plot. One of \code{"time"} (default),

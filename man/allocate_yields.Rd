@@ -44,7 +44,7 @@ index \code{fauna}).}
 A named list:
 \describe{
 \item{\code{c_p_a_fl}}{3-D array \code{[patches, ages, fleets]} of
-catch in numbers.}
+catch in weight (biomass).}
 \item{\code{r_p_a_fl}}{3-D array \code{[patches, ages, fleets]} of
 revenue.}
 \item{\code{r_p_fl}}{Matrix \code{[patches, fleets]} of revenue summed

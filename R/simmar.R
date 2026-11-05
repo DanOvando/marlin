@@ -97,7 +97,8 @@
 #'     \item{\code{n_p_a}}{Numbers by patch and age (matrix).}
 #'     \item{\code{b_p_a}}{Biomass by patch and age (matrix).}
 #'     \item{\code{ssb_p_a}}{Spawning stock biomass by patch and age (matrix).}
-#'     \item{\code{c_p_a}}{Catch in numbers by patch and age (matrix).}
+#'     \item{\code{c_p_a}}{Catch in weight (biomass) by patch and age (matrix).}
+#'     \item{\code{cn_p_a}}{Catch in numbers by patch and age (matrix).}
 #'     \item{\code{c_p_fl}}{Catch by patch and fleet (matrix).}
 #'     \item{\code{r_p_fl}}{Revenue by patch and fleet (matrix).}
 #'     \item{\code{prof_p_fl}}{Profit by patch and fleet (matrix).}
@@ -998,6 +999,12 @@ simmar <- function(fauna = list(),
 
       storage[[s - 1]][[critter]]$c_p_a <-
         pop$c_p_a # catch stored in each model is the catch that came from the last time step, so put in the right place here
+
+      storage[[s - 1]][[critter]]$cn_p_a <-
+        pop$cn_p_a # the same catch in numbers, shifted the same way
+
+      storage[[s - 1]][[critter]]$cn_p_a_fl <-
+        buffet$cn_p_a_fl # catch in numbers by fleet, shifted the same way
 
       storage[[s - 1]][[critter]]$e_p_fl <-
         as.data.frame(updated_e_p_f) # store effort by patch by fleet (note that this is the same across species)

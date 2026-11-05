@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">marlin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -130,7 +130,7 @@ as unfished spawning biomass in patch
 and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϵ</mi><mi>t</mi></msub><annotation encoding="application/x-tex">\epsilon_t</annotation></semantics></math>
 as a log-normal recruitment deviate.
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>𝐝</mi><mi>l</mi></msup><annotation encoding="application/x-tex">\mathbf{d}^l</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi mathvariant="bold-italic">𝒅</mi><mi>l</mi></msup><annotation encoding="application/x-tex">\mathbf{d}^l</annotation></semantics></math>
 is the recruit movement (dispersal) matrix derived from
 <code>recruit_home_range</code>.</p>
 <div class="section level3">
@@ -175,8 +175,8 @@ strong.</p>
 <p>Density-dependent competition occurs <em>locally</em> in the spawning
 patch, and then surviving recruits disperse according to the recruit
 movement matrix
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>𝐝</mi><mi>l</mi></msup><annotation encoding="application/x-tex">\mathbf{d}^l</annotation></semantics></math>:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>N</mi><mrow><mi>t</mi><mo>,</mo><mi>p</mi><mo>,</mo><mi>a</mi><mo>=</mo><mn>1</mn></mrow></msub><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mrow><mn>0.8</mn><mo>×</mo><mi>r</mi><msub><mn>0</mn><mi>p</mi></msub><mo>×</mo><mi>h</mi><mo>×</mo><msub><mtext mathvariant="normal">SSB</mtext><mrow><mi>t</mi><mo>−</mo><mn>1</mn><mo>,</mo><mi>p</mi></mrow></msub></mrow><mrow><mn>0.2</mn><mo>×</mo><msub><mtext mathvariant="normal">SSB0</mtext><mi>p</mi></msub><mo>×</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>h</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mo stretchy="false" form="prefix">(</mo><mi>h</mi><mo>−</mo><mn>0.2</mn><mo stretchy="false" form="postfix">)</mo><mo>×</mo><msub><mtext mathvariant="normal">SSB</mtext><mrow><mi>t</mi><mo>−</mo><mn>1</mn><mo>,</mo><mi>p</mi></mrow></msub></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mo>×</mo><msup><mi>𝐝</mi><mi>l</mi></msup><mo>×</mo><msub><mi>ϵ</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">N_{t,p,a=1} = \left( \frac{0.8 \times r0_p \times h \times \text{SSB}_{t-1,p}}{0.2 \times \text{SSB0}_p \times (1 - h) + (h - 0.2) \times \text{SSB}_{t-1,p}} \right) \times \mathbf{d}^l \times \epsilon_t</annotation></semantics></math></p>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi mathvariant="bold-italic">𝒅</mi><mi>l</mi></msup><annotation encoding="application/x-tex">\mathbf{d}^l</annotation></semantics></math>:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>N</mi><mrow><mi>t</mi><mo>,</mo><mi>p</mi><mo>,</mo><mi>a</mi><mo>=</mo><mn>1</mn></mrow></msub><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mrow><mn>0.8</mn><mo>×</mo><mi>r</mi><msub><mn>0</mn><mi>p</mi></msub><mo>×</mo><mi>h</mi><mo>×</mo><msub><mtext mathvariant="normal">SSB</mtext><mrow><mi>t</mi><mo>−</mo><mn>1</mn><mo>,</mo><mi>p</mi></mrow></msub></mrow><mrow><mn>0.2</mn><mo>×</mo><msub><mtext mathvariant="normal">SSB0</mtext><mi>p</mi></msub><mo>×</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>h</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mo stretchy="false" form="prefix">(</mo><mi>h</mi><mo>−</mo><mn>0.2</mn><mo stretchy="false" form="postfix">)</mo><mo>×</mo><msub><mtext mathvariant="normal">SSB</mtext><mrow><mi>t</mi><mo>−</mo><mn>1</mn><mo>,</mo><mi>p</mi></mrow></msub></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mo>×</mo><msup><mi mathvariant="bold-italic">𝒅</mi><mi>l</mi></msup><mo>×</mo><msub><mi>ϵ</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">N_{t,p,a=1} = \left( \frac{0.8 \times r0_p \times h \times \text{SSB}_{t-1,p}}{0.2 \times \text{SSB0}_p \times (1 - h) + (h - 0.2) \times \text{SSB}_{t-1,p}} \right) \times \mathbf{d}^l \times \epsilon_t</annotation></semantics></math></p>
 <p>The competitive bottleneck is set by conditions at the origin patch.
 pre-dispersal density dependence will all else being equal dampen the
 effects of MPAs; as spawning biomass approaches carrying capacity inside
@@ -194,10 +194,10 @@ events.</p>
 <h3 id="post-dispersal-post_dispersal">4. Post-Dispersal (<code>post_dispersal</code>)<a class="anchor" aria-label="anchor" href="#post-dispersal-post_dispersal"></a>
 </h3>
 <p>Larvae disperse <em>first</em> according to
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>𝐝</mi><mi>l</mi></msup><annotation encoding="application/x-tex">\mathbf{d}^l</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi mathvariant="bold-italic">𝒅</mi><mi>l</mi></msup><annotation encoding="application/x-tex">\mathbf{d}^l</annotation></semantics></math>,
 and then density-dependent recruitment occurs at the
 <em>destination</em> patch based on the local SSB there:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mtext mathvariant="normal">larv</mtext><mrow><mi>t</mi><mo>,</mo><mi>p</mi></mrow></msub><mo>=</mo><msub><mtext mathvariant="normal">SSB</mtext><mrow><mi>t</mi><mo>−</mo><mn>1</mn><mo>,</mo><mi>p</mi></mrow></msub><mo>×</mo><msup><mi>𝐝</mi><mi>l</mi></msup></mrow><annotation encoding="application/x-tex">\text{larv}_{t,p} = \text{SSB}_{t-1,p} \times \mathbf{d}^l</annotation></semantics></math></p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mtext mathvariant="normal">larv</mtext><mrow><mi>t</mi><mo>,</mo><mi>p</mi></mrow></msub><mo>=</mo><msub><mtext mathvariant="normal">SSB</mtext><mrow><mi>t</mi><mo>−</mo><mn>1</mn><mo>,</mo><mi>p</mi></mrow></msub><mo>×</mo><msup><mi mathvariant="bold-italic">𝒅</mi><mi>l</mi></msup></mrow><annotation encoding="application/x-tex">\text{larv}_{t,p} = \text{SSB}_{t-1,p} \times \mathbf{d}^l</annotation></semantics></math></p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>N</mi><mrow><mi>t</mi><mo>,</mo><mi>p</mi><mo>,</mo><mi>a</mi><mo>=</mo><mn>1</mn></mrow></msub><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mrow><mn>0.8</mn><mo>×</mo><mi>r</mi><msub><mn>0</mn><mi>p</mi></msub><mo>×</mo><mi>h</mi><mo>×</mo><msub><mtext mathvariant="normal">larv</mtext><mrow><mi>t</mi><mo>,</mo><mi>p</mi></mrow></msub></mrow><mrow><mn>0.2</mn><mo>×</mo><msub><mtext mathvariant="normal">SSB0</mtext><mi>p</mi></msub><mo>×</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>h</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mo stretchy="false" form="prefix">(</mo><mi>h</mi><mo>−</mo><mn>0.2</mn><mo stretchy="false" form="postfix">)</mo><mo>×</mo><msub><mtext mathvariant="normal">larv</mtext><mrow><mi>t</mi><mo>,</mo><mi>p</mi></mrow></msub></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><mo>×</mo><msub><mi>ϵ</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">N_{t,p,a=1} = \left( \frac{0.8 \times r0_p \times h \times \text{larv}_{t,p}}{0.2 \times \text{SSB0}_p \times (1 - h) + (h - 0.2) \times \text{larv}_{t,p}} \right) \times \epsilon_t</annotation></semantics></math></p>
 <p>The key distinction from pre-dispersal: competition is based on SSB
 at the settlement site, not the origin. All else being equal, this

@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">marlin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -126,7 +126,7 @@ for life stage
 of species
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>,
 is described by a movement matrix
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐌</mi><mrow><mi>t</mi><mo>,</mo><mi>s</mi><mo>,</mo><mi>a</mi></mrow></msub><annotation encoding="application/x-tex">\pmb{M}_{t,s,a}</annotation></semantics></math>.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi mathvariant="bold-italic">𝑴</mi><mrow><mi>t</mi><mo>,</mo><mi>s</mi><mo>,</mo><mi>a</mi></mrow></msub><annotation encoding="application/x-tex">\pmb{M}_{t,s,a}</annotation></semantics></math>.
 This matrix is constructed from a diffusion rate
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>D</mi><annotation encoding="application/x-tex">D</annotation></semantics></math>
 and a habitat preference function
@@ -151,11 +151,11 @@ The diagonal is set so that each row sums to zero, ensuring conservation
 of individuals.</p>
 <p>The actual movement of individuals over a discrete time step is then
 computed via the matrix exponential:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>𝐧</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn><mo>,</mo><mi>s</mi><mo>,</mo><mi>a</mi></mrow></msub><mo>=</mo><msub><mi>𝐧</mi><mrow><mi>t</mi><mo>,</mo><mi>s</mi><mo>,</mo><mi>a</mi></mrow></msub><mspace width="0.167em"></mspace><msup><mi>e</mi><msub><mi>𝐌</mi><mrow><mi>t</mi><mo>,</mo><mi>s</mi><mo>,</mo><mi>a</mi></mrow></msub></msup></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="bold-italic">𝒏</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn><mo>,</mo><mi>s</mi><mo>,</mo><mi>a</mi></mrow></msub><mo>=</mo><msub><mi mathvariant="bold-italic">𝒏</mi><mrow><mi>t</mi><mo>,</mo><mi>s</mi><mo>,</mo><mi>a</mi></mrow></msub><mspace width="0.167em"></mspace><msup><mi>e</mi><msub><mi mathvariant="bold-italic">𝑴</mi><mrow><mi>t</mi><mo>,</mo><mi>s</mi><mo>,</mo><mi>a</mi></mrow></msub></msup></mrow><annotation encoding="application/x-tex">
 \pmb{n}_{t+1,s,a} = \pmb{n}_{t,s,a} \, e^{\pmb{M}_{t,s,a}}
 </annotation></semantics></math></p>
 <p>where
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐧</mi><annotation encoding="application/x-tex">\pmb{n}</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi mathvariant="bold-italic">𝒏</mi><annotation encoding="application/x-tex">\pmb{n}</annotation></semantics></math>
 is the vector of abundances across patches. The matrix exponential
 converts instantaneous rates into discrete-time transition
 probabilities.</p>

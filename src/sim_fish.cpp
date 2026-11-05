@@ -51,8 +51,10 @@ List sim_fish(
   NumericMatrix b_p_a(patches, ages);   // biomass in patch p age a
   NumericMatrix ssb_p_a(patches, ages); // spawning stock biomass in patch p age a
 
-  // catch at age: compute in Eigen first, wrap once
+  // catch at age: compute in Eigen first, wrap once. c_p_a is catch in weight;
+  // cn_p_a is the same catch in numbers (e.g. for simulating sampled fish).
   Eigen::MatrixXd c_p_a_eig = Eigen::MatrixXd::Zero(patches, ages);
+  Eigen::MatrixXd cn_p_a_eig = Eigen::MatrixXd::Zero(patches, ages);
 
   // numbers at age: compute in Eigen (fast), wrap once
   Eigen::MatrixXd n_p_a_eig = Eigen::MatrixXd::Zero(patches, ages);
@@ -161,6 +163,7 @@ List sim_fish(
       // Baranov catch of the plus group in biomass units, weighed at its own age
       c_p_a_eig(p, a_last) =
         (f_p_a(p, a_last) / Zp) * N_last * (1.0 - surv_p) * weight_at_age[a_last];
+      cn_p_a_eig(p, a_last) = (f_p_a(p, a_last) / Zp) * N_last * (1.0 - surv_p);
 
       // start plus group in n_p_a_eig last age
       n_p_a_eig(p, a_last) += plus_survivors;
@@ -180,6 +183,7 @@ List sim_fish(
       // profit, most at the youngest ages; pre-1.0 code used the same age.)
       c_p_a_eig(p, a - 1) =
         weight_at_age[a - 1] * (f_p_a(p, a - 1) / Z) * N0 * (1.0 - surv);
+      cn_p_a_eig(p, a - 1) = (f_p_a(p, a - 1) / Z) * N0 * (1.0 - surv);
     }
   }
 
@@ -193,6 +197,7 @@ List sim_fish(
   // Wrap once for downstream Rcpp code (recruitment / semelparous blocks)
   NumericMatrix n_p_a = Rcpp::wrap(n_p_a_eig);
   NumericMatrix c_p_a = Rcpp::wrap(c_p_a_eig);
+  NumericMatrix cn_p_a = Rcpp::wrap(cn_p_a_eig);
 
 
   //////////////////// biomass and ssb ////////////////////////
@@ -302,5 +307,6 @@ List sim_fish(
     Rcpp::Named("ssb0") = ssb0,
     Rcpp::Named("ssb0_p") = ssb0_p,
     Rcpp::Named("tmppop") = tmppop,
-    Rcpp::Named("c_p_a") = c_p_a);
+    Rcpp::Named("c_p_a") = c_p_a,
+    Rcpp::Named("cn_p_a") = cn_p_a);
 }

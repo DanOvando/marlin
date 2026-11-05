@@ -49,14 +49,14 @@ plotting or analysis.
 \item \code{n}: numbers at age
 \item \code{b}: biomass at age
 \item \code{ssb}: spawning stock biomass at age
-\item \code{c}: catch in numbers at age
+\item \code{c}: catch in weight at age
 }
 
 \strong{\code{$fleets}} — one row per critter × patch × age × fleet × step:
 \itemize{
 \item \code{critter}, \code{patch}, \code{x}, \code{y}, \code{age},
 \code{fleet}, \code{step}, \code{mean_length}: as above
-\item \code{catch}: catch in numbers
+\item \code{catch}: catch in weight
 \item \code{revenue}: revenue
 \item \code{effort}: effort units
 \item \code{cpue}: catch per unit effort (\code{NA} where effort = 0)
