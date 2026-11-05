@@ -1,3 +1,9 @@
+# marlin 1.1.3
+
+## Bug Fixes
+
+- Fleet costs for multi-species fleets with a convex effort cost (`effort_cost_exponent` > 1) now match the documented cost function. `allocate_yields()` runs once per species and the per-species costs are summed, and through 1.1.2 each species' share was computed by dividing patch effort by the number of species *before* the congestion exponent. That sums back to the fleet's cost only when the exponent is 1; for an exponent of gamma it scaled the congestion term by n_species^(1 - gamma) (0.66 for four species at gamma = 1.3), so multi-species fleets paid less congestion cost than the formula and `tune_fleets()`'s cost calibration assumed. Each species now carries an equal share of the cost computed on the fleet's total effort. Single-species fleets and `effort_cost_exponent = 1` are unaffected; multi-species simulations with a convex cost will see higher costs and, for open-access and sole-owner fleets, lower equilibrium effort.
+
 # marlin 1.1.1
 
 ## Behavior Changes

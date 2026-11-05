@@ -76,17 +76,18 @@ allocate_yields <- function(f_p_a_fl,p_p_a_fl, e_p_fl, critter, pop, patches, ag
 
     r_p_fl[, fl] <- rowSums(r_p_a_fl[, , fl], na.rm = TRUE)
 
-    # New normalized cost formula:
-    # Cost_f = c0_f * E_ref_f * [sum_l (E_l,f / E_ref_f)^gamma_f + theta_f * sum_l d_tilde_l,f * (E_l,f / E_ref_f)]
+    # Normalized cost formula, per patch l, for fleet f:
+    # Cost_l,f = c0_f * E_ref_f * [(E_l,f / E_ref_f)^gamma_f + theta_f * d_tilde_l,f * (E_l,f / E_ref_f)]
     #
-    # This is called once per critter in the loop, so we keep the /length(fauna) hack
-    # to divide effort by number of species (it sums correctly across the loop)
+    # Cost depends on the fleet's TOTAL effort in the patch. This function is
+    # called once per critter and aggregate_yields() sums the per-critter costs,
+    # so each critter carries an equal 1 / n_species share of the fleet's cost.
     #
-    # Breaking it down:
-    # - e_normalized = (e_p / n_species) / effort_reference
-    # - convex_term = sum(e_normalized^gamma)
-    # - travel_term = theta * sum(cost_per_patch_normalized * e_normalized)
-    # - total_cost = c0 * effort_reference * (convex_term + travel_term)
+    # Through 1.1.2 effort was instead divided by n_species BEFORE the convex
+    # term, which sums back to the fleet cost only when gamma = 1: for gamma > 1
+    # it scaled the congestion term by n_species^(1 - gamma), so multi-species
+    # fleets paid less congestion cost than the formula (and tune_fleets()'s cost
+    # calibration) assumed.
 
     e_ref <- fleets[[fl]]$effort_reference
     gamma <- fleets[[fl]]$effort_cost_exponent
@@ -94,8 +95,8 @@ allocate_yields <- function(f_p_a_fl,p_p_a_fl, e_p_fl, critter, pop, patches, ag
     c0 <- fleets[[fl]]$cost_per_unit_effort
     d_tilde <- fleets[[fl]]$cost_per_patch_normalized
 
-    # Normalize effort by reference level (with /n_species hack)
-    e_normalized <- (tmp_e_p_fl[, fl] / length(fauna)) / e_ref
+    # Fleet effort in each patch relative to the reference level
+    e_normalized <- tmp_e_p_fl[, fl] / e_ref
 
     # Convex congestion term: (E_l / E_ref)^gamma
     convex_term <- e_normalized^gamma
@@ -103,9 +104,8 @@ allocate_yields <- function(f_p_a_fl,p_p_a_fl, e_p_fl, critter, pop, patches, ag
     # Travel term: theta * d_tilde * (E_l / E_ref)
     travel_term <- theta * d_tilde * e_normalized
 
-    # Total cost per patch: c0 * E_ref * (convex + travel)
-    # Note: We multiply by e_ref here to convert the normalized costs back to actual units
-    cost_p_fl[, fl] <- c0 * e_ref * (convex_term + travel_term)
+    # This critter's equal share of the fleet's cost in each patch
+    cost_p_fl[, fl] <- c0 * e_ref * (convex_term + travel_term) / length(fauna)
 
     prof_p_fl[, fl] <-
       r_p_fl[, fl] - cost_p_fl[,fl]
