@@ -158,7 +158,7 @@ List sim_fish(
       const double N_last = last_n_p_a(p, a_last);
       const double plus_survivors = N_last * surv_p;
 
-      // Baranov catch in biomass units (matches original expression)
+      // Baranov catch of the plus group in biomass units, weighed at its own age
       c_p_a_eig(p, a_last) =
         (f_p_a(p, a_last) / Zp) * N_last * (1.0 - surv_p) * weight_at_age[a_last];
 
@@ -174,9 +174,12 @@ List sim_fish(
 
       n_p_a_eig(p, a) += N0 * surv;
 
-      // Baranov catch in biomass units (matches original expression)
+      // Baranov catch of age a-1 in biomass units: numbers, F and Z are all those
+      // of age a-1, so the catch is weighed at age a-1 too. (1.0.0-1.1.3 used
+      // weight_at_age[a], the NEXT age's weight, inflating catch, revenue and
+      // profit, most at the youngest ages; pre-1.0 code used the same age.)
       c_p_a_eig(p, a - 1) =
-        weight_at_age[a] * (f_p_a(p, a - 1) / Z) * N0 * (1.0 - surv);
+        weight_at_age[a - 1] * (f_p_a(p, a - 1) / Z) * N0 * (1.0 - surv);
     }
   }
 
