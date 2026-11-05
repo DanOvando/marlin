@@ -15,6 +15,8 @@
   : Aggregate Per-Species Yield Outputs Into Fleet-Level Totals
 - [`allocate_effort()`](https://danovando.github.io/marlin/reference/allocate_effort.md)
   : Allocate fishing effort across patches
+- [`calc_fishable_revenue()`](https://danovando.github.io/marlin/reference/calc_fishable_revenue.md)
+  : Calculate Fishable Revenue by Patch and Fleet
 - [`calc_marginal_value()`](https://danovando.github.io/marlin/reference/calc_marginal_value.md)
   : Calculate Marginal Revenue and Marginal Profit by Patch and Fleet
 - [`clean_steps()`](https://danovando.github.io/marlin/reference/clean_steps.md)

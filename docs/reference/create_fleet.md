@@ -29,6 +29,7 @@ create_fleet(
   base_effort = NULL,
   fishing_grounds = NULL,
   responsiveness = 0.025,
+  eps_mix = 0,
   memory_halflife = 0
 )
 ```
@@ -149,6 +150,31 @@ create_fleet(
   if too large, can drive period-2 sawtooth oscillation. Default
   `0.025`.
 
+- eps_mix:
+
+  Numeric in \[0, 1). Fraction of this fleet's effort blended back
+  toward a uniform distribution over open patches each step –
+  exploratory fishing. `0` (default) disables it, matching legacy
+  behavior.
+
+  The spatial update is multiplicative (\\e^{new} \propto e \\ \exp(\eta
+  v)\\), which has an absorbing state at zero: a patch whose effort
+  decays to `0` can never recover, because \\0 \times \exp(\cdot) = 0\\,
+  no matter how attractive it later becomes. Mixing in a uniform
+  baseline floors every open patch at `eps_mix * total_effort / n_open`,
+  which makes zero unreachable and keeps every patch recoverable.
+
+  Two situations call for it. First, high `responsiveness` on a sharply
+  varying objective drives effort to collapse onto a handful of patches
+  and strand the rest at zero. Second, the per-unit-effort objectives
+  (`rpue`, `cpue`, `ppue`) are `NA` where effort is exactly zero, since
+  they divide by it – a patch that dies goes dark and the fleet has no
+  information with which to ever return. A small positive `eps_mix`
+  (0.01–0.05) forecloses both. Not needed for
+  `spatial_allocation = "fishable_revenue"` on information grounds,
+  since that objective is defined at zero effort, but still relevant to
+  the absorbing state.
+
 - memory_halflife:
 
   Non-negative numeric. Half-life **in years** of the exponential
@@ -205,8 +231,12 @@ parameters.
 - `"sole_owner"`:
 
   Identical dynamics to `"open_access"` but uses the marginal (not
-  average) profit signal. Equilibrates at MEY where marginal profit = 0.
-  Requires
+  average) profit signal. Equilibrates where the within-step marginal
+  profit = 0. That signal counts crowding within a step but not the
+  effect of effort on the future stock, so this is a myopic sole owner:
+  it settles below open-access effort with positive profit, but in
+  general above MEY effort, closer to MEY the less one step's fishing
+  changes the future stock. Requires
   [`calc_marginal_value()`](https://danovando.github.io/marlin/reference/calc_marginal_value.md)
   to be computed each step;
   [`simmar`](https://danovando.github.io/marlin/reference/simmar.md)
@@ -248,8 +278,36 @@ distributed among patches each step. Options:
 
   Uses finite- difference marginal returns from
   [`calc_marginal_value`](https://danovando.github.io/marlin/reference/calc_marginal_value.md).
-  Required for `"sole_owner"` fleets. Requires
-  `fleet_model = "sole_owner"` or explicit pre-computation.
+  Effort tends toward the return on the last unit being equal across
+  fished patches, which maximises the fleet's revenue (or profit) within
+  each step for its total effort, taking other fleets' effort as given:
+  the spatial counterpart of a myopic sole owner. The per-unit-effort
+  options above instead tend toward equal average returns, the ideal
+  free distribution, when repeated play settles. Evaluated on the
+  biomass the coming step will fish, so unlike the realised options
+  above there is no one-step lag.
+  [`simmar`](https://danovando.github.io/marlin/reference/simmar.md)
+  computes them each step whenever a fleet uses them or has
+  `fleet_model = "sole_owner"`.
+
+- `"fishable_revenue"`:
+
+  Revenue standing available in each patch – biomass at age times
+  vulnerability at age times price, from
+  [`calc_fishable_revenue`](https://danovando.github.io/marlin/reference/calc_fishable_revenue.md).
+  Like the marginal options, and unlike the realised ones (`"rpue"`
+  through `"catch"`), it is evaluated against the biomass the step is
+  about to fish rather than the one it just fished. Use it when you want
+  effort to track biomass in phase, in particular when habitat moves on
+  a timescale near the time step (e.g. seasonal migration), where the
+  realised objectives always lag by a step no matter how
+  `responsiveness` is set, and you do not need the economics the
+  marginal options carry. It is far cheaper to compute than the marginal
+  options. In exchange there is no crowding within a step, no cost side,
+  and no within-step interaction between fleets, and the fleet relaxes
+  toward effort tracking standing stock rather than toward an ideal free
+  distribution. See
+  [`calc_fishable_revenue`](https://danovando.github.io/marlin/reference/calc_fishable_revenue.md).
 
 - `"manual"`:
 

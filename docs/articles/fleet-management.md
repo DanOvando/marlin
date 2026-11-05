@@ -12,8 +12,11 @@ Things you can adjust include:
   - `"open_access"`: effort adjusts based on average profitability,
     equilibrating where total profits = 0
   - `"sole_owner"`: effort adjusts based on marginal profitability,
-    equilibrating at maximum economic yield (MEY) where marginal profit
-    = 0
+    equilibrating where the marginal profit from one more unit of effort
+    within a step is zero. That signal does not count how today’s effort
+    lowers the future stock, so a sole owner typically settles below
+    open-access effort but above maximum economic yield (MEY) effort
+    (see the `spatial-allocation` vignette).
   - `"manual"`: effort taken from a user-supplied vector
 
 - **Closed fishing seasons** per species (e.g. enforcing a closed season
@@ -283,9 +286,15 @@ proc_mpa_sim$fleets %>%
 
 The `"sole_owner"` fleet model is identical to open access in its effort
 adjustment mechanics, but uses the *marginal* profit signal rather than
-the *average* profit signal. This causes the fleet to equilibrate at
-maximum economic yield (MEY), where marginal profit equals zero, rather
+the *average* profit signal: the profit from one more unit of effort
+within the step. Effort stops expanding when that reaches zero, rather
 than at the open-access equilibrium where total profit equals zero.
+Because the signal does not count how today’s effort lowers the future
+stock, this is a myopic sole owner. It settles between open access and
+MEY, closer to MEY the less one step’s fishing changes the future stock.
+If you need the MEY effort itself, find it directly, for example from a
+grid of constant-effort runs (see “Adaptive fleets, not forward-looking
+optimisers” in the `spatial-allocation` vignette).
 
 Marginal profit is computed via finite-difference perturbations (see
 [`?calc_marginal_value`](https://danovando.github.io/marlin/reference/calc_marginal_value.md)).
@@ -304,7 +313,7 @@ fleets <- list(
   "longline" = create_fleet(
     list("bigeye" = Metier$new(...)),
     fleet_model = "sole_owner",
-    cr_ratio = 0.8,  # MEY typically has positive profits, so cr_ratio < 1
+    cr_ratio = 0.8,  # a sole owner typically keeps positive profits, so cr_ratio < 1
     ...
   )
 )

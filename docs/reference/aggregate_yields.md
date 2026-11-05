@@ -39,16 +39,16 @@ aggregate_yields(
 
   `"matrix"`
 
-  :   (default) Returns list of patches x fleets matrices with fleet
-      names as column names. Fast; designed for internal use in
-      [`simmar`](https://danovando.github.io/marlin/reference/simmar.md).
+  : (default) Returns list of patches x fleets matrices with fleet names
+    as column names. Fast; designed for internal use in
+    [`simmar`](https://danovando.github.io/marlin/reference/simmar.md).
 
   `"tidy"`
 
-  :   Returns list of tidy data frames with species summed and effort
-      joined. Slower; used inside
-      [`go_fish`](https://danovando.github.io/marlin/reference/go_fish.md)
-      for user-facing output.
+  : Returns list of tidy data frames with species summed and effort
+    joined. Slower; used inside
+    [`go_fish`](https://danovando.github.io/marlin/reference/go_fish.md)
+    for user-facing output.
 
 - groupers:
 

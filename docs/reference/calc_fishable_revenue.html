@@ -13,7 +13,7 @@ spatial_allocation is &quot;fishable_revenue&quot;."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">marlin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -114,19 +114,23 @@ where \(B\) is biomass at age and \(v\) is the metier's <code>vul_p_a</code>
 <h3 id="why-this-exists">Why this exists<a class="anchor" aria-label="anchor" href="#why-this-exists"></a></h3>
 
 
-<p>Every other spatial-allocation objective is a function of realised fishing:
-<code><a href="go_fish.html">go_fish</a></code> computes what a fleet <em>got</em> given the effort it
+<p>The realised spatial-allocation objectives (<code>rpue</code>, <code>revenue</code>,
+<code>ppue</code>, <code>profit</code>, <code>cpue</code>, <code>catch</code>) are functions of
+realised fishing: they record what a fleet <em>got</em> given the effort it
 actually deployed, so the signal reaching <code><a href="allocate_effort.html">allocate_effort</a></code> at
 step \(t\) necessarily describes step \(t-1\). When habitat changes on a
-timescale close to the time step – seasonal migration, say – the fleet is
-then always responding to where fish were rather than where they are, and no
-value of <code>responsiveness</code> fixes it, because the lag is structural rather
-than a matter of step size.</p>
-<p>Fishable revenue takes no effort argument. That is the entire point: because
-it does not depend on how effort is distributed, it can be evaluated against
-the biomass a step is <em>about</em> to fish rather than the one it just
-fished, with no circularity and no fixed point to solve. It is also cheaper
-than the realised objectives, since it needs no Baranov solve.</p>
+timescale close to the time step – seasonal migration, say – a fleet on one
+of them is always responding to where fish were rather than where they are,
+and no value of <code>responsiveness</code> fixes it, because the lag is
+structural rather than a matter of step size.</p>
+<p>The marginal objectives (<code>marginal_revenue</code>, <code>marginal_profit</code>)
+avoid that lag, because <code><a href="simmar.html">simmar</a></code> evaluates them on the biomass
+the coming step will fish, but they cost extra <code><a href="go_fish.html">go_fish</a></code>
+evaluations every step and model a fleet that maximises its total return.
+Fishable revenue is the cheap, economics-free alternative. It takes no
+effort argument, so it can be evaluated against the biomass a step is
+<em>about</em> to fish with no circularity, no fixed point to solve and no
+Baranov solve.</p>
 <p>It is additionally defined where effort is zero, unlike the per-unit-effort
 objectives (<code>rpue</code>, <code>cpue</code>, <code>ppue</code>), which are <code>NA</code>
 there. A fleet allocating on fishable revenue therefore sees unfished patches
@@ -147,11 +151,14 @@ onward – delayed negative feedback, which can oscillate. Consider
 <li><p><strong>No fleet interaction within a step.</strong> Two fleets on the same
 stock do not see each other's effort; they feel each other only through
 next step's depleted biomass.</p></li>
-<li><p><strong>Not an ideal free distribution.</strong> <code>rpue</code> and the marginal
-rules relax toward equalised returns. This one relaxes toward effort
-tracking standing stock, which is a different equilibrium – "fish where
-the fish are" rather than "fish where the next unit of effort pays the
-same everywhere". Neither is wrong; they are different fleets.</p></li>
+<li><p><strong>No equalised returns.</strong> The per-unit-effort rules (<code>rpue</code>,
+<code>ppue</code>, <code>cpue</code>) relax toward equal average returns across
+fished patches (the ideal free distribution), and the marginal rules
+toward equal marginal returns within each step (a myopic sole owner's
+allocation). This one
+relaxes toward effort tracking standing stock, which is a different
+equilibrium – "fish where the fish are". None of these is wrong; they
+are different fleets.</p></li>
 </ul></div>
 
     </div>

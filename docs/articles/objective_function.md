@@ -6,9 +6,9 @@ We define the objective for a single focal fleet $`f`$.
 
 ### Indices
 
-- $`f`$: fleet  
-- $`l`$: patch (location)  
-- $`s`$: species  
+- $`f`$: fleet\
+- $`l`$: patch (location)\
+- $`s`$: species\
 - $`a`$: age
 
 ### Effort and fishing mortality

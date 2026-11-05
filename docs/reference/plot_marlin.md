@@ -42,19 +42,19 @@ plot_marlin(
 
   `"ssb"`
 
-  :   Spawning stock biomass (default)
+  : Spawning stock biomass (default)
 
   `"b"`
 
-  :   Total biomass
+  : Total biomass
 
   `"c"`
 
-  :   Catch in numbers
+  : Catch in weight
 
   `"n"`
 
-  :   Abundance in numbers
+  : Abundance in numbers
 
 - plot_type:
 

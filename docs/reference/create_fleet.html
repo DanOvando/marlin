@@ -13,7 +13,7 @@ calibrate catchability and costs to the desired initial conditions."></head><bod
 
     <a class="navbar-brand me-2" href="../index.html">marlin</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -294,9 +294,14 @@ normalised average-profitability signal. Equilibrates where total profits
 
 <dt><code>"sole_owner"</code></dt>
 <dd><p>Identical dynamics to <code>"open_access"</code> but
-uses the marginal (not average) profit signal. Equilibrates at MEY where
-marginal profit = 0. Requires <code><a href="calc_marginal_value.html">calc_marginal_value()</a></code> to be
-computed each step; <code><a href="simmar.html">simmar</a></code> handles this automatically.</p></dd>
+uses the marginal (not average) profit signal. Equilibrates where the
+within-step marginal profit = 0. That signal counts crowding within a
+step but not the effect of effort on the future stock, so this is a
+myopic sole owner: it settles below open-access effort with positive
+profit, but in general above MEY effort, closer to MEY the less one
+step's fishing changes the future stock. Requires
+<code><a href="calc_marginal_value.html">calc_marginal_value()</a></code> to be computed each step;
+<code><a href="simmar.html">simmar</a></code> handles this automatically.</p></dd>
 
 <dt><code>"manual"</code></dt>
 <dd><p>Total effort each step is taken directly from a
@@ -331,19 +336,28 @@ larger patches.</p></dd>
 <dt><code>"marginal_revenue"</code> / <code>"marginal_profit"</code></dt>
 <dd><p>Uses finite-
 difference marginal returns from <code><a href="calc_marginal_value.html">calc_marginal_value</a></code>.
-Required for <code>"sole_owner"</code> fleets. Requires
-<code>fleet_model = "sole_owner"</code> or explicit pre-computation.</p></dd>
+Effort tends toward the return on the last unit being equal across
+fished patches, which maximises the fleet's revenue (or profit) within
+each step for its total effort, taking other fleets' effort as given:
+the spatial counterpart of a myopic sole owner. The per-unit-effort
+options above instead tend toward equal average returns, the ideal free
+distribution, when repeated play settles. Evaluated on the biomass the coming step will fish, so
+unlike the realised options above there is no one-step lag.
+<code><a href="simmar.html">simmar</a></code> computes them each step whenever a fleet uses them
+or has <code>fleet_model = "sole_owner"</code>.</p></dd>
 
 <dt><code>"fishable_revenue"</code></dt>
 <dd><p>Revenue standing available in each patch –
 biomass at age times vulnerability at age times price, from
-<code><a href="calc_fishable_revenue.html">calc_fishable_revenue</a></code>. Unlike every option above it is not a
-function of realised fishing, so it is evaluated against the biomass the
-step is about to fish rather than the one it just fished. Use it when you
-want effort to track biomass in phase, in particular when habitat moves on
-a timescale near the time step (e.g. seasonal migration), where the
-realised objectives always lag by a step no matter how
-<code>responsiveness</code> is set. In exchange there is no crowding within a
+<code><a href="calc_fishable_revenue.html">calc_fishable_revenue</a></code>. Like the marginal options, and
+unlike the realised ones (<code>"rpue"</code> through <code>"catch"</code>), it is
+evaluated against the biomass the step is about to fish rather than the
+one it just fished. Use it when you want effort to track biomass in
+phase, in particular when habitat moves on a timescale near the time step
+(e.g. seasonal migration), where the realised objectives always lag by a
+step no matter how <code>responsiveness</code> is set, and you do not need the
+economics the marginal options carry. It is far cheaper to compute than
+the marginal options. In exchange there is no crowding within a
 step, no cost side, and no within-step interaction between fleets, and the
 fleet relaxes toward effort tracking standing stock rather than toward an
 ideal free distribution. See <code><a href="calc_fishable_revenue.html">calc_fishable_revenue</a></code>.</p></dd>

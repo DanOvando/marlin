@@ -71,7 +71,7 @@ A named list:
 
 - `c_p_a_fl`:
 
-  3-D array `[patches, ages, fleets]` of catch in numbers.
+  3-D array `[patches, ages, fleets]` of catch in weight (biomass).
 
 - `r_p_a_fl`:
 

@@ -84,14 +84,14 @@ sim_habitat(
 
   `"df"`
 
-  :   Returns a data frame with columns `critter`, `patch`, `x`, `y`,
-      and `habitat`.
+  : Returns a data frame with columns `critter`, `patch`, `x`, `y`, and
+    `habitat`.
 
   `"list"`
 
-  :   Returns a named list (one entry per species) of `[ny, nx]` habitat
-      matrices suitable for direct use as the `habitat` argument to
-      [`create_critter`](https://danovando.github.io/marlin/reference/create_critter.md).
+  : Returns a named list (one entry per species) of `[ny, nx]` habitat
+    matrices suitable for direct use as the `habitat` argument to
+    [`create_critter`](https://danovando.github.io/marlin/reference/create_critter.md).
 
 ## Value
 
@@ -125,9 +125,17 @@ Cross-species correlations are drawn uniformly from \\\[-max\\abs\\cor,
 matrix to fix species correlations exactly.
 
 When `output = "list"`, habitat matrices are returned in `[ny, nx]`
-format with column names `1:nx` and row names `1:ny`, matching the
-convention expected by
-[`create_critter`](https://danovando.github.io/marlin/reference/create_critter.md).
+format with column names `1:nx`, matching the orientation expected by
+[`create_critter`](https://danovando.github.io/marlin/reference/create_critter.md):
+**row 1 is the top of the map** (\\y = ny\\) and the last row is \\y =
+1\\. Note this is the reverse of the `y` ordering in the `output = "df"`
+form, which runs bottom-up like a Cartesian axis; the two describe the
+same surface. Plot the matrix with
+[`image()`](https://rdrr.io/r/graphics/image.html)/`plot.matrix` (which
+draw row 1 at the top) or the data frame with
+`ggplot2::geom_tile(aes(x, y))`, and both will agree with the spatial
+output of
+[`simmar`](https://danovando.github.io/marlin/reference/simmar.md).
 
 ## References
 

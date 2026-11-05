@@ -94,6 +94,36 @@ create_critter(
   `density_dependence`, recruit distribution. Generate with
   [`sim_habitat`](https://danovando.github.io/marlin/reference/sim_habitat.md).
 
+  **Orientation.** Habitat matrices are read exactly as they look when
+  printed: **row 1 is the top of the map** (\\y = ny\\), the last row is
+  \\y = 1\\, and column \\j\\ is \\x = j\\. Good habitat in the top-left
+  of the matrix puts fish in the top-left of
+  [`simmar`](https://danovando.github.io/marlin/reference/simmar.md)'s
+  output. This matches how a GIS raster stores a map (row 1 = north) and
+  how [`image()`](https://rdrr.io/r/graphics/image.html) / `plot.matrix`
+  draw one, so a raster read straight off disk needs no flipping.
+  [`simmar`](https://danovando.github.io/marlin/reference/simmar.md)'s
+  `habitat` argument uses the identical convention.
+
+  The gotcha is generating habitat from a Cartesian formula, because
+  [`expand_grid()`](https://tidyr.tidyverse.org/reference/expand_grid.html)
+  runs `y` bottom-up while a matrix runs top-down. Sort descending by
+  `y` before reshaping, or the surface goes in upside down and \\y\\ in
+  your formula means the opposite of \\y\\ on the map:
+
+        habitat_matrix <- tidyr::expand_grid(x = 1:nx, y = 1:ny) |>
+          dplyr::mutate(habitat = -((y - 8)^2)) |>  # optimum at y = 8, up north
+          dplyr::arrange(dplyr::desc(y)) |>         # <- required: row 1 = max y
+          tidyr::pivot_wider(names_from = x, values_from = habitat) |>
+          dplyr::select(-y) |>
+          as.matrix()
+        
+
+  Surfaces that are symmetric in \\y\\ (a centred `dnorm`) or ignore
+  \\y\\ entirely are unaffected either way, which is exactly why an
+  orientation error can hide for a long time. Test with an asymmetric
+  one.
+
 - season_blocks:
 
   List of integer vectors specifying which seasons belong to each

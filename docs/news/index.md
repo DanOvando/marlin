@@ -1,5 +1,69 @@
 # Changelog
 
+## marlin 1.1.4
+
+### Bug Fixes
+
+- Catch is now weighed at the age the fish were caught at. Since the
+  1.0.0 rewrite of `sim_fish()`, the Baranov catch of age *a* fish
+  (numbers, *F* and *Z* all at age *a*) was converted to biomass with
+  `weight_at_age[a + 1]`, the next age’s weight, while the pre-1.0 code
+  used the same age. This inflated catch biomass, revenue and profit by
+  `weight_at_age[a + 1] / weight_at_age[a]`, most at the youngest ages,
+  and through revenue and profit it also affected spatial effort
+  allocation, open-access and sole-owner effort dynamics, and
+  [`tune_fleets()`](https://danovando.github.io/marlin/reference/tune_fleets.md)’s
+  cost calibration. Survival, numbers, biomass and spawning biomass were
+  not affected directly. The plus group was always weighed correctly. A
+  new test reproduces one step’s catch by hand.
+
+### New Features
+
+- Catch is now also returned in numbers. `sim_fish()` returns `cn_p_a`
+  alongside `c_p_a` (weight);
+  [`allocate_yields()`](https://danovando.github.io/marlin/reference/allocate_yields.md)
+  splits it across fleets as `cn_p_a_fl`;
+  [`simmar()`](https://danovando.github.io/marlin/reference/simmar.md)
+  stores both, shifted to the step the catch came from just like
+  `c_p_a`; and
+  [`process_marlin()`](https://danovando.github.io/marlin/reference/process_marlin.md)
+  adds a `cn` column to `$fauna` and a `catch_numbers` column to
+  `$fleets`. Useful for simulating sampled fish. Existing outputs are
+  unchanged.
+
+### Documentation
+
+- `c_p_a`, `c_p_a_fl` and the processed `c` / `catch` columns are catch
+  in weight (biomass). The docs for
+  [`simmar()`](https://danovando.github.io/marlin/reference/simmar.md),
+  [`process_marlin()`](https://danovando.github.io/marlin/reference/process_marlin.md),
+  [`allocate_yields()`](https://danovando.github.io/marlin/reference/allocate_yields.md)
+  and
+  [`plot_marlin()`](https://danovando.github.io/marlin/reference/plot_marlin.md)
+  had described them as catch in numbers, which invites weighting catch
+  a second time.
+
+## marlin 1.1.3
+
+### Bug Fixes
+
+- Fleet costs for multi-species fleets with a convex effort cost
+  (`effort_cost_exponent` \> 1) now match the documented cost function.
+  [`allocate_yields()`](https://danovando.github.io/marlin/reference/allocate_yields.md)
+  runs once per species and the per-species costs are summed, and
+  through 1.1.2 each species’ share was computed by dividing patch
+  effort by the number of species *before* the congestion exponent. That
+  sums back to the fleet’s cost only when the exponent is 1; for an
+  exponent of gamma it scaled the congestion term by n_species^(1 -
+  gamma) (0.66 for four species at gamma = 1.3), so multi-species fleets
+  paid less congestion cost than the formula and
+  [`tune_fleets()`](https://danovando.github.io/marlin/reference/tune_fleets.md)’s
+  cost calibration assumed. Each species now carries an equal share of
+  the cost computed on the fleet’s total effort. Single-species fleets
+  and `effort_cost_exponent = 1` are unaffected; multi-species
+  simulations with a convex cost will see higher costs and, for
+  open-access and sole-owner fleets, lower equilibrium effort.
+
 ## marlin 1.1.1
 
 ### Behavior Changes

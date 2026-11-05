@@ -57,15 +57,15 @@ go_fish(
 
   `"tidy"`
 
-  :   (default) Returns a list of tidy data frames with species summed
-      across and effort joined.
+  : (default) Returns a list of tidy data frames with species summed
+    across and effort joined.
 
   `"matrix"`
 
-  :   Returns a list of patches x fleets matrices (species summed).
-      Designed for direct use with
-      [`allocate_effort`](https://danovando.github.io/marlin/reference/allocate_effort.md).
-      Substantially faster.
+  : Returns a list of patches x fleets matrices (species summed).
+    Designed for direct use with
+    [`allocate_effort`](https://danovando.github.io/marlin/reference/allocate_effort.md).
+    Substantially faster.
 
 ## Value
 

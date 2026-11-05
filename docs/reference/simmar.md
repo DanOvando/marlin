@@ -47,25 +47,25 @@ simmar(
 
   `mpas`
 
-  :   List with `$locations` (a data frame with columns `x`, `y`, `mpa`;
-      `mpa = TRUE` = closed) and `$mpa_year` (integer year when closures
-      are activated).
+  : List with `$locations` (a data frame with columns `x`, `y`, `mpa`;
+    `mpa = TRUE` = closed) and `$mpa_year` (integer year when closures
+    are activated).
 
   `quotas`
 
-  :   Named numeric vector of annual catch caps per species (names match
-      `fauna`). Effort is scaled down by an optimised multiplier when
-      the cap would be exceeded.
+  : Named numeric vector of annual catch caps per species (names match
+    `fauna`). Effort is scaled down by an optimised multiplier when the
+    cap would be exceeded.
 
   `effort_cap`
 
-  :   Named numeric vector capping total effort per fleet in open-access
-      / sole-owner models.
+  : Named numeric vector capping total effort per fleet in open-access /
+    sole-owner models.
 
   `closed_seasons`
 
-  :   Named list of integer vectors specifying which seasons are closed
-      to fishing for each critter.
+  : Named list of integer vectors specifying which seasons are closed to
+    fishing for each critter.
 
 - habitat:
 
@@ -139,7 +139,7 @@ includes:
 
 - `c_p_a`:
 
-  Catch in numbers by patch and age (matrix).
+  Catch in weight (biomass) by patch and age (matrix).
 
 - `c_p_fl`:
 

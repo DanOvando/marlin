@@ -74,14 +74,14 @@ A named list with two elements:
 
 - `ssb`: spawning stock biomass at age
 
-- `c`: catch in numbers at age
+- `c`: catch in weight at age
 
 **`$fleets`** — one row per critter × patch × age × fleet × step:
 
 - `critter`, `patch`, `x`, `y`, `age`, `fleet`, `step`, `mean_length`:
   as above
 
-- `catch`: catch in numbers
+- `catch`: catch in weight
 
 - `revenue`: revenue
 
